@@ -53,3 +53,4 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/lib/base_test)
 ##################################################################
 # Add Subdirectory Containing User Tests
 ##################################################################
+add_subdirectory(${CMAKE_SOURCE_DIR}/test/math/star)
