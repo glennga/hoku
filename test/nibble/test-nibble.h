@@ -1,5 +1,5 @@
 /*
- * @file: test_nibble.h
+ * @file: test-nibble.h
  *
  * @brief: Header file for the TestNibble namespace, which tests the Nibble namespace.
  */

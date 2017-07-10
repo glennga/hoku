@@ -1,5 +1,5 @@
 /*
- * @file: test_trio.h
+ * @file: test-trio.h
  *
  * @brief: Header file for the TestTrio class, which tests the Trio class.
  */
