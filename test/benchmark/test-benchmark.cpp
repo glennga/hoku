@@ -4,7 +4,7 @@
  * @brief: Source file for the TestBenchmark class, as well as the main function to run the tests.
  */
 
-#include "test_benchmark.h"
+#include "test-benchmark.h"
 
 /*
  * Check that the stars are not in the same order after shuffling.
