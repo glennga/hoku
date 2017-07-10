@@ -31,6 +31,16 @@ Star::Star(const double i, const double j, const double k, const int bsc_id,
 }
 
 /*
+ * Overloaded constructor. Sets the i, j, k, and bsc_id of a star to 0.
+ */
+Star::Star() {
+    this->i = 0;
+    this->j = 0;
+    this->k = 0;
+    this->bsc_id = 0;
+}
+
+/*
  * Get method for the i, j, and k components of the star. Overloads the [] operator.
  *
  * @param n Index of <i, j, k> to return.
