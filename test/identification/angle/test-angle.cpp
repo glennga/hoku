@@ -4,7 +4,7 @@
  * @brief: Source file for the TestAngle class, as well as the main function to run the tests.
  */
 
-#include "test_angle.h"
+#include "test-angle.h"
 
 /*
  * Check that query_for_pair method returns the BSC ID of the correct stars.
