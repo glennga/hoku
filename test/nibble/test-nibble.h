@@ -36,7 +36,7 @@ class TestNibble : public BaseTest {
         void test_table_insertion();
 
         // test the id grabbing method
-        void test_bsc_id_grab();
+        void test_bsc5_all_stars_grab();
 
         // test the nearby star grabbing method
         void test_nearby_star_grab();
