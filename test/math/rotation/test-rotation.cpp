@@ -4,7 +4,7 @@
  * @brief: Source file for the TestRotation class, as well as the main function to run the tests.
  */
 
-#include "test_rotation.h"
+#include "test-rotation.h"
 
 /*
  * Check that the vector component is set to zero with the public constructor.
