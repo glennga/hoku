@@ -53,6 +53,7 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/lib/base_test)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/math/star)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/math/rotation)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/math/trio)
+add_subdirectory(${CMAKE_SOURCE_DIR}/lib/nibble)
 
 ##################################################################
 # Add Subdirectory Containing User Tests
