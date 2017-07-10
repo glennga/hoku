@@ -4,7 +4,7 @@
  * @brief: Source file for the TestStar class, as well as the main function to run the tests.
  */
 
-#include "test_star.h"
+#include "test-star.h"
 
 /*
  * Check that the components are not altered without set_unit being set.

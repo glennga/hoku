@@ -49,7 +49,7 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/lib/third-party/sqlite-cpp)
 ##################################################################
 # Add Subdirectory Containing User Libraries
 ##################################################################
-add_subdirectory(${CMAKE_SOURCE_DIR}/lib/base_test)
+add_subdirectory(${CMAKE_SOURCE_DIR}/lib/base-test)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/math/star)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/math/rotation)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/math/trio)
