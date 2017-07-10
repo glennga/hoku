@@ -4,7 +4,7 @@
  * @brief: Serves as a base class for all testing classes.
  */
 
-#include "base_test.h"
+#include "base-test.h"
 
 /*
  * Store the current time in seconds. Like resetting a timer to 0. Waiting one second before
