@@ -4,7 +4,7 @@
  * @brief: Source file for the TestNibble namespace, as well as the main function to run the tests.
  */
 
-#include "test_nibble.h"
+#include "test-nibble.h"
 
 /*
  * Check that components are correctly parsed from the given line.
