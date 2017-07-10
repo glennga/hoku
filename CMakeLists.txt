@@ -43,6 +43,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 ##################################################################
 # Add Subdirectory Containing Third Party Libraries
 ##################################################################
+add_subdirectory(${CMAKE_SOURCE_DIR}/lib/third_party/sqlite-cpp/sqlite3)
+add_subdirectory(${CMAKE_SOURCE_DIR}/lib/third_party/sqlite-cpp)
 
 ##################################################################
 # Add Subdirectory Containing User Libraries
