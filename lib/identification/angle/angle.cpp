@@ -30,32 +30,27 @@ Angle::Angle(Benchmark input) {
 int Angle::generate_sep_table(const int fov, const std::string &table_name) {
     SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
     SQLite::Transaction transaction(db);
-    db.exec("CREATE TABLE " + table_name + "(star_a_number INT, "
-            "star_b_number INT, "
-            "theta FLOAT)");
+    db.exec("CREATE TABLE " + table_name + "(star_a_number INT, star_b_number INT, theta FLOAT)");
 
     // (a, b) are distinct, where no (a, b) = (b, a)
-    std::array<int, 5029> star_numbers = Nibble::all_bsc_id();
-    for (unsigned int a = 0; a < star_numbers.size() - 1; a++) {
-        std::cout << "\r" << "Current *A* Star: " << star_numbers[a];
-        Star zeta = Nibble::query_bsc5(db, star_numbers[a]);
-
-        for (unsigned int b = a + 1; b < star_numbers.size(); b++) {
-            double theta = Star::angle_between(zeta, Nibble::query_bsc5(db, star_numbers[b]));
+    std::array<Star, 5029> all_stars = Nibble::all_bsc5_stars();
+    for (unsigned int a = 0; a < all_stars.size() - 1; a++) {
+        std::cout << "\r" << "Current *A* Star: " << all_stars[a].get_bsc_id();
+        for (unsigned int b = a + 1; b < all_stars.size(); b++) {
+            double theta = Star::angle_between(all_stars[a], all_stars[b]);
 
             // only insert if angle between both stars is less than fov
             if (theta < fov) {
                 Nibble::insert_into_table(db, table_name, "star_a_number, star_b_number, "
-                        "theta", {(double) star_numbers[a], (double) star_numbers[b], theta});
+                        "theta", {(double) all_stars[a].get_bsc_id(),
+                                  (double) all_stars[b].get_bsc_id(), theta});
             }
         }
     }
 
     transaction.commit();
     return Nibble::polish_table(table_name, "star_a_number, star_b_number, theta",
-                                "star_a_number INT, "
-                                        "star_b_number INT, "
-                                        "theta FLOAT", "theta");
+                                "star_a_number INT, star_b_number INT, theta FLOAT", "theta");
 }
 
 /*
