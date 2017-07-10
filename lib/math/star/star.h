@@ -50,6 +50,7 @@ class Star {
         // determine if the **components** are within a certain value of each other
         static bool is_equal(const Star &, const Star &,
                              const double = DEFAULT_PRECISION_IS_EQUAL);
+        bool operator==(const Star &) const;
 
         // generate unit vector with random components, overloaded to add own BSC ID
         static Star chance();
