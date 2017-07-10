@@ -219,11 +219,11 @@ void TestNibble::test_table_insertion() {
 void TestNibble::test_bsc5_all_stars_grab() {
     std::array<Star, 5029> kaph = Nibble::all_bsc5_stars();
 
-    assert_true(kaph[0] == Nibble::query_bsc5(3), "BSCIDGrab3");
-    assert_true(kaph[1] == Nibble::query_bsc5(4), "BSCIDGrab4");
-    assert_true(kaph[2] == Nibble::query_bsc5(5), "BSCIDGrab5");
-    assert_true(kaph[5] == Nibble::query_bsc5(12), "BSCIDGrab12");
-    assert_true(kaph[0] == Nibble::query_bsc5(9110), "BSCIDGrab9110");
+    assert_true(kaph[0] == Nibble::query_bsc5(3), "BSCStarGrab3");
+    assert_true(kaph[1] == Nibble::query_bsc5(4), "BSCStarGrab4");
+    assert_true(kaph[2] == Nibble::query_bsc5(5), "BSCStarGrab5");
+    assert_true(kaph[5] == Nibble::query_bsc5(12), "BSCStarGrab12");
+    assert_true(kaph[5028] == Nibble::query_bsc5(9110), "BSCStarGrab9110");
 }
 
 /*
