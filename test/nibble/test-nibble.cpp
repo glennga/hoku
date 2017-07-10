@@ -64,26 +64,23 @@ void TestNibble::test_bsc5_table_existence() {
  * Check that the BSC5 query method returns the expected values.
  */
 void TestNibble::test_bsc5_query_result() {
-    std::array<double, 4> kaph = Nibble::query_bsc5(3);
+    Star kaph = Nibble::query_bsc5(3);
 
     assert_equal(kaph[0], 0.994772975556659, "BSC5QueryComponentI");
     assert_equal(kaph[1], 0.0231608361523004, "BSC5QueryComponentJ");
     assert_equal(kaph[2], -0.0994500013618795, "BSC5QueryComponentK");
-    assert_equal(kaph[3], 4.6100001335144, "BSC5QueryMagnitude");
 }
 
 /*
  * Check that the BSC5 query method with a database object parameter returns the expected values.
  */
 void TestNibble::test_bsc5_db_query_result() {
-    SQLite::Database db(Nibble::database_location,
-                        SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
-    std::array<double, 4> kaph = Nibble::query_bsc5(db, 3);
+    SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+    Star kaph = Nibble::query_bsc5(db, 3);
 
     assert_equal(kaph[0], 0.994772975556659, "BSC5QueryWithDBComponentI");
     assert_equal(kaph[1], 0.0231608361523004, "BSC5QueryWithDBComponentJ");
     assert_equal(kaph[2], -0.0994500013618795, "BSC5QueryWithDBComponentK");
-    assert_equal(kaph[3], 4.6100001335144, "BSC5QueryWithDBMagnitude");
 }
 
 /*
@@ -131,8 +128,7 @@ void TestNibble::test_table_polish_index() {
                                  "k FLOAT, "
                                  "magnitude FLOAT, "
                                  "number INT", "alpha");
-    SQLite::Database db(Nibble::database_location,
-                        SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+    SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
     bool assertion = false;
 
     try {
@@ -172,8 +168,8 @@ void TestNibble::test_table_polish_sort() {
 
     // delete new table and index, rerun original bsc5 table generation
     try {
-        SQLite::Database db(Nibble::database_location,
-                            SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+        SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE |
+                SQLite::OPEN_CREATE);
         SQLite::Transaction transaction(db);
         SQLite::Statement(db, "DROP INDEX BSC5_alpha").exec();
         SQLite::Statement(db, "DROP TABLE BSC5").exec();
@@ -191,8 +187,7 @@ void TestNibble::test_table_polish_sort() {
  * Test if the insertion of an entry was made.
  */
 void TestNibble::test_table_insertion() {
-    SQLite::Database db(Nibble::database_location,
-                        SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+    SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
     std::vector<double> kaph{0, 0, 0, 0, 0, 0, 10000000}, yodh;
     SQLite::Transaction transaction(db);
 
@@ -259,7 +254,7 @@ int TestNibble::enumerate_tests(int test_case) {
             break;
         case 3: test_bsc5_query_result();
             break;
-        case 4: test_bsc5_query_result();
+        case 4: test_bsc5_db_query_result();
             break;
         case 5: test_table_search_result();
             break;

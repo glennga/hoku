@@ -33,11 +33,10 @@ std::array<double, 6> Nibble::components_from_line(const std::string &entry) {
         Star star_entry(1.0 * cos((M_PI / 180.0) * delta) * cos((M_PI / 180.0) * alpha),
                         1.0 * cos((M_PI / 180.0) * delta) * sin(M_PI / 180.0 * alpha),
                         1.0 * sin((M_PI / 180.0) * delta), 0, true);
-        std::array<double, 3> vector = star_entry.components_as_array();
 
         // only insert if magnitude < 6.0 (visible light)
         double magnitude = strtof(entry.substr(102, 5).c_str(), NULL);
-        components = {alpha, delta, vector[0], vector[1], vector[2], magnitude};
+        components = {alpha, delta, star_entry[0], star_entry[1], star_entry[2], magnitude};
     }
     catch (std::exception &e) {
 #if NIBBLE_DISPLAY_EXCEPTION_MESSAGES == 1
