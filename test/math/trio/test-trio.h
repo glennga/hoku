@@ -7,7 +7,7 @@
 #ifndef TEST_TRIO_H
 #define TEST_TRIO_H
 
-#include "base_test.h"
+#include "base-test.h"
 #include "trio.h"
 #include <cstdio>
 
