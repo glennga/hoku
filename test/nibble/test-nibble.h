@@ -7,7 +7,7 @@
 #ifndef TEST_NIBBLE_H
 #define TEST_NIBBLE_H
 
-#include "base_test.h"
+#include "base-test.h"
 #include "nibble.h"
 #include <cstdio>
 

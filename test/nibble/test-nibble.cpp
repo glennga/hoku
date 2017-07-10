@@ -1,10 +1,10 @@
 /*
- * @file: test_nibble.cpp
+ * @file: test-nibble.cpp
  *
  * @brief: Source file for the TestNibble namespace, as well as the main function to run the tests.
  */
 
-#include "test_nibble.h"
+#include "test-nibble.h"
 
 /*
  * Check that components are correctly parsed from the given line.
@@ -251,44 +251,31 @@ void TestNibble::test_nearby_star_grab() {
  */
 int TestNibble::enumerate_tests(int test_case) {
     switch (test_case) {
-        case 0:
-            test_components_from_line();
+        case 0: test_components_from_line();
             break;
-        case 1:
-            test_file_existence();
+        case 1: test_file_existence();
             break;
-        case 2:
-            test_bsc5_table_existence();
+        case 2: test_bsc5_table_existence();
             break;
-        case 3:
-            test_bsc5_query_result();
+        case 3: test_bsc5_query_result();
             break;
-        case 4:
-            test_bsc5_query_result();
+        case 4: test_bsc5_query_result();
             break;
-        case 5:
-            test_table_search_result();
+        case 5: test_table_search_result();
             break;
-        case 6:
-            test_table_search_result_index();
+        case 6: test_table_search_result_index();
             break;
-        case 7:
-            test_table_polish_index();
+        case 7: test_table_polish_index();
             break;
-        case 8:
-            test_table_polish_sort();
+        case 8: test_table_polish_sort();
             break;
-        case 9:
-            test_table_insertion();
+        case 9: test_table_insertion();
             break;
-        case 10:
-            test_bsc_id_grab();
+        case 10: test_bsc_id_grab();
             break;
-        case 11:
-            test_nearby_star_grab();
+        case 11: test_nearby_star_grab();
             break;
-        default:
-            return -1;
+        default: return -1;
     }
 
     return 0;
