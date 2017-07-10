@@ -17,6 +17,7 @@
  */
 const double DEFAULT_PRECISION_IS_EQUAL = 0.000000000001;
 
+
 /*
  * @class Star
  * @brief Star class, which is represented by 3-dimensional vectors and an identification number.
@@ -29,10 +30,8 @@ class Star {
         // constructor, set components and bsc_id, has unit flag
         Star(const double, const double, const double, const int = 0, const bool = false);
 
-        // get method for i, j, and k components
-        std::array<double, 3> components_as_array() const;
-
-        // get method for bsc_id
+        // get methods for i, j, k, and bsc_id methods
+        double operator[](const int) const;
         int get_bsc_id() const;
 
         // add and subtract two vector
@@ -51,6 +50,7 @@ class Star {
         // determine if the **components** are within a certain value of each other
         static bool is_equal(const Star &, const Star &,
                              const double = DEFAULT_PRECISION_IS_EQUAL);
+        bool operator==(const Star &) const;
 
         // generate unit vector with random components, overloaded to add own BSC ID
         static Star chance();

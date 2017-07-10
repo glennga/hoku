@@ -15,22 +15,19 @@
  * @param as_unit Flag to normalize the quaternion.
  */
 Rotation::Rotation(const double w, const Star &gamma, const bool as_unit) {
-    std::array<double, 3> gamma_components = gamma.components_as_array();
-
     if (as_unit) {
-        double ell = sqrt(pow(w, 2) + pow(gamma_components[0], 2) +
-                          pow(gamma_components[1], 2) + pow(gamma_components[2], 2));
+        double ell = sqrt(pow(w, 2) + pow(gamma[0], 2) + pow(gamma[1], 2) + pow(gamma[2], 2));
 
         this->w = w / ell;
-        this->x = gamma_components[0] / ell;
-        this->y = gamma_components[1] / ell;
-        this->z = gamma_components[2] / ell;
+        this->x = gamma[0] / ell;
+        this->y = gamma[1] / ell;
+        this->z = gamma[2] / ell;
         this->gamma = Star(x, y, z, gamma.get_bsc_id());
     } else {
         this->w = w;
-        this->x = gamma_components[0];
-        this->y = gamma_components[1];
-        this->z = gamma_components[2];
+        this->x = gamma[0];
+        this->y = gamma[1];
+        this->z = gamma[2];
         this->gamma = gamma;
     }
 }
@@ -43,16 +40,12 @@ Rotation::Rotation(const double w, const Star &gamma, const bool as_unit) {
  * @return Quaternion equivalent of psi.
  */
 Rotation Rotation::matrix_to_quaternion(const std::array<Star, 3> &psi) {
-    std::array<double, 3> psi_0 = psi[0].components_as_array();
-    std::array<double, 3> psi_1 = psi[1].components_as_array();
-    std::array<double, 3> psi_2 = psi[2].components_as_array();
-
-    double w = 0.5 * sqrt(psi_0[0] + psi_1[1] + psi_2[2] + 1);
+    double w = 0.5 * sqrt(psi[0][0] + psi[1][1] + psi[2][2] + 1);
 
     // result is normalized
-    return Rotation(w, Star((psi_2[1] - psi_1[2]) / (4 * w),
-                            (psi_0[2] - psi_2[0]) / (4 * w),
-                            (psi_1[0] - psi_0[1]) / (4 * w)), true);
+    return Rotation(w, Star((psi[2][1] - psi[1][2]) / (4 * w),
+                            (psi[0][2] - psi[2][0]) / (4 * w),
+                            (psi[1][0] - psi[0][1]) / (4 * w)), true);
 }
 
 /*
@@ -85,17 +78,11 @@ std::array<Star, 3> Rotation::matrix_multiply_transpose(const std::array<Star, 3
 Rotation Rotation::rotation_across_frames(const std::array<Star, 2> &rho,
                                           const std::array<Star, 2> &beta) {
     // compute triads, parse them into individual components
-    Star zeta_1 = (Star::cross(rho[0].as_unit(), rho[1].as_unit())).as_unit();
-    Star eta_1 = (Star::cross(beta[0].as_unit(), beta[1].as_unit())).as_unit();
-    Star zeta_2 = (Star::cross(rho[0].as_unit(), zeta_1.as_unit())).as_unit();
-    Star eta_2 = (Star::cross(beta[0].as_unit(), eta_1.as_unit())).as_unit();
-
-    std::array<double, 3> zeta_a = rho[0].as_unit().components_as_array();
-    std::array<double, 3> zeta_b = zeta_1.components_as_array();
-    std::array<double, 3> zeta_c = zeta_2.components_as_array();
-    std::array<double, 3> eta_a = beta[0].as_unit().components_as_array();
-    std::array<double, 3> eta_b = eta_1.components_as_array();
-    std::array<double, 3> eta_c = eta_2.components_as_array();
+    Star zeta_a = rho[0].as_unit(), eta_a = beta[0].as_unit();
+    Star zeta_b = (Star::cross(rho[0].as_unit(), rho[1].as_unit())).as_unit();
+    Star eta_b = (Star::cross(beta[0].as_unit(), beta[1].as_unit())).as_unit();
+    Star zeta_c = (Star::cross(rho[0].as_unit(), zeta_b.as_unit())).as_unit();
+    Star eta_c = (Star::cross(beta[0].as_unit(), eta_b.as_unit())).as_unit();
 
     // each vector represents a column -> [zeta_a : zeta_b : zeta_c]
     std::array<Star, 3> triad_zeta = {Star(zeta_a[0], zeta_b[0], zeta_c[0]),

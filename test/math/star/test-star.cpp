@@ -227,6 +227,18 @@ void TestStar::test_bsc_id_clear() {
 }
 
 /*
+ * Check that the components returned by the get methods are as expected.
+ */
+void TestStar::test_get_operators() {
+    Star kaph(1, 2, 3, 4);
+
+    assert_equal(kaph[0], kaph.i, "StarGetI");
+    assert_equal(kaph[1], kaph.j, "StarGetJ");
+    assert_equal(kaph[2], kaph.k, "StarGetK");
+    assert_equal(kaph.get_bsc_id(), kaph.bsc_id, "StarGetBSC");
+}
+
+/*
  * Enumerate all tests in TestStar.
  *
  * @return -1 if the test case does not exist. 0 otherwise.
@@ -276,6 +288,8 @@ int TestStar::enumerate_tests(int test_case) {
         case 20: test_angle_out_check();
             break;
         case 21: test_bsc_id_clear();
+            break;
+        case 22: test_get_operators();
             break;
         default: return -1;
     }
