@@ -55,6 +55,7 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/lib/math/rotation)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/math/trio)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/nibble)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/benchmark)
+add_subdirectory(${CMAKE_SOURCE_DIR}/lib/identification/angle)
 
 ##################################################################
 # Add Subdirectory Containing User Tests
@@ -64,3 +65,4 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/test/math/rotation)
 add_subdirectory(${CMAKE_SOURCE_DIR}/test/math/trio)
 add_subdirectory(${CMAKE_SOURCE_DIR}/test/nibble)
 add_subdirectory(${CMAKE_SOURCE_DIR}/test/benchmark)
+add_subdirectory(${CMAKE_SOURCE_DIR}/test/identification/angle)
