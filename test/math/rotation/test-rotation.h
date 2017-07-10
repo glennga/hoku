@@ -7,7 +7,7 @@
 #ifndef TEST_ROTATION_H
 #define TEST_ROTATION_H
 
-#include "base_test.h"
+#include "base-test.h"
 #include "rotation.h"
 #include <cstdio>
 
