@@ -50,9 +50,11 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/base_test)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/math/star)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/math/rotation)
+add_subdirectory(${CMAKE_SOURCE_DIR}/lib/math/trio)
 
 ##################################################################
 # Add Subdirectory Containing User Tests
 ##################################################################
 add_subdirectory(${CMAKE_SOURCE_DIR}/test/math/star)
 add_subdirectory(${CMAKE_SOURCE_DIR}/test/math/rotation)
+add_subdirectory(${CMAKE_SOURCE_DIR}/test/math/trio)
