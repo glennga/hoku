@@ -92,7 +92,6 @@ Star Benchmark::get_focus() {
  */
 int Benchmark::record_current_plot() {
     std::ofstream current(this->current_plot), error(this->error_plot);
-    std::array<double, 3> focus_components = this->focus.components_as_array();
     std::ostringstream record;
 
     if (current) {
@@ -101,14 +100,14 @@ int Benchmark::record_current_plot() {
         record << this->fov << "\n" << this->focus.norm() << "\n";
 
         // record the focus second
-        for (double component : focus_components) {
+        for (double component : {this->focus[0], this->focus[1], this->focus[2]}) {
             record << component << " ";
         }
         record << "\n";
 
         // record the rest of the stars
         for (Star rho : this->stars) {
-            for (double component : rho.components_as_array()) {
+            for (double component : {rho[0], rho[1], rho[2]}) {
                 record << component << " ";
             }
             record << rho.get_bsc_id() << "\n";
@@ -125,7 +124,7 @@ int Benchmark::record_current_plot() {
         // record each error model
         for (ErrorModel model : this->error_models) {
             for (Star rho : model.affected) {
-                for (double component : rho.components_as_array()) {
+                for (double component : {rho[0], rho[1], rho[2]}) {
                     record << component << " ";
                 }
                 record << rho.get_bsc_id() << " " << model.plot_color << "\n";
@@ -257,12 +256,9 @@ void Benchmark::shift_light(const int n, const double sigma) {
         for (unsigned int a = 0; a < this->stars.size(); a++) {
             // check inside if n is met early
             if (current_n < n) {
-                std::array<double, 3> components = this->stars[a].components_as_array();
-                for (int b = 0; b < 3; b++) {
-                    components[b] += dist(mt);
-                }
-
-                Star candidate = Star(components[0], components[1], components[2],
+                Star candidate = Star(this->stars[a][0] + dist(mt), 
+                                      this->stars[a][1] + dist(mt),
+                                      this->stars[a][2] + dist(mt),
                                       this->stars[a].get_bsc_id()).as_unit();
 
                 // if shifted star is near focus, add shifted star and remove the old
