@@ -1,5 +1,5 @@
 /*
- * @file: test_angle.h
+ * @file: test-angle.h
  *
  * @brief: Header file for the TestAngle class, which tests the Angle class.
  */
