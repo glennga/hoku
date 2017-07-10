@@ -25,12 +25,7 @@ Trio::Trio(const Star &a, const Star &b, const Star &c) {
  * @return Side lengths in order ab_bar, bc_bar, ca_bar.
  */
 std::array<double, 3> Trio::planar_lengths() const {
-    double ab_bar = (this->a - this->b).norm();
-    double bc_bar = (this->b - this->c).norm();
-    double ca_bar = (this->c - this->a).norm();
-
-//    std::array<double, 3> ells = {ab_bar, bc_bar, ca_bar};
-    return {ab_bar, bc_bar, ca_bar};
+    return {(this->a - this->b).norm(), (this->b - this->c).norm(), (this->c - this->a).norm()};
 }
 
 /*
@@ -39,12 +34,8 @@ std::array<double, 3> Trio::planar_lengths() const {
  * @return Side lengths in order ab_bar, bc_bar, ca_bar.
  */
 std::array<double, 3> Trio::spherical_lengths() const {
-    double ab_bar = Star::angle_between(this->a, this->b);
-    double bc_bar = Star::angle_between(this->b, this->c);
-    double ca_bar = Star::angle_between(this->c, this->a);
-
-//    std::array<double, 3> ells = {ab_bar, bc_bar, ca_bar};
-    return {ab_bar, bc_bar, ca_bar};
+    return {Star::angle_between(this->a, this->b), Star::angle_between(this->b, this->c),
+            Star::angle_between(this->c, this->a)};
 }
 
 /*
@@ -125,15 +116,9 @@ double Trio::spherical_area(const Star &a, const Star &b, const Star &c) {
  * @return Star with the components of ABC centroid.
  */
 Star Trio::planar_centroid() const {
-    std::array<double, 3> a_tau = this->a.components_as_array();
-    std::array<double, 3> b_tau = this->b.components_as_array();
-    std::array<double, 3> c_tau = this->c.components_as_array();
-
-    double i_c = (1 / 3.0) * (a_tau[0] + b_tau[0] + c_tau[0]);
-    double j_c = (1 / 3.0) * (a_tau[1] + b_tau[1] + c_tau[1]);
-    double k_c = (1 / 3.0) * (a_tau[2] + b_tau[2] + c_tau[2]);
-
-    return Star(i_c, j_c, k_c);
+    return Star((1 / 3.0) * (this->a[0] + this->b[0] + this->c[0]),
+                (1 / 3.0) * (this->a[1] + this->b[1] + this->c[1]),
+                (1 / 3.0) * (this->a[2] + this->b[2] + this->c[2]));
 }
 
 /*
@@ -148,21 +133,13 @@ Star Trio::planar_centroid() const {
  * @return Closer trio of stars.
  */
 Trio Trio::cut_triangle(const Star &rho, const Star &beta, const Star &eta, const Star &focus) {
-    std::array<double, 3> rho_eta = (rho + eta).components_as_array();
-    std::array<double, 3> beta_eta = (beta + eta).components_as_array();
-    std::array<double, 3> rho_beta = (rho + beta).components_as_array();
-
+    Star rho_eta = rho + eta, beta_eta = beta + eta, rho_beta = rho + beta;
     Star b = Star(rho_eta[0] / 2.0, rho_eta[1] / 2.0, rho_eta[2] / 2.0);
     Star c = Star(beta_eta[0] / 2.0, beta_eta[1] / 2.0, beta_eta[2] / 2.0);
+    Star a = Star(0, 0, 0);
 
     // if focus is <0, 0, 0>, then find the middle triangle
-    Star a = Star(0, 0, 0);
-    if (!Star::is_equal(focus, a)) {
-        a = focus;
-    } else {
-        a = Star(rho_beta[0] / 2.0, rho_beta[1] / 2.0, rho_beta[2] / 2.0);
-    }
-
+    a = (focus == a) ? Star(rho_beta[0] / 2.0, rho_beta[1] / 2.0, rho_beta[2] / 2.0) : focus;
     return Trio(a, b, c);
 }
 

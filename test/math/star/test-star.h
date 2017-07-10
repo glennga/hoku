@@ -17,6 +17,9 @@ class TestStar : public BaseTest {
         void test_constructor_no_unit();
         void test_constructor_unit();
 
+        // test the get methods ([] overload)
+        void test_get_operators();
+        
         // test the add/subtract methods (+/- operator overload)
         void test_plus_operator();
         void test_minus_operator();
