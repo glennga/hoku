@@ -41,9 +41,9 @@ namespace Nibble {
                                    const unsigned int);
     std::vector<Star> nearby_stars(const Star &, const double, const unsigned int);
 
-    // query BSC5 for i, j, k, and magnitude fields given BSC ID
-    std::array<double, 4> query_bsc5(SQLite::Database &, const int);
-    std::array<double, 4> query_bsc5(const int);
+    // query BSC5 for i, j, k fields given BSC ID
+    Star query_bsc5(SQLite::Database &, const int);
+    Star query_bsc5(const int);
 
     // query a table for specified fields given a constraint, limit results by certain number
     std::vector<double> search_table(const std::string, const std::string, const std::string,
