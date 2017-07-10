@@ -126,18 +126,18 @@ int Nibble::generate_bsc5_table() {
 }
 
 /*
- * Search the BSC5 table for the star with the matching bsc_id. Return its vector components and
- * apparent magnitude.
+ * Search the BSC5 table for the star with the matching bsc_id. Return a star with the
+ * vector components and bsc_id of this search.
  *
  * @param db Database object currently active.
  * @param bsc_id BSC ID of the star to return.
- * @return Components of star <i, j, k> and magnitude.
+ * @return Star with the components of the matching bsc_id entry.
  */
-std::array<double, 4> Nibble::query_bsc5(SQLite::Database &db, const int bsc_id) {
-    std::array<double, 4> components = {0, 0, 0, 0};
+Star Nibble::query_bsc5(SQLite::Database &db, const int bsc_id) {
+    std::array<double, 3> components = {0, 0, 0};
     int limit_one = 0;
 
-    SQLite::Statement query(db, "SELECT i, j, k, magnitude "
+    SQLite::Statement query(db, "SELECT i, j, k "
             "FROM BSC5 "
             "WHERE number = ? "
             "LIMIT 1");
@@ -145,22 +145,23 @@ std::array<double, 4> Nibble::query_bsc5(SQLite::Database &db, const int bsc_id)
 
     // this should only execute once
     while (query.executeStep() && limit_one++ == 0) {
-        for (int a = 0; a < 4; a++) {
+        for (int a = 0; a < 3; a++) {
             components[a] = query.getColumn(a);
         }
     }
 
-    return components;
+    return Star(components[0], components[1], components[2], bsc_id);
 }
 
 /*
- * Search the BSC5 table for the star with the matching bsc_id. Return its vector components and
- * apparent magnitude. This function is overloaded to use a separate database object.
+ * Search the BSC5 table for the star with the matching bsc_id. Return a star with the vector
+ * components and bsc_id of this search. This function is overloaded to use a separate database
+ * object.
  *
  * @param bsc_id BSC ID of the star to return.
- * @return Components of star <i, j, k> and magnitude.
+ * @return Star with the components of the matching bsc_id entry.
  */
-std::array<double, 4> Nibble::query_bsc5(const int bsc_id) {
+Star Nibble::query_bsc5(const int bsc_id) {
 
     SQLite::Database db(Nibble::database_location,
                         SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
@@ -206,8 +207,7 @@ std::vector<Star> Nibble::nearby_stars(SQLite::Database &db, const Star &focus, 
 
     nearby.reserve(expected);
     for (int candidate : bsc_id_list) {
-        std::array<double, 4> rho = Nibble::query_bsc5(db, candidate);
-        Star candidate_star(rho[0], rho[1], rho[2], candidate);
+        Star candidate_star = Nibble::query_bsc5(db, candidate);
         if (Star::within_angle(focus, candidate_star, fov)) {
             nearby.push_back(candidate_star);
         }
