@@ -4,7 +4,7 @@
  * @brief: Source file for the TestTrio class, as well as the main function to run the tests.
  */
 
-#include "test_trio.h"
+#include "test-trio.h"
 
 /*
  * Check that the side lengths generated for a planar triangle are correct. Answers checked with
