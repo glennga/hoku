@@ -7,7 +7,7 @@
 #ifndef TEST_STAR_H
 #define TEST_STAR_H
 
-#include "base_test.h"
+#include "base-test.h"
 #include "star.h"
 #include <cstdio>
 
