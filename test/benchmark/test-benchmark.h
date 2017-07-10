@@ -7,7 +7,7 @@
 #ifndef TEST_BENCHMARK_H
 #define TEST_BENCHMARK_H
 
-#include "base_test.h"
+#include "base-test.h"
 #include "benchmark.h"
 
 class TestBenchmark : public BaseTest {

@@ -1,5 +1,5 @@
 /*
- * @file: test_rotation.cpp
+ * @file: test-rotation.cpp
  *
  * @brief: Source file for the TestRotation class, as well as the main function to run the tests.
  */
@@ -180,44 +180,31 @@ void TestRotation::test_triad_multiple_stars() {
  */
 int TestRotation::enumerate_tests(int test_case) {
     switch (test_case) {
-        case 0:
-            test_public_constructor();
+        case 0: test_public_constructor();
             break;
-        case 1:
-            test_private_constructor_row_set();
+        case 1: test_private_constructor_row_set();
             break;
-        case 2:
-            test_private_constructor_component_set();
+        case 2: test_private_constructor_component_set();
             break;
-        case 3:
-            test_quaternion_double_cover_property();
+        case 3: test_quaternion_double_cover_property();
             break;
-        case 4:
-            test_quaternion_unit_property();
+        case 4: test_quaternion_unit_property();
             break;
-        case 5:
-            test_matrix_to_quaternion();
+        case 5: test_matrix_to_quaternion();
             break;
-        case 6:
-            test_matrix_multiplication_transpose();
+        case 6: test_matrix_multiplication_transpose();
             break;
-        case 7:
-            test_rotation_identity();
+        case 7: test_rotation_identity();
             break;
-        case 8:
-            test_rotate_logic();
+        case 8: test_rotate_logic();
             break;
-        case 9:
-            test_triad_property_simple();
+        case 9: test_triad_property_simple();
             break;
-        case 10:
-            test_triad_property_random();
+        case 10: test_triad_property_random();
             break;
-        case 11:
-            test_triad_multiple_stars();
+        case 11: test_triad_multiple_stars();
             break;
-        default:
-            return -1;
+        default:return -1;
     }
 
     return 0;
