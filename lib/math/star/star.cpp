@@ -31,14 +31,13 @@ Star::Star(const double i, const double j, const double k, const int bsc_id,
 }
 
 /*
- * Get method for the i, j, and k components of the star.
+ * Get method for the i, j, and k components of the star. Overloads the [] operator.
  *
- * @return Array of components in order of i, j, and k.
+ * @return 0 if n > 2. Otherwise component at index n of <i, j, k>.
  *
  */
-std::array<double, 3> Star::components_as_array() const {
-    std::array<double, 3> components = {this->i, this->j, this->k};
-    return components;
+double Star::operator[](const int n) const {
+    return n > 2 ? 0 : std::array<double, 3> {i, j, k} [n];
 }
 
 /*
@@ -46,7 +45,7 @@ std::array<double, 3> Star::components_as_array() const {
  *
  * @return BSC ID of the current star.
  */
-int Star::get_bsc_id() const{
+int Star::get_bsc_id() const {
     return this->bsc_id;
 }
 
