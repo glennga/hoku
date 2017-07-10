@@ -29,6 +29,7 @@ class Star {
     public:
         // constructor, set components and bsc_id, has unit flag
         Star(const double, const double, const double, const int = 0, const bool = false);
+        Star();
 
         // get methods for i, j, k, and bsc_id methods
         double operator[](const int) const;
