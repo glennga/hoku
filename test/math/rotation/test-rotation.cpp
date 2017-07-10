@@ -1,5 +1,5 @@
 /*
- * @file: test_rotation.cpp
+ * @file: test-rotation.cpp
  *
  * @brief: Source file for the TestRotation class, as well as the main function to run the tests.
  */
@@ -12,7 +12,7 @@
 void TestRotation::test_public_constructor() {
     Rotation kaph;
 
-    assert_true(Star::is_equal(kaph.gamma, Star(0, 0, 0)), "PublicConstructorGamma");
+    assert_true(kaph.gamma == Star(0, 0, 0), "PublicConstructorGamma");
 }
 
 /*
@@ -21,7 +21,7 @@ void TestRotation::test_public_constructor() {
 void TestRotation::test_private_constructor_row_set() {
     Rotation kaph(2, Star(1, 4, 5));
 
-    assert_true(Star::is_equal(kaph.gamma, Star(1, 4, 5)), "PrivateConstructorSetGamma");
+    assert_true(kaph.gamma == Star(1, 4, 5), "PrivateConstructorSetGamma");
 }
 
 /*
@@ -44,7 +44,7 @@ void TestRotation::test_quaternion_double_cover_property() {
     Rotation yodh(-kaph.w, Star(-kaph.x, -kaph.y, -kaph.z));
     Star teth = Star::chance();
 
-    assert_true(Star::is_equal(Rotation::rotate(teth, kaph), Rotation::rotate(teth, yodh)),
+    assert_true(Rotation::rotate(teth, kaph) == Rotation::rotate(teth, yodh),
                 "QuaternionDoubleCoverProperty");
 }
 
@@ -77,7 +77,7 @@ void TestRotation::test_rotation_identity() {
     Star kaph = Star::chance();
     Star yodh = Rotation::rotate(kaph, Rotation::identity());
 
-    assert_true(Star::is_equal(kaph, yodh), "RotationIdentity");
+    assert_true(kaph == yodh, "RotationIdentity");
 }
 
 /*
@@ -88,12 +88,9 @@ void TestRotation::test_matrix_multiplication_transpose() {
     std::array<Star, 3> yodh = {Star(10, 11, 12), Star(13, 14, 15), Star(16, 17, 18)};
     std::array<Star, 3> teth = Rotation::matrix_multiply_transpose(kaph, yodh);
 
-    assert_true(Star::is_equal(teth[0], Star(68, 86, 104)),
-                "MatrixMultiplicationTransposeRow1");
-    assert_true(Star::is_equal(teth[1], Star(167, 212, 257)),
-                "MatrixMultiplicationTransposeRow2");
-    assert_true(Star::is_equal(teth[2], Star(266, 338, 410)),
-                "MatrixMultiplicationTransposeRow3");
+    assert_true(teth[0] == Star(68, 86, 104), "MatrixMultiplicationTransposeRow1");
+    assert_true(teth[1] == Star(167, 212, 257), "MatrixMultiplicationTransposeRow2");
+    assert_true(teth[2] == Star(266, 338, 410), "MatrixMultiplicationTransposeRow3");
 }
 
 /*
@@ -116,8 +113,8 @@ void TestRotation::test_rotate_logic() {
     Star yodh = Star(-0.051796588649074424, -0.69343284143642703, -0.71865708639219672);
     Star heth = Rotation::rotate(yodh, kaph);
 
-    assert_true(Star::is_equal(heth, Star(-0.7080355444092732, -0.6348947648122054,
-                                          0.30918328781989235)), "RotatedStarLogicCheck");
+    assert_true(heth == Star(-0.7080355444092732, -0.6348947648122054, 0.30918328781989235),
+                "RotatedStarLogicCheck");
 }
 
 /*
@@ -129,10 +126,8 @@ void TestRotation::test_triad_property_simple() {
     std::array<Star, 2> yodh = {Star(0, 0, 1), Star(0, 1, 0)};
     Rotation teth = Rotation::rotation_across_frames(kaph, yodh);
 
-    assert_true(Star::is_equal(Rotation::rotate(yodh[0], teth), kaph[0]),
-                "TriadPropertyUsingAxisVectors0");
-    assert_true(Star::is_equal(Rotation::rotate(yodh[1], teth), kaph[1]),
-                "TriadPropertyUsingAxisVectors1");
+    assert_true(Rotation::rotate(yodh[0], teth) == kaph[0], "TriadPropertyUsingAxisVectors0");
+    assert_true(Rotation::rotate(yodh[1], teth) == kaph[1], "TriadPropertyUsingAxisVectors1");
 }
 
 /*
@@ -145,10 +140,8 @@ void TestRotation::test_triad_property_random() {
     std::array<Star, 2> teth = {Rotation::rotate(yodh[0], kaph), Rotation::rotate(yodh[1], kaph)};
     Rotation heth = Rotation::rotation_across_frames(yodh, teth);
 
-    assert_true(Star::is_equal(Rotation::rotate(teth[0], heth), yodh[0]),
-                "TriadPropertyUsingChanceVectors0");
-    assert_true(Star::is_equal(Rotation::rotate(teth[1], heth), yodh[1]),
-                "TriadPropertyUsingChanceVectors1");
+    assert_true(Rotation::rotate(teth[0], heth) == yodh[0], "TriadPropertyUsingChanceVectors0");
+    assert_true(Rotation::rotate(teth[1], heth) == yodh[1], "TriadPropertyUsingChanceVectors1");
 }
 
 /*
@@ -169,7 +162,7 @@ void TestRotation::test_triad_multiple_stars() {
 
     for (int a = 0; a < 5; a++) {
         std::string test_name = "TriadPropertyStarSetStar" + std::to_string(a + 1);
-        assert_true(Star::is_equal(Rotation::rotate(teth[a], heth), yodh[a]), test_name);
+        assert_true(Rotation::rotate(teth[a], heth) == yodh[a], test_name);
     }
 }
 
@@ -180,44 +173,31 @@ void TestRotation::test_triad_multiple_stars() {
  */
 int TestRotation::enumerate_tests(int test_case) {
     switch (test_case) {
-        case 0:
-            test_public_constructor();
+        case 0: test_public_constructor();
             break;
-        case 1:
-            test_private_constructor_row_set();
+        case 1: test_private_constructor_row_set();
             break;
-        case 2:
-            test_private_constructor_component_set();
+        case 2: test_private_constructor_component_set();
             break;
-        case 3:
-            test_quaternion_double_cover_property();
+        case 3: test_quaternion_double_cover_property();
             break;
-        case 4:
-            test_quaternion_unit_property();
+        case 4: test_quaternion_unit_property();
             break;
-        case 5:
-            test_matrix_to_quaternion();
+        case 5: test_matrix_to_quaternion();
             break;
-        case 6:
-            test_matrix_multiplication_transpose();
+        case 6: test_matrix_multiplication_transpose();
             break;
-        case 7:
-            test_rotation_identity();
+        case 7: test_rotation_identity();
             break;
-        case 8:
-            test_rotate_logic();
+        case 8: test_rotate_logic();
             break;
-        case 9:
-            test_triad_property_simple();
+        case 9: test_triad_property_simple();
             break;
-        case 10:
-            test_triad_property_random();
+        case 10: test_triad_property_random();
             break;
-        case 11:
-            test_triad_multiple_stars();
+        case 11: test_triad_multiple_stars();
             break;
-        default:
-            return -1;
+        default:return -1;
     }
 
     return 0;
