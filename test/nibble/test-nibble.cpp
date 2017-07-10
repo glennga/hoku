@@ -216,14 +216,14 @@ void TestNibble::test_table_insertion() {
 /*
  * Check that the results returned from all_bsc_id are correct.
  */
-void TestNibble::test_bsc_id_grab() {
-    std::array<int, 5029> kaph = Nibble::all_bsc_id();
+void TestNibble::test_bsc5_all_stars_grab() {
+    std::array<Star, 5029> kaph = Nibble::all_bsc5_stars();
 
-    assert_equal(kaph[0], 3, "BSCIDGrab3");
-    assert_equal(kaph[1], 4, "BSCIDGrab4");
-    assert_equal(kaph[2], 5, "BSCIDGrab5");
-    assert_equal(kaph[5], 12, "BSCIDGrab12");
-    assert_equal(kaph[5028], 9110, "BSCIDGrab9110");
+    assert_true(kaph[0] == Nibble::query_bsc5(3), "BSCStarGrab3");
+    assert_true(kaph[1] == Nibble::query_bsc5(4), "BSCStarGrab4");
+    assert_true(kaph[2] == Nibble::query_bsc5(5), "BSCStarGrab5");
+    assert_true(kaph[5] == Nibble::query_bsc5(12), "BSCStarGrab12");
+    assert_true(kaph[5028] == Nibble::query_bsc5(9110), "BSCStarGrab9110");
 }
 
 /*
@@ -266,7 +266,7 @@ int TestNibble::enumerate_tests(int test_case) {
             break;
         case 9: test_table_insertion();
             break;
-        case 10: test_bsc_id_grab();
+        case 10: test_bsc5_all_stars_grab();
             break;
         case 11: test_nearby_star_grab();
             break;

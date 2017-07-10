@@ -33,8 +33,8 @@ namespace Nibble {
     int insert_into_table(SQLite::Database &, const std::string &, const std::string &,
                           const std::vector<double> &);
 
-    // find all possible star BSC IDs
-    std::array<int, 5029> all_bsc_id();
+    // load all stars in catalog to array
+    std::array<Star, 5029> all_bsc5_stars();
 
     // find all stars near a given focus
     std::vector<Star> nearby_stars(SQLite::Database &, const Star &, const double,
