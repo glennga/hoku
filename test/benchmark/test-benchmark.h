@@ -1,5 +1,5 @@
 /*
- * @file: test_benchmark.h
+ * @file: test-benchmark.h
  *
  * @brief: Header file for the TestBenchmark class, which tests the Benchmark class.
  */

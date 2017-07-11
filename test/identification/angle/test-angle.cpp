@@ -1,5 +1,5 @@
 /*
- * @file: test_angle.cpp
+ * @file: test-angle.cpp
  *
  * @brief: Source file for the TestAngle class, as well as the main function to run the tests.
  */
@@ -224,38 +224,27 @@ void TestAngle::test_identify_error_input() {
  */
 int TestAngle::enumerate_tests(int test_case) {
     switch (test_case) {
-        case 0:
-            test_pair_query();
+        case 0: test_pair_query();
             break;
-        case 1:
-            test_pair_multiple_choice_query();
+        case 1: test_pair_multiple_choice_query();
             break;
-        case 2:
-            test_candidate_fov_query();
+        case 2: test_candidate_fov_query();
             break;
-        case 3:
-            test_candidate_none_query();
+        case 3: test_candidate_none_query();
             break;
-        case 4:
-            test_candidate_results_query();
+        case 4: test_candidate_results_query();
             break;
-        case 5:
-            test_rotating_match_correct_input();
+        case 5: test_rotating_match_correct_input();
             break;
-        case 6:
-            test_rotating_match_error_input();
+        case 6: test_rotating_match_error_input();
             break;
-        case 7:
-            test_rotating_match_duplicate_input();
+        case 7: test_rotating_match_duplicate_input();
             break;
-        case 8:
-            test_identify_clean_input();
+        case 8: test_identify_clean_input();
             break;
-        case 9:
-            test_identify_error_input();
+        case 9: test_identify_error_input();
             break;
-        default:
-            return -1;
+        default: return -1;
     }
 
     return 0;
