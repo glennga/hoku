@@ -213,7 +213,7 @@ std::vector<Star> Nibble::nearby_stars(const Star &focus, const double fov,
 
 /*
  * Search a table for the specified fields given a constraint. Limit results by a certain amount
- * if desired. The results returned is a 1D array that holds a fixed number of items in
+ * if desired. The results returned are a 1D array that holds a fixed number of items in
  * succession.
  *
  * @param table Name of the table to query.
@@ -223,15 +223,14 @@ std::vector<Star> Nibble::nearby_stars(const Star &focus, const double fov,
  * @param limit Limit the results searched for with this.
  * @return 1D list of chained results.
  */
-std::vector<double> Nibble::search_table(const std::string table, const std::string constraint,
-                                         const std::string fields, const unsigned int expected,
+std::vector<double> Nibble::search_table(const std::string &table, const std::string &constraint,
+                                         const std::string &fields, const unsigned int expected,
                                          const int limit) {
     SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
     std::vector<double> result;
-    result.reserve(expected);
-
-    // unable to bind table, constraint, and fields, need to build string ourselves
     std::ostringstream sql;
+
+    result.reserve(expected);
     sql << "SELECT " << fields << " FROM " << table << " WHERE " << constraint;
     if (limit > 0) {
         // do not use limit constraint if limit is not specified
