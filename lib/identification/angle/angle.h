@@ -57,9 +57,6 @@ class Angle {
         double fov;
         Star focus = Star(0, 0, 0);
 
-        // sort stars by distance to focus
-        void sort_stars();
-
         // search for pair given an angle and a query limit
         std::array<int, 2> query_for_pair(const double);
 

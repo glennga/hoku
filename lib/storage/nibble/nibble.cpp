@@ -213,7 +213,7 @@ std::vector<Star> Nibble::nearby_stars(const Star &focus, const double fov,
 
 /*
  * Search a table for the specified fields given a constraint. Limit results by a certain amount
- * if desired. The results returned is a 1D array that holds a fixed number of items in
+ * if desired. The results returned are a 1D array that holds a fixed number of items in
  * succession.
  *
  * @param table Name of the table to query.
@@ -223,15 +223,14 @@ std::vector<Star> Nibble::nearby_stars(const Star &focus, const double fov,
  * @param limit Limit the results searched for with this.
  * @return 1D list of chained results.
  */
-std::vector<double> Nibble::search_table(const std::string table, const std::string constraint,
-                                         const std::string fields, const unsigned int expected,
+std::vector<double> Nibble::search_table(const std::string &table, const std::string &constraint,
+                                         const std::string &fields, const unsigned int expected,
                                          const int limit) {
     SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
     std::vector<double> result;
-    result.reserve(expected);
-
-    // unable to bind table, constraint, and fields, need to build string ourselves
     std::ostringstream sql;
+
+    result.reserve(expected);
     sql << "SELECT " << fields << " FROM " << table << " WHERE " << constraint;
     if (limit > 0) {
         // do not use limit constraint if limit is not specified
@@ -279,7 +278,8 @@ std::vector<double> Nibble::table_results_at(const std::vector<double> &searched
  * @return 0 when finished.
  */
 int Nibble::insert_into_table(SQLite::Database &db, const std::string &table,
-                              const std::string &fields, const std::vector<double> &in_values) {
+                              const std::string &fields, 
+                              const std::vector<std::string> &in_values) {
     std::string sql = "INSERT INTO " + table + " (" + fields + ") VALUES (";
     for (unsigned int a = 0; a < in_values.size() - 1; a++) {
         sql.append("?, ");
@@ -296,19 +296,17 @@ int Nibble::insert_into_table(SQLite::Database &db, const std::string &table,
     return 0;
 }
 
-
 /*
- * In the given table, sort using the selected column and create an index using the same column.
+ * In the given table, sort using the selected column.
  *
  * @param table Name of the table to query.
  * @param fields The fields of the given table.
  * @param focus_column The new table will be sorted and index by this column.
  * @return 0 when finished.
  */
-int Nibble::polish_table(const std::string &table, const std::string &fields,
-                         const std::string &schema, const std::string &focus_column) {
-    SQLite::Database db(Nibble::database_location,
-                        SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+int Nibble::sort_table(const std::string &table, const std::string &fields,
+                       const std::string &schema, const std::string &focus_column) {
+    SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
     SQLite::Transaction transaction(db);
     std::ostringstream sql;
 
@@ -332,8 +330,27 @@ int Nibble::polish_table(const std::string &table, const std::string &fields,
     sql << "ALTER TABLE " << table << "_SORTED" << " RENAME TO " << table;
     db.exec(sql.str());
     sql.str("");
+    transaction.commit();
+
+    return 0;
+}
+
+/*
+ * In the given table, sort using the selected column and create an index using the same column.
+ *
+ * @param table Name of the table to query.
+ * @param fields The fields of the given table.
+ * @param focus_column The new table will be sorted and index by this column.
+ * @return 0 when finished.
+ */
+int Nibble::polish_table(const std::string &table, const std::string &fields,
+                         const std::string &schema, const std::string &focus_column) {
+    SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+    Nibble::sort_table(table, fields, schema, focus_column);
 
     // create the index named 'TABLE_FOCUSCOLUMN'
+    std::ostringstream sql;
+    SQLite::Transaction transaction(db);
     sql << "CREATE INDEX " << table << "_" << focus_column << " ON " << table << "("
         << focus_column << ")";
     db.exec(sql.str());
