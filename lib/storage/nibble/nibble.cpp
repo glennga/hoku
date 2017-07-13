@@ -103,9 +103,7 @@ int Nibble::generate_bsc5_table() {
     }
 
     // polish table, sort by bsc_id
-    return Nibble::polish_table("BSC5", "alpha, delta, i, j, k, magnitude, number",
-                                "alpha FLOAT, delta FLOAT, i FLOAT, j FLOAT, k FLOAT, "
-                                        "magnitude FLOAT, number INT", "number");
+    return Nibble::polish_table("BSC5", "number");
 }
 
 /*
@@ -171,7 +169,7 @@ std::vector<Star> Nibble::nearby_stars(SQLite::Database &db, const Star &focus, 
     std::vector<Star> nearby;
     nearby.reserve(expected);
 
-    for (Star candidate : Nibble::all_bsc5_stars()) {
+    for (const Star &candidate : Nibble::all_bsc5_stars()) {
         if (Star::within_angle(focus, candidate, fov)) {
             nearby.push_back(candidate);
         }
@@ -208,21 +206,20 @@ std::vector<Star> Nibble::nearby_stars(const Star &focus, const double fov,
  * @param limit Limit the results searched for with this.
  * @return 1D list of chained results.
  */
-std::vector<double> Nibble::search_table(SQLite::Database &, const std::string &table,
+std::vector<double> Nibble::search_table(SQLite::Database &db, const std::string &table,
                                          const std::string &constraint, const std::string
                                          &fields, const unsigned int expected, const int limit) {
-    SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
     std::vector<double> result;
-    std::ostringstream sql;
+    std::string sql;
 
     result.reserve(expected);
-    sql << "SELECT " << fields << " FROM " << table << " WHERE " << constraint;
+    sql = "SELECT " + fields + " FROM " + table + " WHERE " + constraint;
     if (limit > 0) {
         // do not use limit constraint if limit is not specified
-        sql << " LIMIT " << limit;
+        sql += " LIMIT " + std::to_string(limit);
     }
 
-    SQLite::Statement query(db, sql.str());
+    SQLite::Statement query(db, sql);
     while (query.executeStep()) {
         for (int a = 0; a < query.getColumnCount(); a++) {
             result.push_back(query.getColumn(a).getDouble());
@@ -315,36 +312,35 @@ int Nibble::insert_into_table(SQLite::Database &db, const std::string &table,
  * In the given table, sort using the selected column.
  *
  * @param table Name of the table to query.
- * @param fields The fields of the given table.
  * @param focus_column The new table will be sorted and index by this column.
  * @return 0 when finished.
  */
-int Nibble::sort_table(const std::string &table, const std::string &fields,
-                       const std::string &schema, const std::string &focus_column) {
+int Nibble::sort_table(const std::string &table, const std::string &focus_column) {
     SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
     SQLite::Transaction transaction(db);
-    std::ostringstream sql;
+    std::string fields, schema;
 
-    // create temporary table to insert sorted data
-    sql << "CREATE TABLE " << table << "_SORTED (" << schema << ")";
-    db.exec(sql.str());
-    sql.str("");
+    // grab the fields and schema of the table
+    SQLite::Statement query(db, "PRAGMA table_info (" + table + ")");
+    while (query.executeStep()) {
+        fields += query.getColumn(1).getString() + ", ";
+        schema += query.getColumn(1).getString() + " " + query.getColumn(2).getString() + ", ";
+    }
 
-    // insert sorted data by focus_column
-    sql << "INSERT INTO " << table << "_SORTED (" << fields << ")" << " SELECT " << fields
-        << " FROM " << table << " ORDER BY " << focus_column;
-    db.exec(sql.str());
-    sql.str("");
+    // remove trailing commas from fields and schema
+    for (int a = 0; a < 2; a++) {
+        fields.pop_back();
+        schema.pop_back();
+    }
 
-    // remove old table
-    sql << "DROP TABLE " << table;
-    db.exec(sql.str());
-    sql.str("");
+    // create temporary table to insert sorted data, insert sorted data by focus column
+    db.exec("CREATE TABLE " + table + "_SORTED (" + schema + ")");
+    db.exec("INSERT INTO " + table + "_SORTED (" + fields + ")" + " SELECT " + fields +
+            " FROM " + table + " ORDER BY " + focus_column);
 
-    // rename table to original table name
-    sql << "ALTER TABLE " << table << "_SORTED" << " RENAME TO " << table;
-    db.exec(sql.str());
-    sql.str("");
+    // remove old table, rename table to original table name
+    db.exec("DROP TABLE " + table);
+    db.exec("ALTER TABLE " + table + "_SORTED RENAME TO " + table);
     transaction.commit();
 
     return 0;
@@ -358,17 +354,14 @@ int Nibble::sort_table(const std::string &table, const std::string &fields,
  * @param focus_column The new table will be sorted and index by this column.
  * @return 0 when finished.
  */
-int Nibble::polish_table(const std::string &table, const std::string &fields,
-                         const std::string &schema, const std::string &focus_column) {
+int Nibble::polish_table(const std::string &table, const std::string &focus_column) {
     SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
-    Nibble::sort_table(table, fields, schema, focus_column);
+    Nibble::sort_table(table, focus_column);
 
     // create the index named 'TABLE_FOCUSCOLUMN'
-    std::ostringstream sql;
     SQLite::Transaction transaction(db);
-    sql << "CREATE INDEX " << table << "_" << focus_column << " ON " << table << "("
-        << focus_column << ")";
-    db.exec(sql.str());
+    db.exec("CREATE INDEX " + table + "_" + focus_column + " ON " + table +
+                    "(" + focus_column + ")");
     transaction.commit();
 
     return 0;
