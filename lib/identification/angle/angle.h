@@ -58,7 +58,7 @@ class Angle {
         Star focus = Star(0, 0, 0);
 
         // search for pair given an angle and a query limit
-        std::array<int, 2> query_for_pair(const double);
+        std::array<int, 2> query_for_pair(SQLite::Database &, const double);
 
         // search for pair given set of benchmark stars
         std::array<Star, 2> find_candidate_pair(SQLite::Database &, const Star &, const Star &);
