@@ -20,7 +20,7 @@ include_directories(..)
 # --------- Additional Direct Source Below This line -------------
 include_directories(${CMAKE_SOURCE_DIR}/lib/math/star)
 include_directories(${CMAKE_SOURCE_DIR}/lib/math/rotation)
-include_directories(${CMAKE_SOURCE_DIR}/lib/nibble)
+include_directories(${CMAKE_SOURCE_DIR}/lib/storage/nibble)
 include_directories(${CMAKE_SOURCE_DIR}/lib/third-party/sqlite-cpp)
 include_directories(${CMAKE_SOURCE_DIR}/lib/benchmark)
 

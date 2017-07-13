@@ -87,8 +87,9 @@ void TestNibble::test_bsc5_db_query_result() {
  * Check that the BSC5 table can be queried using the general search method.
  */
 void TestNibble::test_table_search_result() {
-    std::vector<double> kaph = Nibble::search_table("BSC5", "number = 3", "i, j, k", 3);
-    std::vector<double> yodh = Nibble::search_table("BSC5", "number = 3 or number = 4",
+    SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+    std::vector<double> kaph = Nibble::search_table(db, "BSC5", "number = 3", "i, j, k", 3);
+    std::vector<double> yodh = Nibble::search_table(db, "BSC5", "number = 3 or number = 4",
                                                     "i, j, k", 6, 2);
 
     assert_equal(kaph[0], 0.994772975556659, "GeneralBSC5QueryComponentI");
@@ -103,7 +104,8 @@ void TestNibble::test_table_search_result() {
  * Check that the correct result is found by indexing the return of 'search_table'.
  */
 void TestNibble::test_table_search_result_index() {
-    std::vector<double> kaph = Nibble::search_table("BSC5", "number = 3 or number = 4",
+    SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+    std::vector<double> kaph = Nibble::search_table(db, "BSC5", "number = 3 or number = 4",
                                                     "i, j, k", 6);
     std::vector<double> yodh = Nibble::table_results_at(kaph, 3, 0);
     std::vector<double> teth = Nibble::table_results_at(kaph, 3, 1);
@@ -155,6 +157,7 @@ void TestNibble::test_table_polish_index() {
  * Check that the BSC5 table has an index created.
  */
 void TestNibble::test_table_polish_sort() {
+    SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
     Nibble::polish_table("BSC5", "alpha, delta, i, j, k, magnitude, number",
                          "alpha FLOAT, "
                                  "delta FLOAT, "
@@ -163,13 +166,11 @@ void TestNibble::test_table_polish_sort() {
                                  "k FLOAT, "
                                  "magnitude FLOAT, "
                                  "number INT", "alpha");
-    std::vector<double> kaph = Nibble::search_table("BSC5", "ROWID = 1", "number", 1);
+    std::vector<double> kaph = Nibble::search_table(db, "BSC5", "ROWID = 1", "number", 1);
     assert_equal(kaph[0], 9081, "IndexBSC5AlphaSort");
 
     // delete new table and index, rerun original bsc5 table generation
     try {
-        SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE |
-                SQLite::OPEN_CREATE);
         SQLite::Transaction transaction(db);
         SQLite::Statement(db, "DROP INDEX BSC5_alpha").exec();
         SQLite::Statement(db, "DROP TABLE BSC5").exec();

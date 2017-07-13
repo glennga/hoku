@@ -14,6 +14,7 @@
 #include "star.h"
 
 // enable exception messages if desired
+//#include <iostream>
 //#define NIBBLE_DISPLAY_EXCEPTION_MESSAGES 1
 
 /*
@@ -48,8 +49,8 @@ namespace Nibble {
     Star query_bsc5(const int);
 
     // query a table for specified fields given a constraint, limit results by certain number
-    std::vector<double> search_table(const std::string &, const std::string &, const std::string &,
-                                     const unsigned int, const int = -1);
+    std::vector<double> search_table(SQLite::Database &, const std::string &, const std::string &,
+                                     const std::string &, const unsigned int, const int = -1);
     std::vector<double> table_results_at(const std::vector<double> &, const unsigned int,
                                          const int);
 
