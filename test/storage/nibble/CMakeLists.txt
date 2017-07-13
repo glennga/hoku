@@ -4,7 +4,7 @@
 include_directories(${CMAKE_SOURCE_DIR}/lib/base-test)
 include_directories(${CMAKE_SOURCE_DIR}/lib/math/star)
 include_directories(${CMAKE_SOURCE_DIR}/lib/third-party/sqlite-cpp)
-include_directories(${CMAKE_SOURCE_DIR}/lib/nibble)
+include_directories(${CMAKE_SOURCE_DIR}/lib/storage/nibble)
 
 ##################################################################
 # Link and Create Executable
