@@ -122,14 +122,7 @@ void TestNibble::test_table_search_result_index() {
  * Check that the BSC5 table has an index created.
  */
 void TestNibble::test_table_polish_index() {
-    Nibble::polish_table("BSC5", "alpha, delta, i, j, k, magnitude, number",
-                         "alpha FLOAT, "
-                                 "delta FLOAT, "
-                                 "i FLOAT, "
-                                 "j FLOAT, "
-                                 "k FLOAT, "
-                                 "magnitude FLOAT, "
-                                 "number INT", "alpha");
+    Nibble::polish_table("BSC5", "alpha");
     SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
     bool assertion = false;
 
@@ -158,14 +151,7 @@ void TestNibble::test_table_polish_index() {
  */
 void TestNibble::test_table_polish_sort() {
     SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
-    Nibble::polish_table("BSC5", "alpha, delta, i, j, k, magnitude, number",
-                         "alpha FLOAT, "
-                                 "delta FLOAT, "
-                                 "i FLOAT, "
-                                 "j FLOAT, "
-                                 "k FLOAT, "
-                                 "magnitude FLOAT, "
-                                 "number INT", "alpha");
+    Nibble::polish_table("BSC5", "alpha");
     std::vector<double> kaph = Nibble::search_table(db, "BSC5", "ROWID = 1", "number", 1);
     assert_equal(kaph[0], 9081, "IndexBSC5AlphaSort");
 
