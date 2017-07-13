@@ -295,19 +295,17 @@ int Nibble::insert_into_table(SQLite::Database &db, const std::string &table,
     return 0;
 }
 
-
 /*
- * In the given table, sort using the selected column and create an index using the same column.
+ * In the given table, sort using the selected column.
  *
  * @param table Name of the table to query.
  * @param fields The fields of the given table.
  * @param focus_column The new table will be sorted and index by this column.
  * @return 0 when finished.
  */
-int Nibble::polish_table(const std::string &table, const std::string &fields,
-                         const std::string &schema, const std::string &focus_column) {
-    SQLite::Database db(Nibble::database_location,
-                        SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+int Nibble::sort_table(const std::string &table, const std::string &fields,
+                       const std::string &schema, const std::string &focus_column) {
+    SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
     SQLite::Transaction transaction(db);
     std::ostringstream sql;
 
@@ -331,8 +329,27 @@ int Nibble::polish_table(const std::string &table, const std::string &fields,
     sql << "ALTER TABLE " << table << "_SORTED" << " RENAME TO " << table;
     db.exec(sql.str());
     sql.str("");
+    transaction.commit();
+
+    return 0;
+}
+
+/*
+ * In the given table, sort using the selected column and create an index using the same column.
+ *
+ * @param table Name of the table to query.
+ * @param fields The fields of the given table.
+ * @param focus_column The new table will be sorted and index by this column.
+ * @return 0 when finished.
+ */
+int Nibble::polish_table(const std::string &table, const std::string &fields,
+                         const std::string &schema, const std::string &focus_column) {
+    SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+    Nibble::sort_table(table, fields, schema, focus_column);
 
     // create the index named 'TABLE_FOCUSCOLUMN'
+    std::ostringstream sql;
+    SQLite::Transaction transaction(db);
     sql << "CREATE INDEX " << table << "_" << focus_column << " ON " << table << "("
         << focus_column << ")";
     db.exec(sql.str());
