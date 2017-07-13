@@ -32,6 +32,8 @@ namespace Nibble {
     // generic table insertion method, limit by fov if desired
     int insert_into_table(SQLite::Database &, const std::string &, const std::string &,
                           const std::vector<std::string> &);
+    int insert_into_table(SQLite::Database &, const std::string &, const std::string &,
+                          const std::vector<double> &);
 
     // load all stars in catalog to array
     std::array<Star, 5029> all_bsc5_stars();
