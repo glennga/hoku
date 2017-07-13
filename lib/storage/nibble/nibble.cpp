@@ -66,7 +66,8 @@ void Nibble::parse_catalog(SQLite::Database &db, std::ifstream &catalog) {
         if (components[5] < 6.0) {
             Nibble::insert_into_table(db, "BSC5", "alpha, delta, i, j, k, magnitude, number",
                                       {components[0], components[1], components[2],
-                                       components[3], components[4], components[5]});
+                                       components[3], components[4], components[5],
+                                       (double) bsc_id});
         }
         bsc_id++;
     }
@@ -116,20 +117,9 @@ int Nibble::generate_bsc5_table() {
  * @return Star with the components of the matching bsc_id entry.
  */
 Star Nibble::query_bsc5(SQLite::Database &db, const int bsc_id) {
-    std::array<double, 3> components = {0, 0, 0};
-    int limit_one = 0;
-
-    SQLite::Statement query(db, "SELECT i, j, k FROM BSC5 WHERE number = ? LIMIT 1");
-    query.bind(1, bsc_id);
-
-    // this should only execute once
-    while (query.executeStep() && limit_one++ == 0) {
-        for (int a = 0; a < 3; a++) {
-            components[a] = query.getColumn(a);
-        }
-    }
-
-    return Star(components[0], components[1], components[2], bsc_id);
+    std::vector<double> results = search_table(db, "BSC5", "number = " + std::to_string(bsc_id),
+                                               "i, j, k", 1, 1);
+    return Star(results[0], results[1], results[2], bsc_id);
 }
 
 /*
@@ -210,6 +200,7 @@ std::vector<Star> Nibble::nearby_stars(const Star &focus, const double fov,
  * if desired. The results returned are a 1D array that holds a fixed number of items in
  * succession.
  *
+ * @param db Database object containing the table you want to modify.
  * @param table Name of the table to query.
  * @param constraint The SQL string to be used with the WHERE clause.
  * @param fields The columns to search for in the given table.
@@ -217,9 +208,9 @@ std::vector<Star> Nibble::nearby_stars(const Star &focus, const double fov,
  * @param limit Limit the results searched for with this.
  * @return 1D list of chained results.
  */
-std::vector<double> Nibble::search_table(const std::string &table, const std::string &constraint,
-                                         const std::string &fields, const unsigned int expected,
-                                         const int limit) {
+std::vector<double> Nibble::search_table(SQLite::Database &, const std::string &table,
+                                         const std::string &constraint, const std::string
+                                         &fields, const unsigned int expected, const int limit) {
     SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
     std::vector<double> result;
     std::ostringstream sql;
@@ -272,7 +263,7 @@ std::vector<double> Nibble::table_results_at(const std::vector<double> &searched
  * @return 0 when finished.
  */
 int Nibble::insert_into_table(SQLite::Database &db, const std::string &table,
-                              const std::string &fields, 
+                              const std::string &fields,
                               const std::vector<std::string> &in_values) {
     std::string sql = "INSERT INTO " + table + " (" + fields + ") VALUES (";
     for (unsigned int a = 0; a < in_values.size() - 1; a++) {
