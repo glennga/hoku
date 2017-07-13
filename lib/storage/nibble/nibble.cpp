@@ -278,7 +278,8 @@ std::vector<double> Nibble::table_results_at(const std::vector<double> &searched
  * @return 0 when finished.
  */
 int Nibble::insert_into_table(SQLite::Database &db, const std::string &table,
-                              const std::string &fields, const std::vector<double> &in_values) {
+                              const std::string &fields, 
+                              const std::vector<std::string> &in_values) {
     std::string sql = "INSERT INTO " + table + " (" + fields + ") VALUES (";
     for (unsigned int a = 0; a < in_values.size() - 1; a++) {
         sql.append("?, ");
