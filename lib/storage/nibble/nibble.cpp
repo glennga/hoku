@@ -64,15 +64,9 @@ void Nibble::parse_catalog(SQLite::Database &db, std::ifstream &catalog) {
 
         // only insert if magnitude < 6.0 (visible light)
         if (components[5] < 6.0) {
-            SQLite::Statement query(db, "INSERT INTO BSC5 VALUES ("
-                    "?, ?, ?, ?, ?, ?, ?)");
-
-            // bind all the components, and the bsc_id
-            for (int i = 0; i < 6; i++) {
-                query.bind(i + 1, components[i]);
-            }
-            query.bind(7, bsc_id);
-            query.exec();
+            Nibble::insert_into_table(db, "BSC5", "alpha, delta, i, j, k, magnitude, number",
+                                      {components[0], components[1], components[2],
+                                       components[3], components[4], components[5]});
         }
         bsc_id++;
     }
@@ -278,7 +272,38 @@ std::vector<double> Nibble::table_results_at(const std::vector<double> &searched
  * @return 0 when finished.
  */
 int Nibble::insert_into_table(SQLite::Database &db, const std::string &table,
-                              const std::string &fields, const std::vector<double> &in_values) {
+                              const std::string &fields, 
+                              const std::vector<std::string> &in_values) {
+    std::string sql = "INSERT INTO " + table + " (" + fields + ") VALUES (";
+    for (unsigned int a = 0; a < in_values.size() - 1; a++) {
+        sql.append("?, ");
+    }
+    sql.append("?)");
+
+    // bind all the fields to the in values
+    SQLite::Statement query(db, sql);
+    for (unsigned int a = 0; a < in_values.size(); a++) {
+        query.bind(a + 1, in_values[a]);
+    }
+    query.exec();
+
+    return 0;
+}
+
+/*
+ * Given a table, insert the set of values in order of the fields given. Requires an open
+ * database so we don't keep changing connection. This function is overloaded to accept a vector
+ * of doubles instead of strings.
+ *
+ * @param db Database object containing the table you want to modify.
+ * @param table Name of the table to insert to.
+ * @param fields The fields corresponding to vector of in_values.
+ * @param in_values Vector of values to insert to table.
+ * @return 0 when finished.
+ */
+int Nibble::insert_into_table(SQLite::Database &db, const std::string &table,
+                              const std::string &fields,
+                              const std::vector<double> &in_values) {
     std::string sql = "INSERT INTO " + table + " (" + fields + ") VALUES (";
     for (unsigned int a = 0; a < in_values.size() - 1; a++) {
         sql.append("?, ");

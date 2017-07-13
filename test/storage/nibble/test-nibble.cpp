@@ -188,7 +188,8 @@ void TestNibble::test_table_polish_sort() {
  */
 void TestNibble::test_table_insertion() {
     SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
-    std::vector<double> kaph{0, 0, 0, 0, 0, 0, 10000000}, yodh;
+    std::vector<std::string> kaph{"0", "0", "0", "0", "0", "0", "10000000"};
+    std::vector<double> yodh;
     SQLite::Transaction transaction(db);
 
     Nibble::insert_into_table(db, "BSC5", "alpha, delta, i, j, k, magnitude, number", kaph);
