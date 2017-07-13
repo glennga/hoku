@@ -20,7 +20,7 @@
  * @brief Nibble namespace, which contain functions that facilitate the retrieval and storage of
  * various lookup tables.
  *
- * The nibble namespace is used with all identification implementations. A group is stars is linked
+ * The nibble namespace is used with all identification implementations. A group is stars are linked
  * with certain attributes. Inside this namespace includes the building blocks to generate entire
  * tables, then search these tables.
  */
@@ -52,6 +52,8 @@ namespace Nibble {
                                          const int);
 
     // sort table by specified column and create index
+    int sort_table(const std::string &, const std::string &, const std::string &,
+                    const std::string &);
     int polish_table(const std::string &, const std::string &, const std::string &,
                      const std::string &);
 
