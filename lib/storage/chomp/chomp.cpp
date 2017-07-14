@@ -10,16 +10,10 @@
 
 int Chomp::build_k_vector_table(SQLite::Database &db, const std::string &table,
                                 const std::string &focus_column, const double m, const double q) {
-    Nibble::sort_table(table, focus_column);
     SQLite::Transaction transaction(db);
     int s_l = db.execAndGet(std::string("SELECT MAX(rowid) FROM ") + table).getInt();
     std::vector<double> s_vector;
     std::string fields, schema;
-
-    // duplicate table with original schema, append k_vec column
-    Nibble::find_schema_fields(db, table, schema, fields);
-    db.exec("CREATE TABLE " + table + "_KVEC AS SELECT * FROM " + table + " WHERE 0");
-    db.exec("ALTER TABLE " + table + "_KVEC ADD COLUMN k_value INT");
 
     // load all of table into RAM
     SQLite::Statement query(db, "SELECT * FROM " + table);
@@ -31,12 +25,14 @@ int Chomp::build_k_vector_table(SQLite::Database &db, const std::string &table,
     }
 
     // load K-Vector into table, K(i) = j where s(j) <= z(i) < s(j + 1)
-    for (int a = 0; a <= s_l; a++) {
+    Nibble::find_schema_fields(db, table, schema, fields);
+    for (int a = 0; a < 100; a++) {
         std::vector<double> k_entry;
         k_entry.reserve((unsigned) query.getColumnCount() + 1);
-        k_entry = Nibble::table_results_at(s_vector, (unsigned) query.getColumnCount(), a);
+        k_entry = Nibble::table_results_at(s_vector, (unsigned) query.getColumnCount(), a - 1);
         k_entry.push_back(0);
 
+        auto c = (m * a) + q;
         for (int b = 0; b < s_l; b++) {
             k_entry[query.getColumnCount()] += (s_vector[b] < ((m * a) + q)) ? 1 : 0;
         }
@@ -60,7 +56,7 @@ int Chomp::build_k_vector_table(SQLite::Database &db, const std::string &table,
 int Chomp::create_k_vector(const std::string &table, const std::string &focus_column) {
     SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
     double focus_0, focus_n, m, q;
-    std::string sql;
+    std::string sql, fields, schema;
 
     // search for last element of sorted table
     std::string sql_for_max_id = std::string("SELECT MAX(rowid) FROM ") + table;
@@ -73,10 +69,15 @@ int Chomp::create_k_vector(const std::string &table, const std::string &focus_co
     focus_0 = db.execAndGet(sql).getDouble();
 
     // determine Z equation, this creates slightly steeper line
-    m = (focus_n - focus_0 + (2 * DOUBLE_EPSILON)) / (db.execAndGet(sql_for_max_id).getInt() - 1);
+    m = (focus_n - focus_0 + (2.0 * DOUBLE_EPSILON)) / (db.execAndGet(sql_for_max_id).getInt());
     q = focus_0 - m - DOUBLE_EPSILON;
 
-    // build k-vector table
+    // duplicate sorted table with original schema, append k_vec column
+    Nibble::sort_table(table, focus_column);
+    Nibble::find_schema_fields(db, table, schema, fields);
+    db.exec("CREATE TABLE " + table + "_KVEC AS SELECT * FROM " + table + " WHERE 0");
+    db.exec("ALTER TABLE " + table + "_KVEC ADD COLUMN k_value INT");
+
     return build_k_vector_table(db, table, focus_column, m, q);
 }
 
@@ -101,6 +102,7 @@ std::vector<double> Chomp::k_vector_query(SQLite::Database &db, const std::strin
                                           const double y_a, const double y_b,
                                           const unsigned int expected) {
     std::string sql;
+    std::vector<double> s_entries;
     double focus_0, focus_n, m, q, j_b, j_t;
 
     std::string sql_for_max_id = std::string("SELECT MAX(rowid) FROM ") + table;
@@ -113,15 +115,22 @@ std::vector<double> Chomp::k_vector_query(SQLite::Database &db, const std::strin
     focus_0 = db.execAndGet(sql).getDouble();
 
     // determine Z equation
-    m = (focus_n - focus_0 + (2 * DOUBLE_EPSILON)) / (db.execAndGet(sql_for_max_id).getInt() - 1);
+    m = (focus_n - focus_0 + (2.0 * DOUBLE_EPSILON)) / (db.execAndGet(sql_for_max_id).getInt());
     q = focus_0 - m - DOUBLE_EPSILON;
 
     // determine indices of search, and perform search
     j_b = floor((y_a - q) / m);
     j_t = ceil((y_b - q) / m);
-    return Nibble::search_table(db, table + "_KVEC",
-                                "k_value BETWEEN " + std::to_string((int) j_b + 1) + " AND " +
-                                std::to_string((int) j_t), fields, expected);
+
+    // get index to s-vector (original table)
+    s_entries = Nibble::search_table(db, table + "_KVEC",
+                                     "rowid BETWEEN " + std::to_string((int) j_b) + " AND " +
+                                     std::to_string((int) j_t), "k_value", expected / 2);
+
+    return Nibble::search_table(db, table, "rowid BETWEEN " +
+                                           std::to_string(s_entries[0]) + " AND " +
+                                           std::to_string(s_entries[s_entries.size() - 1]),
+                                fields, expected);
 }
 
 ///*

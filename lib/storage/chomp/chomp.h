@@ -34,9 +34,8 @@ namespace Chomp {
                                        const std::string &, const double, const double,
                                        const unsigned int);
 
-    // standard machine epsilon for doubles, as noted in paper
-    const double DOUBLE_EPSILON = 2.22e-16;
-
+    // standard machine epsilon for doubles, smallest possible change in precision
+    const double DOUBLE_EPSILON = std::numeric_limits<double>::epsilon();
 
     // parse catalog, generate BSC5
     void parse_catalog(SQLite::Database &, std::ifstream &);

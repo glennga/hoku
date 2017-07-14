@@ -26,9 +26,8 @@ void TestChomp::test_k_vector_query() {
     SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
     std::vector<double> kaph;
     kaph = Chomp::k_vector_query(db, "SEP20", "theta",
-                                 "star_a_number, star_b_number, theta", 0, 0.005, 90);
-
-    assert_true(kaph[2] < 5.005 && kaph[2] > 5.004, "KVectorQueryFirstResultsWithinBounds");
+                                 "star_a_number, star_b_number, theta", 5.004, 5.005, 90);
+    assert_true(kaph[kaph.size() - 1] < 0.002 && kaph[kaph.size() - 1] > 0.001, "KVectorQueryLastResultsWithinBounds");
 }
 //
 ///*
@@ -305,8 +304,11 @@ int TestChomp::enumerate_tests(int test_case) {
  * Run the tests in TestChomp.
  */
 int main() {
-    Chomp::create_k_vector("SEP20", "theta");
 //    SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+//    SQLite::Transaction t(db);
+//    db.exec("DROP TABLE SEP20_KVEC");
+//    t.commit();
+//    Chomp::create_k_vector("SEP20", "theta");
 //    auto a = Nibble::search_table(db, "SEP20", "theta BETWEEN ")
 //    return 0;
     return TestChomp().execute_tests();
