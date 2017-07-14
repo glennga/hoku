@@ -309,6 +309,29 @@ int Nibble::insert_into_table(SQLite::Database &db, const std::string &table,
 }
 
 /*
+ * In the given table, get the fields and schema.
+ */
+int Nibble::find_schema_fields(SQLite::Database &db, const std::string &table,
+                               std::string &fields, std::string &schema) {
+    fields.clear();
+    schema.clear();
+
+    SQLite::Statement query(db, "PRAGMA table_info (" + table + ")");
+    while (query.executeStep()) {
+        fields += query.getColumn(1).getString() + ", ";
+        schema += query.getColumn(1).getString() + " " + query.getColumn(2).getString() + ", ";
+    }
+
+    // remove trailing commas from fields and schema
+    for (int a = 0; a < 2; a++) {
+        fields.pop_back();
+        schema.pop_back();
+    }
+
+    return 0;
+}
+
+/*
  * In the given table, sort using the selected column.
  *
  * @param table Name of the table to query.
@@ -321,17 +344,7 @@ int Nibble::sort_table(const std::string &table, const std::string &focus_column
     std::string fields, schema;
 
     // grab the fields and schema of the table
-    SQLite::Statement query(db, "PRAGMA table_info (" + table + ")");
-    while (query.executeStep()) {
-        fields += query.getColumn(1).getString() + ", ";
-        schema += query.getColumn(1).getString() + " " + query.getColumn(2).getString() + ", ";
-    }
-
-    // remove trailing commas from fields and schema
-    for (int a = 0; a < 2; a++) {
-        fields.pop_back();
-        schema.pop_back();
-    }
+    Nibble::find_schema_fields(db, table, schema, fields);
 
     // create temporary table to insert sorted data, insert sorted data by focus column
     db.exec("CREATE TABLE " + table + "_SORTED (" + schema + ")");
