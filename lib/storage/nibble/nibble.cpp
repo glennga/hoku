@@ -310,9 +310,15 @@ int Nibble::insert_into_table(SQLite::Database &db, const std::string &table,
 
 /*
  * In the given table, get the fields and schema.
+ *
+ * @param db Database object containing the table you want to modify.
+ * @param table Name of the table to insert to.
+ * @param schema Reference to string that will hold schema.
+ * @param fields Reference to string that will hold fields.
+ * @return 0 when finished.
  */
 int Nibble::find_schema_fields(SQLite::Database &db, const std::string &table,
-                               std::string &fields, std::string &schema) {
+                               std::string &schema, std::string &fields) {
     fields.clear();
     schema.clear();
 
