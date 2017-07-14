@@ -55,6 +55,7 @@ namespace Nibble {
                                          const int);
 
     // sort table by specified column and create index
+    int find_schema_fields(SQLite::Database &, const std::string &, std::string &, std::string &);
     int sort_table(const std::string &, const std::string &);
     int polish_table(const std::string &, const std::string &);
 
