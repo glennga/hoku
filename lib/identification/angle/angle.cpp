@@ -58,10 +58,11 @@ int Angle::generate_sep_table(const int fov, const std::string &table_name) {
  * angles. Assumes noise is normally distributed, searches using epsilon (3 * query_sigma).
  * Limits the amount returned by the search using 'query_limit'.
  *
+ * @param db Database object currently open.
  * @param theta Separation angle (degrees) to search with.
  * @return [-1][-1] if no candidates found. Two element array of the matching BSC IDs otherwise.
  */
-std::array<int, 2> Angle::query_for_pair(const double theta) {
+std::array<int, 2> Angle::query_for_pair(SQLite::Database &db, const double theta) {
     // noise is normally distributed, angle within 3 sigma
     double epsilon = 3.0 * this->parameters.query_sigma, current_minimum = this->fov;
     std::vector<double> candidates;
@@ -71,7 +72,7 @@ std::array<int, 2> Angle::query_for_pair(const double theta) {
     // query using theta with epsilon bounds, return [-1][-1] if nothing found
     condition << "theta BETWEEN " << std::setprecision(16) << std::fixed;
     condition << theta - epsilon << " AND " << theta + epsilon;
-    candidates = Nibble::search_table(this->parameters.table_name, condition.str(),
+    candidates = Nibble::search_table(db, this->parameters.table_name, condition.str(),
                                       "star_a_number, star_b_number, theta",
                                       (unsigned int) this->parameters.query_limit * 3,
                                       this->parameters.query_limit);
@@ -113,7 +114,7 @@ std::array<Star, 2> Angle::find_candidate_pair(SQLite::Database &db, const Star 
     }
 
     // no candidates found, must break
-    candidates = this->query_for_pair(theta);
+    candidates = this->query_for_pair(db, theta);
     if (candidates[0] == -1 && candidates[1] == -1) { return {Star(0, 0, 0), Star(0, 0, 0)}; }
 
     // obtain inertial vectors for given candidates
