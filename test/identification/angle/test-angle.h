@@ -1,5 +1,5 @@
 /*
- * @file: test_angle.h
+ * @file: test-angle.h
  *
  * @brief: Header file for the TestAngle class, which tests the Angle class.
  */
@@ -7,7 +7,7 @@
 #ifndef TEST_ANGLE_H
 #define TEST_ANGLE_H
 
-#include "base_test.h"
+#include "base-test.h"
 #include "angle.h"
 #include <cstdio>
 

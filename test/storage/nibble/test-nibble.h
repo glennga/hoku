@@ -1,5 +1,5 @@
 /*
- * @file: test_nibble.h
+ * @file: test-nibble.h
  *
  * @brief: Header file for the TestNibble namespace, which tests the Nibble namespace.
  */
@@ -7,7 +7,7 @@
 #ifndef TEST_NIBBLE_H
 #define TEST_NIBBLE_H
 
-#include "base_test.h"
+#include "base-test.h"
 #include "nibble.h"
 #include <cstdio>
 
@@ -36,7 +36,7 @@ class TestNibble : public BaseTest {
         void test_table_insertion();
 
         // test the id grabbing method
-        void test_bsc_id_grab();
+        void test_bsc5_all_stars_grab();
 
         // test the nearby star grabbing method
         void test_nearby_star_grab();

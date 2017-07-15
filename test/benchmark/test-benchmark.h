@@ -1,5 +1,5 @@
 /*
- * @file: test_benchmark.h
+ * @file: test-benchmark.h
  *
  * @brief: Header file for the TestBenchmark class, which tests the Benchmark class.
  */
@@ -7,7 +7,7 @@
 #ifndef TEST_BENCHMARK_H
 #define TEST_BENCHMARK_H
 
-#include "base_test.h"
+#include "base-test.h"
 #include "benchmark.h"
 
 class TestBenchmark : public BaseTest {

@@ -1,10 +1,10 @@
 /*
- * @file: test_benchmark.cpp
+ * @file: test-benchmark.cpp
  *
  * @brief: Source file for the TestBenchmark class, as well as the main function to run the tests.
  */
 
-#include "test_benchmark.h"
+#include "test-benchmark.h"
 
 /*
  * Check that the stars are not in the same order after shuffling.
@@ -18,8 +18,8 @@ void TestBenchmark::test_star_shuffle() {
     yodh = input.stars[0];
     input.shuffle();
 
-    assert_false(Star::is_equal(kaph, yodh), "ShuffledSetStarShuffle1");
-    assert_false(Star::is_equal(yodh, input.stars[0]), "ShuffledSetStarShuffle2");
+    assert_false(kaph == yodh, "ShuffledSetStarShuffle1");
+    assert_false(yodh == input.stars[0], "ShuffledSetStarShuffle2");
 }
 
 /*
@@ -131,7 +131,7 @@ void TestBenchmark::test_shifted_light_shifted() {
 
     for (Star original : kaph) {
         for (Star modified : input.stars) {
-            if (!Star::is_equal(original, modified)) {
+            if (!(original == modified)) {
                 yodh++;
             }
         }

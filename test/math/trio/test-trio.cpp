@@ -1,10 +1,10 @@
 /*
- * @file: test_trio.cpp
+ * @file: test-trio.cpp
  *
  * @brief: Source file for the TestTrio class, as well as the main function to run the tests.
  */
 
-#include "test_trio.h"
+#include "test-trio.h"
 
 /*
  * Check that the side lengths generated for a planar triangle are correct. Answers checked with
@@ -126,35 +126,25 @@ void TestTrio::test_spherical_moment_computation() {
  */
 int TestTrio::enumerate_tests(int test_case) {
     switch (test_case) {
-        case 0:
-            test_planar_length_computation();
+        case 0: test_planar_length_computation();
             break;
-        case 1:
-            test_spherical_length_computation();
+        case 1: test_spherical_length_computation();
             break;
-        case 2:
-            test_semi_perimeter_computation();
+        case 2: test_semi_perimeter_computation();
             break;
-        case 3:
-            test_planar_area_computation();
+        case 3: test_planar_area_computation();
             break;
-        case 4:
-            test_planar_moment_computation();
+        case 4: test_planar_moment_computation();
             break;
-        case 5:
-            test_spherical_area_computation();
+        case 5: test_spherical_area_computation();
             break;
-        case 6:
-            test_planar_centroid_computation();
+        case 6: test_planar_centroid_computation();
             break;
-        case 7:
-            test_cut_triangle_computation();
+        case 7: test_cut_triangle_computation();
             break;
-        case 8:
-            test_spherical_moment_computation();
+        case 8: test_spherical_moment_computation();
             break;
-        default:
-            return -1;
+        default:return -1;
     }
 
     return 0;
