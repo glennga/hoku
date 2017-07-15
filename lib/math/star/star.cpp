@@ -31,14 +31,23 @@ Star::Star(const double i, const double j, const double k, const int bsc_id,
 }
 
 /*
- * Get method for the i, j, and k components of the star.
- *
- * @return Array of components in order of i, j, and k.
- *
+ * Overloaded constructor. Sets the i, j, k, and bsc_id of a star to 0.
  */
-std::array<double, 3> Star::components_as_array() const {
-    std::array<double, 3> components = {this->i, this->j, this->k};
-    return components;
+Star::Star() {
+    this->i = 0;
+    this->j = 0;
+    this->k = 0;
+    this->bsc_id = 0;
+}
+
+/*
+ * Get method for the i, j, and k components of the star. Overloads the [] operator.
+ *
+ * @param n Index of <i, j, k> to return.
+ * @return 0 if n > 2. Otherwise component at index n of <i, j, k>.
+ */
+double Star::operator[](const int n) const {
+    return n > 2 ? 0 : std::array<double, 3> {i, j, k} [n];
 }
 
 /*
@@ -46,7 +55,7 @@ std::array<double, 3> Star::components_as_array() const {
  *
  * @return BSC ID of the current star.
  */
-int Star::get_bsc_id() const{
+int Star::get_bsc_id() const {
     return this->bsc_id;
 }
 
@@ -129,6 +138,17 @@ bool Star::is_equal(const Star &rho, const Star &beta, const double delta) {
     double k_delta = fabs(rho.k - beta.k);
 
     return i_delta < delta && j_delta < delta && k_delta < delta;
+}
+
+/*
+ * Determine if the two value's **components** are within delta units of each other. This function
+ * is a wrapper for the is_equal function, and uses the default delta = DEFAULT_PRECISION_IS_EQUAL.
+ *
+ * @param rho Star to check current star against.
+ * @return True if all components are the same. False otherwise.
+ */
+bool Star::operator==(const Star &rho) const {
+    return Star::is_equal(rho, *this);
 }
 
 /*

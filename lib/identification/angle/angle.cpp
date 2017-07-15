@@ -16,19 +16,6 @@ Angle::Angle(Benchmark input) {
     this->input = input.present_stars();
     this->fov = input.get_fov();
     this->focus = input.get_focus();
-
-//    this->sort_stars();
-}
-
-/*
- * Sorts the current stars in the input by their distance to the focus. Using STL sort.
- */
-void Angle::sort_stars() {
-    auto sort_by_theta = [this] (const Star &a, const Star &b) {
-        return Star::angle_between(a, this->focus) < Star::angle_between(b, this->focus);
-    };
-
-    std::sort(this->input.begin(), this->input.end(), sort_by_theta);
 }
 
 /*
@@ -41,37 +28,29 @@ void Angle::sort_stars() {
  * @return 0 when finished.
  */
 int Angle::generate_sep_table(const int fov, const std::string &table_name) {
-    SQLite::Database db(Nibble::database_location,
-                        SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+    SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
     SQLite::Transaction transaction(db);
-    db.exec("CREATE TABLE " + table_name + "(star_a_number INT, "
-            "star_b_number INT, "
-            "theta FLOAT)");
+    db.exec("CREATE TABLE " + table_name + "(star_a_number INT, star_b_number INT, theta FLOAT)");
 
     // (a, b) are distinct, where no (a, b) = (b, a)
-    std::array<int, 5029> star_numbers = Nibble::all_bsc_id();
-    for (unsigned int a = 0; a < star_numbers.size() - 1; a++) {
-        std::cout << "\r" << "Current *A* Star: " << star_numbers[a];
-        std::array<double, 4> zeta = Nibble::query_bsc5(db, star_numbers[a]);
-        Star zeta_star(zeta[0], zeta[1], zeta[2]);
-
-        for (unsigned int b = a + 1; b < star_numbers.size(); b++) {
-            std::array<double, 4> eta = Nibble::query_bsc5(db, star_numbers[b]);
-            double theta = Star::angle_between(zeta_star, Star(eta[0], eta[1], eta[2]));
+    std::array<Star, 5029> all_stars = Nibble::all_bsc5_stars();
+    for (unsigned int a = 0; a < all_stars.size() - 1; a++) {
+        std::cout << "\r" << "Current *A* Star: " << all_stars[a].get_bsc_id();
+        for (unsigned int b = a + 1; b < all_stars.size(); b++) {
+            double theta = Star::angle_between(all_stars[a], all_stars[b]);
 
             // only insert if angle between both stars is less than fov
             if (theta < fov) {
                 Nibble::insert_into_table(db, table_name, "star_a_number, star_b_number, "
-                        "theta", {(double) star_numbers[a], (double) star_numbers[b], theta});
+                        "theta", {(double) all_stars[a].get_bsc_id(),
+                                  (double) all_stars[b].get_bsc_id(), theta});
             }
         }
     }
 
     transaction.commit();
     return Nibble::polish_table(table_name, "star_a_number, star_b_number, theta",
-                                "star_a_number INT, "
-                                        "star_b_number INT, "
-                                        "theta FLOAT", "theta");
+                                "star_a_number INT, star_b_number INT, theta FLOAT", "theta");
 }
 
 /*
@@ -79,10 +58,11 @@ int Angle::generate_sep_table(const int fov, const std::string &table_name) {
  * angles. Assumes noise is normally distributed, searches using epsilon (3 * query_sigma).
  * Limits the amount returned by the search using 'query_limit'.
  *
+ * @param db Database object currently open.
  * @param theta Separation angle (degrees) to search with.
  * @return [-1][-1] if no candidates found. Two element array of the matching BSC IDs otherwise.
  */
-std::array<int, 2> Angle::query_for_pair(const double theta) {
+std::array<int, 2> Angle::query_for_pair(SQLite::Database &db, const double theta) {
     // noise is normally distributed, angle within 3 sigma
     double epsilon = 3.0 * this->parameters.query_sigma, current_minimum = this->fov;
     std::vector<double> candidates;
@@ -92,7 +72,7 @@ std::array<int, 2> Angle::query_for_pair(const double theta) {
     // query using theta with epsilon bounds, return [-1][-1] if nothing found
     condition << "theta BETWEEN " << std::setprecision(16) << std::fixed;
     condition << theta - epsilon << " AND " << theta + epsilon;
-    candidates = Nibble::search_table(this->parameters.table_name, condition.str(),
+    candidates = Nibble::search_table(db, this->parameters.table_name, condition.str(),
                                       "star_a_number, star_b_number, theta",
                                       (unsigned int) this->parameters.query_limit * 3,
                                       this->parameters.query_limit);
@@ -126,7 +106,6 @@ std::array<int, 2> Angle::query_for_pair(const double theta) {
 std::array<Star, 2> Angle::find_candidate_pair(SQLite::Database &db, const Star &body_a,
                                                const Star &body_b) {
     double theta = Star::angle_between(body_a, body_b);
-    std::array<double, 4> components_a, components_b;
     std::array<int, 2> candidates;
 
     // greater than current field of view, must break
@@ -135,16 +114,11 @@ std::array<Star, 2> Angle::find_candidate_pair(SQLite::Database &db, const Star 
     }
 
     // no candidates found, must break
-    candidates = this->query_for_pair(theta);
-    if (candidates[0] == -1 && candidates[1] == -1) {
-        return {Star(0, 0, 0), Star(0, 0, 0)};
-    }
+    candidates = this->query_for_pair(db, theta);
+    if (candidates[0] == -1 && candidates[1] == -1) { return {Star(0, 0, 0), Star(0, 0, 0)}; }
 
     // obtain inertial vectors for given candidates
-    components_a = Nibble::query_bsc5(db, candidates[0]);
-    components_b = Nibble::query_bsc5(db, candidates[1]);
-    return {Star(components_a[0], components_a[1], components_a[2], candidates[0]),
-            Star(components_b[0], components_b[1], components_b[2], candidates[1])};
+    return {Nibble::query_bsc5(db, candidates[0]), Nibble::query_bsc5(db, candidates[1])};
 }
 
 /*
@@ -156,22 +130,23 @@ std::array<Star, 2> Angle::find_candidate_pair(SQLite::Database &db, const Star 
  * @return Set of matching stars found in candidates and the body sets.
  */
 std::vector<Star> Angle::find_matches(const std::vector<Star> &candidates, const Rotation &psi) {
-    std::vector<Star> matches, current_input = this->input;
+    std::vector<Star> matches, non_matched = this->input;
     double epsilon = 3.0 * this->parameters.match_sigma;
     matches.reserve(this->input.size());
 
     for (const Star &candidate : candidates) {
         Star as_body = Rotation::rotate(candidate, psi);
 
-        for (unsigned int a = 0; a < current_input.size(); a++) {
-            double theta = Star::angle_between(as_body, current_input[a]);
+        for (unsigned int a = 0; a < non_matched.size(); a++) {
+            double theta = Star::angle_between(as_body, non_matched[a]);
 
             if (theta < epsilon) {
-                std::array<double, 3> match = current_input[a].components_as_array();
-                matches.push_back(Star(match[0], match[1], match[2], candidate.get_bsc_id()));
+                // add to list the body star with the candidate star's BSC ID
+                matches.push_back(Star(non_matched[a][0], non_matched[a][1],
+                                       non_matched[a][2], candidate.get_bsc_id()));
 
                 // remove the current star from the searching set, break early
-                current_input.erase(current_input.begin() + a);
+                non_matched.erase(non_matched.begin() + a);
                 break;
             }
         }
