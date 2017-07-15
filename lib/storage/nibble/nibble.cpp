@@ -64,15 +64,10 @@ void Nibble::parse_catalog(SQLite::Database &db, std::ifstream &catalog) {
 
         // only insert if magnitude < 6.0 (visible light)
         if (components[5] < 6.0) {
-            SQLite::Statement query(db, "INSERT INTO BSC5 VALUES ("
-                    "?, ?, ?, ?, ?, ?, ?)");
-
-            // bind all the components, and the bsc_id
-            for (int i = 0; i < 6; i++) {
-                query.bind(i + 1, components[i]);
-            }
-            query.bind(7, bsc_id);
-            query.exec();
+            Nibble::insert_into_table(db, "BSC5", "alpha, delta, i, j, k, magnitude, number",
+                                      {components[0], components[1], components[2],
+                                       components[3], components[4], components[5],
+                                       (double) bsc_id});
         }
         bsc_id++;
     }
@@ -94,14 +89,8 @@ int Nibble::generate_bsc5_table() {
         if (!catalog.is_open()) { return -2; }
 
         SQLite::Transaction transaction(db);
-        db.exec("CREATE TABLE BSC5 ( "
-                        "alpha FLOAT, "
-                        "delta FLOAT, "
-                        "i FLOAT, "
-                        "j FLOAT, "
-                        "k FLOAT, "
-                        "magnitude FLOAT, "
-                        "number INT)");
+        db.exec("CREATE TABLE BSC5 (alpha FLOAT, delta FLOAT, i FLOAT, j FLOAT, k FLOAT, "
+                        "magnitude FLOAT, number INT)");
 
         Nibble::parse_catalog(db, catalog);
         transaction.commit();
@@ -114,14 +103,7 @@ int Nibble::generate_bsc5_table() {
     }
 
     // polish table, sort by bsc_id
-    return Nibble::polish_table("BSC5", "alpha, delta, i, j, k, magnitude, number",
-                                "alpha FLOAT, "
-                                        "delta FLOAT, "
-                                        "i FLOAT, "
-                                        "j FLOAT, "
-                                        "k FLOAT, "
-                                        "magnitude FLOAT, "
-                                        "number INT", "number");
+    return Nibble::polish_table("BSC5", "number");
 }
 
 /*
@@ -133,23 +115,9 @@ int Nibble::generate_bsc5_table() {
  * @return Star with the components of the matching bsc_id entry.
  */
 Star Nibble::query_bsc5(SQLite::Database &db, const int bsc_id) {
-    std::array<double, 3> components = {0, 0, 0};
-    int limit_one = 0;
-
-    SQLite::Statement query(db, "SELECT i, j, k "
-            "FROM BSC5 "
-            "WHERE number = ? "
-            "LIMIT 1");
-    query.bind(1, bsc_id);
-
-    // this should only execute once
-    while (query.executeStep() && limit_one++ == 0) {
-        for (int a = 0; a < 3; a++) {
-            components[a] = query.getColumn(a);
-        }
-    }
-
-    return Star(components[0], components[1], components[2], bsc_id);
+    std::vector<double> results = search_table(db, "BSC5", "number = " + std::to_string(bsc_id),
+                                               "i, j, k", 1, 1);
+    return Star(results[0], results[1], results[2], bsc_id);
 }
 
 /*
@@ -161,33 +129,30 @@ Star Nibble::query_bsc5(SQLite::Database &db, const int bsc_id) {
  * @return Star with the components of the matching bsc_id entry.
  */
 Star Nibble::query_bsc5(const int bsc_id) {
-
-    SQLite::Database db(Nibble::database_location,
-                        SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
-
+    SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
     return Nibble::query_bsc5(db, bsc_id);
 }
 
 /*
- * Find all valid BSC IDs (number column in BSC5).
+ * Return all entries in BSC5 table as stars.
  *
- * @return Array with all valid BSC ID numbers.
+ * @return Array with all stars in BSC5 table.
  */
-std::array<int, 5029> Nibble::all_bsc_id() {
-    std::array<int, 5029> bsc_id_list;
+std::array<Star, 5029> Nibble::all_bsc5_stars() {
+    SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+    std::array<Star, 5029> star_list;
     int current_position = 0;
 
-    SQLite::Database db(Nibble::database_location,
-                        SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
-    SQLite::Statement query(db, "SELECT number "
-            "FROM BSC5");
-
-    // prevent array access past 5028
+    // select all stars, prevent array access past 5028
+    SQLite::Statement query(db, "SELECT i, j, k, number FROM BSC5");
     while (query.executeStep() && current_position < 5029) {
-        bsc_id_list[current_position++] = query.getColumn(0).getInt();
+        star_list[current_position++] = Star(query.getColumn(0).getDouble(),
+                                             query.getColumn(1).getDouble(),
+                                             query.getColumn(2).getDouble(),
+                                             query.getColumn(3).getInt());
     }
 
-    return bsc_id_list;
+    return star_list;
 }
 
 /*
@@ -201,14 +166,12 @@ std::array<int, 5029> Nibble::all_bsc_id() {
  */
 std::vector<Star> Nibble::nearby_stars(SQLite::Database &db, const Star &focus, const double fov,
                                        const unsigned int expected) {
-    std::array<int, 5029> bsc_id_list = Nibble::all_bsc_id();
     std::vector<Star> nearby;
-
     nearby.reserve(expected);
-    for (int candidate : bsc_id_list) {
-        Star candidate_star = Nibble::query_bsc5(db, candidate);
-        if (Star::within_angle(focus, candidate_star, fov)) {
-            nearby.push_back(candidate_star);
+
+    for (const Star &candidate : Nibble::all_bsc5_stars()) {
+        if (Star::within_angle(focus, candidate, fov)) {
+            nearby.push_back(candidate);
         }
     }
 
@@ -226,17 +189,16 @@ std::vector<Star> Nibble::nearby_stars(SQLite::Database &db, const Star &focus, 
  */
 std::vector<Star> Nibble::nearby_stars(const Star &focus, const double fov,
                                        const unsigned int expected) {
-    SQLite::Database db(Nibble::database_location,
-                        SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
-    
+    SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
     return Nibble::nearby_stars(db, focus, fov, expected);
 }
 
 /*
  * Search a table for the specified fields given a constraint. Limit results by a certain amount
- * if desired. The results returned is a 1D array that holds a fixed number of items in
+ * if desired. The results returned are a 1D array that holds a fixed number of items in
  * succession.
  *
+ * @param db Database object containing the table you want to modify.
  * @param table Name of the table to query.
  * @param constraint The SQL string to be used with the WHERE clause.
  * @param fields The columns to search for in the given table.
@@ -244,23 +206,20 @@ std::vector<Star> Nibble::nearby_stars(const Star &focus, const double fov,
  * @param limit Limit the results searched for with this.
  * @return 1D list of chained results.
  */
-std::vector<double> Nibble::search_table(const std::string table, const std::string constraint,
-                                         const std::string fields, const unsigned int expected,
-                                         const int limit) {
+std::vector<double> Nibble::search_table(SQLite::Database &db, const std::string &table,
+                                         const std::string &constraint, const std::string
+                                         &fields, const unsigned int expected, const int limit) {
     std::vector<double> result;
-    result.reserve(expected);
-    SQLite::Database db(Nibble::database_location,
-                        SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+    std::string sql;
 
-    // unable to bind table, constraint, and fields, need to build string ourselves
-    std::ostringstream sql;
-    sql << "SELECT " << fields << " FROM " << table << " WHERE " << constraint;
+    result.reserve(expected);
+    sql = "SELECT " + fields + " FROM " + table + " WHERE " + constraint;
     if (limit > 0) {
         // do not use limit constraint if limit is not specified
-        sql << " LIMIT " << limit;
+        sql += " LIMIT " + std::to_string(limit);
     }
 
-    SQLite::Statement query(db, sql.str());
+    SQLite::Statement query(db, sql);
     while (query.executeStep()) {
         for (int a = 0; a < query.getColumnCount(); a++) {
             result.push_back(query.getColumn(a).getDouble());
@@ -301,7 +260,8 @@ std::vector<double> Nibble::table_results_at(const std::vector<double> &searched
  * @return 0 when finished.
  */
 int Nibble::insert_into_table(SQLite::Database &db, const std::string &table,
-                              const std::string &fields, const std::vector<double> &in_values) {
+                              const std::string &fields,
+                              const std::vector<std::string> &in_values) {
     std::string sql = "INSERT INTO " + table + " (" + fields + ") VALUES (";
     for (unsigned int a = 0; a < in_values.size() - 1; a++) {
         sql.append("?, ");
@@ -318,6 +278,92 @@ int Nibble::insert_into_table(SQLite::Database &db, const std::string &table,
     return 0;
 }
 
+/*
+ * Given a table, insert the set of values in order of the fields given. Requires an open
+ * database so we don't keep changing connection. This function is overloaded to accept a vector
+ * of doubles instead of strings.
+ *
+ * @param db Database object containing the table you want to modify.
+ * @param table Name of the table to insert to.
+ * @param fields The fields corresponding to vector of in_values.
+ * @param in_values Vector of values to insert to table.
+ * @return 0 when finished.
+ */
+int Nibble::insert_into_table(SQLite::Database &db, const std::string &table,
+                              const std::string &fields,
+                              const std::vector<double> &in_values) {
+    std::string sql = "INSERT INTO " + table + " (" + fields + ") VALUES (";
+    for (unsigned int a = 0; a < in_values.size() - 1; a++) {
+        sql.append("?, ");
+    }
+    sql.append("?)");
+
+    // bind all the fields to the in values
+    SQLite::Statement query(db, sql);
+    for (unsigned int a = 0; a < in_values.size(); a++) {
+        query.bind(a + 1, in_values[a]);
+    }
+    query.exec();
+
+    return 0;
+}
+
+/*
+ * In the given table, get the fields and schema.
+ *
+ * @param db Database object containing the table you want to modify.
+ * @param table Name of the table to insert to.
+ * @param schema Reference to string that will hold schema.
+ * @param fields Reference to string that will hold fields.
+ * @return 0 when finished.
+ */
+int Nibble::find_schema_fields(SQLite::Database &db, const std::string &table,
+                               std::string &schema, std::string &fields) {
+    fields.clear();
+    schema.clear();
+
+    SQLite::Statement query(db, "PRAGMA table_info (" + table + ")");
+    while (query.executeStep()) {
+        fields += query.getColumn(1).getString() + ", ";
+        schema += query.getColumn(1).getString() + " " + query.getColumn(2).getString() + ", ";
+    }
+
+    // remove trailing commas from fields and schema
+    for (int a = 0; a < 2; a++) {
+        fields.pop_back();
+        schema.pop_back();
+    }
+
+    return 0;
+}
+
+/*
+ * In the given table, sort using the selected column.
+ *
+ * @param table Name of the table to query.
+ * @param focus_column The new table will be sorted and index by this column.
+ * @return 0 when finished.
+ */
+int Nibble::sort_table(const std::string &table, const std::string &focus_column) {
+    SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+    SQLite::Transaction transaction(db);
+    std::string fields, schema;
+
+    // grab the fields and schema of the table
+    Nibble::find_schema_fields(db, table, schema, fields);
+
+    // create temporary table to insert sorted data, insert sorted data by focus column
+    db.exec("CREATE TABLE " + table + "_SORTED (" + schema + ")");
+    db.exec("INSERT INTO " + table + "_SORTED (" + fields + ")" + " SELECT " + fields +
+            " FROM " + table + " ORDER BY " + focus_column);
+
+    // remove old table, rename table to original table name
+    db.exec("DROP TABLE " + table);
+    db.exec("ALTER TABLE " + table + "_SORTED RENAME TO " + table);
+    transaction.commit();
+
+    return 0;
+}
 
 /*
  * In the given table, sort using the selected column and create an index using the same column.
@@ -327,40 +373,14 @@ int Nibble::insert_into_table(SQLite::Database &db, const std::string &table,
  * @param focus_column The new table will be sorted and index by this column.
  * @return 0 when finished.
  */
-int Nibble::polish_table(const std::string &table, const std::string &fields,
-                         const std::string &schema, const std::string &focus_column) {
-    SQLite::Database db(Nibble::database_location,
-                        SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
-    SQLite::Transaction transaction(db);
-
-    // create new table, move sorted data to this new table
-    std::ostringstream sql;
-
-    sql << "CREATE TABLE " << table << "_SORTED (" << schema << ")";
-    db.exec(sql.str());
-    sql.str("");
-
-    sql << "INSERT INTO " << table << "_SORTED (" << fields << ")";
-    sql << " SELECT " << fields;
-    sql << " FROM " << table;
-    sql << " ORDER BY " << focus_column;
-    db.exec(sql.str());
-    sql.str("");
-
-    // remove old table, rename to new table
-    sql << "DROP TABLE " << table;
-    db.exec(sql.str());
-    sql.str("");
-
-    sql << "ALTER TABLE " << table << "_SORTED";
-    sql << " RENAME TO " << table;
-    db.exec(sql.str());
-    sql.str("");
+int Nibble::polish_table(const std::string &table, const std::string &focus_column) {
+    SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+    Nibble::sort_table(table, focus_column);
 
     // create the index named 'TABLE_FOCUSCOLUMN'
-    sql << "CREATE INDEX " << table << "_" << focus_column;
-    sql << " ON " << table << "(" << focus_column << ")";
-    db.exec(sql.str());
+    SQLite::Transaction transaction(db);
+    db.exec("CREATE INDEX " + table + "_" + focus_column + " ON " + table +
+                    "(" + focus_column + ")");
     transaction.commit();
 
     return 0;

@@ -14,13 +14,14 @@
 #include "star.h"
 
 // enable exception messages if desired
+//#include <iostream>
 //#define NIBBLE_DISPLAY_EXCEPTION_MESSAGES 1
 
 /*
  * @brief Nibble namespace, which contain functions that facilitate the retrieval and storage of
  * various lookup tables.
  *
- * The nibble namespace is used with all identification implementations. A group is stars is linked
+ * The nibble namespace is used with all identification implementations. A group is stars are linked
  * with certain attributes. Inside this namespace includes the building blocks to generate entire
  * tables, then search these tables.
  */
@@ -31,10 +32,12 @@ namespace Nibble {
 
     // generic table insertion method, limit by fov if desired
     int insert_into_table(SQLite::Database &, const std::string &, const std::string &,
+                          const std::vector<std::string> &);
+    int insert_into_table(SQLite::Database &, const std::string &, const std::string &,
                           const std::vector<double> &);
 
-    // find all possible star BSC IDs
-    std::array<int, 5029> all_bsc_id();
+    // load all stars in catalog to array
+    std::array<Star, 5029> all_bsc5_stars();
 
     // find all stars near a given focus
     std::vector<Star> nearby_stars(SQLite::Database &, const Star &, const double,
@@ -46,14 +49,15 @@ namespace Nibble {
     Star query_bsc5(const int);
 
     // query a table for specified fields given a constraint, limit results by certain number
-    std::vector<double> search_table(const std::string, const std::string, const std::string,
-                                     const unsigned int, const int = -1);
+    std::vector<double> search_table(SQLite::Database &, const std::string &, const std::string &,
+                                     const std::string &, const unsigned int, const int = -1);
     std::vector<double> table_results_at(const std::vector<double> &, const unsigned int,
                                          const int);
 
     // sort table by specified column and create index
-    int polish_table(const std::string &, const std::string &, const std::string &,
-                     const std::string &);
+    int find_schema_fields(SQLite::Database &, const std::string &, std::string &, std::string &);
+    int sort_table(const std::string &, const std::string &);
+    int polish_table(const std::string &, const std::string &);
 
     // location of catalog and database, requires definition of HOKU_PROJECT_PATH
     static std::string catalog_location(std::string(std::getenv("HOKU_PROJECT_PATH")) +

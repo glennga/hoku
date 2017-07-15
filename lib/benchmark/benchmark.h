@@ -71,7 +71,7 @@ class Benchmark {
 
         // all stars in 'stars' must be near the focus
         std::vector<Star> stars;
-        Star focus = Star(0, 0, 0);
+        Star focus;
 
         // limit a star must be from focus
         double fov;

@@ -10,9 +10,10 @@
  * Check that query_for_pair method returns the BSC ID of the correct stars.
  */
 void TestAngle::test_pair_query() {
+    SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
     Benchmark input(15, Star::chance(), Rotation::chance());
     double kaph = Star::angle_between(input.stars[0], input.stars[1]);
-    std::array<int, 2> yodh = Angle(input).query_for_pair(kaph);
+    std::array<int, 2> yodh = Angle(input).query_for_pair(db, kaph);
 
     assert_true(yodh[0] == input.stars[0].get_bsc_id() || yodh[0] == input.stars[1].get_bsc_id(),
                 "QueryPairInsideInputStar0");
@@ -24,12 +25,13 @@ void TestAngle::test_pair_query() {
  * Check that a theta and epsilon with three choices returns the BSC ID of the correct stars.
  */
 void TestAngle::test_pair_multiple_choice_query() {
+    SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
     Angle kaph(Benchmark(15, Star::chance(), Rotation::chance()));
     Star yodh(0.203647924328259, 0.559277619691848, 0.803577044861669, 1466);
     Star teth(0.205670146125506, 0.564397142318217, 0.799472111293286, 1467);
     kaph.parameters.query_sigma = 0.000139;
 
-    std::array<int, 2> heth = kaph.query_for_pair(Star::angle_between(yodh, teth));
+    std::array<int, 2> heth = kaph.query_for_pair(db, Star::angle_between(yodh, teth));
     assert_true(heth[0] == 1466 || heth[0] == 1467, "QueryPairMultipleChoicesStar0");
     assert_true(heth[1] == 1466 || heth[1] == 1467, "QueryPairMultipleChoicesStar1");
 }
@@ -41,8 +43,7 @@ void TestAngle::test_candidate_fov_query() {
     Angle kaph(Benchmark(10, Star::chance(), Rotation::chance()));
     Star yodh(0.928454687492219, 0.132930961972911, 0.346844709665121);
     Star teth(0.998078771188383, -0.0350062881876723, 0.0511207031486225);
-    SQLite::Database db(Nibble::database_location,
-                        SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+    SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
 
     std::array<Star, 2> heth = kaph.find_candidate_pair(db, yodh, teth);
     assert_true(Star::is_equal(heth[0], Star(0, 0, 0)) &&

@@ -30,32 +30,27 @@ Angle::Angle(Benchmark input) {
 int Angle::generate_sep_table(const int fov, const std::string &table_name) {
     SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
     SQLite::Transaction transaction(db);
-    db.exec("CREATE TABLE " + table_name + "(star_a_number INT, "
-            "star_b_number INT, "
-            "theta FLOAT)");
+    db.exec("CREATE TABLE " + table_name + "(star_a_number INT, star_b_number INT, theta FLOAT)");
 
     // (a, b) are distinct, where no (a, b) = (b, a)
-    std::array<int, 5029> star_numbers = Nibble::all_bsc_id();
-    for (unsigned int a = 0; a < star_numbers.size() - 1; a++) {
-        std::cout << "\r" << "Current *A* Star: " << star_numbers[a];
-        Star zeta = Nibble::query_bsc5(db, star_numbers[a]);
-
-        for (unsigned int b = a + 1; b < star_numbers.size(); b++) {
-            double theta = Star::angle_between(zeta, Nibble::query_bsc5(db, star_numbers[b]));
+    std::array<Star, 5029> all_stars = Nibble::all_bsc5_stars();
+    for (unsigned int a = 0; a < all_stars.size() - 1; a++) {
+        std::cout << "\r" << "Current *A* Star: " << all_stars[a].get_bsc_id();
+        for (unsigned int b = a + 1; b < all_stars.size(); b++) {
+            double theta = Star::angle_between(all_stars[a], all_stars[b]);
 
             // only insert if angle between both stars is less than fov
             if (theta < fov) {
                 Nibble::insert_into_table(db, table_name, "star_a_number, star_b_number, "
-                        "theta", {(double) star_numbers[a], (double) star_numbers[b], theta});
+                        "theta", {(double) all_stars[a].get_bsc_id(),
+                                  (double) all_stars[b].get_bsc_id(), theta});
             }
         }
     }
 
     transaction.commit();
     return Nibble::polish_table(table_name, "star_a_number, star_b_number, theta",
-                                "star_a_number INT, "
-                                        "star_b_number INT, "
-                                        "theta FLOAT", "theta");
+                                "star_a_number INT, star_b_number INT, theta FLOAT", "theta");
 }
 
 /*
@@ -63,10 +58,11 @@ int Angle::generate_sep_table(const int fov, const std::string &table_name) {
  * angles. Assumes noise is normally distributed, searches using epsilon (3 * query_sigma).
  * Limits the amount returned by the search using 'query_limit'.
  *
+ * @param db Database object currently open.
  * @param theta Separation angle (degrees) to search with.
  * @return [-1][-1] if no candidates found. Two element array of the matching BSC IDs otherwise.
  */
-std::array<int, 2> Angle::query_for_pair(const double theta) {
+std::array<int, 2> Angle::query_for_pair(SQLite::Database &db, const double theta) {
     // noise is normally distributed, angle within 3 sigma
     double epsilon = 3.0 * this->parameters.query_sigma, current_minimum = this->fov;
     std::vector<double> candidates;
@@ -76,7 +72,7 @@ std::array<int, 2> Angle::query_for_pair(const double theta) {
     // query using theta with epsilon bounds, return [-1][-1] if nothing found
     condition << "theta BETWEEN " << std::setprecision(16) << std::fixed;
     condition << theta - epsilon << " AND " << theta + epsilon;
-    candidates = Nibble::search_table(this->parameters.table_name, condition.str(),
+    candidates = Nibble::search_table(db, this->parameters.table_name, condition.str(),
                                       "star_a_number, star_b_number, theta",
                                       (unsigned int) this->parameters.query_limit * 3,
                                       this->parameters.query_limit);
@@ -118,7 +114,7 @@ std::array<Star, 2> Angle::find_candidate_pair(SQLite::Database &db, const Star 
     }
 
     // no candidates found, must break
-    candidates = this->query_for_pair(theta);
+    candidates = this->query_for_pair(db, theta);
     if (candidates[0] == -1 && candidates[1] == -1) { return {Star(0, 0, 0), Star(0, 0, 0)}; }
 
     // obtain inertial vectors for given candidates
