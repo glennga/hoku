@@ -17,13 +17,15 @@
  */
 typedef struct TrianglePlanarParameters TrianglePlanarParameters;
 struct TrianglePlanarParameters {
-//    double query_sigma = 0.00000000001;
-//    int query_limit = 5;
+    double area_sigma = 0.00000000001;
+    double moment_sigma = 0.00000000001;
+    int query_expected = 10;
+    int query_limit = 5;
 //
 //    double match_sigma = 0.00001;
 //    unsigned int match_minimum = 10;
 //
-    std::string table_name = "20";
+    std::string table_name = "PLAN20";
     std::string nibble_location = Nibble::database_location;
 };
 
@@ -59,6 +61,10 @@ class PlanarTriangle {
         // the focus and the field of view limit
         Star focus = Star(0, 0, 0);
         double fov;
+
+        // search for trio given an area and moment
+        std::vector<std::array<double, 3>> query_for_trio(SQLite::Database &, const double,
+                                                          const double);
 
         // search for pair given an angle and a query limit
         std::array<int, 2> query_for_pair(const double);

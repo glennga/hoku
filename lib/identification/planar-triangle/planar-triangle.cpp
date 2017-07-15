@@ -5,6 +5,7 @@
  * inertial counter-parts in the database.
  */
 
+#include <chomp.h>
 #include "planar-triangle.h"
 
 /*
@@ -30,11 +31,8 @@ PlanarTriangle::PlanarTriangle(Benchmark input) {
 int PlanarTriangle::generate_triangle_table(const int fov, const std::string &table_name) {
     SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
     SQLite::Transaction initial_transaction(db);
-    std::string fields = "star_a_number, star_b_number, star_c_number, area, moment";
-    std::string schema = "star_a_number INT, star_b_number INT, star_c_number INT, "
-            "area FLOAT, moment FLOAT";
-
-    db.exec("CREATE TABLE " + table_name + " (" + schema + ")");
+    db.exec("CREATE TABLE " + table_name + " (star_a_number INT, star_b_number INT, "
+            "star_c_number INT, area FLOAT, moment FLOAT)");
     initial_transaction.commit();
 
     // (a, b, c) are distinct, where no (a, b, c) = (b, c, a), (c, b, a), ....
@@ -52,7 +50,8 @@ int PlanarTriangle::generate_triangle_table(const int fov, const std::string &ta
                     double area = Trio::planar_area(all_stars[a], all_stars[b], all_stars[c]);
                     double moment = Trio::planar_moment(all_stars[a], all_stars[b], all_stars[c]);
 
-                    Nibble::insert_into_table(db, table_name, fields,
+                    Nibble::insert_into_table(db, table_name, "star_a_number, star_b_number, "
+                                                      "star_c_number, area, moment",
                                               {(double) all_stars[a].get_bsc_id(),
                                                (double) all_stars[b].get_bsc_id(),
                                                (double) all_stars[c].get_bsc_id(), area, moment});
@@ -63,50 +62,93 @@ int PlanarTriangle::generate_triangle_table(const int fov, const std::string &ta
         transaction.commit();
     }
 
-    return Nibble::polish_table(table_name, "star_a_number, star_b_number, star_c_number, area, "
-            "moment", schema, "area");
+    return Nibble::polish_table(table_name, "area");
 }
-//
-///*
-// * Find the best matching pair using the appropriate SEP table and by comparing separation
-// * angles. Assumes noise is normally distributed, searches using epsilon (3 * query_sigma).
-// * Limits the amount returned by the search using 'query_limit'.
-// *
-// * @param theta Separation angle (degrees) to search with.
-// * @return [-1][-1] if no candidates found. Two element array of the matching BSC IDs otherwise.
-// */
-//std::array<int, 2> Angle::query_for_pair(const double theta) {
-//    // noise is normally distributed, angle within 3 sigma
-//    double epsilon = 3.0 * this->parameters.query_sigma, current_minimum = this->fov;
-//    std::vector<double> candidates;
-//    std::ostringstream condition;
-//    int minimum_index = 0;
-//
-//    // query using theta with epsilon bounds, return [-1][-1] if nothing found
-//    condition << "theta BETWEEN " << std::setprecision(16) << std::fixed;
-//    condition << theta - epsilon << " AND " << theta + epsilon;
-//    candidates = Nibble::search_table(this->parameters.table_name, condition.str(),
-//                                      "star_a_number, star_b_number, theta",
-//                                      (unsigned int) this->parameters.query_limit * 3,
-//                                      this->parameters.query_limit);
-//    if (candidates.size() == 0) { return std::array<int, 2> {-1, -1}; }
-//
-//    // select the candidate pair with the angle closest to theta
-//    for (unsigned int a = 0; a < candidates.size() / 3; a++) {
-//        std::vector<double> inertial = Nibble::table_results_at(candidates, 3, a);
-//
-//        // update with correct minimum
-//        if (fabs(inertial[2] - theta) < current_minimum) {
-//            current_minimum = inertial[2];
-//            minimum_index = a;
-//        }
-//    }
-//
-//    // return the set with the angle closest to theta
-//    return std::array<int, 2> {(int) Nibble::table_results_at(candidates, 3, minimum_index)[0],
-//                               (int) Nibble::table_results_at(candidates, 3, minimum_index)[1]};
-//}
-//
+
+/*
+ * Find the best matching pair using the appropriate PLAN table and by comparing planar areas and
+ * moments. Assumes noise is normally distributed, searches using epsilon (3 * query_sigma).
+ * Limits the amount returned by the search using 'query_limit'.
+ *
+ * @param db Open database object.
+ * @param area Planar area to search with.
+ * @param moment Planar polar moment to search with.
+ * @return [-1][-1][-1] if no candidates found. Otherwise, all elements that met the criteria.
+ */
+std::vector<std::array<double, 3>> PlanarTriangle::query_for_trio(SQLite::Database &db,
+                                                                  const double area,
+                                                                  const double moment) {
+    double area_epsilon = 3.0 * this->parameters.area_sigma;
+    double moment_epsilon = 3.0 * this->parameters.moment_sigma;
+    std::vector<std::array<double, 3>> area_moment_match = {{-1, -1, -1}};
+    std::vector<double> area_match;
+
+    // first, search for trio of stars matching area condition
+    area_match = Chomp::k_vector_query(db, this->parameters.table_name, "area",
+                                       "star_a_number, star_b_number, star_c_number, moment",
+                                       area - area_epsilon, area + area_epsilon,
+                                       (unsigned) this->parameters.query_expected);
+
+    // next, search this trio for stars matching moment condition
+    area_moment_match.reserve(area_match.size() / 4);
+    for (unsigned int a = 0; a < area_match.size() / 4; a++) {
+        std::vector<double> mu = Nibble::table_results_at(area_match, 4, a);
+        if (mu[3] <= moment - moment_epsilon && mu[3] > moment + moment_epsilon) {
+            area_moment_match.push_back({mu[0], mu[1], mu[2]});
+        }
+    }
+
+    // if results are found, remove initialized value of [-1][-1][-1]
+    if (area_moment_match.size() > 1) { area_moment_match.erase(area_moment_match.begin()); }
+    return area_moment_match;
+}
+
+/*
+ * Given a set of body stars, find matching sets of inertial stars.
+ */
+std::vector<std::array<Star, 3>> PlanarTriangle::query(SQLite::Database &db, const Star &body_a,
+                                                       const Star &body_b, const Star &body_c) {
+    double area, moment;
+    std::vector<std::array<double, 3>> initial_set;
+
+    // do not attempt to find matches if all stars are not within fov
+    if (Star::angle_between(body_a, body_b) > fov || Star::angle_between(body_b, body_c) > fov ||
+        Star::angle_between(body_c, body_a) > fov) {
+        return {Star(0, 0, 0), Star(0, 0, 0), Star(0, 0, 0)};
+    }
+
+    area = Trio::planar_area(body_a, body_b, body_c);
+    moment = Trio::planar_moment(body_a, body_b, body_c);
+
+    // search for current trio, if empty then break early
+    initial_set = this->query_for_trio(db, area, moment);
+    if (initial_set[0][0] == -1 && initial_set[0][1] == -1 && initial_set[0][2] == -1) {
+        return {Star(0, 0, 0), Star(0, 0, 0), Star(0, 0, 0)};
+    }
+
+    // transofmr ids into stars
+
+    return initial_set;
+}
+
+/*
+ *
+ */
+std::vector<Star> PlanarTriangles::pivot(SQLite::Database &db, const Star &body_a,
+                                         const Star &body_b, const Star &body_c,
+                                         const std::vector<std::array<Star, 3>> check_set) {
+    std::vector<std::array<Star, 3>> initial_set = this->query(db, body_a, body_b, body_c);
+
+    if check_set is not empty, remove all stars from initial_set that arent shared in check_set
+
+    if intial_set.size() == 1, then return this set
+    if initial_set.size() == 0, then rerun pivot method w/o check_set
+    if initial_set.size() > 1, then rerun pivot method with check set
+
+}
+
+// find_matches on initial set. once run and still duplicate, call pivot method
+
 ///*
 // * Given a set of body stars, find the matching inertial stars.
 // *
