@@ -15,7 +15,7 @@
 /*
  * Default precision of is_equal method.
  */
-const double DEFAULT_PRECISION_IS_EQUAL = 0.000000000001;
+const double STAR_EPSILON_IS_EQUAL = 0.000000000001;
 
 
 /*
@@ -49,8 +49,7 @@ class Star {
         Star as_unit() const;
 
         // determine if the **components** are within a certain value of each other
-        static bool is_equal(const Star &, const Star &,
-                             const double = DEFAULT_PRECISION_IS_EQUAL);
+        static bool is_equal(const Star &, const Star &, const double = STAR_EPSILON_IS_EQUAL);
         bool operator==(const Star &) const;
 
         // generate unit vector with random components, overloaded to add own BSC ID
