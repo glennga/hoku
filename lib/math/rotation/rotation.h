@@ -47,8 +47,7 @@ class Rotation {
                                                              const std::array<Star, 3> &);
 
         // quaternion components
-        Star gamma = Star(0, 0, 0);
-        double w = 1, x = 0, y = 0, z = 0;
+        double w = 1, i = 0, j = 0, k = 0;
 
 };
 
