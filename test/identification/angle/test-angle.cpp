@@ -15,9 +15,9 @@ void TestAngle::test_pair_query() {
     double kaph = Star::angle_between(input.stars[0], input.stars[1]);
     std::array<int, 2> yodh = Angle(input).query_for_pair(db, kaph);
 
-    assert_true(yodh[0] == input.stars[0].get_bsc_id() || yodh[0] == input.stars[1].get_bsc_id(),
+    assert_true(yodh[0] == input.stars[0].get_hr() || yodh[0] == input.stars[1].get_hr(),
                 "QueryPairInsideInputStar0");
-    assert_true(yodh[1] == input.stars[0].get_bsc_id() || yodh[1] == input.stars[1].get_bsc_id(),
+    assert_true(yodh[1] == input.stars[0].get_hr() || yodh[1] == input.stars[1].get_hr(),
                 "QueryPairInsideInputStar1");
 }
 
@@ -74,10 +74,10 @@ void TestAngle::test_candidate_results_query() {
                         SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
 
     std::array<Star, 2> teth = yodh.find_candidate_pair(db, input.stars[0], input.stars[1]);
-    assert_true(teth[0].bsc_id == input.stars[0].bsc_id ||
-                teth[0].bsc_id == input.stars[1].bsc_id, "CandidateMatchingStar0");
-    assert_true(teth[1].bsc_id == input.stars[0].bsc_id ||
-                teth[1].bsc_id == input.stars[1].bsc_id, "CandidateMatchingStar1");
+    assert_true(teth[0].get_hr() == input.stars[0].get_hr() ||
+                teth[0].get_hr() == input.stars[1].get_hr(), "CandidateMatchingStar0");
+    assert_true(teth[1].get_hr() == input.stars[0].get_hr() ||
+                teth[1].get_hr() == input.stars[1].get_hr(), "CandidateMatchingStar1");
 }
 
 /*
@@ -104,7 +104,7 @@ void TestAngle::test_rotating_match_correct_input() {
 
     for (unsigned int a = 0; a < daleth.size(); a++) {
         std::string test_name = "RotatingMatchInputStar" + std::to_string(a + 1);
-        assert_equal(daleth[a].bsc_id, input.stars[a].bsc_id, test_name);
+        assert_equal(daleth[a].get_hr(), input.stars[a].get_hr(), test_name);
     }
 }
 
@@ -135,7 +135,7 @@ void TestAngle::test_rotating_match_error_input() {
 
     for (unsigned int a = 0; a < daleth.size(); a++) {
         std::string test_name = "RotatingMatchInputWithErrorStar" + std::to_string(a + 1);
-        assert_equal(daleth[a].bsc_id, input.stars[a].bsc_id, test_name);
+        assert_equal(daleth[a].get_hr(), input.stars[a].get_hr(), test_name);
     }
 }
 
@@ -169,7 +169,7 @@ void TestAngle::test_rotating_match_duplicate_input() {
 
     for (unsigned int a = 0; a < daleth.size(); a++) {
         std::string test_name = "RotatingMatchInputWithDuplicateStar" + std::to_string(a + 1);
-        assert_equal(daleth[a].bsc_id, input.stars[a].bsc_id, test_name);
+        assert_equal(daleth[a].get_hr(), input.stars[a].get_hr(), test_name);
     }
 }
 
@@ -187,7 +187,7 @@ void TestAngle::test_identify_clean_input() {
     assert_true(teth.size() == input.stars.size(), "IdentificationFoundAllSize");
 
     for (unsigned int a = 0; a < teth.size() - 1; a++) {
-        auto match = [teth, a](const Star &b) -> bool { return b.bsc_id == teth[a].bsc_id; };
+        auto match = [teth, a](const Star &b) -> bool { return b.get_hr() == teth[a].get_hr(); };
         auto is_found = std::find_if(input.stars.begin(), input.stars.end(), match);
 
         std::string test_name = "IdentificationCleanInputStar" + std::to_string(a + 1);
@@ -210,7 +210,7 @@ void TestAngle::test_identify_error_input() {
     assert_true(teth.size() == input.stars.size() - 1, "IdentificationFoundWithErrorSize");
 
     for (unsigned int a = 0; a < teth.size(); a++) {
-        auto match = [teth, a](const Star &b) -> bool { return b.bsc_id == teth[a].bsc_id; };
+        auto match = [teth, a](const Star &b) -> bool { return b.get_hr() == teth[a].get_hr(); };
         auto is_found = std::find_if(input.stars.begin(), input.stars.end(), match);
 
         std::string test_name = "IdentificationErrorInputStar" + std::to_string(a + 1);

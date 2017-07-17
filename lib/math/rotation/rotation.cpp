@@ -11,24 +11,22 @@
  * Private constructor. Sets the individual components.
  *
  * @param w The scalar component of the quaternion.
- * @param gamma The vector component of the quaternion, represented using a Star object.
+ * @param v The vector component of the quaternion, represented using a Star object.
  * @param as_unit Flag to normalize the quaternion.
  */
-Rotation::Rotation(const double w, const Star &gamma, const bool as_unit) {
+Rotation::Rotation(const double w, const Star &v, const bool as_unit) {
     if (as_unit) {
-        double ell = sqrt(pow(w, 2) + pow(gamma[0], 2) + pow(gamma[1], 2) + pow(gamma[2], 2));
+        double norm = sqrt(pow(w, 2) + pow(v[0], 2) + pow(v[1], 2) + pow(v[2], 2));
 
-        this->w = w / ell;
-        this->x = gamma[0] / ell;
-        this->y = gamma[1] / ell;
-        this->z = gamma[2] / ell;
-        this->gamma = Star(x, y, z, gamma.get_bsc_id());
+        this->w = w / norm;
+        this->i = v[0] / norm;
+        this->j = v[1] / norm;
+        this->k = v[2] / norm;
     } else {
         this->w = w;
-        this->x = gamma[0];
-        this->y = gamma[1];
-        this->z = gamma[2];
-        this->gamma = gamma;
+        this->i = v[0];
+        this->j = v[1];
+        this->k = v[2];
     }
 }
 
@@ -36,93 +34,86 @@ Rotation::Rotation(const double w, const Star &gamma, const bool as_unit) {
  * Given a rotation matrix as an array of stars, return the quaternion equivalent. Solution found
  * here: http://www.euclideanspac.com/maths/geometry/rotations/conversions/matrixToQuaternion/
  *
- * @param psi Array of stars to represent as a quaternion.
+ * @param r Array of stars to represent as a quaternion (i.e. rotation matrix R)
  * @return Quaternion equivalent of psi.
  */
-Rotation Rotation::matrix_to_quaternion(const std::array<Star, 3> &psi) {
-    double w = 0.5 * sqrt(psi[0][0] + psi[1][1] + psi[2][2] + 1);
+Rotation Rotation::matrix_to_quaternion(const std::array<Star, 3> &r) {
+    double w = 0.5 * sqrt(r[0][0] + r[1][1] + r[2][2] + 1);
 
     // result is normalized
-    return Rotation(w, Star((psi[2][1] - psi[1][2]) / (4 * w),
-                            (psi[0][2] - psi[2][0]) / (4 * w),
-                            (psi[1][0] - psi[0][1]) / (4 * w)), true);
+    return Rotation(w, Star((r[2][1] - r[1][2]) / (4 * w),
+                            (r[0][2] - r[2][0]) / (4 * w),
+                            (r[1][0] - r[0][1]) / (4 * w)), true);
 }
 
 /*
- * Given two 3x3 matrices chi and xi, determine chi * xi^T (the transpose of xi). Matrices are
- * represented as such in the given input:
+ * Given two 3x3 matrices A and B, determine the A * B^T (the transpose of B). This is
+ * mathematically equivalent to the matrix C, where an element ij = A[i] dot B[j].
  *
- * [Star a, Star b, Star c] -----> |a.i, a.j, a.k|
- *                                 |b.i, b.j, b.k|
- *                                 |c.i, c.j, c.k|
- *
- * @param chi 3x3 matrix to multiply with xi^T.
- * @param xi 3x3 matrix to transpose and multiply with chi.
- * @return The result of chi * xi^T.
+ * @param a 3x3 matrix to multiply with matrix B^T.
+ * @param b 3x3 matrix to transpose and multiply with matrix A.
+ * @return The result of A * B^T.
  */
-std::array<Star, 3> Rotation::matrix_multiply_transpose(const std::array<Star, 3> &chi,
-                                                        const std::array<Star, 3> &xi) {
-    return {Star(Star::dot(chi[0], xi[0]), Star::dot(chi[0], xi[1]), Star::dot(chi[0], xi[2])),
-            Star(Star::dot(chi[1], xi[0]), Star::dot(chi[1], xi[1]), Star::dot(chi[1], xi[2])),
-            Star(Star::dot(chi[2], xi[0]), Star::dot(chi[2], xi[1]), Star::dot(chi[2], xi[2]))};
+std::array<Star, 3> Rotation::matrix_multiply_transpose(const std::array<Star, 3> &a,
+                                                        const std::array<Star, 3> &b) {
+    return {Star(Star::dot(a[0], b[0]), Star::dot(a[0], b[1]), Star::dot(a[0], b[2])),
+            Star(Star::dot(a[1], b[0]), Star::dot(a[1], b[1]), Star::dot(a[1], b[2])),
+            Star(Star::dot(a[2], b[0]), Star::dot(a[2], b[1]), Star::dot(a[2], b[2]))};
 }
 
 /*
  * Find the quaternion across two different frames given pairs of vectors in each frame.
  * Solution found here: https://en.wikipedia.org/wiki/Triad_method
  *
- * @param rho Pair of stars in frame A.
- * @param beta Pair of stars in frame B.
- * @return The quaternion to rotate from frame A (rho) to B (beta).
+ * @param r Pair of stars in frame V.
+ * @param b Pair of stars in frame W.
+ * @return The quaternion to rotate from frame V (r set) to W (b set).
  */
-Rotation Rotation::rotation_across_frames(const std::array<Star, 2> &rho,
-                                          const std::array<Star, 2> &beta) {
+Rotation Rotation::rotation_across_frames(const std::array<Star, 2> &r,
+                                          const std::array<Star, 2> &b) {
     // compute triads, parse them into individual components
-    Star zeta_a = rho[0].as_unit(), eta_a = beta[0].as_unit();
-    Star zeta_b = (Star::cross(rho[0].as_unit(), rho[1].as_unit())).as_unit();
-    Star eta_b = (Star::cross(beta[0].as_unit(), beta[1].as_unit())).as_unit();
-    Star zeta_c = (Star::cross(rho[0].as_unit(), zeta_b.as_unit())).as_unit();
-    Star eta_c = (Star::cross(beta[0].as_unit(), eta_b.as_unit())).as_unit();
+    Star v_1 = r[0].as_unit(), w_1 = b[0].as_unit();
+    Star v_2 = (Star::cross(r[0].as_unit(), r[1].as_unit())).as_unit();
+    Star w_2 = (Star::cross(b[0].as_unit(), b[1].as_unit())).as_unit();
+    Star v_3 = (Star::cross(r[0].as_unit(), v_2.as_unit())).as_unit();
+    Star w_3 = (Star::cross(b[0].as_unit(), w_2.as_unit())).as_unit();
 
-    // each vector represents a column -> [zeta_a : zeta_b : zeta_c]
-    std::array<Star, 3> triad_zeta = {Star(zeta_a[0], zeta_b[0], zeta_c[0]),
-                                      Star(zeta_a[1], zeta_b[1], zeta_c[1]),
-                                      Star(zeta_a[2], zeta_b[2], zeta_c[2])};
-    std::array<Star, 3> triad_eta = {Star(eta_a[0], eta_b[0], eta_c[0]),
-                                     Star(eta_a[1], eta_b[1], eta_c[1]),
-                                     Star(eta_a[2], eta_b[2], eta_c[2])};
+    // each vector represents a column -> [v_1 : v_2 : v_3]
+    std::array<Star, 3> v = {Star(v_1[0], v_2[0], v_3[0]),
+                             Star(v_1[1], v_2[1], v_3[1]),
+                             Star(v_1[2], v_2[2], v_3[2])};
+    std::array<Star, 3> w = {Star(w_1[0], w_2[0], w_3[0]),
+                             Star(w_1[1], w_2[1], w_3[1]),
+                             Star(w_1[2], w_2[2], w_3[2])};
 
-    // multiply zeta with eta^T to find resulting rotation, return result as quaternion
-    return matrix_to_quaternion(Rotation::matrix_multiply_transpose(triad_zeta, triad_eta));
+    // multiply V with W^T to find resulting rotation, return result as quaternion
+    return matrix_to_quaternion(Rotation::matrix_multiply_transpose(v, w));
 }
 
 /*
  * Rotate the current vector by the given quaternion. Converts the quaternion into a rotation
- * matrix to multiply with the column vector rho.
+ * matrix to multiply with the column vector S.
  *
  * Alternate solution exists here that sticks to quaternions, but I believe the same amount
  * of operations are performed: https://math.stackexchange.com/a/535223
  *
- * @param rho Star to rotate with phi.
- * @param phi Rotation to use with rho.
- * @return The rotated star rho.
+ * @param s Star to rotate with rotation q.
+ * @param q Quaternion to use with star S.
+ * @return The star S rotated by q.
  */
-Star Rotation::rotate(const Star &rho, const Rotation &phi) {
-    Star i_bar(pow(phi.w, 2) + pow(phi.x, 2) - pow(phi.y, 2) - pow(phi.z, 2),
-               2.0 * (phi.x * phi.y - phi.w * phi.z),
-               2.0 * (phi.x * phi.z + phi.w * phi.y));
-    Star j_bar(2.0 * (phi.y * phi.x + phi.w * phi.z),
-               pow(phi.w, 2) - pow(phi.x, 2) + pow(phi.y, 2) - pow(phi.z, 2),
-               2.0 * (phi.y * phi.z - phi.w * phi.x));
-    Star k_bar(2.0 * (phi.z * phi.x - phi.w * phi.y),
-               2.0 * (phi.z * phi.y + phi.w * phi.x),
-               pow(phi.w, 2) - pow(phi.x, 2) - pow(phi.y, 2) + pow(phi.z, 2));
+Star Rotation::rotate(const Star &s, const Rotation &q) {
+    Star a_1n(pow(q.w, 2) + pow(q.i, 2) - pow(q.j, 2) - pow(q.k, 2),
+              2.0 * (q.i * q.j - q.w * q.k),
+              2.0 * (q.i * q.k + q.w * q.j));
+    Star a_2n(2.0 * (q.j * q.i + q.w * q.k),
+              pow(q.w, 2) - pow(q.i, 2) + pow(q.j, 2) - pow(q.k, 2),
+              2.0 * (q.j * q.k - q.w * q.i));
+    Star a_3n(2.0 * (q.k * q.i - q.w * q.j),
+              2.0 * (q.k * q.j + q.w * q.i),
+              pow(q.w, 2) - pow(q.i, 2) - pow(q.j, 2) + pow(q.k, 2));
 
     // form the rotation matrix, dot with given star
-    double i_hat = Star::dot(rho, i_bar);
-    double j_hat = Star::dot(rho, j_bar);
-    double k_hat = Star::dot(rho, k_bar);
-    return Star(i_hat, j_hat, k_hat, rho.get_bsc_id());
+    return Star(Star::dot(s, a_1n), Star::dot(s, a_2n), Star::dot(s, a_3n), s.get_hr());
 }
 
 /*
@@ -131,7 +122,7 @@ Star Rotation::rotate(const Star &rho, const Rotation &phi) {
  * @return Identity quaternion.
  */
 Rotation Rotation::identity() {
-    return Rotation(1, Star(0, 0, 0));
+    return Rotation(1, Star(0.0, 0.0, 0.0));
 }
 
 /*
@@ -141,6 +132,6 @@ Rotation Rotation::identity() {
  * @return Random quaternion.
  */
 Rotation Rotation::chance() {
-    Star rho = Star::chance(), beta = Star::chance();
-    return Rotation(sqrt(1.0 + Star::dot(rho, beta)), Star::cross(rho, beta), true);
+    Star p = Star::chance(), q = Star::chance();
+    return Rotation(sqrt(1.0 + Star::dot(p, q)), Star::cross(p, q), true);
 }
