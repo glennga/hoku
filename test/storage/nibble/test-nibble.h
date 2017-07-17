@@ -35,7 +35,7 @@ class TestNibble : public BaseTest {
         // test the table insertion method
         void test_table_insertion();
 
-        // test the id grabbing method
+        // test the hr grabbing method
         void test_bsc5_all_stars_grab();
 
         // test the nearby star grabbing method

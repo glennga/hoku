@@ -15,7 +15,7 @@ void TestChomp::test_regular_query() {
     std::vector<double> kaph;
     kaph = Nibble::search_table(db, "SEP20", "theta BETWEEN 5.004 and 5.005", "theta", 90, 30);
 
-    for (int a = 0; a < kaph.size(); a++) {
+    for (unsigned int a = 0; a < kaph.size(); a++) {
         std::string test_name = "RegularQueryResultWithinBoundsSet" + std::to_string(a + 1);
         assert_true(kaph[a] > 5.003 && kaph[a] < 5.006, test_name);
     }
@@ -29,7 +29,7 @@ void TestChomp::test_k_vector_query() {
     std::vector<double> kaph;
     kaph = Chomp::k_vector_query(db, "SEP20", "theta", "theta", 5.004, 5.005, 90);
 
-    for (int a = 0; a < kaph.size(); a++) {
+    for (unsigned int a = 0; a < kaph.size(); a++) {
         std::string test_name = "KVectorQueryResultWithinBoundsSet" + std::to_string(a + 1);
         assert_true(kaph[a] > 5.003 && kaph[a] < 5.006, test_name);
     }
