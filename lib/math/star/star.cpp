@@ -7,16 +7,15 @@
 #include "star.h"
 
 /*
- * Constructor. Sets the i, j, and k components, as well as the bsc_id of the Star.
+ * Constructor. Sets the i, j, and k components, as well as the Harvard Revised number of the Star.
  *
  * @param i The i'th component from the observer to the star.
  * @param j The j'th component from the observer to the star.
  * @param k The k'th component from the observer to the star.
+ * @param hr The Harvard Revised number of the star, found in the Yale Bright Star Catalog.
  * @param set_unit If true, normalize the star. Otherwise, directly set the i, j, and k.
- * @param bsc_id The ID number of the star, found in the Yale Bright Star Catalog.
  */
-Star::Star(const double i, const double j, const double k, const int bsc_id,
-           const bool set_unit) {
+Star::Star(const double i, const double j, const double k, const int hr, const bool set_unit) {
     if (!set_unit) {
         this->i = i;
         this->j = j;
@@ -27,17 +26,17 @@ Star::Star(const double i, const double j, const double k, const int bsc_id,
         this->j = rho.j;
         this->k = rho.k;
     }
-    this->bsc_id = bsc_id;
+    this->hr = hr;
 }
 
 /*
- * Overloaded constructor. Sets the i, j, k, and bsc_id of a star to 0.
+ * Overloaded constructor. Sets the i, j, k, and HR of a star to 0.
  */
 Star::Star() {
     this->i = 0;
     this->j = 0;
     this->k = 0;
-    this->bsc_id = 0;
+    this->hr = 0;
 }
 
 /*
@@ -51,22 +50,22 @@ double Star::operator[](const int n) const {
 }
 
 /*
- * Get method for bsc_id of the star.
+ * Get method for Harvard Revised number of the star.
  *
- * @return BSC ID of the current star.
+ * @return Harvard Revised number of the current star.
  */
-int Star::get_bsc_id() const {
-    return this->bsc_id;
+int Star::get_hr() const {
+    return this->hr;
 }
 
 /*
- * Add star S to the current star. The resultant takes rho's bsc_id.
+ * Add star S to the current star. The resultant takes Star S's HR number.
  *
  * @param s Star to add the current star with.
  * @return The summation of the current star and star S.
  */
 Star Star::operator+(const Star &s) const {
-    return Star(this->i + s.i, this->j + s.j, this->k + s.k, s.bsc_id);
+    return Star(this->i + s.i, this->j + s.j, this->k + s.k, s.hr);
 }
 
 /*
@@ -76,7 +75,7 @@ Star Star::operator+(const Star &s) const {
  * @return The resultant of subtracting the current star with star S.
  */
 Star Star::operator-(const Star &s) const {
-    return Star(this->i - s.i, this->j - s.j, this->k - s.k, s.bsc_id);
+    return Star(this->i - s.i, this->j - s.j, this->k - s.k, s.hr);
 }
 
 /*
@@ -86,7 +85,7 @@ Star Star::operator-(const Star &s) const {
  * @return Resultant of the current star scaled by kappa.
  */
 Star Star::operator*(const double kappa) const {
-    return Star(this->i * kappa, this->j * kappa, this->k * kappa, this->bsc_id);
+    return Star(this->i * kappa, this->j * kappa, this->k * kappa, this->hr);
 }
 
 /*
@@ -111,7 +110,7 @@ Star Star::as_unit() const {
         return *this;
     }
 
-    return Star(this->i / norm, this->j / norm, this->k / norm, this->bsc_id);
+    return Star(this->i / norm, this->j / norm, this->k / norm, this->hr);
 }
 
 /*
@@ -145,7 +144,7 @@ bool Star::operator==(const Star &rho) const {
 /*
  * Generate a random star with normalized components. Using C++11 random functions.
  *
- * @return True if all components are the same. False otherwise.
+ * @return Star with random, normalized components and a HR = 0.
  */
 Star Star::chance() {
     // need to keep seed and engine static to avoid starting w/ same seed
@@ -159,13 +158,13 @@ Star Star::chance() {
 
 /*
  * Generate a random star with normalized components. Using C++11 random functions. Instead of
- * assigning a BSC ID of 0, the user can assign one of their own.
+ * assigning a HR number of 0, the user can assign one of their own.
  *
- * @return True if all components are the same. False otherwise.
+ * @return Star with random, normalized components and a HR = 0.
  */
-Star Star::chance(const int bsc_id) {
+Star Star::chance(const int hr) {
     Star s = Star::chance();
-    s.bsc_id = bsc_id;
+    s.hr = hr;
 
     return s;
 }
@@ -182,7 +181,7 @@ double Star::dot(const Star &s_1, const Star &s_2) {
 }
 
 /*
- * Finds the cross product of s_1 and s_2 stars. The resultant bsc_id = 0;
+ * Finds the cross product of s_1 and s_2 stars. The resultant HR = 0;
  *
  * @param s_1 Star to cross with s_2.
  * @param s_2 Star to cross with s_1.
@@ -219,11 +218,11 @@ bool Star::within_angle(const Star &s_1, const Star &s_2, const double theta) {
 }
 
 /*
- * Return the given star with a BSC ID of 0.
+ * Return the given star with a HR number of 0.
  *
- * @param s Star to remove BSC ID.
- * @return Same star with star ID equal to 0.
+ * @param s Star to remove HR number from.
+ * @return Same star with HR number equal to 0.
  */
-Star Star::without_bsc(const Star &s) {
+Star Star::reset_hr(const Star &s) {
     return Star(s.i, s.j, s.k, 0);
 }

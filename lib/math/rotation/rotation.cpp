@@ -113,7 +113,7 @@ Star Rotation::rotate(const Star &s, const Rotation &q) {
               pow(q.w, 2) - pow(q.i, 2) - pow(q.j, 2) + pow(q.k, 2));
 
     // form the rotation matrix, dot with given star
-    return Star(Star::dot(s, a_1n), Star::dot(s, a_2n), Star::dot(s, a_3n), s.get_bsc_id());
+    return Star(Star::dot(s, a_1n), Star::dot(s, a_2n), Star::dot(s, a_3n), s.get_hr());
 }
 
 /*
