@@ -54,6 +54,7 @@ class TestStar : public BaseTest {
         void test_angle_computation_2();
         void test_angle_within_check();
         void test_angle_out_check();
+        void test_angle_same();
         
         // test the HR number clearing method
         void test_hr_clear();

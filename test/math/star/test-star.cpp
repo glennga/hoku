@@ -227,6 +227,15 @@ void TestStar::test_hr_clear() {
 }
 
 /*
+ * Check that the when calculating the angle between the same stars, NaN is not returned.
+ */
+void TestStar::test_angle_same() {
+    Star kaph(1, 1, 1), yodh(1, 1, 1);
+
+    assert_false(std::isnan(Star::angle_between(kaph, yodh)), "NaNTestSameAngle");
+}
+
+/*
  * Check that the components returned by the get methods are as expected.
  */
 void TestStar::test_get_operators() {
@@ -287,9 +296,11 @@ int TestStar::enumerate_tests(int test_case) {
             break;
         case 20: test_angle_out_check();
             break;
-        case 21: test_hr_clear();
+        case 21: test_angle_same();
             break;
-        case 22: test_get_operators();
+        case 22: test_hr_clear();
+            break;
+        case 23: test_get_operators();
             break;
         default: return -1;
     }
