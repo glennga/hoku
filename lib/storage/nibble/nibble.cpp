@@ -35,8 +35,8 @@ std::array<double, 6> Nibble::components_from_line(const std::string &entry) {
                         1.0 * sin((M_PI / 180.0) * delta), 0, true);
 
         // only insert if magnitude < 6.0 (visible light)
-        double magnitude = strtof(entry.substr(102, 5).c_str(), NULL);
-        components = {alpha, delta, star_entry[0], star_entry[1], star_entry[2], magnitude};
+        double m = strtof(entry.substr(102, 5).c_str(), NULL);
+        components = {alpha, delta, star_entry[0], star_entry[1], star_entry[2], m};
     }
     catch (std::exception &e) {
 #if NIBBLE_DISPLAY_EXCEPTION_MESSAGES == 1
@@ -57,24 +57,24 @@ std::array<double, 6> Nibble::components_from_line(const std::string &entry) {
  * @param catalog Input file-stream used to open catalog.
  */
 void Nibble::parse_catalog(SQLite::Database &db, std::ifstream &catalog) {
-    int bsc_id = 1;
+    int hr = 1;
 
     for (std::string entry; getline(catalog, entry);) {
         std::array<double, 6> components = Nibble::components_from_line(entry);
 
         // only insert if magnitude < 6.0 (visible light)
         if (components[5] < 6.0) {
-            Nibble::insert_into_table(db, "BSC5", "alpha, delta, i, j, k, magnitude, number",
+            Nibble::insert_into_table(db, "BSC5", "alpha, delta, i, j, k, m, hr",
                                       {components[0], components[1], components[2],
                                        components[3], components[4], components[5],
-                                       (double) bsc_id});
+                                       (double) hr});
         }
-        bsc_id++;
+        hr++;
     }
 }
 
 /*
- * Parse the right ascension, declination, visual magnitude, and BSC ID for each star. The i, j,
+ * Parse the right ascension, declination, visual magnitude, and HR number for each star. The i, j,
  * and k components are converted from the star's alpha, delta, and an assumed parallax = 1.
  * **This should be the first function run to generate all other tables.**
  *
@@ -90,7 +90,7 @@ int Nibble::generate_bsc5_table() {
 
         SQLite::Transaction transaction(db);
         db.exec("CREATE TABLE BSC5 (alpha FLOAT, delta FLOAT, i FLOAT, j FLOAT, k FLOAT, "
-                        "magnitude FLOAT, number INT)");
+                        "m FLOAT, hr INT)");
 
         Nibble::parse_catalog(db, catalog);
         transaction.commit();
@@ -102,35 +102,35 @@ int Nibble::generate_bsc5_table() {
         return -1;
     }
 
-    // polish table, sort by bsc_id
-    return Nibble::polish_table("BSC5", "number");
+    // polish table, sort by HR number
+    return Nibble::polish_table("BSC5", "hr");
 }
 
 /*
- * Search the BSC5 table for the star with the matching bsc_id. Return a star with the
- * vector components and bsc_id of this search.
+ * Search the BSC5 table for the star with the matching HR number. Return a star with the
+ * vector components and HR number of this search.
  *
  * @param db Database object currently active.
- * @param bsc_id BSC ID of the star to return.
- * @return Star with the components of the matching bsc_id entry.
+ * @param hr HR number of the star to return.
+ * @return Star with the components of the matching HR number entry.
  */
-Star Nibble::query_bsc5(SQLite::Database &db, const int bsc_id) {
-    std::vector<double> results = search_table(db, "BSC5", "number = " + std::to_string(bsc_id),
+Star Nibble::query_bsc5(SQLite::Database &db, const int hr) {
+    std::vector<double> results = search_table(db, "BSC5", "hr = " + std::to_string(hr),
                                                "i, j, k", 1, 1);
-    return Star(results[0], results[1], results[2], bsc_id);
+    return Star(results[0], results[1], results[2], hr);
 }
 
 /*
- * Search the BSC5 table for the star with the matching bsc_id. Return a star with the vector
- * components and bsc_id of this search. This function is overloaded to use a separate database
+ * Search the BSC5 table for the star with the matching HR number. Return a star with the vector
+ * components and HR number of this search. This function is overloaded to use a separate database
  * object.
  *
- * @param bsc_id BSC ID of the star to return.
- * @return Star with the components of the matching bsc_id entry.
+ * @param hr HR number of the star to return.
+ * @return Star with the components of the matching HR number entry.
  */
-Star Nibble::query_bsc5(const int bsc_id) {
+Star Nibble::query_bsc5(const int hr) {
     SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
-    return Nibble::query_bsc5(db, bsc_id);
+    return Nibble::query_bsc5(db, hr);
 }
 
 /*
@@ -144,7 +144,7 @@ std::array<Star, 5029> Nibble::all_bsc5_stars() {
     int current_position = 0;
 
     // select all stars, prevent array access past 5028
-    SQLite::Statement query(db, "SELECT i, j, k, number FROM BSC5");
+    SQLite::Statement query(db, "SELECT i, j, k, hr FROM BSC5");
     while (query.executeStep() && current_position < 5029) {
         star_list[current_position++] = Star(query.getColumn(0).getDouble(),
                                              query.getColumn(1).getDouble(),
