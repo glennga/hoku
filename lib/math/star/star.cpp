@@ -195,14 +195,14 @@ Star Star::cross(const Star &s_1, const Star &s_2) {
 
 /*
  * Finds the angle between stars s_1 and s_2. Range of hat(s^1) dot hat(s^2) is [-1.0, 1.0], which
- * is the domain of cos^-1.
+ * is the domain of cos^-1. Need to check if same star before computing angle.
  *
  * @param s_1 Star to find angle from s_2.
  * @param s_2 Star to find angle from s_1.
  * @return Angle between s_1 and s_2 in degrees.
  */
 double Star::angle_between(const Star &s_1, const Star &s_2) {
-    return acos(dot(s_1.as_unit(), s_2.as_unit())) * (180.0 / M_PI);
+    return (s_1 == s_2) ? 0 : acos(dot(s_1.as_unit(), s_2.as_unit())) * (180.0 / M_PI);
 }
 
 /*
