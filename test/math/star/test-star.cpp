@@ -115,12 +115,12 @@ void TestStar::test_chance_unit() {
 }
 
 /*
- * Check if the BSC ID assigned is correct from overloaded chance method.
+ * Check if the HR number assigned is correct from overloaded chance method.
  */
-void TestStar::test_chance_bsc_id() {
+void TestStar::test_chance_hr() {
     Star kaph = Star::chance(-100);
 
-    assert_equal(kaph.bsc_id, -100, "ChanceBSCIDEquality");
+    assert_equal(kaph.hr, -100, "ChanceHRNumberEquality");
 }
 
 /*
@@ -218,12 +218,12 @@ void TestStar::test_angle_out_check() {
 }
 
 /*
- * Check that the BSC ID of a star is set to 0.
+ * Check that the HR number of a star is set to 0.
  */
-void TestStar::test_bsc_id_clear() {
+void TestStar::test_hr_clear() {
     Star kaph(0, 0, 0, 5);
 
-    assert_equal(Star::without_bsc(kaph).bsc_id, 0, "WithoutBSC0Check");
+    assert_equal(Star::reset_hr(kaph).hr, 0, "WithoutBSC0Check");
 }
 
 /*
@@ -235,7 +235,7 @@ void TestStar::test_get_operators() {
     assert_equal(kaph[0], kaph.i, "StarGetI");
     assert_equal(kaph[1], kaph.j, "StarGetJ");
     assert_equal(kaph[2], kaph.k, "StarGetK");
-    assert_equal(kaph.get_bsc_id(), kaph.bsc_id, "StarGetBSC");
+    assert_equal(kaph.get_hr(), kaph.hr, "StarGetBSC");
 }
 
 /*
@@ -267,7 +267,7 @@ int TestStar::enumerate_tests(int test_case) {
             break;
         case 10: test_chance_unit();
             break;
-        case 11: test_chance_bsc_id();
+        case 11: test_chance_hr();
             break;
         case 12: test_chance_duplicate();
             break;
@@ -287,7 +287,7 @@ int TestStar::enumerate_tests(int test_case) {
             break;
         case 20: test_angle_out_check();
             break;
-        case 21: test_bsc_id_clear();
+        case 21: test_hr_clear();
             break;
         case 22: test_get_operators();
             break;
