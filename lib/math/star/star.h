@@ -15,7 +15,7 @@
 /*
  * Default precision of is_equal method.
  */
-const double DEFAULT_PRECISION_IS_EQUAL = 0.000000000001;
+const double STAR_EPSILON_IS_EQUAL = 0.000000000001;
 
 
 /*
@@ -27,13 +27,13 @@ const double DEFAULT_PRECISION_IS_EQUAL = 0.000000000001;
  */
 class Star {
     public:
-        // constructor, set components and bsc_id, has unit flag
+        // constructor, set components and HR, has unit flag
         Star(const double, const double, const double, const int = 0, const bool = false);
         Star();
 
-        // get methods for i, j, k, and bsc_id methods
+        // get methods for i, j, k, and HR methods
         double operator[](const int) const;
-        int get_bsc_id() const;
+        int get_hr() const;
 
         // add and subtract two vector
         Star operator+(const Star &) const;
@@ -49,11 +49,10 @@ class Star {
         Star as_unit() const;
 
         // determine if the **components** are within a certain value of each other
-        static bool is_equal(const Star &, const Star &,
-                             const double = DEFAULT_PRECISION_IS_EQUAL);
+        static bool is_equal(const Star &, const Star &, const double = STAR_EPSILON_IS_EQUAL);
         bool operator==(const Star &) const;
 
-        // generate unit vector with random components, overloaded to add own BSC ID
+        // generate unit vector with random components, overloaded to add own HR number
         static Star chance();
         static Star chance(const int);
 
@@ -65,8 +64,8 @@ class Star {
         static double angle_between(const Star &, const Star &);
         static bool within_angle(const Star &, const Star &, const double);
 
-        // reset the BSC ID of a star to 0
-        static Star without_bsc(const Star &);
+        // reset the HR number to 0
+        static Star reset_hr(const Star &);
 
 #ifndef DEBUGGING_MODE_IS_ON
     private:
@@ -76,8 +75,8 @@ class Star {
         double j;
         double k;
 
-        // BSC5 identification number
-        int bsc_id;
+        // Harvard Revised number
+        int hr;
 };
 
 

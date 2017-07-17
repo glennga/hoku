@@ -32,7 +32,7 @@ class TestBenchmark : public BaseTest {
         void test_shifted_light_shifted();
         
         // test the data presenting method
-        void test_bsc_id_clear();
+        void test_hr_number_clear();
 
     public:
         int enumerate_tests(int);

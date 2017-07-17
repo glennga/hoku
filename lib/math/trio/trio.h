@@ -48,13 +48,10 @@ class Trio {
 
         // recursively determine spherical moment, helper function to cut triangle
         double recurse_spherical_moment(const Star &, const int, const int);
-        static Trio cut_triangle(const Star &, const Star &, const Star &,
-                                 const Star & = Star(0, 0, 0));
+        static Trio cut_triangle(const Star &, const Star &, const Star &, const Star & = Star());
 
-        // individual stars, enumerated a, b, c
-        Star a = Star(0, 0, 0);
-        Star b = Star(0, 0, 0);
-        Star c = Star(0, 0, 0);
+        // individual stars of the trio
+        Star b_1, b_2, b_3;
 };
 
 #endif /* HOKU_TRIO_H */

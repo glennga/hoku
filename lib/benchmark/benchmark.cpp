@@ -27,10 +27,10 @@ Benchmark::Benchmark(const double fov, const Star &focus, const Rotation &inerti
  */
 void Benchmark::shuffle() {
     // need to keep random device static to avoid starting w/ same seed
-    static std::random_device rd;
-    static std::mt19937 mt(rd());
+    static std::random_device seed;
+    static std::mt19937_64 mersenne_twister (seed());
 
-    std::shuffle(this->stars.begin(), this->stars.end(), mt);
+    std::shuffle(this->stars.begin(), this->stars.end(), mersenne_twister);
 }
 
 /*
@@ -53,14 +53,14 @@ void Benchmark::generate_stars() {
 }
 
 /*
- * Set all of the BSC IDs in the current star set to 0. In practice, the BSC ID of a star set is
- * never given from the image itself. Return the current star set as this.
+ * Set all of the HR numbers in the current star set to 0. In practice, the HR numberof a star
+ * set is never given from the image itself. Return the current star set as this.
  *
- * @return Current star set with BSC IDs set to 0.
+ * @return Current star set with HR numbers set to 0.
  */
 std::vector<Star> Benchmark::present_stars() {
     for (unsigned int a = 0; a < this->stars.size(); a++) {
-        this->stars[a] = Star::without_bsc(this->stars[a]);
+        this->stars[a] = Star::reset_hr(this->stars[a]);
     }
 
     return this->stars;
@@ -110,7 +110,7 @@ int Benchmark::record_current_plot() {
             for (double component : {rho[0], rho[1], rho[2]}) {
                 record << component << " ";
             }
-            record << rho.get_bsc_id() << "\n";
+            record << rho.get_hr() << "\n";
         }
         current << record.str();
     } else {
@@ -127,7 +127,7 @@ int Benchmark::record_current_plot() {
                 for (double component : {rho[0], rho[1], rho[2]}) {
                     record << component << " ";
                 }
-                record << rho.get_bsc_id() << " " << model.plot_color << "\n";
+                record << rho.get_hr() << " " << model.plot_color << "\n";
             }
         }
 
@@ -151,8 +151,8 @@ int Benchmark::record_current_plot() {
  * @param generate_plot_script Location of Python generation script.
  * @return -1 if the previous files could not be deleted. 0 otherwise.
  */
-int Benchmark::display_plot(const std::string &current_plot_file, 
-                            const std::string &error_plot_file, 
+int Benchmark::display_plot(const std::string &current_plot_file,
+                            const std::string &error_plot_file,
                             const std::string &generate_plot_script) {
     std::remove(current_plot_file.c_str());
     std::remove(error_plot_file.c_str());
@@ -245,8 +245,8 @@ void Benchmark::remove_light(const int n, const double psi) {
  * @param sigma Amount to shift stars by, in terms of XYZ coordinates.
  */
 void Benchmark::shift_light(const int n, const double sigma) {
-    static std::random_device rd;
-    std::mt19937_64 mt(rd());
+    static std::random_device seed;
+    static std::mt19937_64 mersenne_twister (seed());
     std::normal_distribution<double> dist(0, sigma);
     int current_n = 0;
     ErrorModel shifted_light = {"Shifted Light", "g", {Star(0, 0, 0)}};
@@ -256,10 +256,10 @@ void Benchmark::shift_light(const int n, const double sigma) {
         for (unsigned int a = 0; a < this->stars.size(); a++) {
             // check inside if n is met early
             if (current_n < n) {
-                Star candidate = Star(this->stars[a][0] + dist(mt), 
-                                      this->stars[a][1] + dist(mt),
-                                      this->stars[a][2] + dist(mt),
-                                      this->stars[a].get_bsc_id()).as_unit();
+                Star candidate = Star(this->stars[a][0] + dist(mersenne_twister),
+                                      this->stars[a][1] + dist(mersenne_twister),
+                                      this->stars[a][2] + dist(mersenne_twister),
+                                      this->stars[a].get_hr()).as_unit();
 
                 // if shifted star is near focus, add shifted star and remove the old
                 if (Star::within_angle(candidate, this->focus, this->fov / 2.0)) {

@@ -55,10 +55,9 @@ namespace Nibble {
                                          const int);
 
     // sort table by specified column and create index
-    int sort_table(const std::string &, const std::string &, const std::string &,
-                    const std::string &);
-    int polish_table(const std::string &, const std::string &, const std::string &,
-                     const std::string &);
+    int find_schema_fields(SQLite::Database &, const std::string &, std::string &, std::string &);
+    int sort_table(const std::string &, const std::string &);
+    int polish_table(const std::string &, const std::string &);
 
     // location of catalog and database, requires definition of HOKU_PROJECT_PATH
     static std::string catalog_location(std::string(std::getenv("HOKU_PROJECT_PATH")) +

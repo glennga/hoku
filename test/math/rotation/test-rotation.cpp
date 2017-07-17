@@ -12,7 +12,7 @@
 void TestRotation::test_public_constructor() {
     Rotation kaph;
 
-    assert_true(kaph.gamma == Star(0, 0, 0), "PublicConstructorGamma");
+    assert_true(Star(kaph.i, kaph.j, kaph.k) == Star(0, 0, 0), "PublicConstructorGamma");
 }
 
 /*
@@ -21,7 +21,7 @@ void TestRotation::test_public_constructor() {
 void TestRotation::test_private_constructor_row_set() {
     Rotation kaph(2, Star(1, 4, 5));
 
-    assert_true(kaph.gamma == Star(1, 4, 5), "PrivateConstructorSetGamma");
+    assert_true(Star(kaph.i, kaph.j, kaph.k) == Star(1, 4, 5), "PrivateConstructorSetGamma");
 }
 
 /*
@@ -31,17 +31,17 @@ void TestRotation::test_private_constructor_component_set() {
     Rotation kaph(2, Star(1, 4, 5));
 
     assert_equal(2, kaph.w, "PrivateConstructorComponentSetW");
-    assert_equal(1, kaph.x, "PrivateConstructorComponentSetX");
-    assert_equal(4, kaph.y, "PrivateConstructorComponentSetY");
-    assert_equal(5, kaph.z, "PrivateConstructorComponentSetZ");
+    assert_equal(1, kaph.i, "PrivateConstructorComponentSetX");
+    assert_equal(4, kaph.j, "PrivateConstructorComponentSetY");
+    assert_equal(5, kaph.k, "PrivateConstructorComponentSetZ");
 }
 
 /*
- * Check that the property v * <w, x, y, z> = v * <-w, -x, -y, -z> holds.
+ * Check that the property v * <w, i, j, k> = v * <-w, -i, -j, -k> holds.
  */
 void TestRotation::test_quaternion_double_cover_property() {
     Rotation kaph = Rotation::chance();
-    Rotation yodh(-kaph.w, Star(-kaph.x, -kaph.y, -kaph.z));
+    Rotation yodh(-kaph.w, Star(-kaph.i, -kaph.j, -kaph.k));
     Star teth = Star::chance();
 
     assert_true(Rotation::rotate(teth, kaph) == Rotation::rotate(teth, yodh),
@@ -53,7 +53,7 @@ void TestRotation::test_quaternion_double_cover_property() {
  */
 void TestRotation::test_quaternion_unit_property() {
     Rotation kaph = Rotation::chance();
-    double yodh = sqrt(kaph.w * kaph.w + kaph.x * kaph.x + kaph.y * kaph.y + kaph.z * kaph.z);
+    double yodh = sqrt(kaph.w * kaph.w + kaph.i * kaph.i + kaph.j * kaph.j + kaph.k * kaph.k);
 
     assert_equal(yodh, 1, "QuaternionUnitProperty");
 }
@@ -65,9 +65,9 @@ void TestRotation::test_matrix_to_quaternion() {
     auto kaph = Rotation::matrix_to_quaternion({Star(1, 0, 0), Star(0, 1, 0), Star(0, 0, 1)});
 
     assert_equal(kaph.w, 1, "IdentityMatrixToQuaternionW");
-    assert_equal(kaph.x, 0, "IdentityMatrixToQuaternionX");
-    assert_equal(kaph.y, 0, "IdentityMatrixToQuaternionY");
-    assert_equal(kaph.z, 0, "IdentityMatrixToQuaternionZ");
+    assert_equal(kaph.i, 0, "IdentityMatrixToQuaternionX");
+    assert_equal(kaph.j, 0, "IdentityMatrixToQuaternionY");
+    assert_equal(kaph.k, 0, "IdentityMatrixToQuaternionZ");
 }
 
 /*
