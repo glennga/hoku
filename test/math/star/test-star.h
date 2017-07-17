@@ -40,7 +40,7 @@ class TestStar : public BaseTest {
 
         // test the random star method
         void test_chance_unit();
-        void test_chance_bsc_id();
+        void test_chance_hr();
         void test_chance_duplicate();
 
         // test the dot and cross methods
@@ -55,8 +55,8 @@ class TestStar : public BaseTest {
         void test_angle_within_check();
         void test_angle_out_check();
         
-        // test the BSC ID clearing method
-        void test_bsc_id_clear();
+        // test the HR number clearing method
+        void test_hr_clear();
 
     public:
         int enumerate_tests(int);
