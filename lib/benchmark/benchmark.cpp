@@ -75,8 +75,7 @@ Benchmark::star_list Benchmark::clean_stars() {
  * @param image_focus Reference to the star to set as the focus star.
  * @param image_fov Reference to the double to set as the fov.
  */
-void Benchmark::present_image(Benchmark::star_list &image_s, Star &image_focus,
-                              double &image_fov) {
+void Benchmark::present_image(star_list &image_s, Star &image_focus, double &image_fov) {
     image_s = clean_stars();
     image_focus = this->focus;
     image_fov = this->fov;
