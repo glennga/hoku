@@ -13,9 +13,7 @@
  * @param input The set of benchmark data to work with.
  */
 PlanarTriangle::PlanarTriangle(Benchmark input) {
-    this->input = input.present_stars();
-    this->fov = input.get_fov();
-    this->focus = input.get_focus();
+    input.present_image(this->input, this->focus, this->fov);
 }
 
 /*
@@ -34,7 +32,7 @@ int PlanarTriangle::generate_triangle_table(const int fov, const std::string &ta
     initial_transaction.commit();
 
     // (i, j, k) are distinct, where no (i, j, k) = (j, k, i), (j, i, k), ....
-    std::array<Star, 5029> all_stars = Nibble::all_bsc5_stars();
+    Nibble::full_bsc5_star_list all_stars = Nibble::all_bsc5_stars();
     for (unsigned int i = 0; i < all_stars.size() - 2; i++) {
         SQLite::Transaction transaction(db);
         std::cout << "\r" << "Current *A* Star: " << all_stars[i].get_hr();
@@ -76,8 +74,8 @@ std::vector<hr_trio> PlanarTriangle::query_for_trio(SQLite::Database &db, const 
                                                     const double i) {
     double epsilon_a = 3.0 * this->parameters.sigma_a;
     double epsilon_i = 3.0 * this->parameters.sigma_i;
-    std::vector<std::array<double, 3>> area_moment_match = {{-1, -1, -1}};
-    std::vector<double> area_match;
+    std::vector<hr_trio> area_moment_match = {{-1, -1, -1}};
+    hr_list area_match;
 
     // first, search for trio of stars matching area condition
     area_match = Chomp::k_vector_query(db, this->parameters.table_name, "a",
@@ -88,7 +86,7 @@ std::vector<hr_trio> PlanarTriangle::query_for_trio(SQLite::Database &db, const 
     // next, search this trio for stars matching moment condition
     area_moment_match.reserve(area_match.size() / 4);
     for (unsigned int m = 0; m < area_match.size() / 4; m++) {
-        std::vector<double> t = Nibble::table_results_at(area_match, 4, m);
+        Nibble::result_list t = Nibble::table_results_at(area_match, 4, m);
         if (t[3] <= i - epsilon_i && t[3] > i + epsilon_i) {
             area_moment_match.push_back({t[0], t[1], t[2]});
         }
@@ -128,10 +126,10 @@ std::vector<star_trio> PlanarTriangle::match_stars(SQLite::Database &db, const b
 
     // construct stars from HR numbers
     match_stars.reserve(match_hr.size());
-    for (std::array<double, 3> trio : match_hr) {
-        match_stars.push_back({Nibble::query_bsc5(db, (int) trio[0]),
-                               Nibble::query_bsc5(db, (int) trio[1]),
-                               Nibble::query_bsc5(db, (int) trio[2])});
+    for (const hr_trio &t : match_hr) {
+        match_stars.push_back({Nibble::query_bsc5(db, (int) t[0]),
+                               Nibble::query_bsc5(db, (int) t[1]),
+                               Nibble::query_bsc5(db, (int) t[2])});
     }
 
     return match_stars;
@@ -194,9 +192,9 @@ star_trio PlanarTriangle::pivot(SQLite::Database &db, const b_index_trio &hr_b,
  * @param q The rotation to apply to all stars.
  * @return Set of matching stars found in candidates and the body sets.
  */
-std::vector<Star> PlanarTriangle::find_matches(const std::vector<Star> &candidates,
-                                               const Rotation &q) {
-    std::vector<Star> matches, non_matched = this->input;
+PlanarTriangle::star_list PlanarTriangle::find_matches(const star_list &candidates,
+                                                       const Rotation &q) {
+    star_list matches, non_matched = this->input;
     double epsilon = 3.0 * this->parameters.match_sigma;
     matches.reserve(this->input.size());
 
@@ -231,10 +229,11 @@ std::vector<Star> PlanarTriangle::find_matches(const std::vector<Star> &candidat
  * @return The largest set of matching stars across the body and inertial in all pairing
  * configurations.
  */
-std::vector<Star> PlanarTriangle::check_assumptions(const std::vector<Star> &candidates,
-                                                    const star_trio &r, const b_index_trio &hr_b) {
+PlanarTriangle::star_list PlanarTriangle::check_assumptions(const star_list &candidates,
+                                                            const star_trio &r,
+                                                            const b_index_trio &hr_b) {
     std::array<star_trio, 6> r_assumption_list;
-    std::array<std::vector<Star>, 6> matches;
+    std::array<star_list, 6> matches;
     int current_assumption = 0;
 
     // given i, swap elements 2 and 3 if even, 1 and 3 if odd
@@ -258,7 +257,7 @@ std::vector<Star> PlanarTriangle::check_assumptions(const std::vector<Star> &can
 
     // return the larger of the six matches
     return std::max_element(matches.begin(), matches.end(),
-                            [](const std::vector<Star> &lhs, const std::vector<Star> &rhs) {
+                            [](const star_list &lhs, const star_list &rhs) {
                                 return lhs.size() < rhs.size();
                             })[0];
 }
