@@ -1,7 +1,7 @@
 /*
- * @file: triangleplanar.h
+ * @file: planar-triangle.h
  *
- * @brief: Header file for TrianglePlanar class, which matches a set of body vectors (stars) to
+ * @brief: Header file for PlanarTriangle class, which matches a set of body vectors (stars) to
  * their inertial counter-parts in the database.
  */
 
@@ -9,22 +9,21 @@
 #define HOKU_TRIANGLE_PLANAR_H
 
 #include "benchmark.h"
+#include "chomp.h"
 #include "trio.h"
 #include <iostream>
 
 /*
- * Angle identification parameter structure, used to define the query and match parameters.
+ * TrianglePlanar identification parameter structure, used to define the query and match parameters.
  */
-typedef struct TrianglePlanarParameters TrianglePlanarParameters;
 struct TrianglePlanarParameters {
-    double area_sigma = 0.00000000001;
-    double moment_sigma = 0.00000000001;
+    double sigma_a = 0.00000000001;
+    double sigma_i = 0.00000000001;
     int query_expected = 10;
-    int query_limit = 5;
-//
-//    double match_sigma = 0.00001;
-//    unsigned int match_minimum = 10;
-//
+
+    double match_sigma = 0.00001;
+    unsigned int match_minimum = 10;
+
     std::string table_name = "PLAN20";
     std::string nibble_location = Nibble::database_location;
 };
@@ -51,6 +50,10 @@ class PlanarTriangle {
 #ifndef DEBUGGING_MODE_IS_ON
     private:
 #endif
+        typedef std::array<double, 3> hr_trio;
+        typedef std::array<double, 3> b_index_trio;
+        typedef std::array<Star, 3> star_trio;
+
         // user is not meant to create Angle object, keep it private
         PlanarTriangle(Benchmark);
 
@@ -59,25 +62,24 @@ class PlanarTriangle {
         TrianglePlanarParameters parameters;
 
         // the focus and the field of view limit
-        Star focus = Star(0, 0, 0);
+        Star focus = Star();
         double fov;
 
         // search for trio given an area and moment
-        std::vector<std::array<double, 3>> query_for_trio(SQLite::Database &, const double,
-                                                          const double);
+        std::vector<hr_trio> query_for_trio(SQLite::Database &, const double, const double);
 
-        // search for pair given an angle and a query limit
-        std::array<int, 2> query_for_pair(const double);
-
-        // search for pair given set of benchmark stars
-        std::array<Star, 2> find_candidate_pair(SQLite::Database &, const Star &, const Star &);
+        // search for matching pairs to body pair, use past searches to narrow search
+        std::vector<star_trio> match_stars(SQLite::Database &, const b_index_trio &);
+        star_trio pivot(SQLite::Database &, const b_index_trio &,
+                        const std::vector<star_trio> & = {{}});
 
         // find set of matches to benchmark given candidate set and a rotation
         std::vector<Star> find_matches(const std::vector<Star> &, const Rotation &);
 
-        // find largest matching of inertial_a -> body_a and inertial_a -> body_b
-        std::vector<Star> check_assumptions(const std::vector<Star> &, const std::array<Star, 2> &,
-                                            const std::array<Star, 2> &);
+        // find set of inertial frame to body frame matches
+        std::vector<Star> check_assumptions(const std::vector<Star> &, const star_trio &,
+                                            const b_index_trio &);
+
 };
 
 #endif /* HOKU_TRIANGLE_PLANAR_H */
