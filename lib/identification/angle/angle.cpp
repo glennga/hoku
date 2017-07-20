@@ -62,7 +62,7 @@ int Angle::generate_sep_table(const int fov, const std::string &table_name) {
  * @return [-1][-1] if no candidates found. Two element array of the matching HR numbers
  * otherwise.
  */
-std::array<int, 2> Angle::query_for_pair(SQLite::Database &db, const double theta) {
+Angle::hr_pair Angle::query_for_pair(SQLite::Database &db, const double theta) {
     // noise is normally distributed, angle within 3 sigma
     double epsilon = 3.0 * this->parameters.query_sigma, current_minimum = this->fov;
     std::vector<double> candidates;
@@ -76,7 +76,7 @@ std::array<int, 2> Angle::query_for_pair(SQLite::Database &db, const double thet
                                       "hr_a, hr_b, theta",
                                       (unsigned int) this->parameters.query_limit * 3,
                                       this->parameters.query_limit);
-    if (candidates.size() == 0) { return std::array<int, 2> {-1, -1}; }
+    if (candidates.size() == 0) { return Angle::hr_pair {-1, -1}; }
 
     // select the candidate pair with the angle closest to theta
     for (unsigned int i = 0; i < candidates.size() / 3; i++) {
@@ -90,23 +90,23 @@ std::array<int, 2> Angle::query_for_pair(SQLite::Database &db, const double thet
     }
 
     // return the set with the angle closest to theta
-    return std::array<int, 2> {(int) Nibble::table_results_at(candidates, 3, minimum_index)[0],
-                               (int) Nibble::table_results_at(candidates, 3, minimum_index)[1]};
+    return Angle::hr_pair {(int) Nibble::table_results_at(candidates, 3, minimum_index)[0],
+                           (int) Nibble::table_results_at(candidates, 3, minimum_index)[1]};
 }
 
 /*
- * Given a set of body (frame A) stars, find the matching inertial (frame B) stars.
+ * Given a set of body (frame B) stars, find the matching inertial (frame R) stars.
  *
  * @param db Database object currently open.
- * @param a_a Star A in frame A to find the match for.
- * @param a_b Star B in frame A to find the match for.
+ * @param b_a Star A in frame B to find the match for.
+ * @param b_b Star B in frame B to find the match for.
  * @return Array of vectors with 0 length if no matching pair is found. Otherwise, two inertial
  * stars that match the given body.
  */
-std::array<Star, 2> Angle::find_candidate_pair(SQLite::Database &db, const Star &a_a,
-                                               const Star &a_b) {
-    double theta = Star::angle_between(a_a, a_b);
-    std::array<int, 2> candidates;
+Angle::star_pair Angle::find_candidate_pair(SQLite::Database &db, const Star &b_a,
+                                            const Star &b_b) {
+    double theta = Star::angle_between(b_a, b_b);
+    Angle::hr_pair candidates;
 
     // greater than current field of view, must break
     if (theta > this->fov) { return {Star(), Star()}; }
@@ -133,10 +133,10 @@ std::vector<Star> Angle::find_matches(const std::vector<Star> &candidates, const
     matches.reserve(this->input.size());
 
     for (const Star &candidate : candidates) {
-        Star b_prime = Rotation::rotate(candidate, q);
+        Star r_prime = Rotation::rotate(candidate, q);
 
         for (unsigned int i = 0; i < non_matched.size(); i++) {
-            double theta = Star::angle_between(b_prime, non_matched[i]);
+            double theta = Star::angle_between(r_prime, non_matched[i]);
 
             if (theta < epsilon) {
                 // add to list the body star with the candidate star's HR number
@@ -154,28 +154,28 @@ std::vector<Star> Angle::find_matches(const std::vector<Star> &candidates, const
 }
 
 /*
- * Find the best fitting match of input stars (frame A) to database stars (frame B) using the given
+ * Find the best fitting match of input stars (frame B) to database stars (frame R) using the given
  * pair as reference. Both possible configurations are searched for:
  *
- * Assumption One: A_a = B_a, A_b = B_b
- * Assumption Two: A_a = B_b, A_b = B_a
+ * Assumption One: B_a = R_a, B_b = R_b
+ * Assumption Two: B_a = R_b, B_b = R_a
  *
  * @param candidates All stars found near the inertial pair.
- * @param b Inertial (frame B) pair of stars that match the body pair.
- * @param a Body (frame A) pair of stars that match the inertial pair.
+ * @param r Inertial (frame R) pair of stars that match the body pair.
+ * @param b Body (frame B) pair of stars that match the inertial pair.
  * @return The largest set of matching stars across the body and inertial in both pairing
  * configurations.
  */
 std::vector<Star> Angle::check_assumptions(const std::vector<Star> &candidates,
-                                           const std::array<Star, 2> &b,
-                                           const std::array<Star, 2> &a) {
-    std::array<std::array<Star, 2>, 2> assumption_list = {b, {b[1], b[0]}};
+                                           const Angle::star_pair &r,
+                                           const Angle::star_pair &b) {
+    std::array<Angle::star_pair, 2> assumption_list = {r, {r[1], r[0]}};
     std::array<std::vector<Star>, 2> matches;
     int current_assumption = 0;
 
     // determine rotation to take frame B to A
-    for (const std::array<Star, 2> &assumption : assumption_list) {
-        Rotation q = Rotation::rotation_across_frames(a, assumption);
+    for (const Angle::star_pair &assumption : assumption_list) {
+        Rotation q = Rotation::rotation_across_frames(b, assumption);
         matches[current_assumption++] = this->find_matches(candidates, q);
     }
 
@@ -203,18 +203,17 @@ std::vector<Star> Angle::identify(const Benchmark &input, const AngleParameters 
             std::vector<Star> candidates;
 
             // narrow down current pair to two stars in catalog, order currently unknown
-            std::array<Star, 2> candidate_pair =
+            Angle::star_pair candidate_pair =
                     a.find_candidate_pair(db, a.input[i], a.input[j]);
             if (Star::is_equal(candidate_pair[0], Star()) &&
                 Star::is_equal(candidate_pair[1], Star())) { break; }
 
             // find candidate stars around the candidate pair
-            candidates = Nibble::nearby_stars(db, candidate_pair[0], a.fov,
-                                              3 * (a.input.size()));
+            candidates = Nibble::nearby_stars(db, candidate_pair[0], a.fov, 3 * (a.input.size()));
 
             // check both possible configurations, return the most likely
             matches = a.check_assumptions(candidates, candidate_pair,
-                                           {a.input[i], a.input[j]});
+                                          {a.input[i], a.input[j]});
 
             // definition of image match: |match| > match minimum
             if (matches.size() > a.parameters.match_minimum) {

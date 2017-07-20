@@ -14,7 +14,6 @@
 /*
  * Angle identification parameter structure, used to define the query and match parameters.
  */
-typedef struct AngleParameters AngleParameters;
 struct AngleParameters {
     double query_sigma = 0.00000000001;
     int query_limit = 5;
@@ -48,27 +47,32 @@ class Angle {
 #ifndef DEBUGGING_MODE_IS_ON
     private:
 #endif
+        using hr_pair = std::array<int, 2>;
+        using star_pair = std::array<Star, 2>;
+
         // user is not meant to create Angle object, keep it private
         Angle(Benchmark);
 
         // the data we are working with, identification parameters = tweak performance
         std::vector<Star> input;
         AngleParameters parameters;
+
+        // the focus and the field of view limit
+        Star focus;
         double fov;
-        Star focus = Star(0, 0, 0);
 
         // search for pair given an angle and a query limit
-        std::array<int, 2> query_for_pair(SQLite::Database &, const double);
+        hr_pair query_for_pair(SQLite::Database &, const double);
 
         // search for pair given set of benchmark stars
-        std::array<Star, 2> find_candidate_pair(SQLite::Database &, const Star &, const Star &);
+        star_pair find_candidate_pair(SQLite::Database &, const Star &, const Star &);
 
         // find set of matches to benchmark given candidate set and a rotation
         std::vector<Star> find_matches(const std::vector<Star> &, const Rotation &);
 
         // find largest matching of inertial_a -> body_a and inertial_a -> body_b
-        std::vector<Star> check_assumptions(const std::vector<Star> &, const std::array<Star, 2> &,
-                                            const std::array<Star, 2> &);
+        std::vector<Star> check_assumptions(const std::vector<Star> &, const star_pair &,
+                                            const star_pair &);
 };
 
 #endif /* HOKU_ANGLE_H */
