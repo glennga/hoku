@@ -42,7 +42,7 @@ class PlanarTriangle {
         PlanarTriangle() = delete;
 
         // identity benchmark data
-        static std::vector<Star> identify(const Benchmark &, const TrianglePlanarParameters &);
+        static Benchmark::star_list identify(const Benchmark &, const TrianglePlanarParameters &);
 
         // generate the separation table
         static int generate_triangle_table(const int, const std::string &);
@@ -50,15 +50,17 @@ class PlanarTriangle {
 #ifndef DEBUGGING_MODE_IS_ON
     private:
 #endif
-        typedef std::array<double, 3> hr_trio;
-        typedef std::array<double, 3> b_index_trio;
-        typedef std::array<Star, 3> star_trio;
+        using star_list = std::vector<Star>;
+        using hr_list = std::vector<double>;
+        using hr_trio = std::array<double, 3>;
+        using b_index_trio = std::array<double, 3>;
+        using star_trio = std::array<Star, 3>;
 
         // user is not meant to create Angle object, keep it private
         PlanarTriangle(Benchmark);
 
         // the data we are working with, identification parameters = tweak performance
-        std::vector<Star> input;
+        Benchmark::star_list input;
         TrianglePlanarParameters parameters;
 
         // the focus and the field of view limit
@@ -74,11 +76,10 @@ class PlanarTriangle {
                         const std::vector<star_trio> & = {{}});
 
         // find set of matches to benchmark given candidate set and a rotation
-        std::vector<Star> find_matches(const std::vector<Star> &, const Rotation &);
+        star_list find_matches(const star_list &, const Rotation &);
 
         // find set of inertial frame to body frame matches
-        std::vector<Star> check_assumptions(const std::vector<Star> &, const star_trio &,
-                                            const b_index_trio &);
+        star_list check_assumptions(const star_list &, const star_trio &, const b_index_trio &);
 
 };
 
