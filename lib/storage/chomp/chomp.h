@@ -25,9 +25,9 @@ namespace Chomp {
     // k-vector table name, build k-vector equation, query a table using k-vector method
     int build_k_vector_table(const std::string &, const std::string &, const double, const double);
     int create_k_vector(const std::string &, const std::string &);
-    std::vector<double> k_vector_query(SQLite::Database &, const std::string &, const std::string &,
-                                       const std::string &, const double, const double,
-                                       const unsigned int);
+    Nibble::result_list k_vector_query(SQLite::Database &, const std::string &,
+                                       const std::string &, const std::string &,
+                                       const double, const double, const unsigned int);
 
     // standard machine epsilon for doubles, smallest possible change in precision
     const double DOUBLE_EPSILON = std::numeric_limits<double>::epsilon();

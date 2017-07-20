@@ -24,7 +24,7 @@ Trio::Trio(const Star &b_1, const Star &b_2, const Star &b_3) {
  *
  * @return Side lengths in order a, b, c.
  */
-std::array<double, 3> Trio::planar_lengths() const {
+Trio::side_lengths Trio::planar_lengths() const {
     return {(this->b_1 - this->b_2).norm(),
             (this->b_2 - this->b_3).norm(),
             (this->b_3 - this->b_1).norm()};
@@ -35,7 +35,7 @@ std::array<double, 3> Trio::planar_lengths() const {
  *
  * @return Side lengths in order a, b, c.
  */
-std::array<double, 3> Trio::spherical_lengths() const {
+Trio::side_lengths Trio::spherical_lengths() const {
     return {Star::angle_between(this->b_1, this->b_2),
             Star::angle_between(this->b_2, this->b_3),
             Star::angle_between(this->b_3, this->b_1)};
