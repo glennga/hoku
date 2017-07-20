@@ -31,7 +31,7 @@ int Angle::generate_sep_table(const int fov, const std::string &table_name) {
     db.exec("CREATE TABLE " + table_name + "(hr_a INT, hr_b INT, theta FLOAT)");
 
     // (i, j) are distinct, where no (i, j) = (j, i)
-    std::array<Star, 5029> all_stars = Nibble::all_bsc5_stars();
+    Nibble::full_bsc5_star_list all_stars = Nibble::all_bsc5_stars();
     for (unsigned int i = 0; i < all_stars.size() - 1; i++) {
         std::cout << "\r" << "Current *I* Star: " << all_stars[i].get_hr();
         for (unsigned int j = i + 1; j < all_stars.size(); j++) {
