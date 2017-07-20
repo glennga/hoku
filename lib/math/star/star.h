@@ -71,9 +71,7 @@ class Star {
     private:
 #endif
         // individual components of 3D vector
-        double i;
-        double j;
-        double k;
+        double i, j, k;
 
         // Harvard Revised number
         int hr;

@@ -39,7 +39,7 @@ class Angle {
         Angle() = delete;
 
         // identity benchmark data
-        static std::vector<Star> identify(const Benchmark &, const AngleParameters &);
+        static Benchmark::star_list identify(const Benchmark &, const AngleParameters &);
 
         // generate the separation table
         static int generate_sep_table(const int, const std::string &);
@@ -47,14 +47,16 @@ class Angle {
 #ifndef DEBUGGING_MODE_IS_ON
     private:
 #endif
-        using hr_pair = std::array<int, 2>;
+        using star_list = std::vector<Star>;
+        using hr_list = std::vector<double>;
         using star_pair = std::array<Star, 2>;
+        using hr_pair = std::array<int, 2>;
 
         // user is not meant to create Angle object, keep it private
         Angle(Benchmark);
 
         // the data we are working with, identification parameters = tweak performance
-        std::vector<Star> input;
+        Benchmark::star_list input;
         AngleParameters parameters;
 
         // the focus and the field of view limit
@@ -68,11 +70,10 @@ class Angle {
         star_pair find_candidate_pair(SQLite::Database &, const Star &, const Star &);
 
         // find set of matches to benchmark given candidate set and a rotation
-        std::vector<Star> find_matches(const std::vector<Star> &, const Rotation &);
+        star_list find_matches(const star_list &, const Rotation &);
 
         // find largest matching of inertial_a -> body_a and inertial_a -> body_b
-        std::vector<Star> check_assumptions(const std::vector<Star> &, const star_pair &,
-                                            const star_pair &);
+        star_list check_assumptions(const star_list &, const star_pair &, const star_pair &);
 };
 
 #endif /* HOKU_ANGLE_H */

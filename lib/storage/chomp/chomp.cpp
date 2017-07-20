@@ -30,18 +30,18 @@ int Chomp::build_k_vector_table(const std::string &table, const std::string &foc
     SQLite::Statement query(db, "SELECT theta FROM " + table);
     s_vector.reserve((unsigned) s_l);
     while (query.executeStep()) {
-        s_vector.push_back(query.getColumn(0).getDouble());
+        s_vector.emplace_back(query.getColumn(0).getDouble());
     }
 
-    // load K-Vector into table, K(a) = b where s(b) <= z(a) < s(b + 1)
-    for (int a = 0; a < s_l; a++) {
+    // load K-Vector into table, K(i) = j where s(j) <= z(i) < s(j + 1)
+    for (int i = 0; i < s_l; i++) {
         double k_value = 0;
-        for (int b = 0; b < s_l; b++) {
-            k_value += (s_vector[b] < ((m * a) + q)) ? 1 : 0;
+        for (int j = 0; j < s_l; j++) {
+            k_value += (s_vector[j] < ((m * i) + q)) ? 1 : 0;
         }
 
         Nibble::insert_into_table(db, table + "_KVEC", "k_value", std::vector<double> {k_value});
-        std::cout << "\r" << "Current *A* Entry: " << a;
+        std::cout << "\r" << "Current *A* Entry: " << i;
     }
 
     transaction.commit();
@@ -99,12 +99,12 @@ int Chomp::create_k_vector(const std::string &table, const std::string &focus_co
  * @param expected Expected number of results * columns to be returned. Better to overshoot.
  * @return 1D list of chained results.
  */
-std::vector<double> Chomp::k_vector_query(SQLite::Database &db, const std::string &table,
+Nibble::result_list Chomp::k_vector_query(SQLite::Database &db, const std::string &table,
                                           const std::string &focus, const std::string &fields,
                                           const double y_a, const double y_b,
                                           const unsigned int expected) {
     double focus_0, focus_n, m, q, j_b, j_t;
-    std::vector<double> s_endpoints;
+    Nibble::result_list s_endpoints;
     std::string sql;
 
     std::string sql_for_max_id = std::string("SELECT MAX(rowid) FROM ") + table;
