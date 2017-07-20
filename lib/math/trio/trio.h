@@ -33,12 +33,14 @@ class Trio {
 #ifndef DEBUGGING_MODE_IS_ON
     private:
 #endif
+        using side_lengths = std::array<double, 3>;
+
         // user is not meant to create Trio object, keep it private
         Trio(const Star &, const Star &, const Star &);
 
         // find the triangle lengths required for each operation
-        std::array<double, 3> planar_lengths() const;
-        std::array<double, 3> spherical_lengths() const;
+        side_lengths planar_lengths() const;
+        side_lengths spherical_lengths() const;
 
         // find the semi perimeter given side lengths
         static double semi_perimeter(const double, const double, const double);
