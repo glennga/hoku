@@ -27,7 +27,7 @@
  */
 namespace Nibble {
     using star_list = std::vector<Star>;
-    using double_in = std::vector<double>;
+    using in_list = std::vector<double>;
     using result_list = std::vector<double>;
     using full_bsc5_star_list = std::array<Star, 5029>;
 
@@ -37,7 +37,7 @@ namespace Nibble {
 
     // generic table insertion method, limit by fov if desired
     int insert_into_table(SQLite::Database &, const std::string &, const std::string &,
-                          const double_in &);
+                          const in_list &);
 
     // load all stars in catalog to array
     full_bsc5_star_list all_bsc5_stars();
