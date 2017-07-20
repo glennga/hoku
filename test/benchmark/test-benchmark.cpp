@@ -147,7 +147,7 @@ void TestBenchmark::test_shifted_light_shifted() {
  */
 void TestBenchmark::test_hr_number_clear() {
     Benchmark input(15, Star::chance(), Rotation::chance());
-    std::vector<Star> kaph = input.present_stars();
+    std::vector<Star> kaph = input.clean_stars();
 
     for (int a = 0; a < 3; a++) {
         std::string test_name = "HRNumberClearStar" + std::to_string(a + 1);
