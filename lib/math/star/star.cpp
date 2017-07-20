@@ -138,7 +138,7 @@ bool Star::is_equal(const Star &s_1, const Star &s_2, const double epsilon) {
  * @return True if all components are the same. False otherwise.
  */
 bool Star::operator==(const Star &rho) const {
-    return Star::is_equal(rho, *this);
+    return is_equal(rho, *this);
 }
 
 /*
@@ -163,7 +163,7 @@ Star Star::chance() {
  * @return Star with random, normalized components and a HR = 0.
  */
 Star Star::chance(const int hr) {
-    Star s = Star::chance();
+    Star s = chance();
     s.hr = hr;
 
     return s;
