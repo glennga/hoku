@@ -53,7 +53,7 @@ void TestBenchmark::test_current_plot_file() {
 
     std::getline(current_plot_from_input, heth);
     sprintf(zayin, "%f %f %f %d", input.stars[0].i, input.stars[0].j, input.stars[0].k,
-            input.stars[0].bsc_id);
+            input.stars[0].get_hr());
     assert_true(abs(heth.compare(zayin)) < 2, "CurrentPlotStar0Equality");
 }
 
@@ -79,7 +79,7 @@ void TestBenchmark::test_error_plot_file() {
     std::getline(error_plot_from_input, kaph);
     sprintf(yodh, "%f %f %f %d %s", input.error_models[0].affected[0].i,
             input.error_models[0].affected[0].j, input.error_models[0].affected[0].k,
-            input.error_models[0].affected[0].bsc_id, input.error_models[0].plot_color.c_str());
+            input.error_models[0].affected[0].get_hr(), input.error_models[0].plot_color.c_str());
     assert_equal(kaph.compare(yodh), 0, "ErrorPlotExtraLightEquality", 2);
 }
 
@@ -143,15 +143,15 @@ void TestBenchmark::test_shifted_light_shifted() {
 }
 
 /*
- * Check that the BSC IDs of all stars are equal to 0.
+ * Check that the HR numbers of all stars are equal to 0.
  */
-void TestBenchmark::test_bsc_id_clear() {
+void TestBenchmark::test_hr_number_clear() {
     Benchmark input(15, Star::chance(), Rotation::chance());
-    std::vector<Star> kaph = input.present_stars();
+    std::vector<Star> kaph = input.clean_stars();
 
     for (int a = 0; a < 3; a++) {
-        std::string test_name = "BSCIDClearStar" + std::to_string(a + 1);
-        assert_equal(kaph[a].bsc_id, 0, test_name);
+        std::string test_name = "HRNumberClearStar" + std::to_string(a + 1);
+        assert_equal(kaph[a].get_hr(), 0, test_name);
     }
 }
 
@@ -184,7 +184,7 @@ int TestBenchmark::enumerate_tests(int test_case) {
             test_shifted_light_shifted();
             break;
         case 7:
-            test_bsc_id_clear();
+            test_hr_number_clear();
             break;
         default:
             return -1;

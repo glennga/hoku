@@ -26,9 +26,9 @@ void TestTrio::test_spherical_length_computation() {
     Trio kaph(Star(1, 1, 1), Star(1, -1, 1), Star(-1, -1, 5));
     std::array<double, 3> yodh = kaph.spherical_lengths();
 
-    assert_equal(yodh[0], Star::angle_between(kaph.a, kaph.b), "SphericalLengthComputationAB");
-    assert_equal(yodh[1], Star::angle_between(kaph.b, kaph.c), "SphericalLengthComputationBC");
-    assert_equal(yodh[2], Star::angle_between(kaph.c, kaph.a), "SphericalLengthComputationCA");
+    assert_equal(yodh[0], Star::angle_between(kaph.b_1, kaph.b_2), "SphericalLengthComputationAB");
+    assert_equal(yodh[1], Star::angle_between(kaph.b_2, kaph.b_3), "SphericalLengthComputationBC");
+    assert_equal(yodh[2], Star::angle_between(kaph.b_3, kaph.b_1), "SphericalLengthComputationCA");
 }
 
 /*
@@ -50,9 +50,9 @@ void TestTrio::test_semi_perimeter_computation() {
  */
 void TestTrio::test_planar_area_computation() {
     Trio kaph(Star(1, 1, 1), Star(-1, 0, -1), Star(2, 4, 3));
-    Star yodh = Star::cross(kaph.a - kaph.b, kaph.a - kaph.c);
+    Star yodh = Star::cross(kaph.b_1 - kaph.b_2, kaph.b_1 - kaph.b_3);
 
-    assert_equal(yodh.norm() * 0.5, Trio::planar_area(kaph.a, kaph.b, kaph.c),
+    assert_equal(yodh.norm() * 0.5, Trio::planar_area(kaph.b_1, kaph.b_2, kaph.b_3),
                  "PlanarAreaComputation");
 }
 
@@ -66,7 +66,7 @@ void TestTrio::test_planar_moment_computation() {
     std::array<double, 3> kaph_tau = kaph.planar_lengths();
     double yodh = 0.036 * pow(kaph_tau[0], 4);
 
-    assert_equal(yodh, Trio::planar_moment(kaph.a, kaph.b, kaph.c),
+    assert_equal(yodh, Trio::planar_moment(kaph.b_1, kaph.b_2, kaph.b_3),
                  "PlanarMomentIdentityComputation", 0.001);
 }
 
@@ -94,16 +94,16 @@ void TestTrio::test_planar_centroid_computation() {
  */
 void TestTrio::test_cut_triangle_computation() {
     Trio kaph(Star(1, 1, 1), Star(-1, 0, -1), Star(2, 4, 3));
-    Trio yodh_a = Trio::cut_triangle(kaph.a, kaph.b, kaph.c, kaph.a);
-    Trio yodh_b = Trio::cut_triangle(kaph.a, kaph.b, kaph.c, kaph.b);
-    Trio yodh_c = Trio::cut_triangle(kaph.a, kaph.b, kaph.c, kaph.c);
-    Trio yodh_k = Trio::cut_triangle(kaph.a, kaph.b, kaph.c);
+    Trio yodh_a = Trio::cut_triangle(kaph.b_1, kaph.b_2, kaph.b_3, kaph.b_1);
+    Trio yodh_b = Trio::cut_triangle(kaph.b_1, kaph.b_2, kaph.b_3, kaph.b_2);
+    Trio yodh_c = Trio::cut_triangle(kaph.b_1, kaph.b_2, kaph.b_3, kaph.b_3);
+    Trio yodh_k = Trio::cut_triangle(kaph.b_1, kaph.b_2, kaph.b_3);
 
-    double kaph_area = Trio::planar_area(kaph.a, kaph.b, kaph.c);
-    double yodh_area = Trio::planar_area(yodh_a.a, yodh_a.b, yodh_a.c) +
-                       Trio::planar_area(yodh_b.a, yodh_b.b, yodh_b.c) +
-                       Trio::planar_area(yodh_c.a, yodh_c.b, yodh_c.c) +
-                       Trio::planar_area(yodh_k.a, yodh_k.b, yodh_k.c);
+    double kaph_area = Trio::planar_area(kaph.b_1, kaph.b_2, kaph.b_3);
+    double yodh_area = Trio::planar_area(yodh_a.b_1, yodh_a.b_2, yodh_a.b_3) +
+                       Trio::planar_area(yodh_b.b_1, yodh_b.b_2, yodh_b.b_3) +
+                       Trio::planar_area(yodh_c.b_1, yodh_c.b_2, yodh_c.b_3) +
+                       Trio::planar_area(yodh_k.b_1, yodh_k.b_2, yodh_k.b_3);
 
     assert_equal(kaph_area, yodh_area, "CutTriangleSummation");
 }
@@ -114,7 +114,7 @@ void TestTrio::test_cut_triangle_computation() {
 void TestTrio::test_spherical_moment_computation() {
 //    for (int i = 0; i < 10; i ++) {
 //        Trio kaph(Star::chance(), Star::chance(), Star::chance());
-//        double yodh = Trio::spherical_moment(kaph.a, kaph.b, kaph.c);
+//        double yodh = Trio::spherical_moment(kaph.b_1, kaph.b_2, kaph.b_3);
 //        std::cout << "SphericalMomentComputation: " << yodh << std::endl;
 //    }
 }

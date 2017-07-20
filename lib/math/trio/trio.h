@@ -33,12 +33,14 @@ class Trio {
 #ifndef DEBUGGING_MODE_IS_ON
     private:
 #endif
+        using side_lengths = std::array<double, 3>;
+
         // user is not meant to create Trio object, keep it private
         Trio(const Star &, const Star &, const Star &);
 
         // find the triangle lengths required for each operation
-        std::array<double, 3> planar_lengths() const;
-        std::array<double, 3> spherical_lengths() const;
+        side_lengths planar_lengths() const;
+        side_lengths spherical_lengths() const;
 
         // find the semi perimeter given side lengths
         static double semi_perimeter(const double, const double, const double);
@@ -48,13 +50,10 @@ class Trio {
 
         // recursively determine spherical moment, helper function to cut triangle
         double recurse_spherical_moment(const Star &, const int, const int);
-        static Trio cut_triangle(const Star &, const Star &, const Star &,
-                                 const Star & = Star(0, 0, 0));
+        static Trio cut_triangle(const Star &, const Star &, const Star &, const Star & = Star());
 
-        // individual stars, enumerated a, b, c
-        Star a = Star(0, 0, 0);
-        Star b = Star(0, 0, 0);
-        Star c = Star(0, 0, 0);
+        // individual stars of the trio
+        Star b_1, b_2, b_3;
 };
 
 #endif /* HOKU_TRIO_H */

@@ -19,7 +19,6 @@
 /*
  * Error model structure, used to define the type of error and the stars affected.
  */
-typedef struct ErrorModel ErrorModel;
 struct ErrorModel {
     std::string model_name;
     std::string plot_color;
@@ -36,6 +35,8 @@ struct ErrorModel {
  */
 class Benchmark {
     public:
+        using star_list = std::vector<Star>;
+        
         // default constructor must not be generated, user must specify fov, focus, and rotation
         Benchmark() = delete;
         Benchmark(const double, const Star &, const Rotation & = Rotation::identity());
@@ -43,12 +44,8 @@ class Benchmark {
         // find all stars that are near the focus
         void generate_stars();
 
-        // set all of the BCS IDs in the star set to 0 and return the current star set
-        std::vector<Star> present_stars();
-
-        // accessor methods for fov and focus
-        double get_fov();
-        Star get_focus();
+        // set stars, focus, and fov from parameters
+        void present_image(star_list &, Star &, double &);
         
         // write current star set to file, display plot using Python's MatPlotLib
         int record_current_plot();
@@ -62,6 +59,11 @@ class Benchmark {
 #ifndef DEBUGGING_MODE_IS_ON
     private:
 #endif
+        using model_list = std::vector<ErrorModel>;
+
+        // set all of the BCS IDs in the star set to 0 and return the current star set
+        star_list clean_stars();
+        
         // shuffle current star set
         void shuffle();
 
@@ -70,7 +72,7 @@ class Benchmark {
         std::string error_plot;
 
         // all stars in 'stars' must be near the focus
-        std::vector<Star> stars;
+        star_list stars;
         Star focus;
 
         // limit a star must be from focus
@@ -80,7 +82,7 @@ class Benchmark {
         Rotation inertial_to_image;
 
         // error models, all changed stars
-        std::vector<ErrorModel> error_models;
+        model_list error_models;
 };
 
 #endif /* HOKU_BENCHMARK_H */

@@ -19,6 +19,8 @@
  */
 class Rotation {
     public:
+        using star_pair = std::array<Star, 2>;
+
         // force default constructor, all components start at zero
         Rotation() = default;
 
@@ -30,25 +32,24 @@ class Rotation {
         static Rotation chance();
 
         // determine mapping across two frames
-        static Rotation rotation_across_frames(const std::array<Star, 2> &,
-                                               const std::array<Star, 2> &);
+        static Rotation rotation_across_frames(const star_pair &, const star_pair &);
 
 #ifndef DEBUGGING_MODE_IS_ON
         private:
 #endif
+        using matrix = std::array<Star, 3>;
+
         // private component setter constructor, user shouldn't deal with components directly
         Rotation(const double, const Star &, const bool = false);
 
         // convert a rotation matrix to a quaternion
-        static Rotation matrix_to_quaternion(const std::array<Star, 3> &);
+        static Rotation matrix_to_quaternion(const matrix &);
 
         // multiply a matrix with another matrix's transpose
-        static std::array<Star, 3> matrix_multiply_transpose(const std::array<Star, 3> &,
-                                                             const std::array<Star, 3> &);
+        static matrix matrix_multiply_transpose(const matrix &, const matrix &);
 
         // quaternion components
-        Star gamma = Star(0, 0, 0);
-        double w = 1, x = 0, y = 0, z = 0;
+        double w = 1, i = 0, j = 0, k = 0;
 
 };
 

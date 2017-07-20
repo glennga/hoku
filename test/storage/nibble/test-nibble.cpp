@@ -22,7 +22,7 @@ void TestNibble::test_components_from_line() {
     assert_equal(kaph[2], teth[2], "ComponentFromLineI");
     assert_equal(kaph[3], teth[3], "ComponentFromLineJ");
     assert_equal(kaph[4], teth[4], "ComponentFromLineK");
-    assert_equal(kaph[5], teth[5], "ComponentMagnitude", 0.01);
+    assert_equal(kaph[5], teth[5], "ComponentM", 0.01);
 }
 
 /*
@@ -88,8 +88,8 @@ void TestNibble::test_bsc5_db_query_result() {
  */
 void TestNibble::test_table_search_result() {
     SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
-    std::vector<double> kaph = Nibble::search_table(db, "BSC5", "number = 3", "i, j, k", 3);
-    std::vector<double> yodh = Nibble::search_table(db, "BSC5", "number = 3 or number = 4",
+    std::vector<double> kaph = Nibble::search_table(db, "BSC5", "hr = 3", "i, j, k", 3);
+    std::vector<double> yodh = Nibble::search_table(db, "BSC5", "hr = 3 or hr = 4",
                                                     "i, j, k", 6, 2);
 
     assert_equal(kaph[0], 0.994772975556659, "GeneralBSC5QueryComponentI");
@@ -105,8 +105,7 @@ void TestNibble::test_table_search_result() {
  */
 void TestNibble::test_table_search_result_index() {
     SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
-    std::vector<double> kaph = Nibble::search_table(db, "BSC5", "number = 3 or number = 4",
-                                                    "i, j, k", 6);
+    std::vector<double> kaph = Nibble::search_table(db, "BSC5", "hr = 3 or hr = 4", "i, j, k", 6);
     std::vector<double> yodh = Nibble::table_results_at(kaph, 3, 0);
     std::vector<double> teth = Nibble::table_results_at(kaph, 3, 1);
 
@@ -152,7 +151,7 @@ void TestNibble::test_table_polish_index() {
 void TestNibble::test_table_polish_sort() {
     SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
     Nibble::polish_table("BSC5", "alpha");
-    std::vector<double> kaph = Nibble::search_table(db, "BSC5", "ROWID = 1", "number", 1);
+    std::vector<double> kaph = Nibble::search_table(db, "BSC5", "ROWID = 1", "hr", 1);
     assert_equal(kaph[0], 9081, "IndexBSC5AlphaSort");
 
     // delete new table and index, rerun original bsc5 table generation
@@ -175,12 +174,12 @@ void TestNibble::test_table_polish_sort() {
  */
 void TestNibble::test_table_insertion() {
     SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
-    std::vector<std::string> kaph{"0", "0", "0", "0", "0", "0", "10000000"};
+    std::vector<double> kaph{0, 0, 0, 0, 0, 0, 10000000};
     std::vector<double> yodh;
     SQLite::Transaction transaction(db);
 
-    Nibble::insert_into_table(db, "BSC5", "alpha, delta, i, j, k, magnitude, number", kaph);
-    SQLite::Statement query(db, "SELECT alpha, delta FROM BSC5 WHERE number = 10000000");
+    Nibble::insert_into_table(db, "BSC5", "alpha, delta, i, j, k, m, hr", kaph);
+    SQLite::Statement query(db, "SELECT alpha, delta FROM BSC5 WHERE hr = 10000000");
     while (query.executeStep()) {
         yodh.push_back(query.getColumn(0).getDouble());
         yodh.push_back(query.getColumn(1).getDouble());
@@ -190,8 +189,7 @@ void TestNibble::test_table_insertion() {
     assert_equal(yodh[1], 0, "TableInsertionDelta");
 
     try {
-        SQLite::Statement(db, "DELETE FROM BSC5 "
-                "WHERE number = 10000000").exec();
+        SQLite::Statement(db, "DELETE FROM BSC5 WHERE hr = 10000000").exec();
         transaction.commit();
     }
     catch (std::exception &e) {
@@ -202,7 +200,7 @@ void TestNibble::test_table_insertion() {
 }
 
 /*
- * Check that the results returned from all_bsc_id are correct.
+ * Check that the results returned from all_bsc5_stars are correct.
  */
 void TestNibble::test_bsc5_all_stars_grab() {
     std::array<Star, 5029> kaph = Nibble::all_bsc5_stars();

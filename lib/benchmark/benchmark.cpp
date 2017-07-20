@@ -27,10 +27,10 @@ Benchmark::Benchmark(const double fov, const Star &focus, const Rotation &inerti
  */
 void Benchmark::shuffle() {
     // need to keep random device static to avoid starting w/ same seed
-    static std::random_device rd;
-    static std::mt19937 mt(rd());
+    static std::random_device seed;
+    static std::mt19937_64 mersenne_twister(seed());
 
-    std::shuffle(this->stars.begin(), this->stars.end(), mt);
+    std::shuffle(this->stars.begin(), this->stars.end(), mersenne_twister);
 }
 
 /*
@@ -41,10 +41,10 @@ void Benchmark::shuffle() {
 void Benchmark::generate_stars() {
     // expected number of stars = fov * 4, not too concerned with accuracy here
     unsigned int expected = (unsigned int) this->fov * 4;
-    
+
     // find nearby stars, rotate these stars and the focus
-    for (Star rho : Nibble::nearby_stars(this->focus, this->fov / 2.0, expected)) {
-        this->stars.push_back(Rotation::rotate(rho, this->inertial_to_image));
+    for (const Star &s : Nibble::nearby_stars(this->focus, this->fov / 2.0, expected)) {
+        this->stars.push_back(Rotation::rotate(s, this->inertial_to_image));
     }
     this->focus = Rotation::rotate(this->focus, this->inertial_to_image);
 
@@ -53,35 +53,33 @@ void Benchmark::generate_stars() {
 }
 
 /*
- * Set all of the BSC IDs in the current star set to 0. In practice, the BSC ID of a star set is
- * never given from the image itself. Return the current star set as this.
+ * Set all of the HR numbers in the current star set to 0. In practice, the HR number of a star
+ * set is never given from the image itself. Return the current star set as this.
  *
- * @return Current star set with BSC IDs set to 0.
+ * @return Current star set with HR numbers set to 0.
  */
-std::vector<Star> Benchmark::present_stars() {
-    for (unsigned int a = 0; a < this->stars.size(); a++) {
-        this->stars[a] = Star::without_bsc(this->stars[a]);
+Benchmark::star_list Benchmark::clean_stars() {
+    for (unsigned int i = 0; i < this->stars.size(); i++) {
+        this->stars[i] = Star::reset_hr(this->stars[i]);
     }
 
     return this->stars;
 }
 
 /*
- * Return the current field of view.
+ * Modify the given image_s, image_focus, and image_fov to the current stars, focus, and fov
+ * fields. These are all points that define an image, and are required for all identification
+ * methods.
  *
- * @return The current field of view.
+ * @param image_s Reference to the star list to benchmark star set.
+ * @param image_focus Reference to the star to set as the focus star.
+ * @param image_fov Reference to the double to set as the fov.
  */
-double Benchmark::get_fov() {
-    return this->fov;
-}
-
-/*
- * Return the current focus vector.
- *
- * @return The current focus vector as a star object.
- */
-Star Benchmark::get_focus() {
-    return this->focus;
+void Benchmark::present_image(Benchmark::star_list &image_s, Star &image_focus,
+                              double &image_fov) {
+    image_s = clean_stars();
+    image_focus = this->focus;
+    image_fov = this->fov;
 }
 
 /*
@@ -100,17 +98,17 @@ int Benchmark::record_current_plot() {
         record << this->fov << "\n" << this->focus.norm() << "\n";
 
         // record the focus second
-        for (double component : {this->focus[0], this->focus[1], this->focus[2]}) {
+        for (const double &component : {this->focus[0], this->focus[1], this->focus[2]}) {
             record << component << " ";
         }
         record << "\n";
 
         // record the rest of the stars
-        for (Star rho : this->stars) {
-            for (double component : {rho[0], rho[1], rho[2]}) {
+        for (const Star &s : this->stars) {
+            for (const double &component : {s[0], s[1], s[2]}) {
                 record << component << " ";
             }
-            record << rho.get_bsc_id() << "\n";
+            record << s.get_hr() << "\n";
         }
         current << record.str();
     } else {
@@ -122,12 +120,12 @@ int Benchmark::record_current_plot() {
         record.str("");
 
         // record each error model
-        for (ErrorModel model : this->error_models) {
-            for (Star rho : model.affected) {
-                for (double component : {rho[0], rho[1], rho[2]}) {
+        for (const ErrorModel &model : this->error_models) {
+            for (const Star &s : model.affected) {
+                for (const double &component : {s[0], s[1], s[2]}) {
                     record << component << " ";
                 }
-                record << rho.get_bsc_id() << " " << model.plot_color << "\n";
+                record << s.get_hr() << " " << model.plot_color << "\n";
             }
         }
 
@@ -151,8 +149,8 @@ int Benchmark::record_current_plot() {
  * @param generate_plot_script Location of Python generation script.
  * @return -1 if the previous files could not be deleted. 0 otherwise.
  */
-int Benchmark::display_plot(const std::string &current_plot_file, 
-                            const std::string &error_plot_file, 
+int Benchmark::display_plot(const std::string &current_plot_file,
+                            const std::string &error_plot_file,
                             const std::string &generate_plot_script) {
     std::remove(current_plot_file.c_str());
     std::remove(error_plot_file.c_str());
@@ -178,7 +176,7 @@ int Benchmark::display_plot(const std::string &current_plot_file,
  */
 void Benchmark::add_extra_light(const int n) {
     int current_n = 0;
-    ErrorModel extra_light = {"Extra Light", "r", {Star(0, 0, 0)}};
+    ErrorModel extra_light = {"Extra Light", "r", {Star()}};
 
     while (current_n < n) {
         Star generated = Star::chance(-current_n - 1);
@@ -220,10 +218,10 @@ void Benchmark::remove_light(const int n, const double psi) {
     }
 
     // second, check if any of the stars fall within psi / 2 of a dark spot
-    for (unsigned int a = 0; a < blobs.size(); a++) {
-        for (Star star : this->stars) {
-            if (Star::within_angle(blobs[a], star, psi / 2.0)) {
-                this->stars.erase(this->stars.begin() + a);
+    for (unsigned int i = 0; i < blobs.size(); i++) {
+        for (const Star &star : this->stars) {
+            if (Star::within_angle(blobs[i], star, psi / 2.0)) {
+                this->stars.erase(this->stars.begin() + i);
                 removed_light.affected.emplace_back(star);
             }
         }
@@ -245,32 +243,30 @@ void Benchmark::remove_light(const int n, const double psi) {
  * @param sigma Amount to shift stars by, in terms of XYZ coordinates.
  */
 void Benchmark::shift_light(const int n, const double sigma) {
-    static std::random_device rd;
-    std::mt19937_64 mt(rd());
+    static std::random_device seed;
+    static std::mt19937_64 mersenne_twister(seed());
     std::normal_distribution<double> dist(0, sigma);
+    ErrorModel shifted_light = {"Shifted Light", "g", {Star()}};
     int current_n = 0;
-    ErrorModel shifted_light = {"Shifted Light", "g", {Star(0, 0, 0)}};
 
     // loop through entire list again if n not met
     while (current_n < n) {
-        for (unsigned int a = 0; a < this->stars.size(); a++) {
+        for (unsigned int i = 0; i < this->stars.size(); i++) {
             // check inside if n is met early
             if (current_n < n) {
-                Star candidate = Star(this->stars[a][0] + dist(mt), 
-                                      this->stars[a][1] + dist(mt),
-                                      this->stars[a][2] + dist(mt),
-                                      this->stars[a].get_bsc_id()).as_unit();
+                Star candidate = Star(this->stars[i][0] + dist(mersenne_twister),
+                                      this->stars[i][1] + dist(mersenne_twister),
+                                      this->stars[i][2] + dist(mersenne_twister),
+                                      this->stars[i].get_hr()).as_unit();
 
                 // if shifted star is near focus, add shifted star and remove the old
                 if (Star::within_angle(candidate, this->focus, this->fov / 2.0)) {
                     this->stars.push_back(candidate);
-                    this->stars.erase(this->stars.begin() + a);
+                    this->stars.erase(this->stars.begin() + i);
                     shifted_light.affected.emplace_back(candidate);
                     current_n++;
                 }
-            } else {
-                break;
-            }
+            } else break;
         }
     }
 
