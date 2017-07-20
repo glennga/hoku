@@ -63,7 +63,7 @@ int Angle::generate_sep_table(const int fov, const std::string &table_name) {
 Angle::hr_pair Angle::query_for_pair(SQLite::Database &db, const double theta) {
     // noise is normally distributed, angle within 3 sigma
     double epsilon = 3.0 * this->parameters.query_sigma, current_minimum = this->fov;
-    Angle::hr_list candidates;
+    hr_list candidates;
     std::ostringstream condition;
     int minimum_index = 0;
 
@@ -74,11 +74,11 @@ Angle::hr_pair Angle::query_for_pair(SQLite::Database &db, const double theta) {
                                       "hr_a, hr_b, theta",
                                       (unsigned int) this->parameters.query_limit * 3,
                                       this->parameters.query_limit);
-    if (candidates.size() == 0) { return Angle::hr_pair {-1, -1}; }
+    if (candidates.size() == 0) { return hr_pair {-1, -1}; }
 
     // select the candidate pair with the angle closest to theta
     for (unsigned int i = 0; i < candidates.size() / 3; i++) {
-        Angle::hr_list inertial = Nibble::table_results_at(candidates, 3, i);
+        hr_list inertial = Nibble::table_results_at(candidates, 3, i);
 
         // update with correct minimum
         if (fabs(inertial[2] - theta) < current_minimum) {
@@ -88,8 +88,8 @@ Angle::hr_pair Angle::query_for_pair(SQLite::Database &db, const double theta) {
     }
 
     // return the set with the angle closest to theta
-    return Angle::hr_pair {(int) Nibble::table_results_at(candidates, 3, minimum_index)[0],
-                           (int) Nibble::table_results_at(candidates, 3, minimum_index)[1]};
+    return hr_pair {(int) Nibble::table_results_at(candidates, 3, minimum_index)[0],
+                    (int) Nibble::table_results_at(candidates, 3, minimum_index)[1]};
 }
 
 /*
@@ -104,7 +104,7 @@ Angle::hr_pair Angle::query_for_pair(SQLite::Database &db, const double theta) {
 Angle::star_pair Angle::find_candidate_pair(SQLite::Database &db, const Star &b_a,
                                             const Star &b_b) {
     double theta = Star::angle_between(b_a, b_b);
-    Angle::hr_pair candidates;
+    hr_pair candidates;
 
     // greater than current field of view, must break
     if (theta > this->fov) { return {Star(), Star()}; }
@@ -125,8 +125,8 @@ Angle::star_pair Angle::find_candidate_pair(SQLite::Database &db, const Star &b_
  * @param q The rotation to apply to all stars.
  * @return Set of matching stars found in candidates and the body sets.
  */
-Angle::star_list Angle::find_matches(const Angle::star_list &candidates, const Rotation &q) {
-    Angle::star_list matches, non_matched = this->input;
+Angle::star_list Angle::find_matches(const star_list &candidates, const Rotation &q) {
+    star_list matches, non_matched = this->input;
     double epsilon = 3.0 * this->parameters.match_sigma;
     matches.reserve(this->input.size());
 
@@ -165,13 +165,13 @@ Angle::star_list Angle::find_matches(const Angle::star_list &candidates, const R
  * configurations.
  */
 Angle::star_list Angle::check_assumptions(const std::vector<Star> &candidates,
-                                          const Angle::star_pair &r, const Angle::star_pair &b) {
-    std::array<Angle::star_pair, 2> assumption_list = {r, {r[1], r[0]}};
-    std::array<Angle::star_list, 2> matches;
+                                          const star_pair &r, const star_pair &b) {
+    std::array<star_pair, 2> assumption_list = {r, {r[1], r[0]}};
+    std::array<star_list, 2> matches;
     int current_assumption = 0;
 
     // determine rotation to take frame B to A
-    for (const Angle::star_pair &assumption : assumption_list) {
+    for (const star_pair &assumption : assumption_list) {
         Rotation q = Rotation::rotation_across_frames(b, assumption);
         matches[current_assumption++] = this->find_matches(candidates, q);
     }
@@ -189,7 +189,7 @@ Angle::star_list Angle::check_assumptions(const std::vector<Star> &candidates,
  */
 Angle::star_list Angle::identify(const Benchmark &input, const AngleParameters &parameters) {
     SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
-    Angle::star_list matches;
+    star_list matches;
     bool matched = false;
     Angle a(input);
     a.parameters = parameters;
@@ -200,7 +200,7 @@ Angle::star_list Angle::identify(const Benchmark &input, const AngleParameters &
             star_list candidates;
 
             // narrow down current pair to two stars in catalog, order currently unknown
-            Angle::star_pair candidate_pair = a.find_candidate_pair(db, a.input[i], a.input[j]);
+            star_pair candidate_pair = a.find_candidate_pair(db, a.input[i], a.input[j]);
             if (Star::is_equal(candidate_pair[0], Star()) &&
                 Star::is_equal(candidate_pair[1], Star())) { break; }
 
