@@ -13,12 +13,6 @@
 #include <random>
 
 /*
- * Default precision of is_equal method.
- */
-const double STAR_EPSILON_IS_EQUAL = 0.000000000001;
-
-
-/*
  * @class Star
  * @brief Star class, which is represented by 3-dimensional vectors and an identification number.
  *
@@ -27,6 +21,11 @@ const double STAR_EPSILON_IS_EQUAL = 0.000000000001;
  */
 class Star {
     public:
+        // name aliases for common structures involving stars
+        using star_list = std::vector<Star>;
+        using star_pair = std::array<Star, 2>;
+        using hr_list = std::vector<double>;
+
         // constructor, set components and HR, has unit flag
         Star(const double, const double, const double, const int = 0, const bool = false);
         Star();
@@ -49,7 +48,7 @@ class Star {
         Star as_unit() const;
 
         // determine if the **components** are within a certain value of each other
-        static bool is_equal(const Star &, const Star &, const double = STAR_EPSILON_IS_EQUAL);
+        static bool is_equal(const Star &, const Star &, const double = 0.000000000001);
         bool operator==(const Star &) const;
 
         // generate unit vector with random components, overloaded to add own HR number
