@@ -22,7 +22,6 @@ class TestNibble : public BaseTest {
 
         // test the bsc5 query method
         void test_bsc5_query_result();
-        void test_bsc5_db_query_result();
 
         // test the general table component grabbing method
         void test_table_search_result();
