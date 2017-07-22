@@ -2,5 +2,4 @@
 build/
 doc/build/
 *.db
-data/current_plot.dat
-data/error_plot.dat
+*.tmp

@@ -21,13 +21,13 @@
  */
 int Chomp::build_k_vector_table(const std::string &table, const std::string &focus_column,
                                 const double m, const double q) {
-    SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+    SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE);
     SQLite::Transaction transaction(db);
     int s_l = db.execAndGet(std::string("SELECT MAX(rowid) FROM ") + table).getInt();
     std::vector<double> s_vector;
 
     // load all of table into RAM
-    SQLite::Statement query(db, "SELECT theta FROM " + table);
+    SQLite::Statement query(db, "SELECT " + focus_column + " FROM " + table);
     s_vector.reserve((unsigned) s_l);
     while (query.executeStep()) {
         s_vector.emplace_back(query.getColumn(0).getDouble());
@@ -41,8 +41,12 @@ int Chomp::build_k_vector_table(const std::string &table, const std::string &foc
         }
 
         Nibble::insert_into_table(db, table + "_KVEC", "k_value", std::vector<double> {k_value});
-        std::cout << "\r" << "Current *A* Entry: " << i;
+        std::cout << "\r" << "Current *I* Entry: " << i;
     }
+
+    // index the K-Vector column
+    db.exec("CREATE INDEX " + table + "_" + focus_column + " ON " + table +
+            "(" + focus_column + ")");
 
     transaction.commit();
     return 0;
@@ -56,6 +60,7 @@ int Chomp::build_k_vector_table(const std::string &table, const std::string &foc
  * @return 0 when finished.
  */
 int Chomp::create_k_vector(const std::string &table, const std::string &focus_column) {
+    Nibble::sort_table(table, focus_column);
     SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
     SQLite::Transaction transaction(db);
     double focus_0, focus_n, m, q;
@@ -75,8 +80,7 @@ int Chomp::create_k_vector(const std::string &table, const std::string &focus_co
     m = (focus_n - focus_0 + (2.0 * DOUBLE_EPSILON)) / (db.execAndGet(sql_for_max_id).getInt());
     q = focus_0 - m - DOUBLE_EPSILON;
 
-    // sort the table to create s-vector, create k-vector and build the k-vector table
-    Nibble::sort_table(table, focus_column);
+    // sorted table is s-vector, create k-vector and build the k-vector table
     db.exec("CREATE TABLE " + table + "_KVEC (k_value INT)");
     transaction.commit();
 
