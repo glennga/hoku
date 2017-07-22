@@ -38,7 +38,11 @@ if (BUILD_STATIC AND NOT MSVC)
 	-static-libgcc -static-libstdc++")
 endif ()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lpthread -ldl")
+if (WIN32)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lpthread -ldl")
+endif()
 
 ##################################################################
 # Add Subdirectory Containing Third Party Libraries
