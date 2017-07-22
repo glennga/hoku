@@ -5,26 +5,38 @@
  * tests.
  */
 
-#include "test-triangle-planar.h"
+#include "test-planar-triangle.h"
 
-///*
-// * Check that query_for_pair method returns the BSC ID of the correct stars.
-// */
-//void TestAngle::test_pair_query() {
-//    Benchmark input(15, Star::chance(), Rotation::chance());
-//    double kaph = Star::angle_between(input.stars[0], input.stars[1]);
-//    std::array<int, 2> yodh = Angle(input).query_for_pair(kaph);
-//
-//    assert_true(yodh[0] == input.stars[0].get_bsc_id() || yodh[0] == input.stars[1].get_bsc_id(),
-//                "QueryPairInsideInputStar0");
-//    assert_true(yodh[1] == input.stars[0].get_bsc_id() || yodh[1] == input.stars[1].get_bsc_id(),
-//                "QueryPairInsideInputStar1");
-//}
+/*
+ * Check that query_for_trio method returns the BSC ID of the correct stars.
+ */
+void TestPlanarTriangle::test_trio_query() {
+    SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE || SQLite::OPEN_CREATE);
+    Benchmark input(15, Star::chance(), Rotation::chance());
+    double kaph = Trio::planar_area(input.stars[0], input.stars[1], input.stars[2]);
+    double yodh = Trio::planar_moment(input.stars[0], input.stars[1], input.stars[2]);
+    std::vector<Plan::hr_trio> teth = Plan(input).query_for_trio(db, kaph, yodh);
+    std::array<bool, 3> matched = {false, false, false};
+
+    // check that original input trio exists in search
+    for (Plan::hr_trio t : teth) {
+        for (int i = 0; i < 3; i++) {
+            if (input.stars[i].get_hr() == t[0] || input.stars[i].get_hr() == t[1] ||
+                input.stars[i].get_hr() == t[2]) {
+                matched[i] = true;
+            }
+        }
+    }
+
+    assert_true(matched[0], "QueryTrioInsideInputStar0");
+    assert_true(matched[1], "QueryTrioInsideInputStar1");
+    assert_true(matched[2], "QueryTrioInsideInputStar2");
+}
 //
 ///*
 // * Check that a theta and epsilon with three choices returns the BSC ID of the correct stars.
 // */
-//void TestAngle::test_pair_multiple_choice_query() {
+//void TestPlanarTriangle::test_pair_multiple_choice_query() {
 //    Angle kaph(Benchmark(15, Star::chance(), Rotation::chance()));
 //    Star yodh(0.203647924328259, 0.559277619691848, 0.803577044861669, 1466);
 //    Star teth(0.205670146125506, 0.564397142318217, 0.799472111293286, 1467);
@@ -34,7 +46,7 @@
 //    assert_true(heth[0] == 1466 || heth[0] == 1467, "QueryPairMultipleChoicesStar0");
 //    assert_true(heth[1] == 1466 || heth[1] == 1467, "QueryPairMultipleChoicesStar1");
 //}
-//
+
 ///*
 // * Check that the zero-length stars are returned when theta is greater than the current fov.
 // */
@@ -225,9 +237,8 @@
  */
 int TestPlanarTriangle::enumerate_tests(int test_case) {
     switch (test_case) {
-//        case 0:
-//            test_pair_query();
-//            break;
+        case 0:test_trio_query();
+            break;
 //        case 1:
 //            test_pair_multiple_choice_query();
 //            break;
@@ -255,8 +266,7 @@ int TestPlanarTriangle::enumerate_tests(int test_case) {
 //        case 9:
 //            test_identify_error_input();
 //            break;
-        default:
-            return -1;
+        default:return -1;
     }
 
     return 0;
@@ -266,6 +276,9 @@ int TestPlanarTriangle::enumerate_tests(int test_case) {
  * Run the tests in TestPlanarTriangle.
  */
 int main() {
-    PlanarTriangle::generate_triangle_table(20, "PLANAR20");
-    return TestPlanarTriangle().execute_tests();
+//    PlanarTriangle::generate_triangle_table(20, "PLAN20");
+    Chomp::create_k_vector("PLAN20", "a");
+//    Nibble::polish_table("PLAN20_KVEC", "k_value");
+    return 0;
+//    return TestPlanarTriangle().execute_tests();
 }
