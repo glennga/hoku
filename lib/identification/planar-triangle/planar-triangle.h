@@ -53,7 +53,7 @@ class PlanarTriangle {
         using star_list = std::vector<Star>;
         using hr_list = std::vector<double>;
         using hr_trio = std::array<double, 3>;
-        using b_index_trio = std::array<double, 3>;
+        using index_trio = std::array<double, 3>;
         using star_trio = std::array<Star, 3>;
 
         // user is not meant to create Angle object, keep it private
@@ -71,16 +71,18 @@ class PlanarTriangle {
         std::vector<hr_trio> query_for_trio(SQLite::Database &, const double, const double);
 
         // search for matching pairs to body pair, use past searches to narrow search
-        std::vector<star_trio> match_stars(SQLite::Database &, const b_index_trio &);
-        star_trio pivot(SQLite::Database &, const b_index_trio &,
+        std::vector<star_trio> match_stars(SQLite::Database &, const index_trio &);
+        star_trio pivot(SQLite::Database &, const index_trio &,
                         const std::vector<star_trio> & = {{}});
 
         // find set of matches to benchmark given candidate set and a rotation
         star_list find_matches(const star_list &, const Rotation &);
 
         // find set of inertial frame to body frame matches
-        star_list check_assumptions(const star_list &, const star_trio &, const b_index_trio &);
+        star_list check_assumptions(const star_list &, const star_trio &, const index_trio &);
 
 };
+
+typedef PlanarTriangle Plan;
 
 #endif /* HOKU_TRIANGLE_PLANAR_H */
