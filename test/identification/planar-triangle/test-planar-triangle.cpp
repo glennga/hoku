@@ -5,7 +5,7 @@
  * tests.
  */
 
-#include "test-triangle-planar.h"
+#include "test-planar-triangle.h"
 
 /*
  * Check that query_for_trio method returns the BSC ID of the correct stars.
@@ -276,6 +276,9 @@ int TestPlanarTriangle::enumerate_tests(int test_case) {
  * Run the tests in TestPlanarTriangle.
  */
 int main() {
-    PlanarTriangle::generate_triangle_table(20, "PLANAR20");
-    return TestPlanarTriangle().execute_tests();
+//    PlanarTriangle::generate_triangle_table(20, "PLAN20");
+    Chomp::create_k_vector("PLAN20", "a");
+//    Nibble::polish_table("PLAN20_KVEC", "k_value");
+    return 0;
+//    return TestPlanarTriangle().execute_tests();
 }

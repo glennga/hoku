@@ -27,35 +27,35 @@ PlanarTriangle::PlanarTriangle(Benchmark input) {
  */
 int Plan::generate_triangle_table(const int fov, const std::string &table_name) {
     SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
-    SQLite::Transaction initial_transaction(db);
-    db.exec("CREATE TABLE " + table_name + " (hr_a INT, hr_b INT, hr_c INT, a FLOAT, i FLOAT)");
-    initial_transaction.commit();
-
-    // (i, j, k) are distinct, where no (i, j, k) = (j, k, i), (j, i, k), ....
-    Nibble::full_bsc5_star_list all_stars = Nibble::all_bsc5_stars();
-    for (unsigned int i = 0; i < all_stars.size() - 2; i++) {
-        SQLite::Transaction transaction(db);
-        std::cout << "\r" << "Current *A* Star: " << all_stars[i].get_hr();
-        for (unsigned int j = i + 1; j < all_stars.size() - 1; j++) {
-            for (unsigned int k = j + 1; k < all_stars.size(); k++) {
-
-                // only insert if all stars are within fov
-                if (Star::angle_between(all_stars[i], all_stars[j]) < fov &&
-                    Star::angle_between(all_stars[j], all_stars[k]) < fov &&
-                    Star::angle_between(all_stars[k], all_stars[i]) < fov) {
-                    double a_t = Trio::planar_area(all_stars[i], all_stars[j], all_stars[k]);
-                    double i_t = Trio::planar_moment(all_stars[i], all_stars[j], all_stars[k]);
-
-                    Nibble::insert_into_table(db, table_name, "hr_a, hr_b, hr_c, a, i",
-                                              {(double) all_stars[i].get_hr(),
-                                               (double) all_stars[j].get_hr(),
-                                               (double) all_stars[k].get_hr(), a_t, i_t});
-                }
-            }
-        }
-        // commit every star I change
-        transaction.commit();
-    }
+//    SQLite::Transaction initial_transaction(db);
+//    db.exec("CREATE TABLE " + table_name + " (hr_a INT, hr_b INT, hr_c INT, a FLOAT, i FLOAT)");
+//    initial_transaction.commit();
+//
+//    // (i, j, k) are distinct, where no (i, j, k) = (j, k, i), (j, i, k), ....
+//    Nibble::full_bsc5_star_list all_stars = Nibble::all_bsc5_stars();
+//    for (unsigned int i = 0; i < all_stars.size() - 2; i++) {
+//        SQLite::Transaction transaction(db);
+//        std::cout << "\r" << "Current *A* Star: " << all_stars[i].get_hr();
+//        for (unsigned int j = i + 1; j < all_stars.size() - 1; j++) {
+//            for (unsigned int k = j + 1; k < all_stars.size(); k++) {
+//
+//                // only insert if all stars are within fov
+//                if (Star::angle_between(all_stars[i], all_stars[j]) < fov &&
+//                    Star::angle_between(all_stars[j], all_stars[k]) < fov &&
+//                    Star::angle_between(all_stars[k], all_stars[i]) < fov) {
+//                    double a_t = Trio::planar_area(all_stars[i], all_stars[j], all_stars[k]);
+//                    double i_t = Trio::planar_moment(all_stars[i], all_stars[j], all_stars[k]);
+//
+//                    Nibble::insert_into_table(db, table_name, "hr_a, hr_b, hr_c, a, i",
+//                                              {(double) all_stars[i].get_hr(),
+//                                               (double) all_stars[j].get_hr(),
+//                                               (double) all_stars[k].get_hr(), a_t, i_t});
+//                }
+//            }
+//        }
+//        // commit every star I change
+//        transaction.commit();
+//    }
 
     return Nibble::polish_table(table_name, "a");
 }
