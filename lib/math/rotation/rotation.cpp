@@ -73,8 +73,8 @@ Rotation Rotation::rotation_across_frames(const star_pair &r, const star_pair &b
     Star v_1 = r[0].as_unit(), w_1 = b[0].as_unit();
     Star v_2 = (Star::cross(r[0].as_unit(), r[1].as_unit())).as_unit();
     Star w_2 = (Star::cross(b[0].as_unit(), b[1].as_unit())).as_unit();
-    Star v_3 = (Star::cross(r[0].as_unit(), v_2.as_unit())).as_unit();
-    Star w_3 = (Star::cross(b[0].as_unit(), w_2.as_unit())).as_unit();
+    Star v_3 = (Star::cross(r[0].as_unit(), v_2)).as_unit();
+    Star w_3 = (Star::cross(b[0].as_unit(), w_2)).as_unit();
 
     // each vector represents a column -> [v_1 : v_2 : v_3]
     matrix v = {Star(v_1[0], v_2[0], v_3[0]),
