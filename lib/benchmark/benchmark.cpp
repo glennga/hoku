@@ -41,10 +41,9 @@ void Benchmark::shuffle() {
 void Benchmark::generate_stars() {
     // expected number of stars = fov * 4, not too concerned with accuracy here
     unsigned int expected = (unsigned int) this->fov * 4;
-    Nibble nb;
 
     // find nearby stars, rotate these stars and the focus
-    for (const Star &s : nb.nearby_stars(this->focus, this->fov / 2.0, expected)) {
+    for (const Star &s : Nibble().nearby_stars(this->focus, this->fov / 2.0, expected)) {
         this->stars.push_back(Rotation::rotate(s, this->inertial_to_image));
     }
     this->focus = Rotation::rotate(this->focus, this->inertial_to_image);
