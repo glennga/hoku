@@ -38,6 +38,7 @@ class Nibble {
         // mutator methods for table and file locations
         void select_table(const std::string &);
 
+        // populate the BSC5 table
         int generate_bsc5_table();
 
         // generic table insertion method, limit by fov if desired
@@ -57,18 +58,22 @@ class Nibble {
                              const unsigned int, const int = -1);
         sql_row table_results_at(const sql_row &, const unsigned int, const int);
 
+        // create a table with a given schema
+        int create_table(const std::string &, const std::string &);
 
         // sort table by specified column and create index
         int find_schema_fields(std::string &, std::string &);
         int sort_table(const std::string &);
         int polish_table(const std::string &);
 
+        // open database object, this needs to be public to work with SQLiteCpp
+        std::unique_ptr<SQLite::Database> db;
+        
 #ifndef DEBUGGING_MODE_IS_ON
         protected:
 #endif
 
-        // open database object, current table to operate open
-        std::unique_ptr<SQLite::Database> db;
+        // current table to operate open
         std::string table;
 
         // location of catalog and database, requires definition of HOKU_PROJECT_PATH

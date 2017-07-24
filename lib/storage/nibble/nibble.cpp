@@ -255,6 +255,18 @@ int Nibble::insert_into_table(const std::string &fields, const sql_row &in_value
 }
 
 /*
+ * Create a table in the Nibble database with the given schema.
+ *
+ * @param table Name of the table to create.
+ * @param schema Schema for the table.
+ * @return 0 when finished.
+ */
+int Nibble::create_table(const std::string &table, const std::string &schema) {
+    (*db).exec("CREATE TABLE " + table + "(" + schema + ")");
+    return 0;
+}
+
+/*
  * In the current table, get the fields and schema.
  *
  * @param schema Reference to string that will hold schema.
