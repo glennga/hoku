@@ -16,13 +16,12 @@
  */
 struct AngleParameters {
     double query_sigma = 0.00000000001;
-    int query_limit = 5;
+    unsigned int query_limit = 5;
 
     double match_sigma = 0.00001;
     unsigned int match_minimum = 10;
 
     std::string table_name = "SEP20";
-    std::string nibble_location = Nibble::database_location;
 };
 
 /*
@@ -59,15 +58,18 @@ class Angle {
         Benchmark::star_list input;
         AngleParameters parameters;
 
+        // for database access
+        Nibble nb;
+
         // the focus and the field of view limit
         Star focus;
         double fov;
 
         // search for pair given an angle and a query limit
-        hr_pair query_for_pair(SQLite::Database &, const double);
+        hr_pair query_for_pair(const double);
 
         // search for pair given set of benchmark stars
-        star_pair find_candidate_pair(SQLite::Database &, const Star &, const Star &);
+        star_pair find_candidate_pair(const Star &, const Star &);
 
         // find set of matches to benchmark given candidate set and a rotation
         star_list find_matches(const star_list &, const Rotation &);

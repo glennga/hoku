@@ -33,13 +33,11 @@ void TestBenchmark::test_current_plot_file() {
     std::string heth;
     char zayin[200];
 
-    input.current_plot = "../../../data/current_plot.dat";
-    input.error_plot = "../../../data/error_plot.dat";
-    std::remove(input.current_plot.c_str());
-    std::remove(input.error_plot.c_str());
+    std::remove(input.CURRENT_PLOT.c_str());
+    std::remove(input.ERROR_PLOT.c_str());
     input.record_current_plot();
 
-    std::ifstream current_plot_from_input(input.current_plot.c_str());
+    std::ifstream current_plot_from_input(input.CURRENT_PLOT.c_str());
     assert_true(current_plot_from_input.good(), "CurrentPlotFileOpen");
 
     std::getline(current_plot_from_input, heth);
@@ -65,14 +63,12 @@ void TestBenchmark::test_error_plot_file() {
     std::string kaph;
     char yodh[200];
 
-    input.current_plot = "../../../data/current_plot.dat";
-    input.error_plot = "../../../data/error_plot.dat";
-    std::remove(input.current_plot.c_str());
-    std::remove(input.error_plot.c_str());
+    std::remove(input.CURRENT_PLOT.c_str());
+    std::remove(input.ERROR_PLOT.c_str());
     input.add_extra_light(1);
     input.record_current_plot();
 
-    std::ifstream error_plot_from_input(input.error_plot.c_str());
+    std::ifstream error_plot_from_input(input.ERROR_PLOT.c_str());
     assert_true(error_plot_from_input.good(), "ErrorPlotFileOpen");
 
     // NOTE: here yodh truncates a digit, but this is correct otherwise
