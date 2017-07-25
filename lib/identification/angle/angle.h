@@ -23,6 +23,7 @@ struct AngleParameters {
 
     std::string table_name = "SEP20";
 };
+using AngP = AngleParameters;
 
 /*
  * @class Angle
@@ -38,7 +39,7 @@ class Angle {
         Angle() = delete;
 
         // identity benchmark data
-        static Benchmark::star_list identify(const Benchmark &, const AngleParameters &);
+        static Benchmark::star_list identify(const Benchmark &, const AngP &);
 
         // generate the separation table
         static int generate_sep_table(const int, const std::string &);
@@ -56,7 +57,7 @@ class Angle {
 
         // the data we are working with, identification parameters = tweak performance
         Benchmark::star_list input;
-        AngleParameters parameters;
+        AngP parameters;
 
         // for database access
         Nibble nb;
