@@ -29,6 +29,9 @@ struct ErrorModel {
  * @class Benchmark
  * @brief Benchmark class, which generates the input data for star identification testing.
  *
+ * The environment variable HOKU_PROJECT_PATH must point to top level of this project.
+ * The following Python script must exist: %HOKU_PROJECT_PATH%/lib/benchmark/generate_plot.py
+ *
  * The benchmark class is used for all star identification implementation testing. To imitate
  * real data from a star detector, we search for all stars in a section of the sky and apply
  * various error models to this set.
@@ -36,7 +39,7 @@ struct ErrorModel {
 class Benchmark {
     public:
         using star_list = std::vector<Star>;
-        
+
         // default constructor must not be generated, user must specify fov, focus, and rotation
         Benchmark() = delete;
         Benchmark(const double, const Star &, const Rotation & = Rotation::identity());
@@ -49,7 +52,7 @@ class Benchmark {
         
         // write current star set to file, display plot using Python's MatPlotLib
         int record_current_plot();
-        int display_plot(const std::string &, const std::string &, const std::string &);
+        int display_plot();
 
         // error models: stray light, blocked light, shifted stars
         void add_extra_light(const int);
@@ -67,9 +70,11 @@ class Benchmark {
         // shuffle current star set
         void shuffle();
 
-        // files used for plotting
-        std::string current_plot;
-        std::string error_plot;
+        // location of plot files, requires definition of HOKU_PROJECT_PATH
+        const std::string PROJECT_LOCATION = std::string(std::getenv("HOKU_PROJECT_PATH"));
+        const std::string CURRENT_PLOT = PROJECT_LOCATION + "/data/cuplt.tmp";
+        const std::string ERROR_PLOT = PROJECT_LOCATION + "/data/errplt.tmp";
+        const std::string PLOT_SCRIPT = PROJECT_LOCATION + "/lib/benchmark/generate_plot.py";
 
         // all stars in 'stars' must be near the focus
         star_list stars;

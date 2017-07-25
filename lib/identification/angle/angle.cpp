@@ -8,12 +8,14 @@
 #include "angle.h"
 
 /*
- * Constructor. Sets the benchmark data, fov, and focus. Sort the input set.
+ * Constructor. Sets the benchmark data, fov, and focus. Set the current working table to the
+ * default 'SEP20'.
  *
  * @param input The set of benchmark data to work with.
  */
 Angle::Angle(Benchmark input) {
     input.present_image(this->input, this->focus, this->fov);
+    this->nb.select_table(AngleParameters().table_name);
 }
 
 /*
@@ -26,12 +28,13 @@ Angle::Angle(Benchmark input) {
  * @return 0 when finished.
  */
 int Angle::generate_sep_table(const int fov, const std::string &table_name) {
-    SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
-    SQLite::Transaction transaction(db);
-    db.exec("CREATE TABLE " + table_name + "(hr_a INT, hr_b INT, theta FLOAT)");
+    Nibble nb;
+    SQLite::Transaction transaction(*nb.db);
+    nb.create_table(table_name, "hr_a INT, hr_b INT, theta FLOAT");
+    nb.select_table(table_name);
 
     // (i, j) are distinct, where no (i, j) = (j, i)
-    Nibble::full_bsc5_star_list all_stars = Nibble::all_bsc5_stars();
+    Nibble::bsc5_star_list all_stars = nb.all_bsc5_stars();
     for (unsigned int i = 0; i < all_stars.size() - 1; i++) {
         std::cout << "\r" << "Current *I* Star: " << all_stars[i].get_hr();
         for (unsigned int j = i + 1; j < all_stars.size(); j++) {
@@ -39,15 +42,14 @@ int Angle::generate_sep_table(const int fov, const std::string &table_name) {
 
             // only insert if angle between both stars is less than fov
             if (theta < fov) {
-                Nibble::insert_into_table(db, table_name, "hr_a, hr_b, theta",
-                                          {(double) all_stars[i].get_hr(),
-                                           (double) all_stars[j].get_hr(), theta});
+                nb.insert_into_table("hr_a, hr_b, theta", {(double) all_stars[i].get_hr(),
+                                                           (double) all_stars[j].get_hr(), theta});
             }
         }
     }
 
     transaction.commit();
-    return Nibble::polish_table(table_name, "theta");
+    return nb.polish_table("theta");
 }
 
 /*
@@ -55,30 +57,26 @@ int Angle::generate_sep_table(const int fov, const std::string &table_name) {
  * angles. Assumes noise is normally distributed, searches using epsilon (3 * query_sigma).
  * Limits the amount returned by the search using 'query_limit'.
  *
- * @param db Database object currently open.
  * @param theta Separation angle (degrees) to search with.
  * @return [-1][-1] if no candidates found. Two element array of the matching HR numbers
  * otherwise.
  */
-Angle::hr_pair Angle::query_for_pair(SQLite::Database &db, const double theta) {
+Angle::hr_pair Angle::query_for_pair(const double theta) {
     // noise is normally distributed, angle within 3 sigma
     double epsilon = 3.0 * this->parameters.query_sigma, current_minimum = this->fov;
-    hr_list candidates;
+    unsigned int minimum_index = 0, limit = this->parameters.query_limit;
     std::ostringstream condition;
-    int minimum_index = 0;
+    hr_list candidates;
 
     // query using theta with epsilon bounds, return [-1][-1] if nothing found
     condition << "theta BETWEEN " << std::setprecision(16) << std::fixed;
     condition << theta - epsilon << " AND " << theta + epsilon;
-    candidates = Nibble::search_table(db, this->parameters.table_name, condition.str(),
-                                      "hr_a, hr_b, theta",
-                                      (unsigned int) this->parameters.query_limit * 3,
-                                      this->parameters.query_limit);
+    candidates = nb.search_table(condition.str(), "hr_a, hr_b, theta", limit * 3, limit);
     if (candidates.size() == 0) { return hr_pair {-1, -1}; }
 
     // select the candidate pair with the angle closest to theta
     for (unsigned int i = 0; i < candidates.size() / 3; i++) {
-        hr_list inertial = Nibble::table_results_at(candidates, 3, i);
+        hr_list inertial = nb.table_results_at(candidates, 3, i);
 
         // update with correct minimum
         if (fabs(inertial[2] - theta) < current_minimum) {
@@ -88,21 +86,19 @@ Angle::hr_pair Angle::query_for_pair(SQLite::Database &db, const double theta) {
     }
 
     // return the set with the angle closest to theta
-    return hr_pair {(int) Nibble::table_results_at(candidates, 3, minimum_index)[0],
-                    (int) Nibble::table_results_at(candidates, 3, minimum_index)[1]};
+    return hr_pair {(int) nb.table_results_at(candidates, 3, minimum_index)[0],
+                    (int) nb.table_results_at(candidates, 3, minimum_index)[1]};
 }
 
 /*
  * Given a set of body (frame B) stars, find the matching inertial (frame R) stars.
  *
- * @param db Database object currently open.
  * @param b_a Star A in frame B to find the match for.
  * @param b_b Star B in frame B to find the match for.
  * @return Array of vectors with 0 length if no matching pair is found. Otherwise, two inertial
  * stars that match the given body.
  */
-Angle::star_pair Angle::find_candidate_pair(SQLite::Database &db, const Star &b_a,
-                                            const Star &b_b) {
+Angle::star_pair Angle::find_candidate_pair(const Star &b_a, const Star &b_b) {
     double theta = Star::angle_between(b_a, b_b);
     hr_pair candidates;
 
@@ -110,11 +106,11 @@ Angle::star_pair Angle::find_candidate_pair(SQLite::Database &db, const Star &b_
     if (theta > this->fov) { return {Star(), Star()}; }
 
     // no candidates found, must break
-    candidates = this->query_for_pair(db, theta);
+    candidates = this->query_for_pair(theta);
     if (candidates[0] == -1 && candidates[1] == -1) { return {Star(), Star()}; }
 
     // obtain inertial vectors for given candidates
-    return {Nibble::query_bsc5(db, candidates[0]), Nibble::query_bsc5(db, candidates[1])};
+    return {nb.query_bsc5(candidates[0]), nb.query_bsc5(candidates[1])};
 }
 
 /*
@@ -187,12 +183,13 @@ Angle::star_list Angle::check_assumptions(const std::vector<Star> &candidates,
  * @param parameters Adjustments to the identification process.
  * @return Vector of body stars with their inertial BSC IDs that qualify as matches.
  */
-Angle::star_list Angle::identify(const Benchmark &input, const AngleParameters &parameters) {
-    SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
-    star_list matches;
+Benchmark::star_list Angle::identify(const Benchmark &input, const AngleParameters &parameters) {
     bool matched = false;
+    star_list matches;
     Angle a(input);
+
     a.parameters = parameters;
+    a.nb.select_table(a.parameters.table_name);
 
     // |A_input| choose 2 possibilities, starts with closest stars to focus
     for (unsigned int i = 0; i < a.input.size() - 1; i++) {
@@ -200,12 +197,12 @@ Angle::star_list Angle::identify(const Benchmark &input, const AngleParameters &
             star_list candidates;
 
             // narrow down current pair to two stars in catalog, order currently unknown
-            star_pair candidate_pair = a.find_candidate_pair(db, a.input[i], a.input[j]);
+            star_pair candidate_pair = a.find_candidate_pair(a.input[i], a.input[j]);
             if (Star::is_equal(candidate_pair[0], Star()) &&
                 Star::is_equal(candidate_pair[1], Star())) { break; }
 
             // find candidate stars around the candidate pair
-            candidates = Nibble::nearby_stars(db, candidate_pair[0], a.fov, 3 * (a.input.size()));
+            candidates = a.nb.nearby_stars(candidate_pair[0], a.fov, 3 * (a.input.size()));
 
             // check both possible configurations, return the most likely
             matches = a.check_assumptions(candidates, candidate_pair, {a.input[i], a.input[j]});
