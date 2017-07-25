@@ -14,35 +14,32 @@
 #include <iostream>
 
 /*
- * TrianglePlanar identification parameter structure, used to define the query and match parameters.
- */
-struct TrianglePlanarParameters {
-    double sigma_a = 0.00000000001;
-    double sigma_i = 0.00000000001;
-    int query_expected = 10;
-
-    double match_sigma = 0.00001;
-    unsigned int match_minimum = 10;
-
-    std::string table_name = "PLAN20";
-    std::string nibble_location = Nibble::database_location;
-};
-
-/*
  * @class TrianglePlanar
  * @brief TrianglePlanar class, which matches a set of body vectors (stars) to their inertial
  * counter-parts in the database.
  *
- * The triangle planar class is an implementation of CaPlanar Triangle
- * Acquisition process.
+ * The triangle planar class is an implementation of Crassidis and Cole's Planar Triangle Pattern
+ * Recognition Process.
  */
 class PlanarTriangle {
     public:
+        // defines the query and match operations
+        struct Parameters {
+            double sigma_a = 0.00000000001;
+            double sigma_i = 0.00000000001;
+            int query_expected = 10;
+
+            double match_sigma = 0.00001;
+            unsigned int match_minimum = 10;
+
+            std::string table_name = "PLAN20";
+        };
+
         // ensure default constructor is **not** generated
         PlanarTriangle() = delete;
 
         // identity benchmark data
-        static Benchmark::star_list identify(const Benchmark &, const TrianglePlanarParameters &);
+        static Benchmark::star_list identify(const Benchmark &, const Parameters &);
 
         // generate the separation table
         static int generate_triangle_table(const int, const std::string &);
@@ -61,19 +58,21 @@ class PlanarTriangle {
 
         // the data we are working with, identification parameters = tweak performance
         Benchmark::star_list input;
-        TrianglePlanarParameters parameters;
+        Parameters parameters;
+
+        // for database access
+        Chomp ch;
 
         // the focus and the field of view limit
         Star focus = Star();
         double fov;
 
         // search for trio given an area and moment
-        std::vector<hr_trio> query_for_trio(SQLite::Database &, const double, const double);
+        std::vector<hr_trio> query_for_trio(const double, const double);
 
         // search for matching pairs to body pair, use past searches to narrow search
-        std::vector<star_trio> match_stars(SQLite::Database &, const index_trio &);
-        star_trio pivot(SQLite::Database &, const index_trio &,
-                        const std::vector<star_trio> & = {{}});
+        std::vector<star_trio> match_stars(const index_trio &);
+        star_trio pivot(const index_trio &, const std::vector<star_trio> & = {{}});
 
         // find set of matches to benchmark given candidate set and a rotation
         star_list find_matches(const star_list &, const Rotation &);
@@ -83,6 +82,6 @@ class PlanarTriangle {
 
 };
 
-typedef PlanarTriangle Plan;
+typedef PlanarTriangle Plane;
 
 #endif /* HOKU_TRIANGLE_PLANAR_H */
