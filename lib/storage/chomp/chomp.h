@@ -27,8 +27,9 @@
  */
 class Chomp : private Nibble {
     public:
-        // need to keep table selection public
+        // need to keep table selection and sql_row public
         using Nibble::select_table;
+        using Nibble::sql_row;
 
         // create a K-Vector table given a focus field
         int create_k_vector(const std::string &);
