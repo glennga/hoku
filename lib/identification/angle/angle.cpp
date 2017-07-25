@@ -15,7 +15,7 @@
  */
 Angle::Angle(Benchmark input) {
     input.present_image(this->input, this->focus, this->fov);
-    this->nb.select_table(AngleParameters().table_name);
+    this->nb.select_table(AngP().table_name);
 }
 
 /*
@@ -31,6 +31,7 @@ int Angle::generate_sep_table(const int fov, const std::string &table_name) {
     Nibble nb;
     SQLite::Transaction transaction(*nb.db);
     nb.create_table(table_name, "hr_a INT, hr_b INT, theta FLOAT");
+    nb.select_table(table_name);
 
     // (i, j) are distinct, where no (i, j) = (j, i)
     Nibble::bsc5_star_list all_stars = nb.all_bsc5_stars();
@@ -182,7 +183,7 @@ Angle::star_list Angle::check_assumptions(const std::vector<Star> &candidates,
  * @param parameters Adjustments to the identification process.
  * @return Vector of body stars with their inertial BSC IDs that qualify as matches.
  */
-Benchmark::star_list Angle::identify(const Benchmark &input, const AngleParameters &parameters) {
+Benchmark::star_list Angle::identify(const Benchmark &input, const AngP &parameters) {
     bool matched = false;
     star_list matches;
     Angle a(input);
