@@ -27,12 +27,11 @@
  * tables, then search these tables.
  */
 class Nibble {
-        // name aliases for common structures
-        using star_list = std::vector<Star>;
+    public:
         using sql_row = std::vector<double>;
         using bsc5_star_list = std::array<Star, 5029>;
+        using star_list = std::vector<Star>;
 
-    public:
         Nibble();
 
         // mutator methods for table and file locations

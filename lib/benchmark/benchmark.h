@@ -37,11 +37,8 @@ struct ErrorModel {
  * various error models to this set.
  */
 class Benchmark {
-        // aliases for commonly used types
-        using star_list = std::vector<Star>;
-        using model_list = std::vector<ErrorModel>;
-
     public:
+        using star_list = std::vector<Star>;
 
         // default constructor must not be generated, user must specify fov, focus, and rotation
         Benchmark() = delete;
@@ -65,6 +62,8 @@ class Benchmark {
 #ifndef DEBUGGING_MODE_IS_ON
     private:
 #endif
+        using model_list = std::vector<ErrorModel>;
+
         // set all of the BCS IDs in the star set to 0 and return the current star set
         star_list clean_stars();
         

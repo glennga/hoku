@@ -18,11 +18,9 @@
  * allow us to simulate a true lost-in-space condition.
  */
 class Rotation {
-        // name aliases for common structures
-        using star_pair = std::array<Star, 2>;
-        using matrix = std::array<Star, 3>;
-
     public:
+        using star_pair = std::array<Star, 2>;
+
         // force default constructor, all components start at zero
         Rotation() = default;
 
@@ -39,6 +37,8 @@ class Rotation {
 #ifndef DEBUGGING_MODE_IS_ON
         private:
 #endif
+        using matrix = std::array<Star, 3>;
+
         // private component setter constructor, user shouldn't deal with components directly
         Rotation(const double, const Star &, const bool = false);
 
