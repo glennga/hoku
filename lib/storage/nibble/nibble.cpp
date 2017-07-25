@@ -211,6 +211,38 @@ Nibble::sql_row Nibble::search_table(const std::string &constraint, const std::s
 }
 
 /*
+ * Search a table for the specified fields given a constraint. Limit results by a certain amount
+ * if desired. The results returned are a 1D array that holds a fixed number of items in
+ * succession. This function is overloaded to perform a search without a constraint.
+ *
+ * @param fields The columns to search for in the current table.
+ * @param expected Expected number of results * columns to be returned. Better to overshoot.
+ * @param limit Limit the results searched for with this.
+ * @return 1D list of chained results.
+ */
+Nibble::sql_row Nibble::search_table(const std::string &fields, const unsigned int expected,
+                                     const int limit) {
+    sql_row result;
+    std::string sql;
+
+    result.reserve(expected);
+    sql = "SELECT " + fields + " FROM " + table;
+    if (limit > 0) {
+        // do not use limit constraint if limit is not specified
+        sql += " LIMIT " + std::to_string(limit);
+    }
+
+    SQLite::Statement query(*db, sql);
+    while (query.executeStep()) {
+        for (int i = 0; i < query.getColumnCount(); i++) {
+            result.push_back(query.getColumn(i).getDouble());
+        }
+    }
+
+    return result;
+}
+
+/*
  * Given a vector returned by Nibble::search_table, return a single entry. We determine this
  * knowing the index we want and the length of a single result.
  *
