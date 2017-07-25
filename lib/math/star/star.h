@@ -21,11 +21,6 @@
  */
 class Star {
     public:
-        // name aliases for common structures involving stars
-        using star_list = std::vector<Star>;
-        using star_pair = std::array<Star, 2>;
-        using hr_list = std::vector<double>;
-
         // constructor, set components and HR, has unit flag
         Star(const double, const double, const double, const int = 0, const bool = false);
         Star();
@@ -67,7 +62,7 @@ class Star {
         static Star reset_hr(const Star &);
 
 #ifndef DEBUGGING_MODE_IS_ON
-    private:
+        private:
 #endif
         // individual components of 3D vector
         double i, j, k;
