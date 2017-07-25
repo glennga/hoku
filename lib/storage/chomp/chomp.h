@@ -27,18 +27,20 @@
  */
 class Chomp : private Nibble {
     public:
-        // need to keep table selection and sql_row public
+        // keep public to keep the workflow of Chomp like Nibble
+        using Nibble::table_results_at;
         using Nibble::select_table;
+        using Nibble::query_bsc5;
         using Nibble::sql_row;
 
         // create a K-Vector table given a focus field
         int create_k_vector(const std::string &);
 
-        Nibble::sql_row k_vector_query(const std::string &, const std::string &,
-                                       const double, const double, const unsigned int);
+        sql_row k_vector_query(const std::string &, const std::string &,
+                               const double, const double, const unsigned int);
 
 #ifndef DEBUGGING_MODE_IS_ON
-    private:
+        private:
 #endif
         int build_k_vector_table(const std::string &, const double, const double);
 
