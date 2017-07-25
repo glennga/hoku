@@ -24,7 +24,7 @@ Trio::Trio(const Star &b_1, const Star &b_2, const Star &b_3) {
  *
  * @return Side lengths in order a, b, c.
  */
-std::array<double, 3> Trio::planar_lengths() const {
+Trio::side_lengths Trio::planar_lengths() const {
     return {(this->b_1 - this->b_2).norm(),
             (this->b_2 - this->b_3).norm(),
             (this->b_3 - this->b_1).norm()};
@@ -35,7 +35,7 @@ std::array<double, 3> Trio::planar_lengths() const {
  *
  * @return Side lengths in order a, b, c.
  */
-std::array<double, 3> Trio::spherical_lengths() const {
+Trio::side_lengths Trio::spherical_lengths() const {
     return {Star::angle_between(this->b_1, this->b_2),
             Star::angle_between(this->b_2, this->b_3),
             Star::angle_between(this->b_3, this->b_1)};
@@ -63,7 +63,7 @@ double Trio::semi_perimeter(const double a, const double b, const double c) {
  * @return The planar area of <B_1, B_2, B_3>.
  */
 double Trio::planar_area(const Star &b_1, const Star &b_2, const Star &b_3) {
-    std::array<double, 3> ell = Trio(b_1, b_2, b_3).planar_lengths();
+    side_lengths ell = Trio(b_1, b_2, b_3).planar_lengths();
     double s = semi_perimeter(ell[0], ell[1], ell[2]);
 
     return sqrt(s * (s - ell[0]) * (s - ell[1]) * (s - ell[2]));
@@ -78,7 +78,7 @@ double Trio::planar_area(const Star &b_1, const Star &b_2, const Star &b_3) {
  * @return The planar polar moment of <B_1, B_2, B_3>.
  */
 double Trio::planar_moment(const Star &b_1, const Star &b_2, const Star &b_3) {
-    std::array<double, 3> ell = Trio(b_1, b_2, b_3).planar_lengths();
+    side_lengths ell = Trio(b_1, b_2, b_3).planar_lengths();
     return planar_area(b_1, b_2, b_3) * (pow(ell[0], 2) + pow(ell[1], 2) + pow(ell[2], 2)) / 36.0;
 }
 
@@ -92,7 +92,7 @@ double Trio::planar_moment(const Star &b_1, const Star &b_2, const Star &b_3) {
  * @return The spherical area of <B_1, B_2, B_3>.
  */
 double Trio::spherical_area(const Star &b_1, const Star &b_2, const Star &b_3) {
-    std::array<double, 3> ell = Trio(b_2, b_2, b_3).spherical_lengths();
+    side_lengths ell = Trio(b_2, b_2, b_3).spherical_lengths();
     double s = semi_perimeter(ell[0], ell[1], ell[2]);
     double rad = M_PI / 180.0;
 

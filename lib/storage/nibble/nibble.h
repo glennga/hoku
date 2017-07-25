@@ -26,33 +26,34 @@
  * tables, then search these tables.
  */
 namespace Nibble {
+    using star_list = std::vector<Star>;
+    using in_list = std::vector<double>;
+    using result_list = std::vector<double>;
+    using full_bsc5_star_list = std::array<Star, 5029>;
+
     // parse catalog, generate BSC5
     void parse_catalog(SQLite::Database &, std::ifstream &);
     int generate_bsc5_table();
 
     // generic table insertion method, limit by fov if desired
     int insert_into_table(SQLite::Database &, const std::string &, const std::string &,
-                          const std::vector<std::string> &);
-    int insert_into_table(SQLite::Database &, const std::string &, const std::string &,
-                          const std::vector<double> &);
+                          const in_list &);
 
     // load all stars in catalog to array
-    std::array<Star, 5029> all_bsc5_stars();
+    full_bsc5_star_list all_bsc5_stars();
 
     // find all stars near a given focus
-    std::vector<Star> nearby_stars(SQLite::Database &, const Star &, const double,
-                                   const unsigned int);
-    std::vector<Star> nearby_stars(const Star &, const double, const unsigned int);
+    star_list nearby_stars(SQLite::Database &, const Star &, const double, const unsigned int);
+    star_list nearby_stars(const Star &, const double, const unsigned int);
 
     // query BSC5 for i, j, k fields given BSC ID
     Star query_bsc5(SQLite::Database &, const int);
     Star query_bsc5(const int);
 
     // query a table for specified fields given a constraint, limit results by certain number
-    std::vector<double> search_table(SQLite::Database &, const std::string &, const std::string &,
-                                     const std::string &, const unsigned int, const int = -1);
-    std::vector<double> table_results_at(const std::vector<double> &, const unsigned int,
-                                         const int);
+    result_list search_table(SQLite::Database &, const std::string &, const std::string &,
+                             const std::string &, const unsigned int, const int = -1);
+    result_list table_results_at(const result_list &, const unsigned int, const int);
 
     // sort table by specified column and create index
     int find_schema_fields(SQLite::Database &, const std::string &, std::string &, std::string &);
