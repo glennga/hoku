@@ -1,82 +1,117 @@
 /*
- * @file: test-angle.cpp
+ * @file: test-triangle-planar.cpp
  *
- * @brief: Source file for the TestAngle class, as well as the main function to run the tests.
+ * @brief: Source file for the TestTrianglePlanar class, as well as the main function to run the
+ * tests.
  */
 
-#include "test-angle.h"
+#include "test-planar-triangle.h"
 
 /*
- * Check that query_for_pair method returns the BSC ID of the correct stars.
+ * Check that query_for_trio method returns the BSC ID of the correct stars.
  */
-void TestAngle::test_pair_query() {
+void TestPlanarTriangle::test_trio_query() {
     Benchmark input(15, Star::chance(), Rotation::chance());
-    double kaph = Star::angle_between(input.stars[0], input.stars[1]);
-    std::array<int, 2> yodh = Angle(input).query_for_pair(kaph);
+    Plane p(input);
 
-    assert_true(yodh[0] == input.stars[0].get_hr() || yodh[0] == input.stars[1].get_hr(),
-                "QueryPairInsideInputStar0");
-    assert_true(yodh[1] == input.stars[0].get_hr() || yodh[1] == input.stars[1].get_hr(),
-                "QueryPairInsideInputStar1");
+    double kaph = Trio::planar_area(input.stars[0], input.stars[1], input.stars[2]);
+    double yodh = Trio::planar_moment(input.stars[0], input.stars[1], input.stars[2]);
+    std::vector<Plane::hr_trio> teth = p.query_for_trio(kaph, yodh);
+    std::array<bool, 3> matched = {false, false, false};
+
+    // check that original input trio exists in search
+    for (const Plane::hr_trio &t : teth) {
+        for (int i = 0; i < 3; i++) {
+            if (input.stars[i].get_hr() == t[0] || input.stars[i].get_hr() == t[1] ||
+                input.stars[i].get_hr() == t[2]) {
+                matched[i] = true;
+            }
+        }
+    }
+
+    assert_true(matched[0], "QueryTrioInsideInputStar0");
+    assert_true(matched[1], "QueryTrioInsideInputStar1");
+    assert_true(matched[2], "QueryTrioInsideInputStar2");
 }
 
 /*
- * Check that a theta and epsilon with three choices returns the BSC ID of the correct stars.
+ * Check that the zero-length stars are returned when a theta between a pair of stars is greater
+ * than the current fov.
  */
-void TestAngle::test_pair_multiple_choice_query() {
-    Angle kaph(Benchmark(15, Star::chance(), Rotation::chance()));
-    Star yodh(0.203647924328259, 0.559277619691848, 0.803577044861669, 1466);
-    Star teth(0.205670146125506, 0.564397142318217, 0.799472111293286, 1467);
-    kaph.parameters.query_sigma = 0.000139;
+void TestPlanarTriangle::test_match_stars_fov() {
+    Plane kaph(Benchmark(10, Star::chance(), Rotation::chance()));
+    kaph.input[0].hr = 3;
+    kaph.input[1].hr = 4;
+    kaph.input[2].hr = 5;
 
-    std::array<int, 2> heth = kaph.query_for_pair(Star::angle_between(yodh, teth));
-    assert_true(heth[0] == 1466 || heth[0] == 1467, "QueryPairMultipleChoicesStar0");
-    assert_true(heth[1] == 1466 || heth[1] == 1467, "QueryPairMultipleChoicesStar1");
+    std::vector<Plane::star_trio> yodh = kaph.match_stars({0, 1, 2});
+    assert_true(yodh[0][0] == Star() && yodh[0][1] == Star() && yodh[0][2] == Star(),
+                "CandidateOutOfFOV");
 }
 
 /*
- * Check that the zero-length stars are returned when theta is greater than the current fov.
+ * Check that the zero-length stars are returned when no matching trio is found.
  */
-void TestAngle::test_candidate_fov_query() {
-    Angle kaph(Benchmark(10, Star::chance(), Rotation::chance()));
-    Star yodh(0.928454687492219, 0.132930961972911, 0.346844709665121);
-    Star teth(0.998078771188383, -0.0350062881876723, 0.0511207031486225);
+void TestPlanarTriangle::test_match_stars_none() {
+    Plane kaph(Benchmark(10, Star::chance(), Rotation::chance()));
+    kaph.input[0] = Star(1, 1, 1.1);
+    kaph.input[1] = Star(1, 1, 1);
+    kaph.input[2] = Star(1.1, 1, 1);
 
-    std::array<Star, 2> heth = kaph.find_candidate_pair(yodh, teth);
-    assert_true(Star::is_equal(heth[0], Star(0, 0, 0)) &&
-                Star::is_equal(heth[1], Star(0, 0, 0)), "CandidateOutOfFOV");
+    std::vector<Plane::star_trio> yodh = kaph.match_stars({0, 1, 2});
+    assert_true(yodh[0][0] == Star() && yodh[0][1] == Star() && yodh[0][2] == Star(),
+                "CandidateNoMatchingPair");
 }
 
 /*
- * Check that the zero-length stars are returned when no matching theta is found.
+ * Check that the correct stars are returned from the candidate trio query.
  */
-void TestAngle::test_candidate_none_query() {
-    Angle kaph(Benchmark(10, Star::chance(), Rotation::chance()));
+void TestPlanarTriangle::test_match_stars_results() {
+    Plane kaph(Benchmark(15, Star::chance(), Rotation::chance()));
+    kaph.input[0] = kaph.ch.query_bsc5(3898);
+    kaph.input[1] = kaph.ch.query_bsc5(4325);
+    kaph.input[2] = kaph.ch.query_bsc5(4502);
 
-    std::array<Star, 2> yodh = kaph.find_candidate_pair(Star(1, 1, 1), Star(1.1, 1, 1));
-    assert_true(Star::is_equal(yodh[0], Star(0, 0, 0)) &&
-                Star::is_equal(yodh[1], Star(0, 0, 0)), "CandidateNoMatchingPair");
+    std::vector<Plane::star_trio> yodh = kaph.match_stars({0, 1, 2});
+    std::array<bool, 3> matched = {false, false, false};
+
+    // check that original input trio exists in search
+    for (const Plane::star_trio &t : yodh) {
+        for (int i = 0; i < 3; i++) {
+            if (kaph.input[i] == t[0] || kaph.input[i] == t[1] || kaph.input[i] == t[2]) {
+                matched[i] = true;
+            }
+        }
+    }
+
+    assert_true(matched[0], "CandidateMatchingStar0");
+    assert_true(matched[1], "CandidateMatchingStar1");
+    assert_true(matched[2], "CandidateMatchingStar2");
 }
 
 /*
- * Check that the correct stars are returned from the candidate pair query.
+ * Check that the pivot query method returns the correct trio.
  */
-void TestAngle::test_candidate_results_query() {
-    Rotation kaph = Rotation::chance();
-    Benchmark input(15, Star::chance(), kaph);
-    Angle yodh(input);
+void TestPlanarTriangle::test_pivot_query_results() {
+    Plane kaph(Benchmark(15, Star::chance(), Rotation::chance()));
+    kaph.input[0] = kaph.ch.query_bsc5(3898);
+    kaph.input[1] = kaph.ch.query_bsc5(4325);
+    kaph.input[2] = kaph.ch.query_bsc5(4502);
 
-    std::array<Star, 2> teth = yodh.find_candidate_pair(input.stars[0], input.stars[1]);
-    assert_true(teth[0].get_hr() == input.stars[0].get_hr() ||
-                teth[0].get_hr() == input.stars[1].get_hr(), "CandidateMatchingStar0");
-    assert_true(teth[1].get_hr() == input.stars[0].get_hr() ||
-                teth[1].get_hr() == input.stars[1].get_hr(), "CandidateMatchingStar1");
+    std::vector<Plane::star_trio> yodh = kaph.match_stars({0, 1, 2});
+    Plane::star_trio teth = kaph.pivot({0, 1, 2}, yodh);
+    assert_true(teth[0] == kaph.input[0] || teth[0] == kaph.input[1] || teth[0] == kaph.input[2],
+                "CandidateMatchingStarPivotQueryStar0");
+    assert_true(teth[1] == kaph.input[0] || teth[1] == kaph.input[1] || teth[1] == kaph.input[2],
+                "CandidateMatchingStarPivotQueryStar1");
+    assert_true(teth[2] == kaph.input[0] || teth[2] == kaph.input[1] || teth[2] == kaph.input[2],
+                "CandidateMatchingStarPivotQueryStar2");
 }
 
 /*
  * Check that the rotating match method marks the all stars as matched.
  */
-void TestAngle::test_rotating_match_correct_input() {
+void TestPlanarTriangle::test_rotating_match_correct_input() {
     Star kaph = Star::chance(), yodh = Star::chance();
     Rotation teth = Rotation::chance();
     Star heth = Rotation::rotate(kaph, teth);
@@ -84,7 +119,7 @@ void TestAngle::test_rotating_match_correct_input() {
     Rotation waw = Rotation::rotation_across_frames({kaph, yodh}, {heth, zayin});
     Benchmark input(8, Star::chance(), teth);
     std::vector<Star> rev_input;
-    Angle he(input);
+    PlanarTriangle he(input);
 
     // reverse all input by inverse rotation matrix
     rev_input.reserve(input.stars.size());
@@ -104,7 +139,7 @@ void TestAngle::test_rotating_match_correct_input() {
 /*
  * Check that the rotating match method marks only the correct stars as matched.
  */
-void TestAngle::test_rotating_match_error_input() {
+void TestPlanarTriangle::test_rotating_match_error_input() {
     Star kaph = Star::chance(), yodh = Star::chance();
     Rotation teth = Rotation::chance();
     Star heth = Rotation::rotate(kaph, teth);
@@ -112,7 +147,7 @@ void TestAngle::test_rotating_match_error_input() {
     Rotation waw = Rotation::rotation_across_frames({kaph, yodh}, {heth, zayin});
     Benchmark input(8, Star::chance(), teth);
     std::vector<Star> rev_input;
-    Angle he(input);
+    PlanarTriangle he(input);
 
     // reverse all input by inverse rotation matrix
     rev_input.reserve(input.stars.size());
@@ -136,7 +171,7 @@ void TestAngle::test_rotating_match_error_input() {
  * Check that the rotating match method marks only the correct stars as matched, not the
  * duplicate as well.
  */
-void TestAngle::test_rotating_match_duplicate_input() {
+void TestPlanarTriangle::test_rotating_match_duplicate_input() {
     Star kaph = Star::chance(), yodh = Star::chance();
     Rotation teth = Rotation::chance();
     Star heth = Rotation::rotate(kaph, teth);
@@ -144,7 +179,7 @@ void TestAngle::test_rotating_match_duplicate_input() {
     Rotation waw = Rotation::rotation_across_frames({kaph, yodh}, {heth, zayin});
     Benchmark input(8, Star::chance(), teth);
     std::vector<Star> rev_input;
-    Angle he(input);
+    PlanarTriangle he(input);
 
     // reverse all input by inverse rotation matrix
     rev_input.reserve(input.stars.size());
@@ -169,14 +204,14 @@ void TestAngle::test_rotating_match_duplicate_input() {
 /*
  * Check that correct result is returned with a clean input.
  */
-void TestAngle::test_identify_clean_input() {
+void TestPlanarTriangle::test_identify_clean_input() {
     Benchmark input(8, Star::chance(), Rotation::chance());
-    Angle::Parameters kaph;
+    PlanarTriangle::Parameters kaph;
 
     // we define a match as 66% here
     kaph.match_minimum = (unsigned int) (input.stars.size() / 3.0);
 
-    std::vector<Star> teth = Angle::identify(input, kaph);
+    std::vector<Star> teth = PlanarTriangle::identify(input, kaph);
     assert_true(teth.size() == input.stars.size(), "IdentificationFoundAllSize");
 
     for (unsigned int a = 0; a < teth.size() - 1; a++) {
@@ -191,15 +226,15 @@ void TestAngle::test_identify_clean_input() {
 /*
  * Check that correct result is returned with an error input.
  */
-void TestAngle::test_identify_error_input() {
+void TestPlanarTriangle::test_identify_error_input() {
     Benchmark input(9, Star::chance(), Rotation::chance());
-    Angle::Parameters kaph;
+    PlanarTriangle::Parameters kaph;
     input.add_extra_light(1);
 
     // we define a match as 66% here
     kaph.match_minimum = (unsigned int) ((input.stars.size() - 1) / 3.0);
 
-    std::vector<Star> teth = Angle::identify(input, kaph);
+    std::vector<Star> teth = PlanarTriangle::identify(input, kaph);
     assert_true(teth.size() == input.stars.size() - 1, "IdentificationFoundWithErrorSize");
 
     for (unsigned int a = 0; a < teth.size(); a++) {
@@ -212,21 +247,21 @@ void TestAngle::test_identify_error_input() {
 }
 
 /*
- * Enumerate all tests in TestAngle.
+ * Enumerate all tests in TestTrianglePlanar.
  *
  * @return -1 if the test case does not exist. 0 otherwise.
  */
-int TestAngle::enumerate_tests(int test_case) {
+int TestPlanarTriangle::enumerate_tests(int test_case) {
     switch (test_case) {
-        case 0: test_pair_query();
+        case 0: test_trio_query();
             break;
-        case 1: test_pair_multiple_choice_query();
+        case 1: test_match_stars_fov();
             break;
-        case 2: test_candidate_fov_query();
+        case 2: test_match_stars_none();
             break;
-        case 3: test_candidate_none_query();
+        case 3: test_match_stars_results();
             break;
-        case 4: test_candidate_results_query();
+        case 4: test_pivot_query_results();
             break;
         case 5: test_rotating_match_correct_input();
             break;
@@ -245,9 +280,11 @@ int TestAngle::enumerate_tests(int test_case) {
 }
 
 /*
- * Run the tests in TestAngle.
+ * Run the tests in TestPlanarTriangle.
  */
 int main() {
-//    Angle::generate_sep_table(20, "SEP20");
-    return TestAngle().execute_tests();
+//    PlanarTriangle::generate_triangle_table(20, "PLAN20");
+//    Chomp::create_k_vector("PLAN20", "a");
+//    Nibble::polish_table("PLAN20_KVEC", "k_value");
+    return TestPlanarTriangle().execute_tests();
 }

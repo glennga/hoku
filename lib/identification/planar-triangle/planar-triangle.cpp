@@ -8,12 +8,14 @@
 #include "planar-triangle.h"
 
 /*
- * Constructor. Sets the benchmark data, fov, and focus. Sort the input set.
+ * Constructor. Sets the benchmark data, fov, and focus. By default, select 'PLAN20' as the working
+ * table.
  *
  * @param input The set of benchmark data to work with.
  */
 PlanarTriangle::PlanarTriangle(Benchmark input) {
     input.present_image(this->input, this->focus, this->fov);
+    ch.select_table(Parameters().table_name);
 }
 
 /*
@@ -25,16 +27,18 @@ PlanarTriangle::PlanarTriangle(Benchmark input) {
  * @param table_name Name of the table to generate.
  * @return 0 when finished.
  */
-int Plan::generate_triangle_table(const int fov, const std::string &table_name) {
-    SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
-    SQLite::Transaction initial_transaction(db);
-    db.exec("CREATE TABLE " + table_name + " (hr_a INT, hr_b INT, hr_c INT, a FLOAT, i FLOAT)");
+int Plane::generate_triangle_table(const int fov, const std::string &table_name) {
+    Nibble nb;
+    SQLite::Transaction initial_transaction(*nb.db);
+
+    nb.create_table(table_name, "hr_a INT, hr_b INT, hr_c INT, a FLOAT, i FLOAT");
     initial_transaction.commit();
+    nb.select_table(table_name);
 
     // (i, j, k) are distinct, where no (i, j, k) = (j, k, i), (j, i, k), ....
-    Nibble::full_bsc5_star_list all_stars = Nibble::all_bsc5_stars();
+    Nibble::bsc5_star_list all_stars = nb.all_bsc5_stars();
     for (unsigned int i = 0; i < all_stars.size() - 2; i++) {
-        SQLite::Transaction transaction(db);
+        SQLite::Transaction transaction(*nb.db);
         std::cout << "\r" << "Current *A* Star: " << all_stars[i].get_hr();
         for (unsigned int j = i + 1; j < all_stars.size() - 1; j++) {
             for (unsigned int k = j + 1; k < all_stars.size(); k++) {
@@ -46,10 +50,10 @@ int Plan::generate_triangle_table(const int fov, const std::string &table_name) 
                     double a_t = Trio::planar_area(all_stars[i], all_stars[j], all_stars[k]);
                     double i_t = Trio::planar_moment(all_stars[i], all_stars[j], all_stars[k]);
 
-                    Nibble::insert_into_table(db, table_name, "hr_a, hr_b, hr_c, a, i",
-                                              {(double) all_stars[i].get_hr(),
-                                               (double) all_stars[j].get_hr(),
-                                               (double) all_stars[k].get_hr(), a_t, i_t});
+                    nb.insert_into_table("hr_a, hr_b, hr_c, a, i",
+                                         {(double) all_stars[i].get_hr(),
+                                          (double) all_stars[j].get_hr(),
+                                          (double) all_stars[k].get_hr(), a_t, i_t});
                 }
             }
         }
@@ -57,7 +61,7 @@ int Plan::generate_triangle_table(const int fov, const std::string &table_name) 
         transaction.commit();
     }
 
-    return Nibble::polish_table(table_name, "a");
+    return nb.polish_table("a");
 }
 
 /*
@@ -65,28 +69,26 @@ int Plan::generate_triangle_table(const int fov, const std::string &table_name) 
  * moments. Assumes noise is normally distributed, searches using epsilon (3 * query_sigma).
  * Limits the amount returned by the search using 'query_limit'.
  *
- * @param db Open database object.
  * @param a Planar area to search with.
  * @param i_t Planar polar moment to search with.
  * @return [-1][-1][-1] if no candidates found. Otherwise, all elements that met the criteria.
  */
-std::vector<Plan::hr_trio> Plan::query_for_trio(SQLite::Database &db, const double a,
-                                                const double i) {
+std::vector<Plane::hr_trio> Plane::query_for_trio(const double a, const double i) {
     double epsilon_a = 3.0 * this->parameters.sigma_a;
     double epsilon_i = 3.0 * this->parameters.sigma_i;
     std::vector<hr_trio> area_moment_match = {{-1, -1, -1}};
     hr_list area_match;
 
     // first, search for trio of stars matching area condition
-    area_match = Chomp::k_vector_query(db, this->parameters.table_name, "a",
-                                       "hr_a, hr_b, hr_c, i",
-                                       a - epsilon_a, a + epsilon_a,
-                                       (unsigned) this->parameters.query_expected);
+    ch.select_table(this->parameters.table_name);
+    area_match = ch.k_vector_query("a", "hr_a, hr_b, hr_c, i", a - epsilon_a, a + epsilon_a,
+                                   (unsigned) this->parameters.query_expected);
 
     // next, search this trio for stars matching moment condition
     area_moment_match.reserve(area_match.size() / 4);
     for (unsigned int m = 0; m < area_match.size() / 4; m++) {
-        Nibble::result_list t = Nibble::table_results_at(area_match, 4, m);
+        Chomp::sql_row t = ch.table_results_at(area_match, 4, m);
+
         if (t[3] <= i - epsilon_i && t[3] > i + epsilon_i) {
             area_moment_match.push_back({t[0], t[1], t[2]});
         }
@@ -101,13 +103,12 @@ std::vector<Plan::hr_trio> Plan::query_for_trio(SQLite::Database &db, const doub
  * Given a trio of body stars, find matching trios of inertial stars using their respective
  * planar areas and polar moments.
  *
- * @param db Open database object.
  * @param hr_b Index trio of stars in body (B) frame.
  * @return Vector of trios whose areas and moments are close.
  */
-std::vector<Plan::star_trio> Plan::match_stars(SQLite::Database &db, const index_trio &hr_b) {
+std::vector<Plane::star_trio> Plane::match_stars(const index_trio &hr_b) {
     std::vector<hr_trio> match_hr;
-    std::vector<star_trio> match_stars;
+    std::vector<star_trio> matched_stars;
     star_trio b_stars{this->input[hr_b[0]], this->input[hr_b[1]], this->input[hr_b[2]]};
 
     // do not attempt to find matches if all stars are not within fov
@@ -118,21 +119,20 @@ std::vector<Plan::star_trio> Plan::match_stars(SQLite::Database &db, const index
     }
 
     // search for current trio, if empty then break early
-    match_hr = this->query_for_trio(db, Trio::planar_area(b_stars[0], b_stars[1], b_stars[2]),
+    match_hr = this->query_for_trio(Trio::planar_area(b_stars[0], b_stars[1], b_stars[2]),
                                     Trio::planar_moment(b_stars[0], b_stars[1], b_stars[2]));
     if (match_hr[0][0] == -1 && match_hr[0][1] == -1 && match_hr[0][2] == -1) {
         return {{Star(), Star(), Star()}};
     }
 
     // construct stars from HR numbers
-    match_stars.reserve(match_hr.size());
+    matched_stars.reserve(match_hr.size());
     for (const hr_trio &t : match_hr) {
-        match_stars.push_back({Nibble::query_bsc5(db, (int) t[0]),
-                               Nibble::query_bsc5(db, (int) t[1]),
-                               Nibble::query_bsc5(db, (int) t[2])});
+        matched_stars.push_back({ch.query_bsc5((int) t[0]), ch.query_bsc5((int) t[1]),
+                                 ch.query_bsc5((int) t[2])});
     }
 
-    return match_stars;
+    return matched_stars;
 }
 
 /*
@@ -140,14 +140,12 @@ std::vector<Plan::star_trio> Plan::match_stars(SQLite::Database &db, const index
  * given, then remove all stars found matching the B trio that aren't found in the past set.
  * Recurse until one definitive trio exists.
  *
- * @param db Open database object.
  * @param hr_b Index trio of stars in body (B) frame.
  * @param past_set Matches found in a previous search.
  * @return A trio of stars that match the given B stars to R stars.
  */
-Plan::star_trio Plan::pivot(SQLite::Database &db, const index_trio &hr_b,
-                            const std::vector<star_trio> &past_set) {
-    std::vector<star_trio> matches = this->match_stars(db, hr_b);
+Plane::star_trio Plane::pivot(const index_trio &hr_b, const std::vector<star_trio> &past_set) {
+    std::vector<star_trio> matches = this->match_stars(hr_b);
 
     // function to increment hr_b3 first, then hr_b2, then hr_b1 last
     auto increment_hr = [matches](const index_trio &hr_t) {
@@ -178,9 +176,9 @@ Plan::star_trio Plan::pivot(SQLite::Database &db, const index_trio &hr_b,
         // only 1 trio exists, this must be matching trio
         case 1: return matches[0];
             // no existing trios, rerun with different trio
-        case 0: return pivot(db, increment_hr(hr_b));
+        case 0: return pivot(increment_hr(hr_b));
             // more than 1 trio, rerun with different trio and past search
-        default: return pivot(db, increment_hr(hr_b), matches);
+        default: return pivot(increment_hr(hr_b), matches);
     }
 }
 
@@ -192,7 +190,7 @@ Plan::star_trio Plan::pivot(SQLite::Database &db, const index_trio &hr_b,
  * @param q The rotation to apply to all stars.
  * @return Set of matching stars found in candidates and the body sets.
  */
-Plan::star_list Plan::find_matches(const star_list &candidates, const Rotation &q) {
+Plane::star_list Plane::find_matches(const star_list &candidates, const Rotation &q) {
     star_list matches, non_matched = this->input;
     double epsilon = 3.0 * this->parameters.match_sigma;
     matches.reserve(this->input.size());
@@ -228,8 +226,8 @@ Plan::star_list Plan::find_matches(const star_list &candidates, const Rotation &
  * @return The largest set of matching stars across the body and inertial in all pairing
  * configurations.
  */
-Plan::star_list Plan::check_assumptions(const star_list &candidates, const star_trio &r,
-                                        const index_trio &hr_b) {
+Plane::star_list Plane::check_assumptions(const star_list &candidates, const star_trio &r,
+                                          const index_trio &hr_b) {
     index_trio current_order = {0, 1, 2};
     std::array<star_trio, 6> r_assumption_list;
     std::array<star_list, 6> matches;
@@ -264,12 +262,10 @@ Plan::star_list Plan::check_assumptions(const star_list &candidates, const star_
  * @param parameters Adjustments to the identification process.
  * @return Vector of body stars with their inertial BSC IDs that qualify as matches.
  */
-Benchmark::star_list Plan::identify(const Benchmark &input,
-                                    const TrianglePlanarParameters &parameters) {
-    SQLite::Database db(Nibble::database_location, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+Benchmark::star_list Plane::identify(const Benchmark &input, const Parameters &parameters) {
     star_list matches;
     bool matched = false;
-    Plan p(input);
+    Plane p(input);
     p.parameters = parameters;
 
     // |P_input| choose 3 possibilities
@@ -281,13 +277,13 @@ Benchmark::star_list Plan::identify(const Benchmark &input,
                 star_list candidates;
 
                 // find matches of current body trio to catalog, pivot if necessary
-                candidate_trios = p.match_stars(db, {(double) i, (double) j, (double) k});
-                candidate_trio = p.pivot(db, {(double) i, (double) j, (double) k}, candidate_trios);
+                candidate_trios = p.match_stars({(double) i, (double) j, (double) k});
+                candidate_trio = p.pivot({(double) i, (double) j, (double) k}, candidate_trios);
                 if (candidate_trio[0] == Star() && candidate_trio[1] == Star() &&
                     candidate_trio[2] == Star()) { break; }
 
                 // find candidate stars around the candidate trio
-                candidates = Nibble::nearby_stars(db, candidate_trio[0], p.fov, 3 * p.input.size());
+                candidates = p.ch.nearby_stars(candidate_trio[0], p.fov, 3 * p.input.size());
 
                 // check all possible configurations, return the most likely
                 matches = p.check_assumptions(candidates, candidate_trio,

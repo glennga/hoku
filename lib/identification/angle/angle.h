@@ -11,19 +11,6 @@
 #include "benchmark.h"
 #include <iostream>
 
-/*
- * Angle identification parameter structure, used to define the query and match parameters.
- */
-struct AngleParameters {
-    double query_sigma = 0.00000000001;
-    int query_limit = 5;
-
-    double match_sigma = 0.00001;
-    unsigned int match_minimum = 10;
-
-    std::string table_name = "SEP20";
-    std::string nibble_location = Nibble::database_location;
-};
 
 /*
  * @class Angle
@@ -35,11 +22,22 @@ struct AngleParameters {
  */
 class Angle {
     public:
+        // used to define the query and match operations
+        struct Parameters {
+            double query_sigma = 0.00000000001;
+            unsigned int query_limit = 5;
+
+            double match_sigma = 0.00001;
+            unsigned int match_minimum = 10;
+
+            std::string table_name = "SEP20";
+        };
+
         // ensure default constructor is **not** generated
         Angle() = delete;
 
         // identity benchmark data
-        static Benchmark::star_list identify(const Benchmark &, const AngleParameters &);
+        static Benchmark::star_list identify(const Benchmark &, const Parameters &);
 
         // generate the separation table
         static int generate_sep_table(const int, const std::string &);
@@ -57,17 +55,20 @@ class Angle {
 
         // the data we are working with, identification parameters = tweak performance
         Benchmark::star_list input;
-        AngleParameters parameters;
+        Parameters parameters;
+
+        // for database access
+        Nibble nb;
 
         // the focus and the field of view limit
         Star focus;
         double fov;
 
         // search for pair given an angle and a query limit
-        hr_pair query_for_pair(SQLite::Database &, const double);
+        hr_pair query_for_pair(const double);
 
         // search for pair given set of benchmark stars
-        star_pair find_candidate_pair(SQLite::Database &, const Star &, const Star &);
+        star_pair find_candidate_pair(const Star &, const Star &);
 
         // find set of matches to benchmark given candidate set and a rotation
         star_list find_matches(const star_list &, const Rotation &);

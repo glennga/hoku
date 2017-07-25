@@ -15,12 +15,14 @@ class TestPlanarTriangle : public BaseTest {
     private:
         // test the trio query method
         void test_trio_query();
-        void test_trio_multiple_choice_query();
 
         // test the candidate query method
-        void test_candidate_fov_query();
-        void test_candidate_none_query();
-        void test_candidate_results_query();
+        void test_match_stars_fov();
+        void test_match_stars_none();
+        void test_match_stars_results();
+
+        // test the pivot query method
+        void test_pivot_query_results();
 
         // test the rotating match finding method
         void test_rotating_match_correct_input();

@@ -14,6 +14,6 @@ include_directories(${CMAKE_SOURCE_DIR}/lib/identification/planar-triangle)
 ##################################################################
 # Link and Create Executable
 ##################################################################
-add_executable(TestPlanarTriangle test-triangle-planar.cpp)
+add_executable(TestPlanarTriangle test-planar-triangle.cpp)
 target_link_libraries(TestPlanarTriangle BaseTest PlanarTriangle
         Benchmark Rotation Chomp Nibble Trio Star SQLiteCpp Sqlite3)
