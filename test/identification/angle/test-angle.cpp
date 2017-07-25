@@ -171,7 +171,7 @@ void TestAngle::test_rotating_match_duplicate_input() {
  */
 void TestAngle::test_identify_clean_input() {
     Benchmark input(8, Star::chance(), Rotation::chance());
-    AngleParameters kaph;
+    Angle::Parameters kaph;
 
     // we define a match as 66% here
     kaph.match_minimum = (unsigned int) (input.stars.size() / 3.0);
@@ -193,7 +193,7 @@ void TestAngle::test_identify_clean_input() {
  */
 void TestAngle::test_identify_error_input() {
     Benchmark input(9, Star::chance(), Rotation::chance());
-    AngleParameters kaph;
+    Angle::Parameters kaph;
     input.add_extra_light(1);
 
     // we define a match as 66% here
