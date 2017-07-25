@@ -38,7 +38,7 @@ class Nibble {
         void select_table(const std::string &);
 
         // populate the BSC5 table
-        int generate_bsc5_table();
+        static int generate_bsc5_table();
 
         // generic table insertion method, limit by fov if desired
         int insert_into_table(const std::string &, const sql_row &);
@@ -52,9 +52,10 @@ class Nibble {
         // query BSC5 for i, j, k fields given BSC ID
         Star query_bsc5(const int);
 
-        // query a table for specified fields given a constraint, limit results by certain number
+        // query a table for fields with/without a constraint, limit results by certain number
         sql_row search_table(const std::string &, const std::string &,
                              const unsigned int, const int = -1);
+        sql_row search_table(const std::string &, const unsigned int, const int = -1);
         sql_row table_results_at(const sql_row &, const unsigned int, const int);
 
         // create a table with a given schema
@@ -67,7 +68,7 @@ class Nibble {
 
         // open database object, this needs to be public to work with SQLiteCpp
         std::unique_ptr<SQLite::Database> db;
-        
+
 #ifndef DEBUGGING_MODE_IS_ON
         protected:
 #endif
@@ -85,7 +86,7 @@ class Nibble {
 #endif
 
         // read and calculate star components from line
-        std::array<double, 6> components_from_line(const std::string &);
+        static std::array<double, 6> components_from_line(const std::string &);
 
         // parse catalog, generate BSC5
         void parse_catalog(std::ifstream &);

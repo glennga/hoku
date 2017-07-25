@@ -96,16 +96,18 @@ void Nibble::parse_catalog(std::ifstream &catalog) {
  * @return -2 if the catalog file cannot be opened. -1 if an exception is thrown. 0 otherwise.
  */
 int Nibble::generate_bsc5_table() {
+    Nibble nb;
+    
     try {
-        std::ifstream catalog(CATALOG_LOCATION);
+        std::ifstream catalog(nb.CATALOG_LOCATION);
         if (!catalog.is_open()) { return -2; }
 
-        SQLite::Transaction transaction(*db);
-        (*db).exec("CREATE TABLE BSC5 (alpha FLOAT, delta FLOAT, i FLOAT, j FLOAT, k FLOAT, "
+        SQLite::Transaction transaction(*nb.db);
+        (*nb.db).exec("CREATE TABLE BSC5 (alpha FLOAT, delta FLOAT, i FLOAT, j FLOAT, k FLOAT, "
                            "m FLOAT, hr INT)");
 
-        select_table("BSC5");
-        parse_catalog(catalog);
+        nb.select_table("BSC5");
+        nb.parse_catalog(catalog);
         transaction.commit();
     }
     catch (std::exception &e) {
@@ -114,7 +116,7 @@ int Nibble::generate_bsc5_table() {
     }
 
     // polish table, sort by HR number
-    return polish_table("hr");
+    return nb.polish_table("hr");
 }
 
 /*
@@ -193,6 +195,38 @@ Nibble::sql_row Nibble::search_table(const std::string &constraint, const std::s
 
     result.reserve(expected);
     sql = "SELECT " + fields + " FROM " + table + " WHERE " + constraint;
+    if (limit > 0) {
+        // do not use limit constraint if limit is not specified
+        sql += " LIMIT " + std::to_string(limit);
+    }
+
+    SQLite::Statement query(*db, sql);
+    while (query.executeStep()) {
+        for (int i = 0; i < query.getColumnCount(); i++) {
+            result.push_back(query.getColumn(i).getDouble());
+        }
+    }
+
+    return result;
+}
+
+/*
+ * Search a table for the specified fields given a constraint. Limit results by a certain amount
+ * if desired. The results returned are a 1D array that holds a fixed number of items in
+ * succession. This function is overloaded to perform a search without a constraint.
+ *
+ * @param fields The columns to search for in the current table.
+ * @param expected Expected number of results * columns to be returned. Better to overshoot.
+ * @param limit Limit the results searched for with this.
+ * @return 1D list of chained results.
+ */
+Nibble::sql_row Nibble::search_table(const std::string &fields, const unsigned int expected,
+                                     const int limit) {
+    sql_row result;
+    std::string sql;
+
+    result.reserve(expected);
+    sql = "SELECT " + fields + " FROM " + table;
     if (limit > 0) {
         // do not use limit constraint if limit is not specified
         sql += " LIMIT " + std::to_string(limit);
