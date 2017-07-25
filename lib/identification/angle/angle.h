@@ -11,19 +11,6 @@
 #include "benchmark.h"
 #include <iostream>
 
-/*
- * Angle identification parameter structure, used to define the query and match parameters.
- */
-struct AngleParameters {
-    double query_sigma = 0.00000000001;
-    unsigned int query_limit = 5;
-
-    double match_sigma = 0.00001;
-    unsigned int match_minimum = 10;
-
-    std::string table_name = "SEP20";
-};
-using AngP = AngleParameters;
 
 /*
  * @class Angle
@@ -35,11 +22,22 @@ using AngP = AngleParameters;
  */
 class Angle {
     public:
+        // used to define the query and match operations
+        struct Parameters {
+            double query_sigma = 0.00000000001;
+            unsigned int query_limit = 5;
+
+            double match_sigma = 0.00001;
+            unsigned int match_minimum = 10;
+
+            std::string table_name = "SEP20";
+        };
+
         // ensure default constructor is **not** generated
         Angle() = delete;
 
         // identity benchmark data
-        static Benchmark::star_list identify(const Benchmark &, const AngP &);
+        static Benchmark::star_list identify(const Benchmark &, const Parameters &);
 
         // generate the separation table
         static int generate_sep_table(const int, const std::string &);
@@ -57,7 +55,7 @@ class Angle {
 
         // the data we are working with, identification parameters = tweak performance
         Benchmark::star_list input;
-        AngP parameters;
+        Parameters parameters;
 
         // for database access
         Nibble nb;
