@@ -38,7 +38,7 @@ class Nibble {
         void select_table(const std::string &);
 
         // populate the BSC5 table
-        int generate_bsc5_table();
+        static int generate_bsc5_table();
 
         // generic table insertion method, limit by fov if desired
         int insert_into_table(const std::string &, const sql_row &);
@@ -85,7 +85,7 @@ class Nibble {
 #endif
 
         // read and calculate star components from line
-        std::array<double, 6> components_from_line(const std::string &);
+        static std::array<double, 6> components_from_line(const std::string &);
 
         // parse catalog, generate BSC5
         void parse_catalog(std::ifstream &);
