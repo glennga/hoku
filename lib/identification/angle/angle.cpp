@@ -15,7 +15,7 @@
  */
 Angle::Angle(Benchmark input) {
     input.present_image(this->input, this->focus, this->fov);
-    this->nb.select_table(AngP().table_name);
+    this->nb.select_table(Parameters().table_name);
 }
 
 /*
@@ -183,7 +183,7 @@ Angle::star_list Angle::check_assumptions(const std::vector<Star> &candidates,
  * @param parameters Adjustments to the identification process.
  * @return Vector of body stars with their inertial BSC IDs that qualify as matches.
  */
-Benchmark::star_list Angle::identify(const Benchmark &input, const AngP &parameters) {
+Benchmark::star_list Angle::identify(const Benchmark &input, const Parameters &parameters) {
     bool matched = false;
     star_list matches;
     Angle a(input);
