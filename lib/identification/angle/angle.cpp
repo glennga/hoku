@@ -31,6 +31,7 @@ int Angle::generate_sep_table(const int fov, const std::string &table_name) {
     Nibble nb;
     SQLite::Transaction transaction(*nb.db);
     nb.create_table(table_name, "hr_a INT, hr_b INT, theta FLOAT");
+    nb.select_table(table_name);
 
     // (i, j) are distinct, where no (i, j) = (j, i)
     Nibble::bsc5_star_list all_stars = nb.all_bsc5_stars();
