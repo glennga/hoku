@@ -13,12 +13,6 @@
 #include <random>
 
 /*
- * Default precision of is_equal method.
- */
-const double STAR_EPSILON_IS_EQUAL = 0.000000000001;
-
-
-/*
  * @class Star
  * @brief Star class, which is represented by 3-dimensional vectors and an identification number.
  *
@@ -49,7 +43,7 @@ class Star {
         Star as_unit() const;
 
         // determine if the **components** are within a certain value of each other
-        static bool is_equal(const Star &, const Star &, const double = STAR_EPSILON_IS_EQUAL);
+        static bool is_equal(const Star &, const Star &, const double = 0.000000000001);
         bool operator==(const Star &) const;
 
         // generate unit vector with random components, overloaded to add own HR number
@@ -68,7 +62,7 @@ class Star {
         static Star reset_hr(const Star &);
 
 #ifndef DEBUGGING_MODE_IS_ON
-    private:
+        private:
 #endif
         // individual components of 3D vector
         double i, j, k;

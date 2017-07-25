@@ -43,7 +43,7 @@ void Benchmark::generate_stars() {
     unsigned int expected = (unsigned int) this->fov * 4;
 
     // find nearby stars, rotate these stars and the focus
-    for (const Star &s : Nibble::nearby_stars(this->focus, this->fov / 2.0, expected)) {
+    for (const Star &s : Nibble().nearby_stars(this->focus, this->fov / 2.0, expected)) {
         this->stars.push_back(Rotation::rotate(s, this->inertial_to_image));
     }
     this->focus = Rotation::rotate(this->focus, this->inertial_to_image);
@@ -88,7 +88,7 @@ void Benchmark::present_image(star_list &image_s, Star &image_focus, double &ima
  * @return -1 if any files were unable to obtain. 0 otherwise.
  */
 int Benchmark::record_current_plot() {
-    std::ofstream current(this->current_plot), error(this->error_plot);
+    std::ofstream current(this->CURRENT_PLOT), error(this->ERROR_PLOT);
     std::ostringstream record;
 
     if (current) {
@@ -143,21 +143,14 @@ int Benchmark::record_current_plot() {
  * the plot. I am most familiar with Python's MatPlotLib, so this seemed like the most straight-
  * forward approach.
  *
- * @param current_plot_file Location to store current_plot.dat.
- * @param error_plot_file Location to store error_plot.dat.
- * @param generate_plot_script Location of Python generation script.
  * @return -1 if the previous files could not be deleted. 0 otherwise.
  */
-int Benchmark::display_plot(const std::string &current_plot_file,
-                            const std::string &error_plot_file,
-                            const std::string &generate_plot_script) {
-    std::remove(current_plot_file.c_str());
-    std::remove(error_plot_file.c_str());
-    this->current_plot = current_plot_file;
-    this->error_plot = error_plot_file;
+int Benchmark::display_plot() {
+    std::remove(this->CURRENT_PLOT.c_str());
+    std::remove(this->ERROR_PLOT.c_str());
 
-    std::string cmd = "python " + generate_plot_script;
-    if (std::ifstream(this->current_plot.c_str()) || std::ifstream(this->error_plot.c_str())) {
+    std::string cmd = "python " + this->PLOT_SCRIPT;
+    if (std::ifstream(this->CURRENT_PLOT.c_str()) || std::ifstream(this->ERROR_PLOT.c_str())) {
         return -1;
     }
 
