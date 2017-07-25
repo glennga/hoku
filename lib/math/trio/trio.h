@@ -18,9 +18,6 @@
  * three vectors, one can find the area and polar moment of the formed planar or spherical triangle.
  */
 class Trio {
-        // name aliases for common structures
-        using side_lengths = std::array<double, 3>;
-
     public:
         // ensure default constructor is **not** generated
         Trio() = delete;
@@ -36,6 +33,8 @@ class Trio {
 #ifndef DEBUGGING_MODE_IS_ON
     private:
 #endif
+        using side_lengths = std::array<double, 3>;
+
         // user is not meant to create Trio object, keep it private
         Trio(const Star &, const Star &, const Star &);
 
