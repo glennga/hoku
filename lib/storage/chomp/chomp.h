@@ -30,6 +30,8 @@ class Chomp : private Nibble {
         // keep public to keep the workflow of Chomp like Nibble
         using Nibble::table_results_at;
         using Nibble::select_table;
+        using Nibble::all_bsc5_stars;
+        using Nibble::nearby_stars;
         using Nibble::query_bsc5;
         using Nibble::sql_row;
 
