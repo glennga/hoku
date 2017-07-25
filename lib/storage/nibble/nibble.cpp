@@ -96,16 +96,18 @@ void Nibble::parse_catalog(std::ifstream &catalog) {
  * @return -2 if the catalog file cannot be opened. -1 if an exception is thrown. 0 otherwise.
  */
 int Nibble::generate_bsc5_table() {
+    Nibble nb;
+    
     try {
-        std::ifstream catalog(CATALOG_LOCATION);
+        std::ifstream catalog(nb.CATALOG_LOCATION);
         if (!catalog.is_open()) { return -2; }
 
-        SQLite::Transaction transaction(*db);
-        (*db).exec("CREATE TABLE BSC5 (alpha FLOAT, delta FLOAT, i FLOAT, j FLOAT, k FLOAT, "
+        SQLite::Transaction transaction(*nb.db);
+        (*nb.db).exec("CREATE TABLE BSC5 (alpha FLOAT, delta FLOAT, i FLOAT, j FLOAT, k FLOAT, "
                            "m FLOAT, hr INT)");
 
-        select_table("BSC5");
-        parse_catalog(catalog);
+        nb.select_table("BSC5");
+        nb.parse_catalog(catalog);
         transaction.commit();
     }
     catch (std::exception &e) {
@@ -114,7 +116,7 @@ int Nibble::generate_bsc5_table() {
     }
 
     // polish table, sort by HR number
-    return polish_table("hr");
+    return nb.polish_table("hr");
 }
 
 /*
