@@ -149,7 +149,7 @@ bool Star::operator==(const Star &rho) const {
 Star Star::chance() {
     // need to keep seed and engine static to avoid starting w/ same seed
     static std::random_device seed;
-    static std::mt19937_64 mersenne_twister (seed());
+    static std::mt19937_64 mersenne_twister(seed());
     std::uniform_real_distribution<double> dist(-1.0, 1.0);
 
     return Star(dist(mersenne_twister), dist(mersenne_twister),
@@ -225,4 +225,28 @@ bool Star::within_angle(const Star &s_1, const Star &s_2, const double theta) {
  */
 Star Star::reset_hr(const Star &s) {
     return Star(s.i, s.j, s.k, 0);
+}
+
+/*
+ * Return the current star in terms of degree-based spherical coordinates. Conversion found here:
+ * https://stackoverflow.com/a/1185413
+ *
+ * @return Sphere struct with r, theta, and phi. (h, lat, long)
+ */
+Star::Sphere Star::as_spherical() const {
+    double r = this->norm();
+    return {r, asin(this->k / r) * 180.0 / M_PI, atan2(this->j, this->i) * 180.0 / M_PI};
+}
+
+/*
+ * Return a Mercator projected spherical coordinate. Conversion found here:
+ * https://stackoverflow.com/a/14457180
+ *
+ * @param s_s Spherical coordinates of a star S.
+ * @param w Width and length of projected map.
+ * @return Mercator struct with X and Y scaled by w.
+ */
+Star::Mercator Star::as_mercator(const Sphere &s, const double w) {
+    double merc_n = log(tan((M_PI / 4) + ((s.theta * M_PI / 180.0) / 2.0)));
+    return {(s.phi + 180.0) * w / 360.0, (0.5 * w) - (w  * merc_n / (2 * M_PI))};
 }
