@@ -214,7 +214,7 @@ double Star::angle_between(const Star &s_1, const Star &s_2) {
  * @return True if angle between s_1 and s_2 is less than theta. False otherwise.
  */
 bool Star::within_angle(const Star &s_1, const Star &s_2, const double theta) {
-    return Star::angle_between(s_1, s_2) < theta;
+    return angle_between(s_1, s_2) < theta;
 }
 
 /*
