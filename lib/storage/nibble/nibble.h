@@ -27,6 +27,8 @@
  * tables, then search these tables.
  */
 class Nibble {
+        friend class TestNibble;
+        
     public:
         using sql_row = std::vector<double>;
         using bsc5_star_list = std::array<Star, 5029>;
@@ -38,7 +40,7 @@ class Nibble {
         void select_table(const std::string &);
 
         // populate the BSC5 table
-        static int generate_bsc5_table();
+        int generate_bsc5_table();
 
         // generic table insertion method, limit by fov if desired
         int insert_into_table(const std::string &, const sql_row &);
@@ -69,10 +71,7 @@ class Nibble {
         // open database object, this needs to be public to work with SQLiteCpp
         std::unique_ptr<SQLite::Database> db;
 
-#ifndef DEBUGGING_MODE_IS_ON
-        protected:
-#endif
-
+    protected:
         // current table to operate open
         std::string table;
 
@@ -81,10 +80,7 @@ class Nibble {
         const std::string CATALOG_LOCATION = PROJECT_LOCATION + "/data/bsc5.dat";
         const std::string DATABASE_LOCATION = PROJECT_LOCATION + "/data/nibble.db";
 
-#ifndef DEBUGGING_MODE_IS_ON
-        private:
-#endif
-
+    private:
         // read and calculate star components from line
         static std::array<double, 6> components_from_line(const std::string &);
 

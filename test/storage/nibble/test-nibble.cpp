@@ -1,7 +1,7 @@
 /*
  * @file: test-nibble.cpp
  *
- * @brief: Source file for the TestNibble namespace, as well as the main function to run the tests.
+ * @brief: Source file for the TestNibble class, as well as the main function to run the tests.
  */
 
 #include "test-nibble.h"
@@ -42,19 +42,7 @@ void TestNibble::test_file_existence() {
  * Check that the BSC5 table is present after running Nibble::generate_bsc5_table.
  */
 void TestNibble::test_bsc5_table_existence() {
-    Nibble nb;
-    nb.generate_bsc5_table();
-    bool assertion = false;
-
-    try {
-        (*nb.db).exec("CREATE TABLE BSC5 (a INT)");
-    }
-    catch (std::exception &e) {
-        std::cout << "Exception: " << e.what() << std::endl;
-        assertion = true;
-    }
-
-    assert_true(assertion, "BSC5TableExistence");
+    assert_equal(Nibble().generate_bsc5_table(), -1, "BSC5TableExistence");
 }
 
 /*
