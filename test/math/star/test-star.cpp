@@ -283,10 +283,14 @@ void TestStar::test_mercator_projection_within_bounds() {
     Star::Sphere teth = kaph.as_spherical();
     Star::Sphere heth = yodh.as_spherical();
 
-    assert_true(Star::as_mercator(teth, 200).x < 200, "MercatorXWithinBoundsStar1");
-    assert_true(Star::as_mercator(teth, 200).y < 200, "MercatorYWithinBoundsStar1");
-    assert_true(Star::as_mercator(heth, 500).x < 500, "MercatorXWithinBoundsStar2");
-    assert_true(Star::as_mercator(heth, 500).y < 500, "MercatorYWithinBoundsStar2");
+    assert_true(Star::as_mercator(teth, 200).x < 100 &&
+                Star::as_mercator(teth, 200).x > -100, "MercatorXWithinBoundsStar1");
+    assert_true(Star::as_mercator(teth, 200).y < 100 &&
+                Star::as_mercator(teth, 200).y > -100, "MercatorXWithinBoundsStar1");
+    assert_true(Star::as_mercator(heth, 500).x < 250 &&
+                Star::as_mercator(heth, 500).x > -250, "MercatorXWithinBoundsStar2");
+    assert_true(Star::as_mercator(heth, 500).y < 250 &&
+                Star::as_mercator(heth, 500).y > -250, "MercatorYWithinBoundsStar2");
 }
 
 /*

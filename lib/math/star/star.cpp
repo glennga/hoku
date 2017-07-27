@@ -239,8 +239,8 @@ Star::Sphere Star::as_spherical() const {
 }
 
 /*
- * Return a Mercator projected spherical coordinate. Conversion found here:
- * https://stackoverflow.com/a/14457180
+ * Return a Mercator projected spherical coordinate. Adapted to focus (0, 0) as center of
+ * image. Original conversion found here: https://stackoverflow.com/a/14457180
  *
  * @param s_s Spherical coordinates of a star S.
  * @param w Width and length of projected map.
@@ -248,5 +248,6 @@ Star::Sphere Star::as_spherical() const {
  */
 Star::Mercator Star::as_mercator(const Sphere &s, const double w) {
     double merc_n = log(tan((M_PI / 4) + ((s.theta * M_PI / 180.0) / 2.0)));
-    return {(s.phi + 180.0) * w / 360.0, (0.5 * w) - (w  * merc_n / (2 * M_PI))};
+    return {((s.phi + 180.0) * w / 360.0) - w / 2,
+            ((0.5 * w) - (w * merc_n / (2 * M_PI))) - w / 2};
 }

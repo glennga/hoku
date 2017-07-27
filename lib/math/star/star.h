@@ -20,6 +20,8 @@
  * and angular separation. This class is the basis for all of the Hoku research.
  */
 class Star {
+        friend class TestStar;
+        
     public:
         // for spherical representation of vector
         struct Sphere {
@@ -77,9 +79,7 @@ class Star {
         // reset the HR number to 0
         static Star reset_hr(const Star &);
 
-#ifndef DEBUGGING_MODE_IS_ON
-        private:
-#endif
+    private:
         // individual components of 3D vector
         double i, j, k;
 
