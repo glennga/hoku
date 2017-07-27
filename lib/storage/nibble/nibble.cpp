@@ -9,7 +9,7 @@
 
 /*
  * Constructor. This dynamically allocates a database connection object to nibble.db. If the
- * database does not exist, it is created. Set the current table to BSC5.
+ * database does not exist, it is created. Set the current table to BSC5, and load all stars to RAM.
  */
 Nibble::Nibble() {
     const int FLAGS = SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE;
@@ -17,6 +17,9 @@ Nibble::Nibble() {
 
     // starting table is BSC5
     this->table = "BSC5";
+
+    // load all stars into RAM
+    load_all_stars();
 }
 
 /*
@@ -125,24 +128,12 @@ Star Nibble::query_bsc5(const int hr) {
 }
 
 /*
- * Return all entries in BSC5 table as stars.
+ * Accessor for all_stars.
  *
  * @return Array with all stars in BSC5 table.
  */
 Nibble::bsc5_star_list Nibble::all_bsc5_stars() {
-    bsc5_star_list star_list;
-    int current_position = 0;
-
-    // select all stars, load into RAM
-    SQLite::Statement query(*db, "SELECT i, j, k, hr FROM BSC5");
-    while (query.executeStep()) {
-        star_list[current_position++] = Star(query.getColumn(0).getDouble(),
-                                             query.getColumn(1).getDouble(),
-                                             query.getColumn(2).getDouble(),
-                                             query.getColumn(3).getInt());
-    }
-
-    return star_list;
+    return this->all_stars;
 }
 
 /*
@@ -158,7 +149,7 @@ Nibble::star_list Nibble::nearby_stars(const Star &focus, const double fov,
     star_list nearby;
     nearby.reserve(expected);
 
-    for (const Star &candidate : all_bsc5_stars()) {
+    for (const Star &candidate : all_stars) {
         if (Star::within_angle(focus, candidate, fov)) {
             nearby.push_back(candidate);
         }
@@ -366,4 +357,20 @@ int Nibble::polish_table(const std::string &focus_column) {
     transaction.commit();
 
     return 0;
+}
+
+/*
+ * Load all of the stars in BSC5 to star_list.
+ */
+void Nibble::load_all_stars() {
+    int current_position = 0;
+
+    // select all stars, load into RAM
+    SQLite::Statement query(*db, "SELECT i, j, k, hr FROM BSC5");
+    while (query.executeStep()) {
+        this->all_stars[current_position++] = Star(query.getColumn(0).getDouble(),
+                                                   query.getColumn(1).getDouble(),
+                                                   query.getColumn(2).getDouble(),
+                                                   query.getColumn(3).getInt());
+    }
 }
