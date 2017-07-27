@@ -1,7 +1,7 @@
 /*
  * @file: test-nibble.h
  *
- * @brief: Header file for the TestNibble namespace, which tests the Nibble namespace.
+ * @brief: Header file for the TestNibble class, which tests the Nibble class.
  */
 
 #ifndef TEST_NIBBLE_H

@@ -93,30 +93,20 @@ void Nibble::parse_catalog(std::ifstream &catalog) {
  * and k components are converted from the star's alpha, delta, and an assumed parallax = 1.
  * **This should be the first function run to generate all other tables.**
  *
- * @return -2 if the catalog file cannot be opened. -1 if an exception is thrown. 0 otherwise.
+ * @return -2 if the catalog file cannot be opened. -1 if the table already exists. 0 otherwise.
  */
 int Nibble::generate_bsc5_table() {
-    Nibble nb;
-    
-    try {
-        std::ifstream catalog(nb.CATALOG_LOCATION);
-        if (!catalog.is_open()) { return -2; }
+    std::ifstream catalog(CATALOG_LOCATION);
+    if (!catalog.is_open()) { return -2; }
 
-        SQLite::Transaction transaction(*nb.db);
-        (*nb.db).exec("CREATE TABLE BSC5 (alpha FLOAT, delta FLOAT, i FLOAT, j FLOAT, k FLOAT, "
-                           "m FLOAT, hr INT)");
-
-        nb.select_table("BSC5");
-        nb.parse_catalog(catalog);
-        transaction.commit();
-    }
-    catch (std::exception &e) {
-        // most likely the table already exists
-        return -1;
-    }
+    SQLite::Transaction transaction(*db);
+    if (create_table("BSC5", "alpha FLOAT, delta FLOAT, i FLOAT, j FLOAT, "
+            "k FLOAT, m FLOAT, hr INT") == -1) { return -1; }
+    parse_catalog(catalog);
+    transaction.commit();
 
     // polish table, sort by HR number
-    return nb.polish_table("hr");
+    return polish_table("hr");
 }
 
 /*
@@ -293,9 +283,17 @@ int Nibble::insert_into_table(const std::string &fields, const sql_row &in_value
  *
  * @param table Name of the table to create.
  * @param schema Schema for the table.
- * @return 0 when finished.
+ * @return -1 if a table already exists. 0 otherwise.
  */
 int Nibble::create_table(const std::string &table, const std::string &schema) {
+    SQLite::Statement query(*db, "SELECT name FROM sqlite_master WHERE type=\'table\' "
+                                         "AND name=\'" + table + "\'");
+
+    select_table(table);
+    while (query.executeStep()) {
+        if (query.getColumnCount() > 0) { return -1; }
+    }
+
     (*db).exec("CREATE TABLE " + table + "(" + schema + ")");
     return 0;
 }
