@@ -26,11 +26,13 @@ class Star {
         // for spherical representation of vector
         struct Sphere {
             double r, theta, phi;
+            int hr;
         };
 
         // for Mercator projections
         struct Mercator {
             double x, y;
+            int hr;
         };
 
         // constructor, set components and HR, has unit flag
