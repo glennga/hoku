@@ -36,8 +36,8 @@ Mercator::Mercator(const double x, const double y) {
  * @param a Size of the boundary box.
  * @return All stars in t that are near the current star.
  */
-Mercator::mercator_list Mercator::reduce_far_stars(const mercator_list &t, const double a) {
-    mercator_list t_within;
+Mercator::list Mercator::reduce_far_stars(const Mercator::list &t, const double a) {
+    Mercator::list t_within;
     t_within.reserve(t.size());
 
     for (const Mercator &m : t) {

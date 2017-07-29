@@ -28,7 +28,7 @@ void TestMercator::test_projection_within_bounds() {
  */
 void TestMercator::test_reduction_within_bounds() {
     std::vector<Mercator> kaph;
-    Mercator::mercator_list yodh;
+    Mercator::list yodh;
     bool assertion = true;
     kaph.reserve(50);
 

@@ -21,22 +21,25 @@ class Mercator {
         friend class TestMercator;
 
     public:
-        using mercator_list = std::vector<Mercator>;
+        using list = std::vector<Mercator>;
+        Mercator() = default;
 
+        // constructors given a star, or a set of coordinates
         Mercator(const Star &, const double);
         Mercator(const double, const double);
 
-        mercator_list reduce_far_stars(const mercator_list &, const double);
+        // given a list of points, reduce to only the closest points to current
+        Mercator::list reduce_far_stars(const Mercator::list &, const double);
 
     private:
         // project 3D vector to plane
         void project_star(const Star &, const double);
 
         // coordinates and projection width
-        double x, y, w;
+        double x = 0, y = 0, w = 0;
 
         // Harvard revised number
-        int hr;
+        int hr = 0;
 };
 
 #endif /* HOKU_MERCATOR_H */
