@@ -51,6 +51,24 @@ Mercator::list Mercator::reduce_far_stars(const Mercator::list &t, const double 
 }
 
 /*
+ * Check if the current point is within the corner defined boundary quadrilateral.
+ * Corners are defined as such:     corners[0]------corners[1]
+ *                                     -                -
+ *                                  corners[2]------corners[3]
+ *
+ * @param corners Corners of the boundary quadrilateral.
+ * @return True if within the box. False otherwise.
+ */
+bool Mercator::is_within_bounds(const quad &corners) {
+    bool within_left_x = this->x > corners[0].x && this->x > corners[2].x;
+    bool within_right_x = this->x < corners[1].x && this->x < corners[3].x;
+    bool within_top_y = this->y < corners[0].y && this->y < corners[1].y;
+    bool within_bottom_y = this->y > corners[2].y && this->y > corners[3].y;
+
+    return within_left_x && within_right_x && within_top_y && within_bottom_y;
+}
+
+/*
  * Project the input star by the given width. Converts the star into spherical coordinates, and
  * then projects this point into a square of size w*w with the center being (0, 0). Original
  * conversion found here: https://stackoverflow.com/a/14457180
