@@ -169,7 +169,7 @@ void TestNibble::test_table_insertion() {
  */
 void TestNibble::test_bsc5_all_stars_grab() {
     Nibble nb;
-    std::array<Star, 5029> kaph = nb.all_bsc5_stars();
+    Star::list kaph = nb.all_bsc5_stars();
 
     assert_true(kaph[0] == nb.query_bsc5(3), "BSCStarGrab3");
     assert_true(kaph[1] == nb.query_bsc5(4), "BSCStarGrab4");

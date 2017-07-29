@@ -226,28 +226,3 @@ bool Star::within_angle(const Star &s_1, const Star &s_2, const double theta) {
 Star Star::reset_hr(const Star &s) {
     return Star(s.i, s.j, s.k, 0);
 }
-
-/*
- * Return the current star in terms of degree-based spherical coordinates. Conversion found here:
- * https://stackoverflow.com/a/1185413
- *
- * @return Sphere struct with r, theta, phi, and hr
- */
-Star::Sphere Star::as_spherical() const {
-    double r = norm();
-    return {r, asin(k / r) * 180.0 / M_PI, atan2(j, i) * 180.0 / M_PI, hr};
-}
-
-/*
- * Return a Mercator projected spherical coordinate. Adapted to focus (0, 0) as center of
- * image. Original conversion found here: https://stackoverflow.com/a/14457180
- *
- * @param s_s Spherical coordinates of a star S.
- * @param w Width and length of projected map.
- * @return Mercator struct with X and Y scaled by w.
- */
-Star::Mercator Star::as_mercator(const Sphere &s, const double w) {
-    double merc_n = log(tan((M_PI / 4) + ((s.theta * M_PI / 180.0) / 2.0)));
-    return {((s.phi + 180.0) * w / 360.0) - w / 2,
-            ((0.5 * w) - (w * merc_n / (2 * M_PI))) - w / 2, s.hr};
-}

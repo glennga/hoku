@@ -23,17 +23,9 @@ class Star {
         friend class TestStar;
         
     public:
-        // for spherical representation of vector
-        struct Sphere {
-            double r, theta, phi;
-            int hr;
-        };
-
-        // for Mercator projections
-        struct Mercator {
-            double x, y;
-            int hr;
-        };
+        // common types for star structures
+        using list = std::vector<Star>;
+        using pair = std::array<Star, 2>;
 
         // constructor, set components and HR, has unit flag
         Star(const double, const double, const double, const int = 0, const bool = false);
@@ -55,12 +47,6 @@ class Star {
 
         // return the current vector as one with norm = 1.0
         Star as_unit() const;
-
-        // return current vector as spherical coordinates
-        Sphere as_spherical() const;
-
-        // return Mercator projected spherical coordinate
-        static Mercator as_mercator(const Sphere &, const double);
 
         // determine if the **components** are within a certain value of each other
         static bool is_equal(const Star &, const Star &, const double = 0.000000000001);

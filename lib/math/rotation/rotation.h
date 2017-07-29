@@ -19,8 +19,6 @@
  */
 class Rotation {
     public:
-        using star_pair = std::array<Star, 2>;
-
         // force default constructor, all components start at zero
         Rotation() = default;
 
@@ -32,7 +30,7 @@ class Rotation {
         static Rotation chance();
 
         // determine mapping across two frames
-        static Rotation rotation_across_frames(const star_pair &, const star_pair &);
+        static Rotation rotation_across_frames(const Star::pair &, const Star::pair &);
 
 #ifndef DEBUGGING_MODE_IS_ON
         private:
