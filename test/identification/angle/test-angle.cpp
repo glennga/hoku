@@ -11,6 +11,7 @@
  */
 void TestAngle::test_pair_query() {
     Benchmark input(15, Star::chance(), Rotation::chance());
+
     double kaph = Star::angle_between(input.stars[0], input.stars[1]);
     std::array<int, 2> yodh = Angle(input).query_for_pair(kaph);
 
@@ -62,8 +63,7 @@ void TestAngle::test_candidate_none_query() {
  * Check that the correct stars are returned from the candidate pair query.
  */
 void TestAngle::test_candidate_results_query() {
-    Rotation kaph = Rotation::chance();
-    Benchmark input(15, Star::chance(), kaph);
+    Benchmark input(15, Star::chance(), Rotation::chance());
     Angle yodh(input);
 
     std::array<Star, 2> teth = yodh.find_candidate_pair(input.stars[0], input.stars[1]);
