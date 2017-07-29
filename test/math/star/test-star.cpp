@@ -248,48 +248,6 @@ void TestStar::test_get_operators() {
 }
 
 /*
- * Check that the conversion from cartesian to spherical is a correct computation. Results
- * checked with WolframAlpha.
- */
-void TestStar::test_spherical_conversion() {
-    Star kaph(3, 4, 5);
-    Star::Sphere yodh = kaph.as_spherical();
-
-    assert_equal(yodh.r, 7.0710678118655, "SphericalConversionRComponent");
-    assert_equal(yodh.theta, 45, "SphericalConversionThetaComponent");
-    assert_equal(yodh.phi, 53.130102354156, "SphericalConversionPhiComponent");
-}
-
-/*
- * Ensure that a set of random stars will always produce spherical coordinates within bounds.
- */
-void TestStar::test_spherical_conversion_within_bounds() {
-    for (int i = 0; i < 10; i++) {
-        Star::Sphere kaph = Star::chance().as_spherical();
-        bool assertion = !(kaph.theta > 90 || kaph.theta < -90);
-        assert_true(assertion, "ThetaWithinBoundsStar" + std::to_string(i + 1));
-
-        assertion = !(kaph.phi > 180 || kaph.phi < -180);
-        assert_true(assertion, "PhiWithinBoundsStar" + std::to_string(i + 1));
-    }
-}
-
-/*
- * Check that the conversion from spherical to mercator is one that produces coordinates with
- * bounds of w.
- */
-void TestStar::test_mercator_projection_within_bounds() {
-    Star kaph(3, 4, 5), yodh = Star::chance();
-    Star::Sphere teth = kaph.as_spherical();
-    Star::Sphere heth = yodh.as_spherical();
-
-    assert_true(Star::as_mercator(teth, 200).x < 200, "MercatorXWithinBoundsStar1");
-    assert_true(Star::as_mercator(teth, 200).y < 200, "MercatorYWithinBoundsStar1");
-    assert_true(Star::as_mercator(heth, 500).x < 500, "MercatorXWithinBoundsStar2");
-    assert_true(Star::as_mercator(heth, 500).y < 500, "MercatorYWithinBoundsStar2");
-}
-
-/*
  * Enumerate all tests in TestStar.
  *
  * @return -1 if the test case does not exist. 0 otherwise.
@@ -343,12 +301,6 @@ int TestStar::enumerate_tests(int test_case) {
         case 22: test_hr_clear();
             break;
         case 23: test_get_operators();
-            break;
-        case 24: test_spherical_conversion();
-            break;
-        case 25: test_spherical_conversion_within_bounds();
-            break;
-        case 26: test_mercator_projection_within_bounds();
             break;
         default: return -1;
     }
