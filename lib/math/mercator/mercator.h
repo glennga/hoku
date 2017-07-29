@@ -32,7 +32,7 @@ class Mercator {
         Mercator(const double, const double);
 
         // given a list of points, reduce to only the closest points to current
-        Mercator::list reduce_far_stars(const Mercator::list &, const double);
+        virtual Mercator::list reduce_far_stars(const Mercator::list &, const double);
 
         // check if a point is within a defined quadrilateral
         bool is_within_bounds(const quad &);
