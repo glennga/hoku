@@ -28,15 +28,15 @@
  */
 class Nibble {
         friend class TestNibble;
-        
+
     public:
         using sql_row = std::vector<double>;
-        using bsc5_star_list = std::array<Star, 5029>;
-        using star_list = std::vector<Star>;
-
         Nibble();
 
-        // mutator methods for table and file locations
+        // length of BSC5 table, to know how much to reserve
+        static const int BSC5_TABLE_LENGTH = 5029;
+
+        // mutator methods for table
         void select_table(const std::string &);
 
         // populate the BSC5 table
@@ -46,10 +46,10 @@ class Nibble {
         int insert_into_table(const std::string &, const sql_row &);
 
         // all_stars access method
-        bsc5_star_list all_bsc5_stars();
+        Star::list all_bsc5_stars();
 
         // find all stars near a given focus
-        star_list nearby_stars(const Star &, const double, const unsigned int);
+        Star::list nearby_stars(const Star &, const double, const unsigned int);
 
         // query BSC5 for i, j, k fields given BSC ID
         Star query_bsc5(const int);
@@ -76,7 +76,7 @@ class Nibble {
         std::string table;
 
         // all stars in the BSC5 table, from load_all_stars method
-        bsc5_star_list all_stars;
+        Star::list all_stars;
 
         // location of catalog and database, requires definition of HOKU_PROJECT_PATH
         const std::string PROJECT_LOCATION = std::string(std::getenv("HOKU_PROJECT_PATH"));

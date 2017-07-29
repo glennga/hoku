@@ -37,7 +37,7 @@ class Angle {
         Angle() = delete;
 
         // identity benchmark data
-        static Benchmark::star_list identify(const Benchmark &, const Parameters &);
+        static Star::list identify(const Benchmark &, const Parameters &);
 
         // generate the separation table
         static int generate_sep_table(const int, const std::string &);
@@ -45,16 +45,14 @@ class Angle {
 #ifndef DEBUGGING_MODE_IS_ON
     private:
 #endif
-        using star_list = std::vector<Star>;
         using hr_list = std::vector<double>;
-        using star_pair = std::array<Star, 2>;
         using hr_pair = std::array<int, 2>;
 
         // user is not meant to create Angle object, keep it private
         Angle(Benchmark);
 
         // the data we are working with, identification parameters = tweak performance
-        Benchmark::star_list input;
+        Star::list input;
         Parameters parameters;
 
         // for database access
@@ -68,13 +66,13 @@ class Angle {
         hr_pair query_for_pair(const double);
 
         // search for pair given set of benchmark stars
-        star_pair find_candidate_pair(const Star &, const Star &);
+        Star::pair find_candidate_pair(const Star &, const Star &);
 
         // find set of matches to benchmark given candidate set and a rotation
-        star_list find_matches(const star_list &, const Rotation &);
+        Star::list find_matches(const Star::list &, const Rotation &);
 
         // find largest matching of inertial_a -> body_a and inertial_a -> body_b
-        star_list check_assumptions(const star_list &, const star_pair &, const star_pair &);
+        Star::list check_assumptions(const Star::list &, const Star::pair &, const Star::pair &);
 };
 
 #endif /* HOKU_ANGLE_H */
