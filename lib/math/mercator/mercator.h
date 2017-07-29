@@ -23,6 +23,8 @@ class Mercator {
 
     public:
         using list = std::vector<Mercator>;
+        using quad = std::array<Mercator, 4>;
+
         Mercator() = default;
 
         // constructors given a star, or a set of coordinates
@@ -31,6 +33,9 @@ class Mercator {
 
         // given a list of points, reduce to only the closest points to current
         Mercator::list reduce_far_stars(const Mercator::list &, const double);
+
+        // check if a point is within a defined quadrilateral
+        bool is_within_bounds(const quad &);
 
     private:
         // project 3D vector to plane
