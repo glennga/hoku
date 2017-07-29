@@ -68,7 +68,7 @@ Rotation::matrix Rotation::matrix_multiply_transpose(const matrix &a, const matr
  * @param b Pair of stars in frame W.
  * @return The quaternion to rotate from frame V (r set) to W (b set).
  */
-Rotation Rotation::rotation_across_frames(const star_pair &r, const star_pair &b) {
+Rotation Rotation::rotation_across_frames(const Star::pair &r, const Star::pair &b) {
     // compute triads, parse them into individual components
     Star v_1 = r[0].as_unit(), w_1 = b[0].as_unit();
     Star v_2 = (Star::cross(r[0].as_unit(), r[1].as_unit())).as_unit();
