@@ -22,6 +22,8 @@
  * Recognition Process.
  */
 class PlanarTriangle {
+        friend class TestPlanarTriangle;
+
     public:
         // defines the query and match operations
         struct Parameters {
@@ -39,7 +41,7 @@ class PlanarTriangle {
         PlanarTriangle() = delete;
 
         // identity benchmark data
-        static Benchmark::star_list identify(const Benchmark &, const Parameters &);
+        static Star::list identify(const Benchmark &, const Parameters &);
 
         // generate the separation table
         static int generate_triangle_table(const int, const std::string &);
@@ -47,17 +49,15 @@ class PlanarTriangle {
 #ifndef DEBUGGING_MODE_IS_ON
     private:
 #endif
-        using star_list = std::vector<Star>;
         using hr_list = std::vector<double>;
         using hr_trio = std::array<double, 3>;
         using index_trio = std::array<double, 3>;
-        using star_trio = std::array<Star, 3>;
 
         // user is not meant to create Angle object, keep it private
         PlanarTriangle(Benchmark);
 
         // the data we are working with, identification parameters = tweak performance
-        Benchmark::star_list input;
+        Star::list input;
         Parameters parameters;
 
         // for database access
@@ -71,14 +71,14 @@ class PlanarTriangle {
         std::vector<hr_trio> query_for_trio(const double, const double);
 
         // search for matching pairs to body pair, use past searches to narrow search
-        std::vector<star_trio> match_stars(const index_trio &);
-        star_trio pivot(const index_trio &, const std::vector<star_trio> & = {{}});
+        std::vector<Trio::stars> match_stars(const index_trio &);
+        Trio::stars pivot(const index_trio &, const std::vector<Trio::stars> & = {{}});
 
         // find set of matches to benchmark given candidate set and a rotation
-        star_list find_matches(const star_list &, const Rotation &);
+        Star::list find_matches(const Star::list &, const Rotation &);
 
         // find set of inertial frame to body frame matches
-        star_list check_assumptions(const star_list &, const star_trio &, const index_trio &);
+        Star::list check_assumptions(const Star::list &, const Trio::stars &, const index_trio &);
 
 };
 
