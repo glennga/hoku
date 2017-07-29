@@ -38,8 +38,6 @@ class Benchmark {
             std::vector<Star> affected;
         };
 
-        using star_list = std::vector<Star>;
-
         // default constructor must not be generated, user must specify fov, focus, and rotation
         Benchmark() = delete;
         Benchmark(const double, const Star &, const Rotation & = Rotation::identity());
@@ -48,7 +46,7 @@ class Benchmark {
         void generate_stars();
 
         // set stars, focus, and fov from parameters
-        void present_image(star_list &, Star &, double &);
+        void present_image(Star::list &, Star &, double &);
 
         // write current star set to file, display plot using Python's MatPlotLib
         int record_current_plot();
@@ -63,7 +61,7 @@ class Benchmark {
         using model_list = std::vector<ErrorModel>;
 
         // set all of the BCS IDs in the star set to 0 and return the current star set
-        star_list clean_stars();
+        Star::list clean_stars();
 
         // shuffle current star set
         void shuffle();
@@ -75,7 +73,7 @@ class Benchmark {
         const std::string PLOT_SCRIPT = PROJECT_LOCATION + "/lib/benchmark/generate_plot.py";
 
         // all stars in 'stars' must be near the focus
-        star_list stars;
+        Star::list stars;
         Star focus;
 
         // limit a star must be from focus
