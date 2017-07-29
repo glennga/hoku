@@ -132,7 +132,7 @@ Star Nibble::query_bsc5(const int hr) {
  *
  * @return Array with all stars in BSC5 table.
  */
-Nibble::bsc5_star_list Nibble::all_bsc5_stars() {
+Star::list Nibble::all_bsc5_stars() {
     return this->all_stars;
 }
 
@@ -144,9 +144,9 @@ Nibble::bsc5_star_list Nibble::all_bsc5_stars() {
  * @param expected Expected number of stars around the focus. Better to overshoot.
  * @return Array with all nearby stars.
  */
-Nibble::star_list Nibble::nearby_stars(const Star &focus, const double fov,
-                                       const unsigned int expected) {
-    star_list nearby;
+Star::list Nibble::nearby_stars(const Star &focus, const double fov,
+                                const unsigned int expected) {
+    Star::list nearby;
     nearby.reserve(expected);
 
     for (const Star &candidate : all_stars) {
@@ -363,14 +363,15 @@ int Nibble::polish_table(const std::string &focus_column) {
  * Load all of the stars in BSC5 to star_list.
  */
 void Nibble::load_all_stars() {
-    int current_position = 0;
+    // reserve space for the list
+    this->all_stars.reserve(BSC5_TABLE_LENGTH);
 
     // select all stars, load into RAM
     SQLite::Statement query(*db, "SELECT i, j, k, hr FROM BSC5");
     while (query.executeStep()) {
-        this->all_stars[current_position++] = Star(query.getColumn(0).getDouble(),
-                                                   query.getColumn(1).getDouble(),
-                                                   query.getColumn(2).getDouble(),
-                                                   query.getColumn(3).getInt());
+        this->all_stars.push_back(Star(query.getColumn(0).getDouble(),
+                                       query.getColumn(1).getDouble(),
+                                       query.getColumn(2).getDouble(),
+                                       query.getColumn(3).getInt()));
     }
 }

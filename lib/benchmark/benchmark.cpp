@@ -58,7 +58,7 @@ void Benchmark::generate_stars() {
  *
  * @return Current star set with HR numbers set to 0.
  */
-Benchmark::star_list Benchmark::clean_stars() {
+Star::list Benchmark::clean_stars() {
     for (unsigned int i = 0; i < this->stars.size(); i++) {
         this->stars[i] = Star::reset_hr(this->stars[i]);
     }
@@ -75,7 +75,7 @@ Benchmark::star_list Benchmark::clean_stars() {
  * @param image_focus Reference to the star to set as the focus star.
  * @param image_fov Reference to the double to set as the fov.
  */
-void Benchmark::present_image(star_list &image_s, Star &image_focus, double &image_fov) {
+void Benchmark::present_image(Star::list &image_s, Star &image_focus, double &image_fov) {
     image_s = clean_stars();
     image_focus = this->focus;
     image_fov = this->fov;
