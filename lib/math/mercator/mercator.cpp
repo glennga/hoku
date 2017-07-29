@@ -33,16 +33,16 @@ Mercator::Mercator(const double x, const double y) {
  * boundary size. The current star is the center of this box, and the size is boundary*boundary.
  *
  * @param t Input stars to reduce.
- * @param boundary Size of the boundary box.
+ * @param a Size of the boundary box.
  * @return All stars in t that are near the current star.
  */
-Mercator::mercator_list Mercator::reduce_far_stars(const mercator_list &t, const double boundary) {
+Mercator::mercator_list Mercator::reduce_far_stars(const mercator_list &t, const double a) {
     mercator_list t_within;
     t_within.reserve(t.size());
 
     for (const Mercator &m : t) {
-        bool within_x = m.x < x + (boundary / 2.0) && m.x > x - (boundary / 2.0);
-        bool within_y = m.y < y + (boundary / 2.0) && m.y > y - (boundary / 2.0);
+        bool within_x = m.x < x + (a / 2.0) && m.x > x - (a / 2.0);
+        bool within_y = m.y < y + (a / 2.0) && m.y > y - (a / 2.0);
 
         if (within_x && within_y) { t_within.push_back(m); }
     }
