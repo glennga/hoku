@@ -59,11 +59,6 @@ class TestStar : public BaseTest {
         // test the HR number clearing method
         void test_hr_clear();
 
-        // test the spherical and mercator conversion methods
-        void test_spherical_conversion();
-        void test_spherical_conversion_within_bounds();
-        void test_mercator_projection_within_bounds();
-
     public:
         int enumerate_tests(int);
 };
