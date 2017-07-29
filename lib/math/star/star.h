@@ -23,6 +23,10 @@ class Star {
         friend class TestStar;
         
     public:
+        // common types for star structures
+        using list = std::vector<Star>;
+        using pair = std::array<Star, 2>;
+
         // constructor, set components and HR, has unit flag
         Star(const double, const double, const double, const int = 0, const bool = false);
         Star();
