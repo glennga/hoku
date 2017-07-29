@@ -9,7 +9,7 @@
 
 /*
  * Constructor. This dynamically allocates a database connection object to nibble.db. If the
- * database does not exist, it is created. Set the current table to BSC5.
+ * database does not exist, it is created. Set the current table to BSC5, and load all stars to RAM.
  */
 Nibble::Nibble() {
     const int FLAGS = SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE;
@@ -17,6 +17,9 @@ Nibble::Nibble() {
 
     // starting table is BSC5
     this->table = "BSC5";
+
+    // load all stars into RAM
+    load_all_stars();
 }
 
 /*
@@ -93,30 +96,20 @@ void Nibble::parse_catalog(std::ifstream &catalog) {
  * and k components are converted from the star's alpha, delta, and an assumed parallax = 1.
  * **This should be the first function run to generate all other tables.**
  *
- * @return -2 if the catalog file cannot be opened. -1 if an exception is thrown. 0 otherwise.
+ * @return -2 if the catalog file cannot be opened. -1 if the table already exists. 0 otherwise.
  */
 int Nibble::generate_bsc5_table() {
-    Nibble nb;
-    
-    try {
-        std::ifstream catalog(nb.CATALOG_LOCATION);
-        if (!catalog.is_open()) { return -2; }
+    std::ifstream catalog(CATALOG_LOCATION);
+    if (!catalog.is_open()) { return -2; }
 
-        SQLite::Transaction transaction(*nb.db);
-        (*nb.db).exec("CREATE TABLE BSC5 (alpha FLOAT, delta FLOAT, i FLOAT, j FLOAT, k FLOAT, "
-                           "m FLOAT, hr INT)");
-
-        nb.select_table("BSC5");
-        nb.parse_catalog(catalog);
-        transaction.commit();
-    }
-    catch (std::exception &e) {
-        // most likely the table already exists
-        return -1;
-    }
+    SQLite::Transaction transaction(*db);
+    if (create_table("BSC5", "alpha FLOAT, delta FLOAT, i FLOAT, j FLOAT, "
+            "k FLOAT, m FLOAT, hr INT") == -1) { return -1; }
+    parse_catalog(catalog);
+    transaction.commit();
 
     // polish table, sort by HR number
-    return nb.polish_table("hr");
+    return polish_table("hr");
 }
 
 /*
@@ -135,24 +128,12 @@ Star Nibble::query_bsc5(const int hr) {
 }
 
 /*
- * Return all entries in BSC5 table as stars.
+ * Accessor for all_stars.
  *
  * @return Array with all stars in BSC5 table.
  */
 Nibble::bsc5_star_list Nibble::all_bsc5_stars() {
-    bsc5_star_list star_list;
-    int current_position = 0;
-
-    // select all stars, load into RAM
-    SQLite::Statement query(*db, "SELECT i, j, k, hr FROM BSC5");
-    while (query.executeStep()) {
-        star_list[current_position++] = Star(query.getColumn(0).getDouble(),
-                                             query.getColumn(1).getDouble(),
-                                             query.getColumn(2).getDouble(),
-                                             query.getColumn(3).getInt());
-    }
-
-    return star_list;
+    return this->all_stars;
 }
 
 /*
@@ -168,7 +149,7 @@ Nibble::star_list Nibble::nearby_stars(const Star &focus, const double fov,
     star_list nearby;
     nearby.reserve(expected);
 
-    for (const Star &candidate : all_bsc5_stars()) {
+    for (const Star &candidate : all_stars) {
         if (Star::within_angle(focus, candidate, fov)) {
             nearby.push_back(candidate);
         }
@@ -293,9 +274,17 @@ int Nibble::insert_into_table(const std::string &fields, const sql_row &in_value
  *
  * @param table Name of the table to create.
  * @param schema Schema for the table.
- * @return 0 when finished.
+ * @return -1 if a table already exists. 0 otherwise.
  */
 int Nibble::create_table(const std::string &table, const std::string &schema) {
+    SQLite::Statement query(*db, "SELECT name FROM sqlite_master WHERE type=\'table\' "
+                                         "AND name=\'" + table + "\'");
+
+    select_table(table);
+    while (query.executeStep()) {
+        if (query.getColumnCount() > 0) { return -1; }
+    }
+
     (*db).exec("CREATE TABLE " + table + "(" + schema + ")");
     return 0;
 }
@@ -368,4 +357,20 @@ int Nibble::polish_table(const std::string &focus_column) {
     transaction.commit();
 
     return 0;
+}
+
+/*
+ * Load all of the stars in BSC5 to star_list.
+ */
+void Nibble::load_all_stars() {
+    int current_position = 0;
+
+    // select all stars, load into RAM
+    SQLite::Statement query(*db, "SELECT i, j, k, hr FROM BSC5");
+    while (query.executeStep()) {
+        this->all_stars[current_position++] = Star(query.getColumn(0).getDouble(),
+                                                   query.getColumn(1).getDouble(),
+                                                   query.getColumn(2).getDouble(),
+                                                   query.getColumn(3).getInt());
+    }
 }

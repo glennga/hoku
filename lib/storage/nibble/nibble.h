@@ -27,6 +27,8 @@
  * tables, then search these tables.
  */
 class Nibble {
+        friend class TestNibble;
+        
     public:
         using sql_row = std::vector<double>;
         using bsc5_star_list = std::array<Star, 5029>;
@@ -38,12 +40,12 @@ class Nibble {
         void select_table(const std::string &);
 
         // populate the BSC5 table
-        static int generate_bsc5_table();
+        int generate_bsc5_table();
 
         // generic table insertion method, limit by fov if desired
         int insert_into_table(const std::string &, const sql_row &);
 
-        // load all stars in catalog to array
+        // all_stars access method
         bsc5_star_list all_bsc5_stars();
 
         // find all stars near a given focus
@@ -69,21 +71,20 @@ class Nibble {
         // open database object, this needs to be public to work with SQLiteCpp
         std::unique_ptr<SQLite::Database> db;
 
-#ifndef DEBUGGING_MODE_IS_ON
-        protected:
-#endif
-
+    protected:
         // current table to operate open
         std::string table;
+
+        // all stars in the BSC5 table, from load_all_stars method
+        bsc5_star_list all_stars;
 
         // location of catalog and database, requires definition of HOKU_PROJECT_PATH
         const std::string PROJECT_LOCATION = std::string(std::getenv("HOKU_PROJECT_PATH"));
         const std::string CATALOG_LOCATION = PROJECT_LOCATION + "/data/bsc5.dat";
         const std::string DATABASE_LOCATION = PROJECT_LOCATION + "/data/nibble.db";
 
-#ifndef DEBUGGING_MODE_IS_ON
-        private:
-#endif
+    private:
+        void load_all_stars();
 
         // read and calculate star components from line
         static std::array<double, 6> components_from_line(const std::string &);
