@@ -22,11 +22,13 @@ Mercator::Mercator(const Star &s, const double w) {
  *
  * @param x X coordinate to store.
  * @param y Y coordinate to store.
+ * @param w Width used to project the given X, Y coordinates.
  * @param hr Havard revised number to store.
  */
-Mercator::Mercator(const double x, const double y, const int hr) {
+Mercator::Mercator(const double x, const double y, const double w, const int hr) {
     this->x = x;
     this->y = y;
+    this->w = w;
     this->hr = hr;
 }
 
