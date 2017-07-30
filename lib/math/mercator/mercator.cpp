@@ -22,10 +22,12 @@ Mercator::Mercator(const Star &s, const double w) {
  *
  * @param x X coordinate to store.
  * @param y Y coordinate to store.
+ * @param hr Havard revised number to store.
  */
-Mercator::Mercator(const double x, const double y) {
+Mercator::Mercator(const double x, const double y, const int hr) {
     this->x = x;
     this->y = y;
+    this->hr = hr;
 }
 
 /*
