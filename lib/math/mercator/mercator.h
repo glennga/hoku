@@ -29,7 +29,7 @@ class Mercator {
 
         // constructors given a star, or a set of coordinates
         Mercator(const Star &, const double);
-        Mercator(const double, const double, const int = 0);
+        Mercator(const double, const double, const double, const int = 0);
 
         // given a list of points, reduce to only the closest points to current
         Mercator::list reduce_far_stars(const Mercator::list &, const double);
