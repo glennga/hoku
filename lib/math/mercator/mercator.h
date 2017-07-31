@@ -19,7 +19,6 @@
  */
 class Mercator {
         friend class TestMercator;
-        friend class QuadNode;
 
     public:
         using list = std::vector<Mercator>;
@@ -40,15 +39,16 @@ class Mercator {
         // access method for hr
         int get_hr();
 
-    private:
-        // project 3D vector to plane
-        void project_star(const Star &, const double);
-
+    protected:
         // coordinates and projection width
         double x = 0, y = 0, w = 0;
 
         // Harvard revised number
         int hr = 0;
+
+    private:
+        // project 3D vector to plane
+        void project_star(const Star &, const double);
 };
 
 #endif /* HOKU_MERCATOR_H */
