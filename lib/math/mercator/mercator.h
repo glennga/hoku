@@ -37,6 +37,9 @@ class Mercator {
         // check if a point is within a defined quadrilateral
         bool is_within_bounds(const quad &);
 
+        // access method for hr
+        int get_hr();
+
     private:
         // project 3D vector to plane
         void project_star(const Star &, const double);
