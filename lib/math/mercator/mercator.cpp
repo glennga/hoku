@@ -95,3 +95,12 @@ void Mercator::project_star(const Star &s, const double w) {
     this->w = w;
     this->hr = hr;
 }
+
+/*
+ * Access method for Harvard revised number.
+ *
+ * @return Current hr value.
+ */
+int Mercator::get_hr() {
+    return hr;
+}

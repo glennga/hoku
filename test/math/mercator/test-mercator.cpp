@@ -36,7 +36,7 @@ void TestMercator::test_reduction_within_bounds() {
         kaph.push_back(Mercator(Star::chance(), 500));
     }
 
-    yodh = Mercator(250, 250).reduce_far_stars(kaph, 200);
+    yodh = Mercator(250, 250, 0).reduce_far_stars(kaph, 200);
 
     for (const Mercator &m : yodh) {
         bool within_x = m.x < 250 + (200 / 2.0) && m.x > 250 - (200 / 2.0);
