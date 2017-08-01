@@ -40,7 +40,7 @@ Mercator::Mercator(const double x, const double y, const double w, const int hr)
  * @param a Size of the boundary box.
  * @return All stars in t that are near the current star.
  */
-Mercator::list Mercator::reduce_far_stars(const Mercator::list &t, const double a) {
+Mercator::list Mercator::reduce_far_points(const Mercator::list &t, const double a) {
     Mercator::list t_within;
     t_within.reserve(t.size());
 
@@ -104,9 +104,18 @@ void Mercator::project_star(const Star &s, const double w) {
  * @param w Variable to store current width projection in.
  * @param hr Variable to store current Harvard revised number in.
  */
-void Mercator::present_projection(double &x, double &y, double &w, int &hr) {
+void Mercator::present_projection(double &x, double &y, double &w, int &hr) const {
     x = this->x;
     y = this->y;
     w = this->w;
     hr = this->hr;
+}
+
+/*
+ * Access method for the Harvard revised number.
+ *
+ * @return Harvard revised number for this point.
+ */
+int Mercator::get_hr() {
+    return hr;
 }
