@@ -97,10 +97,16 @@ void Mercator::project_star(const Star &s, const double w) {
 }
 
 /*
- * Access method for Harvard revised number.
+ * Access method for the coordinates, projection width, and the Harvard revised number.
  *
- * @return Current hr value.
+ * @param x Variable to store current X coordinate in.
+ * @param y Variable to store current Y coordinate in.
+ * @param w Variable to store current width projection in.
+ * @param hr Variable to store current Harvard revised number in.
  */
-int Mercator::get_hr() {
-    return hr;
+void Mercator::present_projection(double &x, double &y, double &w, int &hr) {
+    x = this->x;
+    y = this->y;
+    w = this->w;
+    hr = this->hr;
 }
