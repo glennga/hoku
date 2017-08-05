@@ -9,6 +9,7 @@
 
 #define _USE_MATH_DEFINES
 
+#include <string>
 #include <array>
 #include <random>
 
@@ -30,6 +31,9 @@ class Star {
         // constructor, set components and HR, has unit flag
         Star(const double, const double, const double, const int = 0, const bool = false);
         Star();
+
+        // return all the star components as a single string
+        std::string as_string() const;
 
         // get methods for i, j, k, and HR methods
         double operator[](const int) const;
