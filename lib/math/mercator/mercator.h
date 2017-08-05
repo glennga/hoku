@@ -19,6 +19,7 @@
  */
 class Mercator {
         friend class TestMercator;
+        friend class TestChomp;
 
     public:
         using list = std::vector<Mercator>;
