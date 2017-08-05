@@ -33,9 +33,6 @@ class Mercator {
         // given a list of points, reduce to only the closest points to current
         Mercator::list reduce_far_points(const Mercator::list &, const double);
 
-        // check if a point is within a defined quadrilateral
-        bool is_within_bounds(const quad &);
-
         // access method coordinates, width, and hr
         void present_projection(double &, double &, double &, int &) const;
 
@@ -43,8 +40,14 @@ class Mercator {
         int get_hr();
 
     protected:
+        // find the corners of a box, given size 'a'
+        Mercator::quad find_corners(const double) const;
+
+        // check if a point is within a defined quadrilateral
+        bool is_within_bounds(const quad &) const;
+
         // coordinates and projection width
-        double x = 0, y = 0, w = 0;
+        double x = 0, y = 0, w_n = 0;
 
         // Harvard revised number
         int hr = 0;
