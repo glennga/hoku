@@ -80,9 +80,9 @@ class BaseTest {
             return push_results(!(a == b), test_name, "\'A == B\' is not true.", "A == B.");
         }
 
-        // generic element in vector/array assertion
-        template<typename T, typename S>
-        bool assert_in_container(const T &e, const S &s, const std::string &test_name,
+        // generic element in vector assertion
+        template<typename T>
+        bool assert_in_container(const T &e, const std::vector<T> &s, const std::string &test_name,
                                  const std::string &log_data) {
             log_current(std::find(s.begin(), s.end(), e) != s.end(),
                         test_name + ",GenericElementWithinContainer", log_data);
@@ -90,10 +90,10 @@ class BaseTest {
                                 "E exists in S.", "E does not exist in S.");
         }
 
-        // generic element not in vector/array assertion
-        template<typename T, typename S>
-        bool assert_not_in_container(const T &s, const S &e, const std::string &test_name,
-                                     const std::string &log_data) {
+        // generic element not in vector assertion
+        template<typename T>
+        bool assert_not_in_container(const T &e, const std::vector<T> &s,
+                                     const std::string &test_name, const std::string &log_data) {
             log_current(std::find(s.begin(), s.end(), e) == s.end(),
                         test_name + ",GenericElementNotWithinContainer", log_data);
             return push_results(std::find(s.begin(), s.end(), e) == s.end(), test_name,
