@@ -7,7 +7,14 @@
 #include "base-test.h"
 
 /*
- * Push the results
+ * Push the results of the given assertion onto the current assertion stack. If desired, print
+ * the current test output.
+ *
+ * @param assertion If true, this pushes the current test on the 'passed' stack.
+ * @param test_name Name of the current test being performed.
+ * @param explain_pass Output string if the assertion is true.
+ * @param explain_fail Output string if the assertion is false.
+ * @return True if assertion is true. False otherwise.
  */
 bool BaseTest::push_results(const bool assertion, const std::string &test_name,
                             const std::string &explain_pass, const std::string &explain_fail) {
@@ -61,10 +68,10 @@ bool BaseTest::assert_equal(double a, double b, const std::string &test_name, do
     std::string finding_delta = "|" + std::to_string(a) + " - " + std::to_string(b) + "|";
 
     log_current(fabs(a - b) < delta, test_name + ",FloatEqualAssertion",
-                minimum.str() + "~" + std::to_string(a) + "~" + std::to_string(b));
+                minimum.str() + "," + std::to_string(a) + "," + std::to_string(b));
 
-    return push_results(fabs(a - b) < delta, test_name, finding_delta + "< " + minimum.str() + ".",
-                        finding_delta + ">= " + minimum.str() + ".");
+    return push_results(fabs(a - b) < delta, test_name, finding_delta + " < " + minimum.str() + ".",
+                        finding_delta + " >= " + minimum.str() + ".");
 }
 
 /*
@@ -82,11 +89,11 @@ bool BaseTest::assert_not_equal(double a, double b, const std::string &test_name
     std::string finding_delta = "|" + std::to_string(a) + " - " + std::to_string(b) + "|";
 
     log_current(fabs(a - b) >= delta, test_name + ",FloatNotEqualAssertion",
-                minimum.str() + "~" + std::to_string(a) + "~" + std::to_string(b));
+                minimum.str() + "," + std::to_string(a) + "," + std::to_string(b));
 
     return push_results(fabs(a - b) < delta, test_name,
-                        finding_delta + ">= " + minimum.str() + ".",
-                        finding_delta + "< " + minimum.str() + ".");
+                        finding_delta + " >= " + minimum.str() + ".",
+                        finding_delta + " < " + minimum.str() + ".");
 }
 
 /*
@@ -106,7 +113,7 @@ bool BaseTest::assert_equal(const std::string &a, const std::string &b,
     a_prime.erase(std::remove(a_prime.begin(), a_prime.end(), ','), a_prime.end());
     b_prime.erase(std::remove(b_prime.begin(), b_prime.end(), ','), b_prime.end());
     log_current(abs(a.compare(b)) <= delta, test_name + ",StringEqualAssertion",
-                std::to_string(delta) + "~" + a_prime + "~" + b_prime);
+                std::to_string(delta) + "," + a_prime + "," + b_prime);
 
     return push_results(abs(a.compare(b)) <= delta, test_name,
                         "\'" + a + "\' is equivalent to \'" + b + ".",
@@ -130,7 +137,7 @@ bool BaseTest::assert_not_equal(const std::string &a, const std::string &b,
     a_prime.erase(std::remove(a_prime.begin(), a_prime.end(), ','), a_prime.end());
     b_prime.erase(std::remove(b_prime.begin(), b_prime.end(), ','), b_prime.end());
     log_current(abs(a.compare(b)) > delta, test_name + ",StringNotEqualAssertion",
-                std::to_string(delta) + "~" + a_prime + "~" + b_prime);
+                std::to_string(delta) + "," + a_prime + "," + b_prime);
 
     return push_results(abs(a.compare(b)) > delta, test_name,
                         "\'" + a + "\' is not equivalent to \'" + b + ".",
@@ -151,7 +158,7 @@ bool BaseTest::assert_within(const double x, const double a, const double b,
     std::string finding_within = std::to_string(a) + " < " + std::to_string(x) + " < ";
     finding_within += std::to_string(b);
     log_current(a < x && x < b, test_name + ",FloatElementWithinBounds",
-                std::to_string(x) + "~" + std::to_string(a) + "~" + std::to_string(b));
+                std::to_string(x) + "," + std::to_string(a) + "," + std::to_string(b));
 
     return push_results(a < x && x < b, test_name, finding_within + " is true.",
                         finding_within + " is false");
@@ -171,7 +178,7 @@ bool BaseTest::assert_not_within(const double x, const double a, const double b,
     std::string finding_within = std::to_string(a) + " < " + std::to_string(x) + " < ";
     finding_within += std::to_string(b);
     log_current(a < x && x < b, test_name + ",FloatElementNotWithinBounds",
-                std::to_string(x) + "~" + std::to_string(a) + "~" + std::to_string(b));
+                std::to_string(x) + "," + std::to_string(a) + "," + std::to_string(b));
 
     return push_results(a < x && x < b, test_name, finding_within + " is true.",
                         finding_within + " is false");
@@ -190,10 +197,15 @@ int BaseTest::log_current(const bool assertion, const std::string &name_type,
     auto t = clock::now() - time_before_call;
     auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(t).count();
 
-    // in order: Name-Type-Time-Pass/Fail-Parameter1-Parameter-2
-    this->log << name_type << "," << elapsed;
-    this->log << (assertion ? ",1," : ",0,");
-    this->log << compared;
+    // do not log anything if not desired
+    if (f == NO_PRINT_LOG_OFF || f == MINIMAL_PRINT_LOG_OFF || f == FULL_PRINT_LOG_OFF) {
+        return 0;
+    }
+
+    // in order: Name-Type-Time-Pass/Fail-Parameters
+    (*this->log) << name_type << "," << elapsed;
+    (*this->log) << (assertion ? ",1," : ",0,");
+    (*this->log) << compared << std::endl;
 
     return 0;
 }
@@ -220,8 +232,7 @@ int BaseTest::print_current(const std::string &minimal) {
     }
 
     // print the time elapsed
-    std::cout << "TFSOT: " << elapsed << " uS" << std::endl;
-    std::cout << SECTION_HEADER << std::endl;
+    std::cout << "Time Elapsed: " << elapsed << " uS" << std::endl;
     return 0;
 }
 
@@ -254,7 +265,7 @@ int BaseTest::print_summary() {
  *
  * @param f Print and logging option, wrapped in Flavor enum.
  * @param specific_test Only execute certain test if desired.
- * @return 0 when finished.
+ * @return -1 if the log file cannot be opened. 0 otherwise.
  */
 int BaseTest::execute_tests(const Flavor f, const int specific_test) {
     using clock = std::chrono::system_clock;
@@ -263,23 +274,21 @@ int BaseTest::execute_tests(const Flavor f, const int specific_test) {
 
     // logging is enabled, open the file (NOTE: HOKU_PROJECT_PATH MUST BE SET)
     if (f == NO_PRINT_LOG_ON || f == MINIMAL_PRINT_LOG_ON || f == FULL_PRINT_LOG_ON) {
-        std::time_t t_now = clock::to_time_t(clock::now() - std::chrono::hours(24));
         std::string log_file;
         std::ostringstream l;
 
         // construct the log_file
-        l << std::getenv("HOKU_PROJECT_PATH") << "/data/test-";
-        l << std::put_time(std::localtime(&t_now), "%F %T") << ".csv";
-        log_file = l.str();
+        l << "/data/test/" << clock::to_time_t(clock::now() - std::chrono::hours(24)) << ".csv";
+        log_file = std::string(std::getenv("HOKU_PROJECT_PATH")) + l.str();
 
-        // remove all occurrences of colons
-        log_file.erase(std::remove(log_file.begin(), log_file.end(), ':'), log_file.end());
-
-        // open this log file for writing
-        this->log.open(log_file);
+        // open this log file for writing, non-copyable so must make pointer
+        this->log = std::make_shared<std::ofstream>(std::ofstream(log_file));
+        if (!(*this->log).is_open()) {
+            return -1;
+        }
 
         // append the columns to the csv file
-        this->log << "name,type,time,pass'/fail,parameters" << std::endl;
+        (*this->log) << "Name,Type,Time(uS),Pass/Fail,Parameters" << std::endl;
     }
 
     this->time_before_call = clock::now();
@@ -291,6 +300,6 @@ int BaseTest::execute_tests(const Flavor f, const int specific_test) {
         while (enumerate_tests(test_case++) != -1) { this->time_before_call = clock::now(); }
     }
 
-    this->log.close();
+    (*this->log).close();
     return print_summary();
 }
