@@ -23,7 +23,7 @@ Mercator::Mercator(const Star &s, const double w_n) {
  * @param x X coordinate to store.
  * @param y Y coordinate to store.
  * @param w_n Width used to project the given X, Y coordinates.
- * @param hr Havard revised number to store.
+ * @param hr Harvard revised number to store.
  */
 Mercator::Mercator(const double x, const double y, const double w_n, const int hr) {
     this->x = x;
@@ -130,22 +130,3 @@ Mercator::quad Mercator::find_corners(const double a) const {
     return {Mercator(x - a / 2.0, y + a / 2.0, w_n), Mercator(x + a / 2.0, y + a / 2.0, w_n),
             Mercator(x - a / 2.0, y - a / 2.0, w_n), Mercator(x + a / 2.0, y - a / 2.0, w_n)};
 }
-
-///*
-// * Construct a quad using the current width and determine if any of these points fall within the
-// * given quad.
-// *
-// * @param corners Corners of the boundary quadrilateral.
-// * @return True if a point in the constructed box resides in the given quad. False otherwise.
-// */
-//bool Mercator::quad_within_bounds(const quad &corners) const {
-//    Mercator::quad candidates = find_corners(this->w_n);
-//
-//    for (int i = 0; i < 4; i++) {
-//        if (!candidates[i].is_within_bounds(corners)) {
-//            return false;
-//        }
-//    }
-//
-//    return true;
-//}

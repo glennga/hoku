@@ -34,10 +34,13 @@ bool BaseTest::push_results(const bool assertion, const std::string &test_name,
  *
  * @param assertion Boolean assertion, expected to be true.
  * @param test_name Name of test being performed.
+ * @param parameters Data to be logged if desired.
  * @return True if assertion is true. False otherwise.
  */
-bool BaseTest::assert_true(bool assertion, const std::string &test_name) {
-    log_current(assertion, test_name + ",TrueAssertion", (assertion ? "true" : "false"));
+bool BaseTest::assert_true(bool assertion, const std::string &test_name,
+                           const std::string &parameters) {
+    log_current(assertion, test_name + ",TrueAssertion",
+                (assertion ? "true" : "false") + parameters);
     return push_results(assertion, test_name, "Assertion is true.", "Assertion is false.");
 }
 
@@ -46,10 +49,13 @@ bool BaseTest::assert_true(bool assertion, const std::string &test_name) {
  *
  * @param assertion Boolean assertion, expected to be false.
  * @param test_name Name of test being performed.
+ * @param parameters Data to be logged if desired.
  * @return True if assertion is false. False otherwise.
  */
-bool BaseTest::assert_false(bool assertion, const std::string &test_name) {
-    log_current(!assertion, test_name + ",FalseAssertion", (!assertion ? "true" : "false"));
+bool BaseTest::assert_false(bool assertion, const std::string &test_name,
+                            const std::string &parameters) {
+    log_current(!assertion, test_name + ",FalseAssertion",
+                (!assertion ? "true" : "false") + parameters);
     return push_results(!assertion, test_name, "Assertion is false.", "Assertion is true.");
 }
 
