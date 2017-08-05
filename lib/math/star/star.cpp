@@ -40,6 +40,16 @@ Star::Star() {
 }
 
 /*
+ * Return all components in the current star as a string object.
+ *
+ * @return String of components in form of (i/j/k/hr).
+ */
+std::string Star::str() const {
+    return std::string("(" + std::to_string(i) + ":" + std::to_string(j) + ":" +
+                       std::to_string(k) + ":" + std::to_string(hr) + ")");
+}
+
+/*
  * Get method for the i, j, and k components of the star. Overloads the [] operator.
  *
  * @param n Index of <i, j, k> to return.

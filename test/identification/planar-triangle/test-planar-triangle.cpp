@@ -40,11 +40,11 @@ void TestPlanarTriangle::test_trio_query() {
  */
 void TestPlanarTriangle::test_match_stars_fov() {
     Plane kaph(Benchmark(10, Star::chance(), Rotation::chance()));
-    kaph.input[0].hr = 3;
-    kaph.input[1].hr = 4;
-    kaph.input[2].hr = 5;
+    kaph.input[0] = Star(kaph.input[0][0], kaph.input[0][1], kaph.input[0][2], 3);
+    kaph.input[1] = Star(kaph.input[1][0], kaph.input[1][1], kaph.input[1][2], 4);
+    kaph.input[2] = Star(kaph.input[2][0], kaph.input[2][1], kaph.input[2][2], 5);
 
-    std::vector<Plane::star_trio> yodh = kaph.match_stars({0, 1, 2});
+    std::vector<Trio::stars> yodh = kaph.match_stars({0, 1, 2});
     assert_true(yodh[0][0] == Star() && yodh[0][1] == Star() && yodh[0][2] == Star(),
                 "CandidateOutOfFOV");
 }
@@ -58,7 +58,7 @@ void TestPlanarTriangle::test_match_stars_none() {
     kaph.input[1] = Star(1, 1, 1);
     kaph.input[2] = Star(1.1, 1, 1);
 
-    std::vector<Plane::star_trio> yodh = kaph.match_stars({0, 1, 2});
+    std::vector<Trio::stars> yodh = kaph.match_stars({0, 1, 2});
     assert_true(yodh[0][0] == Star() && yodh[0][1] == Star() && yodh[0][2] == Star(),
                 "CandidateNoMatchingPair");
 }
@@ -72,11 +72,11 @@ void TestPlanarTriangle::test_match_stars_results() {
     kaph.input[1] = kaph.ch.query_bsc5(4325);
     kaph.input[2] = kaph.ch.query_bsc5(4502);
 
-    std::vector<Plane::star_trio> yodh = kaph.match_stars({0, 1, 2});
+    std::vector<Trio::stars> yodh = kaph.match_stars({0, 1, 2});
     std::array<bool, 3> matched = {false, false, false};
 
     // check that original input trio exists in search
-    for (const Plane::star_trio &t : yodh) {
+    for (const Trio::stars &t : yodh) {
         for (int i = 0; i < 3; i++) {
             if (kaph.input[i] == t[0] || kaph.input[i] == t[1] || kaph.input[i] == t[2]) {
                 matched[i] = true;
@@ -98,8 +98,8 @@ void TestPlanarTriangle::test_pivot_query_results() {
     kaph.input[1] = kaph.ch.query_bsc5(4325);
     kaph.input[2] = kaph.ch.query_bsc5(4502);
 
-    std::vector<Plane::star_trio> yodh = kaph.match_stars({0, 1, 2});
-    Plane::star_trio teth = kaph.pivot({0, 1, 2}, yodh);
+    std::vector<Trio::stars> yodh = kaph.match_stars({0, 1, 2});
+    Trio::stars teth = kaph.pivot({0, 1, 2}, yodh);
     assert_true(teth[0] == kaph.input[0] || teth[0] == kaph.input[1] || teth[0] == kaph.input[2],
                 "CandidateMatchingStarPivotQueryStar0");
     assert_true(teth[1] == kaph.input[0] || teth[1] == kaph.input[1] || teth[1] == kaph.input[2],
