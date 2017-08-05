@@ -21,6 +21,8 @@
  * Acquisition process.
  */
 class Angle {
+        friend class TestAngle;
+
     public:
         // used to define the query and match operations
         struct Parameters {
@@ -42,9 +44,7 @@ class Angle {
         // generate the separation table
         static int generate_sep_table(const int, const std::string &);
 
-#ifndef DEBUGGING_MODE_IS_ON
     private:
-#endif
         using hr_list = std::vector<double>;
         using hr_pair = std::array<int, 2>;
 

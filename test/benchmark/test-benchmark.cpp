@@ -11,48 +11,49 @@
  */
 void TestBenchmark::test_star_shuffle() {
     Benchmark input(15, Star::chance(), Rotation::chance());
-    Star kaph = input.stars[0], yodh(0, 0, 0);
+    Star a = input.stars[0], b(0, 0, 0);
 
     // shuffle set twice
     input.shuffle();
-    yodh = input.stars[0];
+    b = input.stars[0];
     input.shuffle();
 
-    assert_false(kaph == yodh, "ShuffledSetStarShuffle1");
-    assert_false(yodh == input.stars[0], "ShuffledSetStarShuffle2");
+    assert_not_equal(a, b, "ShuffledSetStarShuffle1", a.str() + "," + b.str());
+    assert_not_equal(b, input.stars[0], "ShuffledSetStarShuffle2",
+                     b.str() + "," + input.stars[0].str());
 }
 
 /*
  * Check that the file current_plot.dat is formatted correctly.
  */
 void TestBenchmark::test_current_plot_file() {
-    Star kaph = Star::chance();
-    Rotation yodh = Rotation::chance();
-    Benchmark input(15, kaph, yodh);
-    Star teth = Rotation::rotate(kaph, yodh);
-    std::string heth;
-    char zayin[200];
+    Star a = Star::chance();
+    Rotation b = Rotation::chance();
+    Benchmark input(15, a, b);
+    Star c = Rotation::rotate(a, b);
+    std::string d;
+    char e[200];
 
     std::remove(input.CURRENT_PLOT.c_str());
     std::remove(input.ERROR_PLOT.c_str());
     input.record_current_plot();
 
     std::ifstream current_plot_from_input(input.CURRENT_PLOT.c_str());
-    assert_true(current_plot_from_input.good(), "CurrentPlotFileOpen");
+    assert_true(current_plot_from_input.good(), "CurrentPlotFileOpen", input.CURRENT_PLOT);
 
-    std::getline(current_plot_from_input, heth);
-    assert_equal(15, std::stoi(heth.c_str()), "CurrentPlotFOVEquality");
-    std::getline(current_plot_from_input, heth);
-    assert_equal(1, std::stod(heth.c_str()), "CurrentPlotNormEquality");
+    std::getline(current_plot_from_input, d);
+    assert_equal(15, std::stoi(d.c_str()), "CurrentPlotFOVEquality");
+    std::getline(current_plot_from_input, d);
+    assert_equal(1, std::stod(d.c_str()), "CurrentPlotNormEquality");
 
-    std::getline(current_plot_from_input, heth);
-    sprintf(zayin, "%f %f %f ", teth[0], teth[1], teth[2]);
-    assert_true(abs(heth.compare(zayin)) < 2, "CurrentPlotFocusEquality");
+    std::getline(current_plot_from_input, d);
+    sprintf(e, "%f %f %f ", c[0], c[1], c[2]);
+    assert_equal(d, std::string(e), "CurrentPlotFocusEquality", 2);
 
-    std::getline(current_plot_from_input, heth);
-    sprintf(zayin, "%f %f %f %d", input.stars[0][0], input.stars[0][1], input.stars[0][2],
+    std::getline(current_plot_from_input, d);
+    sprintf(e, "%f %f %f %d", input.stars[0][0], input.stars[0][1], input.stars[0][2],
             input.stars[0].get_hr());
-    assert_true(abs(heth.compare(zayin)) < 2, "CurrentPlotStar0Equality");
+    assert_equal(d, std::string(e), "CurrentPlotStar0Equality", 2);
 }
 
 /*
@@ -60,8 +61,8 @@ void TestBenchmark::test_current_plot_file() {
  */
 void TestBenchmark::test_error_plot_file() {
     Benchmark input(15, Star::chance(), Rotation::chance());
-    std::string kaph;
-    char yodh[200];
+    std::string a;
+    char b[200];
 
     std::remove(input.CURRENT_PLOT.c_str());
     std::remove(input.ERROR_PLOT.c_str());
@@ -69,14 +70,14 @@ void TestBenchmark::test_error_plot_file() {
     input.record_current_plot();
 
     std::ifstream error_plot_from_input(input.ERROR_PLOT.c_str());
-    assert_true(error_plot_from_input.good(), "ErrorPlotFileOpen");
+    assert_true(error_plot_from_input.good(), "ErrorPlotFileOpen", input.ERROR_PLOT);
 
-    // NOTE: here yodh truncates a digit, but this is correct otherwise
-    std::getline(error_plot_from_input, kaph);
-    sprintf(yodh, "%f %f %f %d %s", input.error_models[0].affected[0][0],
+    // NOTE: here b truncates a digit, but this is correct otherwise
+    std::getline(error_plot_from_input, a);
+    sprintf(b, "%f %f %f %d %s", input.error_models[0].affected[0][0],
             input.error_models[0].affected[0][1], input.error_models[0].affected[0][2],
             input.error_models[0].affected[0].get_hr(), input.error_models[0].plot_color.c_str());
-    assert_equal(kaph.compare(yodh), 0, "ErrorPlotExtraLightEquality", 2);
+    assert_equal(a, std::string(b), "ErrorPlotExtraLightEquality", 2);
 }
 
 /*
@@ -90,7 +91,9 @@ void TestBenchmark::test_error_near_focus() {
 
     for (int a = 0; a < 5; a++) {
         std::string test_name = "CandidateNearFocusStar" + std::to_string(a + 1);
-        assert_true(Star::within_angle(input.stars[a], input.focus, input.fov / 2), test_name);
+        assert_true(Star::within_angle(input.stars[a], input.focus, input.fov / 2), test_name,
+                    input.stars[a].str() + "," + input.focus.str() + "," +
+                    std::to_string(input.fov / 2.0));
     }
 }
 
@@ -99,10 +102,10 @@ void TestBenchmark::test_error_near_focus() {
  */
 void TestBenchmark::test_extra_light_added() {
     Benchmark input(15, Star::chance(), Rotation::chance());
-    int kaph = input.stars.size();
+    int a = input.stars.size();
     input.add_extra_light(3);
 
-    assert_equal(input.stars.size(), kaph + 3, "ExtraLightAddedStars");
+    assert_equal(input.stars.size(), a + 3, "ExtraLightAddedStars");
 }
 
 /*
@@ -110,10 +113,10 @@ void TestBenchmark::test_extra_light_added() {
  */
 void TestBenchmark::test_removed_light_removed() {
     Benchmark input(15, Star::chance(), Rotation::chance());
-    unsigned int kaph = input.stars.size();
+    unsigned int a = input.stars.size();
     input.remove_light(3, 4);
-
-    assert_true(input.stars.size() < kaph, "RemoveLightRemovedStars");
+    
+    assert_less_than(input.stars.size(), a, "RemoveLightRemovedStars");
 }
 
 /*
@@ -121,21 +124,20 @@ void TestBenchmark::test_removed_light_removed() {
  */
 void TestBenchmark::test_shifted_light_shifted() {
     Benchmark input(15, Star::chance(), Rotation::chance());
-    std::vector<Star> kaph = input.stars;
+    std::vector<Star> a = input.stars;
     input.shift_light(3, 0.1);
-    int yodh = 0;
+    int b = 0;
 
-    for (Star original : kaph) {
+    for (Star original : a) {
         for (Star modified : input.stars) {
             if (!(original == modified)) {
-                yodh++;
+                b++;
             }
         }
     }
 
     // |original|*|modified| = (number of different pairs) + |original| - 3
-    assert_equal(kaph.size() * input.stars.size(), yodh + kaph.size() - 3,
-                 "ShiftLightShiftedStars");
+    assert_equal(a.size() * input.stars.size(), b + a.size() - 3, "ShiftLightShiftedStars");
 }
 
 /*
@@ -143,11 +145,11 @@ void TestBenchmark::test_shifted_light_shifted() {
  */
 void TestBenchmark::test_hr_number_clear() {
     Benchmark input(15, Star::chance(), Rotation::chance());
-    std::vector<Star> kaph = input.clean_stars();
+    std::vector<Star> a = input.clean_stars();
 
-    for (int a = 0; a < 3; a++) {
-        std::string test_name = "HRNumberClearStar" + std::to_string(a + 1);
-        assert_equal(kaph[a].get_hr(), 0, test_name);
+    for (int q = 0; q < 3; q++) {
+        std::string test_name = "HRNumberClearStar" + std::to_string(q + 1);
+        assert_equal(a[q].get_hr(), 0, test_name);
     }
 }
 
@@ -158,40 +160,31 @@ void TestBenchmark::test_hr_number_clear() {
  */
 int TestBenchmark::enumerate_tests(int test_case) {
     switch (test_case) {
-        case 0:
-            test_star_shuffle();
+        case 0: test_star_shuffle();
             break;
-        case 1:
-            test_current_plot_file();
+        case 1: test_current_plot_file();
             break;
-        case 2:
-            test_error_plot_file();
+        case 2: test_error_plot_file();
             break;
-        case 3:
-            test_error_near_focus();
+        case 3: test_error_near_focus();
             break;
-        case 4:
-            test_extra_light_added();
+        case 4: test_extra_light_added();
             break;
-        case 5:
-            test_removed_light_removed();
+        case 5: test_removed_light_removed();
             break;
-        case 6:
-            test_shifted_light_shifted();
+        case 6: test_shifted_light_shifted();
             break;
-        case 7:
-            test_hr_number_clear();
+        case 7: test_hr_number_clear();
             break;
-        default:
-            return -1;
+        default: return -1;
     }
 
     return 0;
 }
 
 /*
- * Run the tests in TestBenchmark.
+ * Run the tests in TestBenchmark. Currently set to print and log all data.
  */
 int main() {
-    return TestBenchmark().execute_tests();
+    return TestBenchmark().execute_tests(BaseTest::FULL_PRINT_LOG_ON);
 }
