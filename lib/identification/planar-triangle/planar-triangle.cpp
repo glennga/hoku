@@ -36,7 +36,7 @@ int Plane::generate_triangle_table(const int fov, const std::string &table_name)
     nb.select_table(table_name);
 
     // (i, j, k) are distinct, where no (i, j, k) = (j, k, i), (j, i, k), ....
-    Nibble::bsc5_star_list all_stars = nb.all_bsc5_stars();
+    Star::list all_stars = nb.all_bsc5_stars();
     for (unsigned int i = 0; i < all_stars.size() - 2; i++) {
         SQLite::Transaction transaction(*nb.db);
         std::cout << "\r" << "Current *A* Star: " << all_stars[i].get_hr();
@@ -106,10 +106,10 @@ std::vector<Plane::hr_trio> Plane::query_for_trio(const double a, const double i
  * @param hr_b Index trio of stars in body (B) frame.
  * @return Vector of trios whose areas and moments are close.
  */
-std::vector<Plane::star_trio> Plane::match_stars(const index_trio &hr_b) {
+std::vector<Trio::stars> Plane::match_stars(const index_trio &hr_b) {
     std::vector<hr_trio> match_hr;
-    std::vector<star_trio> matched_stars;
-    star_trio b_stars{this->input[hr_b[0]], this->input[hr_b[1]], this->input[hr_b[2]]};
+    std::vector<Trio::stars> matched_stars;
+    Trio::stars b_stars{this->input[hr_b[0]], this->input[hr_b[1]], this->input[hr_b[2]]};
 
     // do not attempt to find matches if all stars are not within fov
     if (Star::angle_between(b_stars[0], b_stars[1]) > this->fov ||
@@ -144,8 +144,8 @@ std::vector<Plane::star_trio> Plane::match_stars(const index_trio &hr_b) {
  * @param past_set Matches found in a previous search.
  * @return A trio of stars that match the given B stars to R stars.
  */
-Plane::star_trio Plane::pivot(const index_trio &hr_b, const std::vector<star_trio> &past_set) {
-    std::vector<star_trio> matches = this->match_stars(hr_b);
+Trio::stars Plane::pivot(const index_trio &hr_b, const std::vector<Trio::stars> &past_set) {
+    std::vector<Trio::stars> matches = this->match_stars(hr_b);
 
     // function to increment hr_b3 first, then hr_b2, then hr_b1 last
     auto increment_hr = [matches](const index_trio &hr_t) {
@@ -158,7 +158,7 @@ Plane::star_trio Plane::pivot(const index_trio &hr_b, const std::vector<star_tri
     if (past_set.size() > 0) {
         for (unsigned int i = 0; i < matches.size(); i++) {
             bool match_found = false;
-            for (const star_trio &past : past_set) {
+            for (const Trio::stars &past : past_set) {
                 // do not need check all permutations, every match set is returned in same order
                 if (past[0] == matches[i][0] && past[1] == matches[i][1] &&
                     past[2] == matches[i][2]) {
@@ -190,8 +190,8 @@ Plane::star_trio Plane::pivot(const index_trio &hr_b, const std::vector<star_tri
  * @param q The rotation to apply to all stars.
  * @return Set of matching stars found in candidates and the body sets.
  */
-Plane::star_list Plane::find_matches(const star_list &candidates, const Rotation &q) {
-    star_list matches, non_matched = this->input;
+Star::list Plane::find_matches(const Star::list &candidates, const Rotation &q) {
+    Star::list matches, non_matched = this->input;
     double epsilon = 3.0 * this->parameters.match_sigma;
     matches.reserve(this->input.size());
 
@@ -226,11 +226,11 @@ Plane::star_list Plane::find_matches(const star_list &candidates, const Rotation
  * @return The largest set of matching stars across the body and inertial in all pairing
  * configurations.
  */
-Plane::star_list Plane::check_assumptions(const star_list &candidates, const star_trio &r,
-                                          const index_trio &hr_b) {
+Star::list Plane::check_assumptions(const Star::list &candidates, const Trio::stars &r,
+                                    const index_trio &hr_b) {
     index_trio current_order = {0, 1, 2};
-    std::array<star_trio, 6> r_assumption_list;
-    std::array<star_list, 6> matches;
+    std::array<Trio::stars, 6> r_assumption_list;
+    std::array<Star::list, 6> matches;
     int current_assumption = 0;
 
     // generate unique permutation using previously generated trio
@@ -242,7 +242,7 @@ Plane::star_list Plane::check_assumptions(const star_list &candidates, const sta
     }
 
     // determine rotation to take frame R to B, only use r_1 and r_2 to get rotation
-    for (const star_trio &assumption : r_assumption_list) {
+    for (const Trio::stars &assumption : r_assumption_list) {
         Rotation q = Rotation::rotation_across_frames({this->input[hr_b[0]], this->input[hr_b[1]]},
                                                       {assumption[0], assumption[1]});
         matches[current_assumption++] = find_matches(candidates, q);
@@ -250,7 +250,7 @@ Plane::star_list Plane::check_assumptions(const star_list &candidates, const sta
 
     // return the larger of the six matches
     return std::max_element(matches.begin(), matches.end(),
-                            [](const star_list &lhs, const star_list &rhs) {
+                            [](const Star::list &lhs, const Star::list &rhs) {
                                 return lhs.size() < rhs.size();
                             })[0];
 }
@@ -262,8 +262,8 @@ Plane::star_list Plane::check_assumptions(const star_list &candidates, const sta
  * @param parameters Adjustments to the identification process.
  * @return Vector of body stars with their inertial BSC IDs that qualify as matches.
  */
-Benchmark::star_list Plane::identify(const Benchmark &input, const Parameters &parameters) {
-    star_list matches;
+Star::list Plane::identify(const Benchmark &input, const Parameters &parameters) {
+    Star::list matches;
     bool matched = false;
     Plane p(input);
     p.parameters = parameters;
@@ -272,9 +272,9 @@ Benchmark::star_list Plane::identify(const Benchmark &input, const Parameters &p
     for (unsigned int i = 0; i < p.input.size() - 2; i++) {
         for (unsigned int j = i + 1; j < p.input.size() - 1; j++) {
             for (unsigned int k = j + 1; k < p.input.size(); k++) {
-                std::vector<star_trio> candidate_trios;
-                star_trio candidate_trio;
-                star_list candidates;
+                std::vector<Trio::stars> candidate_trios;
+                Trio::stars candidate_trio;
+                Star::list candidates;
 
                 // find matches of current body trio to catalog, pivot if necessary
                 candidate_trios = p.match_stars({(double) i, (double) j, (double) k});

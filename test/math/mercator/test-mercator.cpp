@@ -28,7 +28,7 @@ void TestMercator::test_projection_within_bounds() {
  */
 void TestMercator::test_reduction_within_bounds() {
     std::vector<Mercator> kaph;
-    Mercator::mercator_list yodh;
+    Mercator::list yodh;
     bool assertion = true;
     kaph.reserve(50);
 
@@ -36,7 +36,7 @@ void TestMercator::test_reduction_within_bounds() {
         kaph.push_back(Mercator(Star::chance(), 500));
     }
 
-    yodh = Mercator(250, 250).reduce_far_stars(kaph, 200);
+    yodh = Mercator(250, 250, 0).reduce_far_points(kaph, 200);
 
     for (const Mercator &m : yodh) {
         bool within_x = m.x < 250 + (200 / 2.0) && m.x > 250 - (200 / 2.0);
@@ -46,7 +46,34 @@ void TestMercator::test_reduction_within_bounds() {
     }
 
     assert_true(assertion, "AllMercatorNotWithinBounds");
+}
 
+/*
+ * Check that the variables changed in present_projection are set correctly.
+ */
+void TestMercator::test_present_projection() {
+    Mercator m(1, 2, 3, 4);
+    double kaph[3];
+    int yodh;
+
+    m.present_projection(kaph[0], kaph[1], kaph[2], yodh);
+    assert_equal(kaph[0], 1, "PresentProjectionXComponent");
+    assert_equal(kaph[1], 2, "PresentProjectionYComponent");
+    assert_equal(kaph[2], 3, "PresentProjectionW_NComponent");
+    assert_equal(yodh, 4, "PresentProjectionHRComponent");
+}
+
+/*
+ * Check that the corners returned actually form a box.
+ */
+void TestMercator::test_corners_form_box() {
+    Mercator m(Star::chance(), 1000);
+    Mercator::quad kaph = m.find_corners(100);
+
+    assert_equal(kaph[0].x, kaph[1].x, "TopLineSameX");
+    assert_equal(kaph[2].x, kaph[3].x, "BottomLineSameX");
+    assert_equal(kaph[0].y, kaph[2].y, "LeftlineSameY");
+    assert_equal(kaph[1].y, kaph[3].y, "RightLineSameY");
 }
 
 /*
@@ -59,6 +86,10 @@ int TestMercator::enumerate_tests(int test_case) {
         case 0: test_projection_within_bounds();
             break;
         case 1: test_reduction_within_bounds();
+            break;
+        case 2: test_present_projection();
+            break;
+        case 3: test_corners_form_box();
             break;
         default: return -1;
     }
