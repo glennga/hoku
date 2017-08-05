@@ -21,22 +21,40 @@ class Mercator {
         friend class TestMercator;
 
     public:
-        using mercator_list = std::vector<Mercator>;
+        using list = std::vector<Mercator>;
+        using quad = std::array<Mercator, 4>;
 
+        Mercator() = default;
+
+        // constructors given a star, or a set of coordinates
         Mercator(const Star &, const double);
-        Mercator(const double, const double);
+        Mercator(const double, const double, const double, const int = 0);
 
-        mercator_list reduce_far_stars(const mercator_list &, const double);
+        // given a list of points, reduce to only the closest points to current
+        Mercator::list reduce_far_points(const Mercator::list &, const double);
+
+        // access method coordinates, width, and hr
+        void present_projection(double &, double &, double &, int &) const;
+
+        // another access method for hr only
+        int get_hr();
+
+    protected:
+        // find the corners of a box, given size 'a'
+        Mercator::quad find_corners(const double) const;
+
+        // check if a point is within a defined quadrilateral
+        bool is_within_bounds(const quad &) const;
+
+        // coordinates and projection width
+        double x = 0, y = 0, w_n = 0;
+
+        // Harvard revised number
+        int hr = 0;
 
     private:
         // project 3D vector to plane
         void project_star(const Star &, const double);
-
-        // coordinates and projection width
-        double x, y, w;
-
-        // Harvard revised number
-        int hr;
 };
 
 #endif /* HOKU_MERCATOR_H */

@@ -34,7 +34,7 @@ int Angle::generate_sep_table(const int fov, const std::string &table_name) {
     nb.select_table(table_name);
 
     // (i, j) are distinct, where no (i, j) = (j, i)
-    Nibble::bsc5_star_list all_stars = nb.all_bsc5_stars();
+    Star::list all_stars = nb.all_bsc5_stars();
     for (unsigned int i = 0; i < all_stars.size() - 1; i++) {
         std::cout << "\r" << "Current *I* Star: " << all_stars[i].get_hr();
         for (unsigned int j = i + 1; j < all_stars.size(); j++) {
@@ -98,7 +98,7 @@ Angle::hr_pair Angle::query_for_pair(const double theta) {
  * @return Array of vectors with 0 length if no matching pair is found. Otherwise, two inertial
  * stars that match the given body.
  */
-Angle::star_pair Angle::find_candidate_pair(const Star &b_a, const Star &b_b) {
+Star::pair Angle::find_candidate_pair(const Star &b_a, const Star &b_b) {
     double theta = Star::angle_between(b_a, b_b);
     hr_pair candidates;
 
@@ -121,8 +121,8 @@ Angle::star_pair Angle::find_candidate_pair(const Star &b_a, const Star &b_b) {
  * @param q The rotation to apply to all stars.
  * @return Set of matching stars found in candidates and the body sets.
  */
-Angle::star_list Angle::find_matches(const star_list &candidates, const Rotation &q) {
-    star_list matches, non_matched = this->input;
+Star::list Angle::find_matches(const Star::list &candidates, const Rotation &q) {
+    Star::list matches, non_matched = this->input;
     double epsilon = 3.0 * this->parameters.match_sigma;
     matches.reserve(this->input.size());
 
@@ -160,14 +160,14 @@ Angle::star_list Angle::find_matches(const star_list &candidates, const Rotation
  * @return The largest set of matching stars across the body and inertial in both pairing
  * configurations.
  */
-Angle::star_list Angle::check_assumptions(const std::vector<Star> &candidates,
-                                          const star_pair &r, const star_pair &b) {
-    std::array<star_pair, 2> assumption_list = {r, {r[1], r[0]}};
-    std::array<star_list, 2> matches;
+Star::list Angle::check_assumptions(const Star::list &candidates,
+                                    const Star::pair &r, const Star::pair &b) {
+    std::array<Star::pair, 2> assumption_list = {r, {r[1], r[0]}};
+    std::array<Star::list, 2> matches;
     int current_assumption = 0;
 
     // determine rotation to take frame B to A
-    for (const star_pair &assumption : assumption_list) {
+    for (const Star::pair &assumption : assumption_list) {
         Rotation q = Rotation::rotation_across_frames(b, assumption);
         matches[current_assumption++] = this->find_matches(candidates, q);
     }
@@ -183,9 +183,9 @@ Angle::star_list Angle::check_assumptions(const std::vector<Star> &candidates,
  * @param parameters Adjustments to the identification process.
  * @return Vector of body stars with their inertial BSC IDs that qualify as matches.
  */
-Benchmark::star_list Angle::identify(const Benchmark &input, const Parameters &parameters) {
+Star::list Angle::identify(const Benchmark &input, const Parameters &parameters) {
     bool matched = false;
-    star_list matches;
+    Star::list matches;
     Angle a(input);
 
     a.parameters = parameters;
@@ -194,10 +194,10 @@ Benchmark::star_list Angle::identify(const Benchmark &input, const Parameters &p
     // |A_input| choose 2 possibilities, starts with closest stars to focus
     for (unsigned int i = 0; i < a.input.size() - 1; i++) {
         for (unsigned int j = i + 1; j < a.input.size(); j++) {
-            star_list candidates;
+            Star::list candidates;
 
             // narrow down current pair to two stars in catalog, order currently unknown
-            star_pair candidate_pair = a.find_candidate_pair(a.input[i], a.input[j]);
+            Star::pair candidate_pair = a.find_candidate_pair(a.input[i], a.input[j]);
             if (Star::is_equal(candidate_pair[0], Star()) &&
                 Star::is_equal(candidate_pair[1], Star())) { break; }
 
