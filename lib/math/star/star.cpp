@@ -44,7 +44,7 @@ Star::Star() {
  *
  * @return String of components in form of (i/j/k/hr).
  */
-std::string Star::as_string() const {
+std::string Star::str() const {
     return std::string("(" + std::to_string(i) + ":" + std::to_string(j) + ":" +
                        std::to_string(k) + ":" + std::to_string(hr) + ")");
 }

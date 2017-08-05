@@ -34,7 +34,7 @@ void TestStar::test_plus_operator() {
     Star b(0.5, 0.5, 0.5);
 
     assert_equal(b + b, a, "PlusOperator",
-                 (b + b).as_string() + "," + a.as_string());
+                 (b + b).str() + "," + a.str());
 }
 
 /*
@@ -45,7 +45,7 @@ void TestStar::test_minus_operator() {
     Star b(0.5, 0.5, 0.5);
 
     assert_equal(a - b, b, "MinusOperator",
-                 (a - b).as_string() + "," + b.as_string());
+                 (a - b).str() + "," + b.str());
 }
 
 /*
@@ -84,7 +84,7 @@ void TestStar::test_unit_zero_star() {
     Star a(0, 0, 0);
     Star b = a.as_unit();
 
-    assert_equal(a, b, "UnitZeroVector", a.as_string() + "," + b.as_string());
+    assert_equal(a, b, "UnitZeroVector", a.str() + "," + b.str());
 }
 
 /*
@@ -94,7 +94,7 @@ void TestStar::test_equality_same() {
     Star a(1, 1, 1);
     Star b(1, 1, 1);
 
-    assert_equal(a, b, "EqualitySame", a.as_string() + "," + b.as_string());
+    assert_equal(a, b, "EqualitySame", a.str() + "," + b.str());
 }
 
 /*
@@ -132,7 +132,7 @@ void TestStar::test_chance_duplicate() {
     Star a = Star::chance();
     Star b = Star::chance();
 
-    assert_not_equal(a, b, "ChanceDuplicate", a.as_string() + "," + b.as_string());
+    assert_not_equal(a, b, "ChanceDuplicate", a.str() + "," + b.str());
 }
 
 /*
@@ -165,7 +165,7 @@ void TestStar::test_cross_computation_1() {
     Star b(0, 0, 0);
 
     assert_equal(Star::cross(a, a), b, "CrossComputationOne",
-                 Star::cross(a, a).as_string() + "," + b.as_string());
+                 Star::cross(a, a).str() + "," + b.str());
 //    assert_true(Star::is_equal(Star::cross(a, a), b, 0.1), "CrossComputationOne");
 }
 
@@ -179,7 +179,7 @@ void TestStar::test_cross_computation_2() {
     Star c(-122.2, 119, 3.2);
 
     assert_equal(Star::cross(b, a), c, "CrossComputationTwo",
-                 Star::cross(b, a).as_string() + "," + c.as_string());
+                 Star::cross(b, a).str() + "," + c.str());
 }
 
 /*
