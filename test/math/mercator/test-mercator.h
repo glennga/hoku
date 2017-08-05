@@ -18,6 +18,15 @@ class TestMercator : public BaseTest {
 
         // test the reduction method
         void test_reduction_within_bounds();
+        
+        // test the projection presentation method
+        void test_present_projection();
+        
+        // test the formation of corners in find_corners
+        void test_corners_form_box();
+        
+        // test the within_bounds method
+        void test_is_within_bounds();
 
     public:
         int enumerate_tests(int);
