@@ -45,8 +45,12 @@ Star::Star() {
  * @return String of components in form of (i/j/k/hr).
  */
 std::string Star::str() const {
-    return std::string("(" + std::to_string(i) + ":" + std::to_string(j) + ":" +
-                       std::to_string(k) + ":" + std::to_string(hr) + ")");
+    std::stringstream components;
+
+    // need to use stream here to set precision
+    components << std::setprecision(16) << std::fixed << "(";
+    components << i << ":" << j << ":" << k << ":" << hr << ")";
+    return components.str();
 }
 
 /*
