@@ -44,6 +44,12 @@ class BaseTest {
         bool assert_not_equal(const double, const double, const std::string &,
                               const double= BaseTest::PRECISION_DEFAULT);
 
+        // float less than assertion
+        bool assert_less_than(const double, const double, const std::string &);
+
+        // float greater than assertion
+        bool assert_greater_than(const double, const double, const std::string &);
+
         // string equal assertion, can adjust precision
         bool assert_equal(const std::string &, const std::string &, const std::string &,
                           const int = 0);
