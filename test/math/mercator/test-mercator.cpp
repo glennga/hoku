@@ -61,6 +61,7 @@ void TestMercator::test_present_projection() {
 void TestMercator::test_corners_form_box() {
     Mercator a(Star::chance(), 1000);
     Mercator::quad b = a.find_corners(100);
+    
 
     assert_equal(b[0].y, b[1].y, "TopLineSameY");
     assert_equal(b[2].y, b[3].y, "BottomLineSameY");
@@ -72,10 +73,15 @@ void TestMercator::test_corners_form_box() {
  * Check that points are correctly distinguished from being outside and inside a given boundary.
  */
 void TestMercator::test_is_within_bounds() {
-   Mercator::quad a = Mercator(0, 0, 1000).find_corners(100);
-
-    assert_false(Mercator(5000, 5000, 1000).is_within_bounds(a), "PointNotWithinBounds");
-    assert_true(Mercator(1, 1, 1000).is_within_bounds(a), "PointWithinBounds");
+    Mercator::quad a = Mercator(0, 0, 1000).find_corners(100);
+    std::stringstream p;
+    
+    p << std::setprecision(16) << std::fixed;
+    p << a[0].x << "," << a[0].y << "," << a[1].x << "," << a[1].y << ",";
+    p << a[2].x << "," << a[2].y << "," << a[3].x << "," << a[3].y;
+    
+    assert_false(Mercator(5000, 5000, 1000).is_within_bounds(a), "PointNotWithinBounds", p.str());
+    assert_true(Mercator(1, 1, 1000).is_within_bounds(a), "PointWithinBounds", p.str());
 }
 
 /*

@@ -40,7 +40,7 @@ bool BaseTest::push_results(const bool assertion, const std::string &test_name,
 bool BaseTest::assert_true(bool assertion, const std::string &test_name,
                            const std::string &parameters) {
     log_current(assertion, test_name + ",TrueAssertion",
-                (assertion ? "true" : "false") + parameters);
+                (assertion ? "true," : "false,") + parameters);
     return push_results(assertion, test_name, "Assertion is true.", "Assertion is false.");
 }
 
@@ -55,7 +55,7 @@ bool BaseTest::assert_true(bool assertion, const std::string &test_name,
 bool BaseTest::assert_false(bool assertion, const std::string &test_name,
                             const std::string &parameters) {
     log_current(!assertion, test_name + ",FalseAssertion",
-                (!assertion ? "true" : "false") + parameters);
+                (!assertion ? "true," : "false,") + parameters);
     return push_results(!assertion, test_name, "Assertion is false.", "Assertion is true.");
 }
 
