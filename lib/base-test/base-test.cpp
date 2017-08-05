@@ -60,6 +60,36 @@ bool BaseTest::assert_false(bool assertion, const std::string &test_name,
 }
 
 /*
+ * Determine if the the first value is less than the second.
+ *
+ * @param x This number must be less than a.
+ * @param a This number must be greater than x.
+ * @param test_name Name of test being performed.
+ * @param True if x < a. False otherwise.
+ */
+bool BaseTest::assert_less_than(const double x, const double a, const std::string &test_name) {
+    log_current(x < a, test_name + ",FloatLessThanAssertion",
+                std::to_string(x) + "," + std::to_string(a));
+    return push_results(x < a, test_name, std::to_string(x) + " < " + std::to_string(a) + ".",
+                        std::to_string(x) + " >= " + std::to_string(a) + ".");
+}
+
+/*
+ * Determine if the the first value is greater than the second.
+ *
+ * @param x This number must be greater than a.
+ * @param a This number must be less than x.
+ * @param test_name Name of test being performed.
+ * @param True if x > a. False otherwise.
+ */
+bool BaseTest::assert_greater_than(const double x, const double a, const std::string &test_name){
+    log_current(x > a, test_name + ",FloatGreaterThanAssertion",
+                std::to_string(x) + "," + std::to_string(a));
+    return push_results(x > a, test_name, std::to_string(x) + " > " + std::to_string(a) + ".",
+                        std::to_string(x) + " <= " + std::to_string(a) + ".");
+}
+
+/*
  * Determine if the two values are within delta units of each other.
  *
  * @param a This value must be close to b.
