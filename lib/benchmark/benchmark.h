@@ -17,15 +17,6 @@
 #include "nibble.h"
 
 /*
- * Error model structure, used to define the type of error and the stars affected.
- */
-struct ErrorModel {
-    std::string model_name;
-    std::string plot_color;
-    std::vector<Star> affected;
-};
-
-/*
  * @class Benchmark
  * @brief Benchmark class, which generates the input data for star identification testing.
  *
@@ -37,8 +28,17 @@ struct ErrorModel {
  * various error models to this set.
  */
 class Benchmark {
+        friend class TestBenchmark;
+        friend class TestAngle;
+        friend class TestPlanarTriangle;
+
     public:
-        using star_list = std::vector<Star>;
+        // error model structure, used to define the type of error and the stars affected.
+        struct ErrorModel {
+            std::string model_name;
+            std::string plot_color;
+            std::vector<Star> affected;
+        };
 
         // default constructor must not be generated, user must specify fov, focus, and rotation
         Benchmark() = delete;
@@ -48,8 +48,8 @@ class Benchmark {
         void generate_stars();
 
         // set stars, focus, and fov from parameters
-        void present_image(star_list &, Star &, double &);
-        
+        void present_image(Star::list &, Star &, double &);
+
         // write current star set to file, display plot using Python's MatPlotLib
         int record_current_plot();
         int display_plot();
@@ -59,14 +59,12 @@ class Benchmark {
         void remove_light(const int, const double);
         void shift_light(const int, const double);
 
-#ifndef DEBUGGING_MODE_IS_ON
     private:
-#endif
         using model_list = std::vector<ErrorModel>;
 
         // set all of the BCS IDs in the star set to 0 and return the current star set
-        star_list clean_stars();
-        
+        Star::list clean_stars();
+
         // shuffle current star set
         void shuffle();
 
@@ -77,7 +75,7 @@ class Benchmark {
         const std::string PLOT_SCRIPT = PROJECT_LOCATION + "/lib/benchmark/generate_plot.py";
 
         // all stars in 'stars' must be near the focus
-        star_list stars;
+        Star::list stars;
         Star focus;
 
         // limit a star must be from focus

@@ -46,11 +46,11 @@ void TestBenchmark::test_current_plot_file() {
     assert_equal(1, std::stod(heth.c_str()), "CurrentPlotNormEquality");
 
     std::getline(current_plot_from_input, heth);
-    sprintf(zayin, "%f %f %f ", teth.i, teth.j, teth.k);
+    sprintf(zayin, "%f %f %f ", teth[0], teth[1], teth[2]);
     assert_true(abs(heth.compare(zayin)) < 2, "CurrentPlotFocusEquality");
 
     std::getline(current_plot_from_input, heth);
-    sprintf(zayin, "%f %f %f %d", input.stars[0].i, input.stars[0].j, input.stars[0].k,
+    sprintf(zayin, "%f %f %f %d", input.stars[0][0], input.stars[0][1], input.stars[0][2],
             input.stars[0].get_hr());
     assert_true(abs(heth.compare(zayin)) < 2, "CurrentPlotStar0Equality");
 }
@@ -73,8 +73,8 @@ void TestBenchmark::test_error_plot_file() {
 
     // NOTE: here yodh truncates a digit, but this is correct otherwise
     std::getline(error_plot_from_input, kaph);
-    sprintf(yodh, "%f %f %f %d %s", input.error_models[0].affected[0].i,
-            input.error_models[0].affected[0].j, input.error_models[0].affected[0].k,
+    sprintf(yodh, "%f %f %f %d %s", input.error_models[0].affected[0][0],
+            input.error_models[0].affected[0][1], input.error_models[0].affected[0][2],
             input.error_models[0].affected[0].get_hr(), input.error_models[0].plot_color.c_str());
     assert_equal(kaph.compare(yodh), 0, "ErrorPlotExtraLightEquality", 2);
 }
