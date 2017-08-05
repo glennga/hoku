@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <ctime>
 #include <iomanip>
+#include <memory>
 
 /*
  * @class BaseTest
@@ -101,8 +102,8 @@ class BaseTest {
 
     private:
         // print result summary, define headers
-        const char *CONTENT_HEADER = "**********************************************";
-        const char *SECTION_HEADER = "----------------------------------------------";
+        const char *CONTENT_HEADER = "***********************************************************";
+        const char *SECTION_HEADER = "-----------------------------------------------------------";
         int print_summary();
 
         // log the current test results into a csv file
@@ -114,7 +115,7 @@ class BaseTest {
                           const std::string &);
 
         // log stream (if desired), and current testing option
-        std::ofstream log;
+        std::shared_ptr<std::ofstream> log;
         Flavor f;
 
         // clock, set before running call
