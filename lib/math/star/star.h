@@ -33,7 +33,7 @@ class Star {
         Star();
 
         // return all the star components as a single string
-        std::string as_string() const;
+        std::string str() const;
 
         // get methods for i, j, k, and HR methods
         double operator[](const int) const;
