@@ -40,6 +40,20 @@ Star::Star() {
 }
 
 /*
+ * Return all components in the current star as a string object.
+ *
+ * @return String of components in form of (i/j/k/hr).
+ */
+std::string Star::str() const {
+    std::stringstream components;
+
+    // need to use stream here to set precision
+    components << std::setprecision(16) << std::fixed << "(";
+    components << i << ":" << j << ":" << k << ":" << hr << ")";
+    return components.str();
+}
+
+/*
  * Get method for the i, j, and k components of the star. Overloads the [] operator.
  *
  * @param n Index of <i, j, k> to return.
