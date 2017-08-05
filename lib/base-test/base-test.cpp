@@ -278,7 +278,7 @@ int BaseTest::execute_tests(const Flavor f, const int specific_test) {
         std::ostringstream l;
 
         // construct the log_file
-        l << "/data/test-" << clock::to_time_t(clock::now() - std::chrono::hours(24)) << ".csv";
+        l << "/data/test/" << clock::to_time_t(clock::now() - std::chrono::hours(24)) << ".csv";
         log_file = std::string(std::getenv("HOKU_PROJECT_PATH")) + l.str();
 
         // open this log file for writing, non-copyable so must make pointer
