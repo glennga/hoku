@@ -152,8 +152,8 @@ bool BaseTest::assert_equal(const std::string &a, const std::string &b,
                 std::to_string(delta) + "," + a_prime + "," + b_prime);
 
     return push_results(abs(a.compare(b)) <= delta, test_name,
-                        "\'" + a + "\' is equivalent to \'" + b + ".",
-                        "\'" + a + "\' is not equivalent to \'" + b + ".");
+                        "\'" + a + "\' is equivalent to \'" + b + "\'.",
+                        "\'" + a + "\' is not equivalent to \'" + b + "\'.");
 }
 
 /*
