@@ -18,6 +18,8 @@
  * three vectors, one can find the area and polar moment of the formed planar or spherical triangle.
  */
 class Trio {
+        friend class TestTrio;
+
     public:
         // common alias for trio of stars
         using stars = std::array<Star, 3>;

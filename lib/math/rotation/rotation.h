@@ -18,6 +18,8 @@
  * allow us to simulate a true lost-in-space condition.
  */
 class Rotation {
+        friend class TestRotation;
+
     public:
         // force default constructor, all components start at zero
         Rotation() = default;
