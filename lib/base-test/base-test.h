@@ -33,8 +33,8 @@ class BaseTest {
 
     protected:
         // basic true/false assertions
-        bool assert_true(bool, const std::string &);
-        bool assert_false(bool, const std::string &);
+        bool assert_true(bool, const std::string &, const std::string & = "");
+        bool assert_false(bool, const std::string &, const std::string & = "");
 
         // float equal assertion, can adjust precision
         bool assert_equal(const double, const double, const std::string &,

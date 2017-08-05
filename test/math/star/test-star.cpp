@@ -104,7 +104,8 @@ void TestStar::test_equality_precision() {
     Star a(0, 0, 1);
     Star b(0, 0, 1.001);
 
-    assert_true(Star::is_equal(a, b, 0.0011), "EqualityPrecision");
+    assert_true(Star::is_equal(a, b, 0.0011), "EqualityPrecision",
+                a.str() + "," + b.str() + "," + std::to_string(0.0011));
 }
 
 /*
@@ -163,10 +164,9 @@ void TestStar::test_dot_computation_2() {
 void TestStar::test_cross_computation_1() {
     Star a(1, 1, 1);
     Star b(0, 0, 0);
+    Star c = Star::cross(a, a);
 
-    assert_equal(Star::cross(a, a), b, "CrossComputationOne",
-                 Star::cross(a, a).str() + "," + b.str());
-//    assert_true(Star::is_equal(Star::cross(a, a), b, 0.1), "CrossComputationOne");
+    assert_equal(c, b, "CrossComputationOne", c.str() + "," + b.str());
 }
 
 /*
@@ -177,9 +177,9 @@ void TestStar::test_cross_computation_2() {
     Star a(1, 1, 1);
     Star b(4, 0.8, 123);
     Star c(-122.2, 119, 3.2);
+    Star d = Star::cross(b, a);
 
-    assert_equal(Star::cross(b, a), c, "CrossComputationTwo",
-                 Star::cross(b, a).str() + "," + c.str());
+    assert_equal(d, c, "CrossComputationTwo", d.str() + "," + c.str());
 }
 
 /*
@@ -211,7 +211,7 @@ void TestStar::test_angle_within_check() {
     Star a(1, 1, 1);
     Star b(1.1, 1, 1);
 
-    assert_true(Star::within_angle(a, b, 15), "AngleWithinCheck");
+    assert_true(Star::within_angle(a, b, 15), "AngleWithinCheck", a.str() + "," + b.str() + ",15");
 }
 
 /*
@@ -221,7 +221,7 @@ void TestStar::test_angle_out_check() {
     Star a(1, 1, 1);
     Star b(-1, 1, 1);
 
-    assert_false(Star::within_angle(a, b, 15), "AngleOutCheck");
+    assert_false(Star::within_angle(a, b, 15), "AngleOutCheck", a.str() + "," + b.str() + ",15");
 }
 
 /*
@@ -239,7 +239,8 @@ void TestStar::test_hr_clear() {
 void TestStar::test_angle_same() {
     Star a(1, 1, 1), b(1, 1, 1);
 
-    assert_false(std::isnan(Star::angle_between(a, b)), "NaNTestSameAngle");
+    assert_false(std::isnan(Star::angle_between(a, b)), "NaNTestSameAngle",
+                 a.str() + "," + b.str());
 }
 
 /*
