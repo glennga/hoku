@@ -1,8 +1,7 @@
-/*
- * @file: base_test.h
- *
- * @brief: Header file for BaseTest class, which is a base class for all testing classes.
- */
+/// @file base-test.h
+/// @author Glenn Galvizo
+///
+/// Header file for BaseTest class, which is a base class for all testing classes.
 
 #ifndef BASE_TEST_H
 #define BASE_TEST_H
@@ -12,119 +11,150 @@
 #include <fstream>
 #include <chrono>
 #include <algorithm>
-#include <ctime>
 #include <iomanip>
 #include <memory>
 
-/*
- * @class BaseTest
- * @brief Base class for all testing classes.
- */
-class BaseTest {
-    public:
-        // define the the type of output for the tests
-        enum Flavor {
-            NO_PRINT_LOG_OFF, MINIMAL_PRINT_LOG_OFF, FULL_PRINT_LOG_OFF,
-            NO_PRINT_LOG_ON, MINIMAL_PRINT_LOG_ON, FULL_PRINT_LOG_ON
-        };
+/// Base class for all testing classes. Includes logging and printing functionality.
+class BaseTest
+{
+public:
+    /// Defines the type of output for the tests - logging and printing.
+    enum Flavor
+    {
+        NO_PRINT_LOG_OFF,      /// Do not print to console. Do not log to file.
+        MINIMAL_PRINT_LOG_OFF, /// Print minimal data to console. Do not log to file.
+        FULL_PRINT_LOG_OFF,    /// Print all data to console. Do not log to file.
+        NO_PRINT_LOG_ON,       /// Do not print to console. Log to file.
+        MINIMAL_PRINT_LOG_ON,  /// Print minimal data to console. Log to file.
+        FULL_PRINT_LOG_ON      /// Print all data to console. Log to file.
+    };
 
-        // execute the tests based on the given
-        int execute_tests(const Flavor = Flavor::FULL_PRINT_LOG_ON, const int = -1);
+public:
+    int execute_tests(const Flavor = Flavor::FULL_PRINT_LOG_ON, const int = -1);
 
-    protected:
-        // basic true/false assertions
-        bool assert_true(bool, const std::string &, const std::string & = "");
-        bool assert_false(bool, const std::string &, const std::string & = "");
+protected:
+    bool assert_true(bool, const std::string &, const std::string & = "");
+    bool assert_false(bool, const std::string &, const std::string & = "");
 
-        // float equal assertion, can adjust precision
-        bool assert_equal(const double, const double, const std::string &,
-                          const double= BaseTest::PRECISION_DEFAULT);
+    bool assert_equal(const double, const double, const std::string &, const double= BaseTest::PRECISION_DEFAULT);
+    bool assert_not_equal(const double, const double, const std::string &, const double= BaseTest::PRECISION_DEFAULT);
 
-        // float not-equal assertion, can adjust precision
-        bool assert_not_equal(const double, const double, const std::string &,
-                              const double= BaseTest::PRECISION_DEFAULT);
+    bool assert_less_than(const double, const double, const std::string &);
+    bool assert_greater_than(const double, const double, const std::string &);
 
-        // string equal assertion, can adjust precision
-        bool assert_equal(const std::string &, const std::string &, const std::string &,
-                          const int = 0);
+    bool assert_equal(const std::string &, const std::string &, const std::string &, const int = 0);
+    bool assert_not_equal(const std::string &, const std::string &, const std::string &, const int = 0);
 
-        // string not-equal assertion, can adjust precision
-        bool assert_not_equal(const std::string &, const std::string &, const std::string &,
-                              const int = 0);
+    bool assert_within(const double, const double, const double, const std::string &);
+    bool assert_not_within(const double, const double, const double, const std::string &);
 
-        // float within assertion, first number must be within the next two
-        bool assert_within(const double, const double, const double, const std::string &);
+    virtual int enumerate_tests(const int) = 0;
 
-        // float not-within assertion, first number must not be within the next two
-        bool assert_not_within(const double, const double, const double, const std::string &);
+protected:
+    /// Determine if the first value is equal to the second. Push this assertion to our test stack. If desired, print
+    /// the results.
+    ///
+    /// @tparam T Type of parameters 'a' and 'b' must be (they must be of the same type).
+    /// @param a Datum to compare with 'b'. 'a' must equal 'b'.
+    /// @param b Datum to compare with 'a'. 'a' must equal 'b'.
+    /// @param test_name Name of the current test being performed.
+    /// @param log_data Comma separated data to log onto a file.
+    /// @return True if 'a == b' holds. False otherwise.
+    template <typename T>
+    bool assert_equal(const T &a, const T &b, const std::string &test_name, const std::string &log_data)
+    {
+        log_current(a == b, test_name + ",GenericEqualAssertion", log_data);
+        return push_results(a == b, test_name, "A == B.", "\'A == B\' is not true.");
+    }
 
-        // generic equal assertion using == operator
-        template<typename T>
-        bool assert_equal(const T &a, const T &b, const std::string &test_name,
-                          const std::string &log_data) {
-            log_current(a == b, test_name + ",GenericEqualAssertion", log_data);
-            return push_results(a == b, test_name, "A == B.", "\'A == B\' is not true.");
-        }
+    /// Determine if the first value is not equal to the second. Push this assertion to our test stack. If desired,
+    /// print the results.
+    ///
+    /// @tparam T Type of parameters 'a' and 'b' must be (they must be of the same type).
+    /// @param a Datum to compare with 'b'. 'a' must not equal 'b'.
+    /// @param b Datum to compare with 'a'. 'a' must not equal 'b'.
+    /// @param test_name Name of the current test being performed.
+    /// @param log_data Comma separated data to log onto a file.
+    /// @return True if 'a == b' does not hold. False otherwise.
+    template <typename T>
+    bool assert_not_equal(const T &a, const T &b, const std::string &test_name, const std::string &log_data)
+    {
+        log_current(!(a == b), test_name + ",GenericNotEqualAssertion", log_data);
+        return push_results(!(a == b), test_name, "\'A == B\' is not true.", "A == B.");
+    }
 
-        // generic not-equal assertion using == operator
-        template<typename T>
-        bool assert_not_equal(const T &a, const T &b, const std::string &test_name,
-                              const std::string &log_data) {
-            log_current(!(a == b), test_name + ",GenericNotEqualAssertion", log_data);
-            return push_results(!(a == b), test_name, "\'A == B\' is not true.", "A == B.");
-        }
+    /// Determine if the first datum exists in the vector of datum. Push this assertion to our test stack. If desired,
+    /// print the results.
+    ///
+    /// @tparam T 'e' must of type T. 's' must be a vector of type T.
+    /// @param e Datum that must exist in s.
+    /// @param s Vector of datum which must hold e.
+    /// @param test_name Name of the current test being performed.
+    /// @param log_data Comma separated data to log onto a file.
+    /// @return True if e exists in s. False otherwise.
+    template <typename T>
+    bool assert_inside(const T &e, const std::vector<T> &s, const std::string &test_name, const std::string &log_data)
+    {
+        std::string test_and_assertion = test_name + ",GenericElementWithinContainer";
+        log_current(std::find(s.begin(), s.end(), e) != s.end(), test_and_assertion, log_data);
 
-        // generic element in vector/array assertion
-        template<typename T, typename S>
-        bool assert_in_container(const T &e, const S &s, const std::string &test_name,
-                                 const std::string &log_data) {
-            log_current(std::find(s.begin(), s.end(), e) != s.end(),
-                        test_name + ",GenericElementWithinContainer", log_data);
-            return push_results(std::find(s.begin(), s.end(), e) != s.end(), test_name,
-                                "E exists in S.", "E does not exist in S.");
-        }
+        return push_results(std::find(s.begin(), s.end(), e) != s.end(), test_name,
+                            "E exists in S.", "E does not exist in S.");
+    }
 
-        // generic element not in vector/array assertion
-        template<typename T, typename S>
-        bool assert_not_in_container(const T &s, const S &e, const std::string &test_name,
-                                     const std::string &log_data) {
-            log_current(std::find(s.begin(), s.end(), e) == s.end(),
-                        test_name + ",GenericElementNotWithinContainer", log_data);
-            return push_results(std::find(s.begin(), s.end(), e) == s.end(), test_name,
-                                "E does not exist in S.", "E exists in S.");
-        }
+    /// Determine if the first datum does not exist in the vector of datum. Push this assertion to our test stack. If
+    /// desired, print the results.
+    ///
+    /// @tparam T 'e' must of type T. 's' must be a vector of type T.
+    /// @param e Datum that must not exist in s.
+    /// @param s Vector of datum which must not hold e.
+    /// @param test_name Name of the current test being performed.
+    /// @param log_data Comma separated data to log onto a file.
+    /// @return True if e does not exist in s. False otherwise.
+    template <typename T>
+    bool assert_outside(const T &e, const std::vector<T> &s, const std::string &test_name, const std::string &log_data)
+    {
+        std::string test_and_assertion = test_name + ",GenericElementNotWithinContainer";
+        log_current(std::find(s.begin(), s.end(), e) == s.end(), test_and_assertion, log_data);
 
-        // default precision of all float comparisons
-        constexpr static double PRECISION_DEFAULT = 0.00000000001;
+        return push_results(std::find(s.begin(), s.end(), e) == s.end(), test_name,
+                            "E does not exist in S.", "E exists in S.");
+    }
 
-        // ideally, user must enumerate all tests defined in class
-        virtual int enumerate_tests(const int) = 0;
+    /// Default precision for all float comparisons.
+    constexpr static double PRECISION_DEFAULT = 0.00000000001;
 
-    private:
-        // print result summary, define headers
-        const char *CONTENT_HEADER = "***********************************************************";
-        const char *SECTION_HEADER = "-----------------------------------------------------------";
-        int print_summary();
+private:
+    int print_summary();
+    int print_current(const std::string &);
 
-        // log the current test results into a csv file
-        int log_current(const bool, const std::string &, const std::string &);
+    int log_current(const bool, const std::string &, const std::string &);
+    bool push_results(const bool, const std::string &, const std::string &, const std::string &);
 
-        // push the results, and print the current test results
-        int print_current(const std::string &);
-        bool push_results(const bool, const std::string &, const std::string &,
-                          const std::string &);
+private:
+    /// String for content headers (assertions vs summaries).
+    const char *CONTENT_HEADER = "***********************************************************";
 
-        // log stream (if desired), and current testing option
-        std::shared_ptr<std::ofstream> log;
-        Flavor f;
+    // String for section headers (different assertion calls).
+    const char *SECTION_HEADER = "-----------------------------------------------------------";
 
-        // clock, set before running call
-        using clock = std::chrono::high_resolution_clock;
-        std::chrono::time_point<clock> time_before_call;
+    /// Output stream to the log file. Non-copyable, so we need a pointer to one on the heap.
+    std::shared_ptr<std::ofstream> log;
 
-        // container of passed tests and total tests
-        std::vector<std::string> tests_passed;
-        std::vector<std::string> all_tests;
+    /// Current flavor. Defines how to print data to console, and how to log data to a file.
+    Flavor f;
+
+    /// Alias for the clock in the Chrono library.
+    using clock = std::chrono::high_resolution_clock;
+
+    /// Time point before a test call. Clock is reset before a test call with enumerate_tests.
+    std::chrono::time_point<clock> time_before_call;
+
+    /// Collection of passed test names. Does not hold any information about the assertions.
+    std::vector<std::string> tests_passed;
+
+    /// Collection of all test names. Does not hold any information about the assertions.
+    std::vector<std::string> all_tests;
 };
 
 #endif /* BASE_TEST_H */
