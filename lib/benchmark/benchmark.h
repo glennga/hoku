@@ -19,6 +19,24 @@
 ///
 /// The environment variable HOKU_PROJECT_PATH must point to top level of this project.
 /// The following Python script must exist: %HOKU_PROJECT_PATH%/lib/benchmark/generate_plot.py
+///
+/// @example
+/// @code{.cpp}
+/// // Find all stars around a random star within 7.5 degrees of it. Rotate all stars by same random rotation.
+/// Benchmark b(15, Star::chance(), Rotation::chance());
+///
+/// // Generate 1 random blob of size 2 degrees in diameter. Remove any stars in set above that fall in this blob.
+/// b.remove_light(1, 2);
+///
+/// // Shift a random star (Brownian shift) with sigma = 0.3 in terms of Cartesian position.
+/// b.shift_light(1, 0.3);
+///
+/// // Append 2 extra stars to the data-set above.
+/// b.add_extra_light(2);
+///
+/// // View our plot as a 3D projection.
+/// b.display_plot();
+/// @endcode
 class Benchmark
 {
 private:
@@ -30,9 +48,12 @@ public:
     /// Error model structure. Defines the type of error and the stars affected.
     struct ErrorModel
     {
-        std::string model_name; /// Name of the error being applied.
-        std::string plot_color; /// MatPlotLib color to label the affected points.
-        Star::list affected;    /// List of stars affected by the error.
+        /// Name of the error being applied.
+        std::string model_name;
+        /// MatPlotLib color to label the affected points.
+        std::string plot_color;
+        /// List of stars affected by the error.
+        Star::list affected;
     };
 
     /// Default constructor must not be generated. User must specify fov, focus, and rotation.
