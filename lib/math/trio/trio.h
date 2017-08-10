@@ -15,12 +15,12 @@
 /// @code{.cpp}
 /// // Trio: {1, 1, 1}, {1, -1, 1}, and {-1, -1, 5}.
 /// // Draw a planar triangle between the trio. Compute this area and polar moment.
-/// printf("%s", Trio::planar_area(Star(1, 1, 1), Star(1, -1, 1), Star(-1, -1, 5)));
-/// printf("%s", Trio::planar_moment(Star(1, 1, 1), Star(1, -1, 1), Star(-1, -1, 5)));
+/// printf("%f", Trio::planar_area(Star(1, 1, 1), Star(1, -1, 1), Star(-1, -1, 5)));
+/// printf("%f", Trio::planar_moment(Star(1, 1, 1), Star(1, -1, 1), Star(-1, -1, 5)));
 ///
 /// // Draw a spherical triangle between the trio. Compute this area and polar moment.
-/// printf("%s", Trio::spherical_area(Star(1, 1, 1), Star(1, -1, 1), Star(-1, -1, 5)));
-/// printf("%s", Trio::spherical_moment(Star(1, 1, 1), Star(1, -1, 1), Star(-1, -1, 5)));
+/// printf("%f", Trio::spherical_area(Star(1, 1, 1), Star(1, -1, 1), Star(-1, -1, 5)));
+/// printf("%f", Trio::spherical_moment(Star(1, 1, 1), Star(1, -1, 1), Star(-1, -1, 5)));
 /// @endcode
 ///
 class Trio
