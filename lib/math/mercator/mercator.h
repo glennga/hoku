@@ -11,8 +11,28 @@
 
 /// The mercator class is meant to reduce a dimension off of a star. This class is used to flatten the points in
 /// the BSC5 table and as the main data in the BSC5 quadtree.
+///
+/// @example
+/// @code{.cpp}
+/// Mercator a(Star(1, 1, 1), 1000);
+/// double b[3];
+/// int c;
+///
+/// // Project star {1, 1, 1} to a 1000x1000 square (the jist of it).
+/// a.present_projection(b[0], b[1], b[2], c);
+/// printf("%f, %f", b[0], b[1]);
+///
+/// // Remove all points in set {{0, 0}, {1, 1}, {1000, 1000}} that aren't within point E bounds.
+/// Mercator::list d = {Mercator(0, 0, 1000), Mercator(1, 1, 1000), Mercator(1000, 1000, 1000)};
+/// Mercator e(0, 0, 400);
+/// for (const Mercator &m : e.reduce_far_points(d, 100))
+/// {
+///     printf("%f, %f\n", m[0], m[1]);
+/// }
+/// @endcode
 class Mercator
 {
+private:
     friend class TestMercator;
     friend class TestChomp;
 
@@ -26,6 +46,7 @@ public:
     /// Force default constructor. Default point is (0, 0) with w_n = 0 and hr = 0.
     Mercator() = default;
 
+public:
     Mercator(const Star &, const double);
     Mercator(const double, const double, const double, const int = 0);
 

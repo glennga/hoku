@@ -15,6 +15,21 @@
 
 /// The star class is really a 3D vector class in disguise, with methods focusing toward rotation and angular
 /// separation. This class is the basis for all of the Hoku research.
+///
+/// @example
+/// @code{.cpp}
+/// // Define stars (in order): {0, 0, 0}, {random, random, random}, {0, 0, 0}, {-0.680414, 0.680414, 0.272166}
+/// Star s_1, s_2 = Star::chance(), s_3 = Star::zero(), s_4(-10, 10, 4, 0, true);
+///
+/// // Cross stars {-2, -1, 0} and {3, 2, 1} to produce {-1, 2, -1}.
+/// printf("%s", Star::cross(Star(-2, -1, 0), Star(3, 2, 1)).str());
+///
+/// // Add star {1, 1, 1} to star {5, 5, 5}. Subtract result by {2, 2, 2} to get {4, 4, 4}.
+/// printf("%s", (Star(5, 5, 5) + Star(1, 1, 1) - Star(2, 2, 2)).str());
+///
+/// // Determine angle between Star {2, 3, 5} and {5, 6, 7} to get 0.9744339542.
+/// printf("%s", (Star::angle_between(Star(2, 3, 5), Star(5, 6, 7)).str());
+/// @endcode
 class Star
 {
 private:
