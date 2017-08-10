@@ -14,19 +14,58 @@
 #include <iomanip>
 #include <memory>
 
-/// Base class for all testing classes. Includes logging and printing functionality.
+/// Base class (abstract virtual) for all testing classes. Includes logging and printing functionality.
+///
+/// @example
+/// @code{.cpp}
+/// /// Class TestX tests the X class.
+/// class TestX : private BaseTest
+/// {
+///     int test_x_is_not_zero()
+///     {
+///         X a;
+///         assert_not_equal(a.x_value, 0, "XIsNotZero");
+///         // All tests MUST return an integer not equal to -1.
+///         return 0 * assert_true(a.x_is_not_zero(), "XIsNotZeroMethod", a.str());
+///     }
+///
+///     int test_x_not_within_bounds()
+///     {
+///         assert_not_within(X().x_value, -4, -5, "XIsNotWithinNegativeFourAndNegativeFive");
+///         return 0 * assert_not_within(X().x_value, -1, 10, "XIsNotWithinNegativeOneAndTen");
+///     }
+///
+///     int enumerate_tests(const int test)
+///     {
+///         switch(test)
+///         {
+///             case 0: return test_x_is_not_zero();
+///             case 1: return test_x_not_within_bounds();
+///             default: return -1;
+///         }
+///     }
+///
+/// // Run all the tests in TestX. Print all data to console. Log all data.
+/// int main() return TestX.execute_tests(Flavor::FULL_PRINT_LOG_ON);
+/// @endcode
 class BaseTest
 {
 public:
     /// Defines the type of output for the tests - logging and printing.
     enum Flavor
     {
-        NO_PRINT_LOG_OFF,      /// Do not print to console. Do not log to file.
-        MINIMAL_PRINT_LOG_OFF, /// Print minimal data to console. Do not log to file.
-        FULL_PRINT_LOG_OFF,    /// Print all data to console. Do not log to file.
-        NO_PRINT_LOG_ON,       /// Do not print to console. Log to file.
-        MINIMAL_PRINT_LOG_ON,  /// Print minimal data to console. Log to file.
-        FULL_PRINT_LOG_ON      /// Print all data to console. Log to file.
+        /// Do not print to console. Do not log to file.
+            NO_PRINT_LOG_OFF,
+        /// Print minimal data to console. Do not log to file.
+            MINIMAL_PRINT_LOG_OFF,
+        /// Print all data to console. Do not log to file.
+            FULL_PRINT_LOG_OFF,
+        /// Do not print to console. Log to file.
+            NO_PRINT_LOG_ON,
+        /// Print minimal data to console. Log to file.
+            MINIMAL_PRINT_LOG_ON,
+        /// Print all data to console. Log to file.
+            FULL_PRINT_LOG_ON
     };
 
 public:

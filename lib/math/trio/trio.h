@@ -10,8 +10,22 @@
 
 /// The trio class is used with the planar and spherical star identification procedures. Given three vectors, one
 /// can find the area and polar moment of the formed planar or spherical triangle.
+///
+/// @example
+/// @code{.cpp}
+/// // Trio: {1, 1, 1}, {1, -1, 1}, and {-1, -1, 5}.
+/// // Draw a planar triangle between the trio. Compute this area and polar moment.
+/// printf("%s", Trio::planar_area(Star(1, 1, 1), Star(1, -1, 1), Star(-1, -1, 5)));
+/// printf("%s", Trio::planar_moment(Star(1, 1, 1), Star(1, -1, 1), Star(-1, -1, 5)));
+///
+/// // Draw a spherical triangle between the trio. Compute this area and polar moment.
+/// printf("%s", Trio::spherical_area(Star(1, 1, 1), Star(1, -1, 1), Star(-1, -1, 5)));
+/// printf("%s", Trio::spherical_moment(Star(1, 1, 1), Star(1, -1, 1), Star(-1, -1, 5)));
+/// @endcode
+///
 class Trio
 {
+private:
     friend class TestTrio;
 
 public:
@@ -21,6 +35,7 @@ public:
     /// Ensure default constructor is **not** generated.
     Trio() = delete;
 
+public:
     static double planar_area(const Star &, const Star &, const Star &);
     static double planar_moment(const Star &, const Star &, const Star &);
 
@@ -31,6 +46,7 @@ private:
     // Alias for the distances between each star.
     using side_lengths = std::array<double, 3>;
 
+private:
     Trio(const Star &, const Star &, const Star &);
 
     side_lengths planar_lengths() const;
@@ -43,6 +59,7 @@ private:
     double recurse_spherical_moment(const Star &, const int, const int);
     static Trio cut_triangle(const Star &, const Star &, const Star &, const Star & = Star());
 
+private:
     /// Star one of the trio.
     Star b_1;
 
