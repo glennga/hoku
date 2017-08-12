@@ -1,37 +1,28 @@
-/*
- * @file: test_rotation.h
- *
- * @brief: Header file for the TestRotation class, which tests the Rotation class.
- */
+/// @file test-rotation.h
+/// @author Glenn Galvizo
+///
+/// Header file for the TestRotation class, which tests the Rotation class.
 
 #ifndef TEST_ROTATION_H
 #define TEST_ROTATION_H
 
 #include "base-test.h"
 #include "rotation.h"
-#include <cstdio>
 
 class TestRotation : public BaseTest {
     private:
-        // test the private and public constructor methods
-        void test_public_constructor();
-        void test_private_constructor_row_set();
-        void test_private_constructor_component_set();
-
-        // test matrix operations
-        void test_matrix_multiplication_transpose();
-        void test_matrix_to_quaternion();
-
-        // test quaternion properties
-        void test_quaternion_double_cover_property();
-        void test_quaternion_unit_property();
-
-        // test rotation methods
-        void test_rotate_logic();
-        void test_rotation_identity();
-        void test_triad_property_simple();
-        void test_triad_property_random();
-        void test_triad_multiple_stars();
+        int test_public_constructor();
+        int test_private_constructor_row_set();
+        int test_private_constructor_component_set();
+        int test_matrix_multiplication_transpose();
+        int test_matrix_to_quaternion();
+        int test_quaternion_double_cover_property();
+        int test_quaternion_unit_property();
+        int test_rotate_logic();
+        int test_rotation_identity();
+        int test_triad_property_simple();
+        int test_triad_property_random();
+        int test_triad_multiple_stars();
 
     public:
         int enumerate_tests(int);
