@@ -14,21 +14,9 @@
 ///
 /// @example
 /// @code{.cpp}
-/// Mercator a(Star(1, 1, 1), 1000);
-/// double b[3];
-/// int c;
-///
 /// // Project star {1, 1, 1} to a 1000x1000 square (the jist of it).
-/// a.present_projection(b[0], b[1], b[2], c);
-/// printf("%f, %f", b[0], b[1]);
-///
-/// // Remove all points in set {{0, 0}, {1, 1}, {1000, 1000}} that aren't within point E bounds.
-/// Mercator::list d = {Mercator(0, 0, 1000), Mercator(1, 1, 1000), Mercator(1000, 1000, 1000)};
-/// Mercator e(0, 0, 400);
-/// for (const Mercator &m : e.reduce_far_points(d, 100))
-/// {
-///     printf("%f, %f\n", m[0], m[1]);
-/// }
+/// Mercator a(Star(1, 1, 1), 1000);
+/// printf("%s", a.str().c_str());
 /// @endcode
 class Mercator
 {
@@ -37,9 +25,6 @@ private:
     friend class TestChomp;
 
 public:
-    /// Alias for a vector of Mercator points.
-    using list = std::vector<Mercator>;
-
     /// Alias for a quartet of Mercator points.
     using quad = std::array<Mercator, 4>;
 
@@ -50,9 +35,7 @@ public:
     Mercator(const Star &, const double);
     Mercator(const double, const double, const double, const int = 0);
 
-    Mercator::list reduce_far_points(const Mercator::list &, const double);
-
-    void present_projection(double &, double &, double &, int &) const;
+    std::string str() const;
 
     int get_hr();
 
