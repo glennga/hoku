@@ -18,48 +18,6 @@ int TestMercator::test_projection_within_bounds()
     return 0 * assert_within(Mercator(b, 500).y, -250, 250, "YWithinBoundsStar2");
 }
 
-/// Check that all points returned for reduction method are within the bounds of w.
-///
-/// @return 0 when finished.
-int TestMercator::test_reduction_within_bounds()
-{
-    std::vector<Mercator> a;
-    Mercator::list b;
-    int current = 0;
-
-    a.reserve(50);
-    for (int q = 0; q < 50; q++)
-    {
-        a.push_back(Mercator(Star::chance(), 500));
-    }
-    b = Mercator(250, 250, 0).reduce_far_points(a, 200);
-
-    for (const Mercator &m : b)
-    {
-        std::string partial_name = "WithinBoundsStar" + std::to_string(current++ + 1);
-        assert_within(m.x, 250 - (200 / 2.0), 250 + (200 / 2.0), "X" + partial_name);
-        assert_within(m.y, 250 - (200 / 2.0), 250 + (200 / 2.0), "Y" + partial_name);
-    }
-
-    return 0;
-}
-
-/// Check that the variables changed in present_projection are set correctly.
-///
-/// @return 0 when finished.
-int TestMercator::test_present_projection()
-{
-    Mercator a(1, 2, 3, 4);
-    double b[4];
-    int c;
-
-    a.present_projection(b[0], b[1], b[2], c);
-    assert_equal(b[0], 1, "PresentProjectionXComponent");
-    assert_equal(b[1], 2, "PresentProjectionYComponent");
-    assert_equal(b[2], 3, "PresentProjectionW_NComponent");
-    return 0 * assert_equal(c, 4, "PresentProjectionHRComponent");
-}
-
 /// Check that the corners returned actually form a box.
 ///
 /// @return 0 when finished.
@@ -99,10 +57,8 @@ int TestMercator::enumerate_tests(int test_case)
     switch (test_case)
     {
     case 0: return test_projection_within_bounds();
-    case 1: return test_reduction_within_bounds();
-    case 2: return test_present_projection();
-    case 3: return test_corners_form_box();
-    case 4: return test_is_within_bounds();
+    case 1: return test_corners_form_box();
+    case 2: return test_is_within_bounds();
     default: return -1;
     }
 }

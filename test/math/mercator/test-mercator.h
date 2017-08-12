@@ -13,8 +13,6 @@ class TestMercator: public BaseTest
 {
 private:
     int test_projection_within_bounds();
-    int test_reduction_within_bounds();
-    int test_present_projection();
     int test_corners_form_box();
     int test_is_within_bounds();
 
