@@ -182,9 +182,9 @@ Nibble::sql_row Nibble::search_table(const std::string &constraint, const std::s
     return result;
 }
 
-/// Search a table for the specified fields given a constraint. Limit results by a certain amount if desired.
-/// The results returned are a 1D array that holds a fixed number of items in succession. This function is overloaded
-/// to perform a search without a constraint.
+/// Return all specified fields from a table. Limit results by a certain amount if desired. the results returned are
+/// a 1D array that holds a fixed number of items in succession. This function is overloaded to perform a search
+/// without a constraint.
 ///
 /// @param fields The columns to search for in the current table.
 /// @param expected Expected number of results * columns to be returned. Better to overshoot.

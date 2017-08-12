@@ -18,6 +18,40 @@
 ///
 /// The environment variable HOKU_PROJECT_PATH must point to top level of this project.
 /// The file %HOKU_PROJECT_PATH%/data/bsc5.dat must exist.
+///
+/// @example
+/// @code{.cpp}
+/// Nibble nb;
+///
+/// // Generate the BSC5 table. If nibble.db does not exist, then create it.
+/// nb.generate_bsc5_table();
+///
+/// /* The snippet above should only be run ONCE to populate Nibble.db and the BSC5 table. */
+///
+/// // Create the table 'TEST(int U, int B)'.
+/// nb.create_table("TEST", "int U, int B");
+///
+/// // Table 'TEST' is selected from call above. Insert (10, 11) into table.
+/// nb.insert_into_table("U, B", {10, 11});
+///
+/// // Insert the I and J components for star 3.
+/// nb.insert_into_table("U, B", {nb.query_bsc5(3)[0], nb.query_bsc5(3)[1]});
+///
+/// // Sort the table by "U" and create an index for "U".
+/// nb.polish_table("U");
+///
+/// // Change our working table from "TEST" to "BSC5".
+/// nb.select_table("BSC5");
+///
+/// // Search the 'BSC5' table star 3's right ascension and declination. Expecting 2 floats, limit results by 1 row.
+/// Nibble::sql_row a = nb.search_table("HR = 3", "alpha, delta", 2, 1);
+///
+/// // Print the results of the search. Search for a[0][0] (which is star 3's alpha) and a[0][1] (star 3's delta).
+/// printf("%f, %f", nb.table_results_at(a, 0, 0), nb.table_results_at(a, 0, 1));
+///
+/// // Find all stars near star 4 that are seperated by no more than 7.5 degrees. Expecting 20 results.
+/// Star::list b = nb.nearby_stars(nb.query_bsc5(4), 15, 20);
+/// @endcode
 class Nibble
 {
 private:
@@ -47,8 +81,7 @@ public:
 
     Star query_bsc5(const int);
 
-    sql_row search_table(const std::string &, const std::string &,
-                         const unsigned int, const int = -1);
+    sql_row search_table(const std::string &, const std::string &, const unsigned int, const int = -1);
     sql_row search_table(const std::string &, const unsigned int, const int = -1);
     sql_row table_results_at(const sql_row &, const unsigned int, const int);
 
