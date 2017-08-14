@@ -1,8 +1,7 @@
 /// @file nibble.cpp
 /// @author Glenn Galvizo
 ///
-/// Source file for Nibble namespace, which contains functions that facilitate the retrieval and storage of various
-/// lookup tables.
+/// Source file for Nibble class, which facilitate the retrieval and storage of various lookup tables.
 
 #include "nibble.h"
 
