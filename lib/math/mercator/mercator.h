@@ -21,7 +21,7 @@
 class Mercator {
   private:
     friend class TestMercator;
-    friend class TestChomp;
+    friend class TestQuadNode;
   
   public:
     /// Alias for a quartet of Mercator points.
