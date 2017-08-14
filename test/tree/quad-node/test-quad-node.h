@@ -1,27 +1,24 @@
-/*
- * @file: test-chomp.h
- *
- * @brief: Header file for the TestChomp class, which tests the TestChomp namespace.
- */
+/// @file test-quad-node.h
+/// @author Glenn Galvizo
+///
+/// Header file for the TestQuadNode class, which tests the QuadNode class.
 
-#ifndef TEST_CHOMP_H
-#define TEST_CHOMP_H
+#ifndef TEST_QUAD_NODE_H
+#define TEST_QUAD_NODE_H
 
 #include "base-test.h"
-#include "chomp.h"
+#include "quad-node.h"
 #include <cstdio>
 
-class TestChomp : public BaseTest {
+class TestQuadNode : public BaseTest {
   private:
-    int test_regular_query ();
-    int test_k_vector_query ();
-    int test_quadnode_star_constructor ();
-    int test_quadnode_root_property ();
-    int test_quadnode_branch ();
-    int test_quadnode_quadrant_centers ();
-    int test_quadnode_within_quad ();
-    int test_quadnode_reduce ();
-    int test_quadnode_expected_leaf_order ();
+    int test_star_constructor ();
+    int test_root_property ();
+    int test_branch ();
+    int test_quadrant_centers ();
+    int test_within_quad ();
+    int test_reduce ();
+    int test_expected_leaf_order ();
     int test_build_simple_quadtree ();
     int test_nearby_stars_quadtree ();
   
@@ -29,4 +26,4 @@ class TestChomp : public BaseTest {
     int enumerate_tests (int);
 };
 
-#endif /* TEST_CHOMP_H */
+#endif /* TEST_QUAD_NODE_H */

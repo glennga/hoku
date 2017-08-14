@@ -1,52 +1,14 @@
-/*
- * @file: test-chomp.cpp
- *
- * @brief: Source file for the TestChomp class, as well as the main function to run the tests.
- */
+/// @file test-quad-node.cpp
+/// @author Glenn Galvizo
+///
+/// Source file for the TestQuadNode class, as well as the main function to run the tests.
 
-#include "test-chomp.h"
+#include "test-quad-node.h"
 
-/*
- * Check that the regular query returns correct results. This test is just used to compare
- * against the k-vector query time.
- */
-int TestChomp::test_regular_query () {
-    Nibble nb;
-    std::vector<double> a;
-    
-    nb.select_table("SEP20");
-    a = nb.search_table("theta BETWEEN 5.004 and 5.005", "theta", 90, 30);
-    
-    for (unsigned int q = 0; q < a.size(); q++) {
-        std::string test_name = "RegularQueryResultWithinBoundsSet" + std::to_string(q + 1);
-        assert_within(a[q], 5.003, 5.006, test_name);
-    }
-    
-    return 0;
-}
-
-/*
- * Check that the k-vector query returns the correct results.
- */
-int TestChomp::test_k_vector_query () {
-    Chomp ch;
-    std::vector<double> a;
-    
-    ch.select_table("SEP20");
-    a = ch.k_vector_query("theta", "theta", 5.004, 5.004, 90);
-    
-    for (unsigned int q = 0; q < a.size(); q++) {
-        std::string test_name = "KVectorQueryResultWithinBoundsSet" + std::to_string(q + 1);
-        assert_within(a[q], 5.003, 5.006, test_name);
-    }
-    
-    return 0;
-}
-
-/*
- * Check that the QuadNode star constructor has the correct components.
- */
-int TestChomp::test_quadnode_star_constructor () {
+/// Check that the QuadNode star constructor has the correct components.
+///
+/// @return 0 when finished.
+int TestQuadNode::test_star_constructor () {
     QuadNode b(Star::chance(), 1000);
     
     assert_equal(b.w_i, 1, "QuadNodeLocalWidthDefault");
@@ -54,10 +16,10 @@ int TestChomp::test_quadnode_star_constructor () {
     return 0 * assert_equal(b.hr, 0, "QuadNodeHRValueDefault");
 }
 
-/*
- * Check that the QuadNode root has the expected properties.
- */
-int TestChomp::test_quadnode_root_property () {
+/// Check that the QuadNode root has the expected properties.
+/// 
+/// @return 0 when finished.
+int TestQuadNode::test_root_property () {
     QuadNode a = QuadNode::root(1000);
     
     assert_equal(a.x, 0, "QuadNodeRootExpectedX");
@@ -66,10 +28,10 @@ int TestChomp::test_quadnode_root_property () {
     return 0 * assert_equal(a.w_i, 1000, "QuadNodeRootExpectedW_I");
 }
 
-/*
- * Check that the branch method for QuadNode operates as intended.
- */
-int TestChomp::test_quadnode_branch () {
+/// Check that the branch method for QuadNode operates as intended.
+///
+/// @return 0 when finished.
+int TestQuadNode::test_branch () {
     QuadNode a(Star::chance(), 1000);
     QuadNode::child_edges b = {std::make_shared<QuadNode>(QuadNode(-5, 5, 1000)), nullptr, nullptr, nullptr};
     QuadNode c = QuadNode::branch(a, b);
@@ -84,10 +46,10 @@ int TestChomp::test_quadnode_branch () {
     return 0 * assert_equal(c.to_child(1).w_n, -1, "BranchChild2IsNull");
 }
 
-/*
- * Check that the quadrant centers form a square.
- */
-int TestChomp::test_quadnode_quadrant_centers () {
+/// Check that the quadrant centers form a square.
+///
+/// @return 0 when finished.
+int TestQuadNode::test_quadrant_centers () {
     QuadNode::child_edges a = QuadNode(0, 0, 1000).find_quadrant_centers();
     QuadNode b = QuadNode::branch(QuadNode(0, 0, 1000), a);
     
@@ -103,17 +65,20 @@ int TestChomp::test_quadnode_quadrant_centers () {
     return 0 * assert_equal(b.w_i, 1000, "QuadrantCenterExpectedW_IParent");
 }
 
-/*
- * Check that nodes are distinguished from being inside and outside quadrants correctly.
- */
-int TestChomp::test_quadnode_within_quad () {
+/// Check that nodes are distinguished from being inside and outside quadrants correctly.
+///
+/// @return 0 when finished.
+int TestQuadNode::test_within_quad () {
     QuadNode a(0, 0, 500), b(2000, 2000, 500), c(1, 1, 500);
     
     assert_true(c.within_quadrant(a), "NodeInsideQuadrant", c.str() + "," + a.str());
     return 0 * assert_false(b.within_quadrant(a), "NodeNotInsideQuadrant", b.str() + "," + a.str());
 }
 
-int TestChomp::test_quadnode_reduce () {
+/// Check that the reduction method removes the correct stars, and keeps the correct stars.
+///
+/// @return 0 when finished.
+int TestQuadNode::test_reduce () {
     QuadNode::list a = {QuadNode(0, 0, 1000), QuadNode(2000, 2000, 1000), QuadNode(1, 1, 1000)};
     QuadNode::list b = QuadNode(0, 0, 1000).reduce_to_quadrant(a, 100);
     
@@ -121,15 +86,15 @@ int TestChomp::test_quadnode_reduce () {
     return 0 * assert_equal(b.size(), 2, "QuadNodeReduction");
 }
 
-/*
- * Check that the find_quad_leaves builds the tree in preorder.
- */
-int TestChomp::test_quadnode_expected_leaf_order () {
+/// Check that the find_quad_leaves builds the tree in preorder.
+///
+/// @return 0 when finished.
+int TestQuadNode::test_expected_leaf_order () {
     QuadNode::list a =
         {QuadNode(-251, 251, 1000), QuadNode(251, 249, 1000), QuadNode(-249, -249, 1000), QuadNode(249, -249, 1000)};
     QuadNode::list
         b = {QuadNode(-250, 250, 500), QuadNode(250, 250, 500), QuadNode(-250, -250, 500), QuadNode(250, -250, 500)};
-    QuadNode c(0, 0, 1000), d = Chomp().find_quad_leaves(c, 1000, a);
+    QuadNode c(0, 0, 1000), d = QuadNode::root(1000).find_quad_leaves(c, 1000, a);
     
     assert_equal(c, d, "QuadNodeExpectedRoot", c.str() + "," + d.str());
     
@@ -151,38 +116,26 @@ int TestChomp::test_quadnode_expected_leaf_order () {
 }
 
 /*
- * Enumerate all tests in TestChomp.
+ * Enumerate all tests in TestQuadNode.
  *
  * @return -1 if the test case does not exist. 0 otherwise.
  */
-int TestChomp::enumerate_tests (int test_case) {
+int TestQuadNode::enumerate_tests (int test_case) {
     switch (test_case) {
-        case 0: return test_regular_query();
-        case 1: return test_k_vector_query();
-        case 2: return test_quadnode_star_constructor();
-        case 3: return test_quadnode_root_property();
-        case 4: return test_quadnode_branch();
-        case 5: return test_quadnode_quadrant_centers();
-        case 6: return test_quadnode_within_quad();
-        case 7: return test_quadnode_reduce();
-        case 8: return test_quadnode_expected_leaf_order();
+        case 0: return test_star_constructor();
+        case 1: return test_root_property();
+        case 2: return test_branch();
+        case 3: return test_quadrant_centers();
+        case 4: return test_within_quad();
+        case 5: return test_reduce();
+        case 6: return test_expected_leaf_order();
         default: return -1;
     }
 }
 
-/*
- * Run the tests in TestChomp. Currently set to log and print all data.
- */
+/// Run the tests in TestQuadNode. Currently set to log all results.
+///
+/// @return -1 if the log file cannot be opened. 0 otherwise.
 int main () {
-    //    Chomp c;
-    //    Star some_star = Star::chance();
-    //    c.load_quad_tree(2000);
-    //    auto a = c.nearby_stars_quad_tree(some_star, 10, 10);
-    //    std::cout << some_star[0] << " " << some_star[1] << " " << some_star[2] << std::endl;
-    //    for (auto b : a) {
-    //        std::cout << b[0] << " " << b[1] << " " << b[2] << std::endl;
-    //    }
-    //    std::cout << a.size() << std::endl;
-    //    auto b = 1;
-    return TestChomp().execute_tests(BaseTest::FULL_PRINT_LOG_ON);
+    return TestQuadNode().execute_tests(BaseTest::FULL_PRINT_LOG_ON);
 }
