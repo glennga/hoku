@@ -35,7 +35,7 @@ public:
     Mercator(const Star &, const double);
     Mercator(const double, const double, const double, const int = 0);
 
-    std::string str() const;
+    virtual std::string str() const;
 
     int get_hr();
 
