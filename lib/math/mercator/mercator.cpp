@@ -10,8 +10,7 @@
 ///
 /// @param s Star to project and store.
 /// @param w_n Width to project with.
-Mercator::Mercator(const Star &s, const double w_n)
-{
+Mercator::Mercator (const Star &s, const double w_n) {
     project_star(s, w_n);
 }
 
@@ -21,17 +20,16 @@ Mercator::Mercator(const Star &s, const double w_n)
 /// @param y Y coordinate to store.
 /// @param w_n Width used to project the given X, Y coordinates.
 /// @param hr Harvard revised number to store.
-Mercator::Mercator(const double x, const double y, const double w_n, const int hr)
-{
+Mercator::Mercator (const double x, const double y, const double w_n, const int hr) {
     this->x = x, this->y = y, this->w_n = w_n, this->hr = hr;
 }
 
 /// Return all components in the current point as a string object.
 ///
 /// @return String of components in form of (x:y:w_n:hr).
-std::string Mercator::str() const {
+std::string Mercator::str () const {
     std::stringstream components;
-
+    
     // Need to use stream here to set precision.
     components << std::setprecision(16) << std::fixed << "(";
     components << x << ":" << y << ":" << w_n << ":" << hr << ")";
@@ -52,13 +50,12 @@ std::string Mercator::str() const {
 ///
 /// @param corners Corners of the boundary quadrilateral.
 /// @return True if within the box. False otherwise.
-bool Mercator::is_within_bounds(const quad &corners) const
-{
+bool Mercator::is_within_bounds (const quad &corners) const {
     bool within_left_x = this->x > corners[0].x && this->x > corners[2].x;
     bool within_right_x = this->x < corners[1].x && this->x < corners[3].x;
     bool within_top_y = this->y < corners[0].y && this->y < corners[1].y;
     bool within_bottom_y = this->y > corners[2].y && this->y > corners[3].y;
-
+    
     return within_left_x && within_right_x && within_top_y && within_bottom_y;
 }
 
@@ -68,18 +65,17 @@ bool Mercator::is_within_bounds(const quad &corners) const
 ///
 /// @param s Star to project.
 /// @param w_n Width to project width.
-void Mercator::project_star(const Star &s, const double w_n)
-{
+void Mercator::project_star (const Star &s, const double w_n) {
     double theta, phi, r = s.norm();
-
+    
     // Determine longitude (theta) and latitude (phi). Convert to degrees.
     theta = asin(s[2] / r) * 180.0 / M_PI;
     phi = atan2(s[1], s[0]) * 180.0 / M_PI;
-
+    
     // Project star onto cylinder. Unravel onto square.
     this->x = ((phi + 180.0) * w_n / 360.0) - w_n / 2;
     this->y = ((0.5 * w_n) - (w_n * log(tan((M_PI / 4) + ((theta * M_PI / 180.0) / 2.0))) / (2 * M_PI))) - w_n / 2;
-
+    
     // Save projection width. Use star's HR.
     this->w_n = w_n, this->hr = s.get_hr();
 }
@@ -87,8 +83,7 @@ void Mercator::project_star(const Star &s, const double w_n)
 /// Access method for the Harvard revised number.
 ///
 /// @return Harvard revised number for this point.
-int Mercator::get_hr()
-{
+int Mercator::get_hr () {
     return hr;
 }
 
@@ -96,8 +91,7 @@ int Mercator::get_hr()
 ///
 /// @param a Width of the box.
 /// @return Quad of corners, in order of top-left, top-right, bottom-left, bottom-right.
-Mercator::quad Mercator::find_corners(const double a) const
-{
+Mercator::quad Mercator::find_corners (const double a) const {
     return {Mercator(x - a / 2.0, y + a / 2.0, w_n), Mercator(x + a / 2.0, y + a / 2.0, w_n),
             Mercator(x - a / 2.0, y - a / 2.0, w_n), Mercator(x + a / 2.0, y - a / 2.0, w_n)};
 }
