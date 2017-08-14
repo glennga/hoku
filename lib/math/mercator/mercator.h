@@ -56,7 +56,7 @@ class Mercator {
     /// Harvard Revised number for the point. Default is 0.
     int hr = 0;
   
-  private:
+  protected:
     void project_star (const Star &, const double);
 };
 
