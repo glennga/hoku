@@ -23,49 +23,48 @@
 /// printf("%f", Trio::spherical_moment(Star(1, 1, 1), Star(1, -1, 1), Star(-1, -1, 5)));
 /// @endcode
 ///
-class Trio
-{
-private:
+class Trio {
+  private:
     friend class TestTrio;
-
-public:
+  
+  public:
     /// Common alias for a trio of stars.
     using stars = std::array<Star, 3>;
-
+    
     /// Ensure default constructor is **not** generated.
-    Trio() = delete;
-
-public:
-    static double planar_area(const Star &, const Star &, const Star &);
-    static double planar_moment(const Star &, const Star &, const Star &);
-
-    static double spherical_area(const Star &, const Star &, const Star &);
-    static double spherical_moment(const Star &, const Star &, const Star &, const int= 3);
-
-private:
+    Trio () = delete;
+  
+  public:
+    static double planar_area (const Star &, const Star &, const Star &);
+    static double planar_moment (const Star &, const Star &, const Star &);
+    
+    static double spherical_area (const Star &, const Star &, const Star &);
+    static double spherical_moment (const Star &, const Star &, const Star &, const int= 3);
+  
+  private:
     // Alias for the distances between each star.
     using side_lengths = std::array<double, 3>;
-
-private:
-    Trio(const Star &, const Star &, const Star &);
-
-    side_lengths planar_lengths() const;
-    side_lengths spherical_lengths() const;
-
-    static double semi_perimeter(const double, const double, const double);
-
-    Star planar_centroid() const;
-
-    double recurse_spherical_moment(const Star &, const int, const int);
-    static Trio cut_triangle(const Star &, const Star &, const Star &, const Star & = Star());
-
-private:
+  
+  private:
+    Trio (const Star &, const Star &, const Star &);
+    
+    side_lengths planar_lengths () const;
+    side_lengths spherical_lengths () const;
+    
+    static double semi_perimeter (const double, const double, const double);
+    
+    Star planar_centroid () const;
+    
+    double recurse_spherical_moment (const Star &, const int, const int);
+    static Trio cut_triangle (const Star &, const Star &, const Star &, const Star & = Star());
+  
+  private:
     /// Star one of the trio.
     Star b_1;
-
+    
     /// Star two of the trio.
     Star b_2;
-
+    
     /// Star three of the trio.
     Star b_3;
 };

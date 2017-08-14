@@ -9,21 +9,20 @@
 #include "base-test.h"
 #include "trio.h"
 
-class TestTrio: public BaseTest
-{
-private:
-    int test_planar_length_computation();
-    int test_spherical_length_computation();
-    int test_semi_perimeter_computation();
-    int test_planar_area_computation();
-    int test_planar_moment_computation();
-    int test_spherical_area_computation();
-    int test_planar_centroid_computation();
-    int test_cut_triangle_computation();
-    int test_spherical_moment_computation();
-
-public:
-    int enumerate_tests(int);
+class TestTrio : public BaseTest {
+  private:
+    int test_planar_length_computation ();
+    int test_spherical_length_computation ();
+    int test_semi_perimeter_computation ();
+    int test_planar_area_computation ();
+    int test_planar_moment_computation ();
+    int test_spherical_area_computation ();
+    int test_planar_centroid_computation ();
+    int test_cut_triangle_computation ();
+    int test_spherical_moment_computation ();
+  
+  public:
+    int enumerate_tests (int);
 };
 
 #endif /* TEST_TRIO_H */
