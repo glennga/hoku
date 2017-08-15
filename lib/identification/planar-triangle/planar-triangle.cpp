@@ -6,12 +6,17 @@
 
 #include "planar-triangle.h"
 
-/// Constructor. Sets the benchmark data, fov, and focus. Set the current working table to the default 'PLAN20'.
+/// Constructor. Sets the benchmark data, fov, and focus. Sets the parameters and working table. Constructs the
+/// quadtree and saves the root.
 ///
 /// @param input Working Benchmark instance. We are **only** copying the star set, focus star, and the fov.
-PlanarTriangle::PlanarTriangle (Benchmark input) {
+/// @param parameters Parameters to use for identification.
+PlanarTriangle::PlanarTriangle (const Benchmark &input, const Parameters &parameters) {
     input.present_image(this->input, this->focus, this->fov);
-    ch.select_table(Parameters().table_name);
+    this->parameters = parameters;
+    
+    ch.select_table(this->parameters.table_name);
+    q_root = std::make_shared<QuadNode>(QuadNode::load_tree(this->parameters.bsc5_quadtree_w));
 }
 
 /// Generate the triangle table given the specified FOV and table name. This find the planar area and polar moment
@@ -46,7 +51,7 @@ int Plane::generate_triangle_table (const int fov, const std::string &table_name
                     
                     nb.insert_into_table("hr_a, hr_b, hr_c, a, i",
                                          {(double) all_stars[i].get_hr(), (double) all_stars[j].get_hr(),
-                                          (double) all_stars[k].get_hr(), a_t, i_t});
+                                             (double) all_stars[k].get_hr(), a_t, i_t});
                 }
             }
         }
@@ -74,8 +79,8 @@ std::vector<Plane::hr_trio> Plane::query_for_trio (const double a, const double 
     
     // First, search for trio of stars matching area condition.
     ch.select_table(this->parameters.table_name);
-    area_match =
-        ch.k_vector_query("a", "hr_a, hr_b, hr_c, i", a - epsilon_a, a + epsilon_a, this->parameters.query_expected);
+    area_match = ch
+        .k_vector_query("a", "hr_a, hr_b, hr_c, i", a - epsilon_a, a + epsilon_a, this->parameters.query_expected);
     
     // Next, search this trio for stars matching the moment condition.
     area_moment_match.reserve(area_match.size() / 4);
@@ -246,7 +251,7 @@ Star::list Plane::check_assumptions (const Star::list &candidates, const Trio::s
 Star::list Plane::identify (const Benchmark &input, const Parameters &parameters) {
     Star::list matches;
     bool matched = false;
-    Plane p(input);
+    Plane p(input, parameters);
     p.parameters = parameters;
     
     // There exists |P_input| choose 3 possibilities.
@@ -265,7 +270,7 @@ Star::list Plane::identify (const Benchmark &input, const Parameters &parameters
                 }
                 
                 // Find candidate stars around the candidate trio.
-                candidates = p.ch.nearby_stars(candidate_trio[0], p.fov, 3 * p.input.size());
+                candidates = (*p.q_root).nearby_stars(candidate_trio[0], p.fov, 3 * p.input.size());
                 
                 // Check all possible configurations. Return the most likely.
                 matches = p.check_assumptions(candidates, candidate_trio, {(double) i, (double) j, (double) k});

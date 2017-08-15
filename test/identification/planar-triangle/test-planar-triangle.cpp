@@ -10,7 +10,7 @@
 /// @return 0 when finished.
 int TestPlanarTriangle::test_trio_query () {
     Benchmark input(15, Star::chance(), Rotation::chance());
-    Plane p(input);
+    Plane p(input, Plane::Parameters());
     
     double a = Trio::planar_area(input.stars[0], input.stars[1], input.stars[2]);
     double b = Trio::planar_moment(input.stars[0], input.stars[1], input.stars[2]);
@@ -35,7 +35,7 @@ int TestPlanarTriangle::test_trio_query () {
 ///
 /// @return 0 when finished.
 int TestPlanarTriangle::test_match_stars_fov () {
-    Plane a(Benchmark(10, Star::chance(), Rotation::chance()));
+    Plane a(Benchmark(10, Star::chance(), Rotation::chance()), Plane::Parameters());
     a.input[0] = Star(a.input[0][0], a.input[0][1], a.input[0][2], 3);
     a.input[1] = Star(a.input[1][0], a.input[1][1], a.input[1][2], 4);
     a.input[2] = Star(a.input[2][0], a.input[2][1], a.input[2][2], 5);
@@ -48,7 +48,7 @@ int TestPlanarTriangle::test_match_stars_fov () {
 ///
 /// @return 0 when finished.
 int TestPlanarTriangle::test_match_stars_none () {
-    Plane a(Benchmark(10, Star::chance(), Rotation::chance()));
+    Plane a(Benchmark(10, Star::chance(), Rotation::chance()), Plane::Parameters());
     a.input[0] = Star(1, 1, 1.1);
     a.input[1] = Star(1, 1, 1);
     a.input[2] = Star(1.1, 1, 1);
@@ -61,7 +61,7 @@ int TestPlanarTriangle::test_match_stars_none () {
 ///
 /// @return 0 when finished.
 int TestPlanarTriangle::test_match_stars_results () {
-    Plane a(Benchmark(15, Star::chance(), Rotation::chance()));
+    Plane a(Benchmark(15, Star::chance(), Rotation::chance()), Plane::Parameters());
     a.input[0] = a.ch.query_bsc5(3898);
     a.input[1] = a.ch.query_bsc5(4325);
     a.input[2] = a.ch.query_bsc5(4502);
@@ -87,19 +87,16 @@ int TestPlanarTriangle::test_match_stars_results () {
 ///
 /// @return 0 when finished.
 int TestPlanarTriangle::test_pivot_query_results () {
-    Plane a(Benchmark(15, Star::chance(), Rotation::chance()));
+    Plane a(Benchmark(15, Star::chance(), Rotation::chance()), Plane::Parameters());
     a.input[0] = a.ch.query_bsc5(3898);
     a.input[1] = a.ch.query_bsc5(4325);
     a.input[2] = a.ch.query_bsc5(4502);
     
     std::vector<Trio::stars> b = a.match_stars({0, 1, 2});
     Trio::stars c = a.pivot({0, 1, 2}, b);
-    assert_true(c[0] == a.input[0] || c[0] == a.input[1] || c[0] == a.input[2], 
-                "CandidateMatchingStarPivotQueryStar0");
-    assert_true(c[1] == a.input[0] || c[1] == a.input[1] || c[1] == a.input[2],
-                "CandidateMatchingStarPivotQueryStar1");
-    assert_true(c[2] == a.input[0] || c[2] == a.input[1] || c[2] == a.input[2],
-                "CandidateMatchingStarPivotQueryStar2");
+    assert_true(c[0] == a.input[0] || c[0] == a.input[1] || c[0] == a.input[2], "CandidateMatchingStarPivotQueryStar0");
+    assert_true(c[1] == a.input[0] || c[1] == a.input[1] || c[1] == a.input[2], "CandidateMatchingStarPivotQueryStar1");
+    assert_true(c[2] == a.input[0] || c[2] == a.input[1] || c[2] == a.input[2], "CandidateMatchingStarPivotQueryStar2");
     
     return 0;
 }
@@ -114,7 +111,7 @@ int TestPlanarTriangle::test_rotating_match_correct_input () {
     Rotation f = Rotation::rotation_across_frames({a, b}, {d, e});
     Benchmark input(8, Star::chance(), c);
     std::vector<Star> rev_input;
-    Plane g(input);
+    Plane g(input, Plane::Parameters());
     
     // Reverse all input by inverse rotation.
     rev_input.reserve(input.stars.size());
@@ -143,7 +140,7 @@ int TestPlanarTriangle::test_rotating_match_error_input () {
     Rotation f = Rotation::rotation_across_frames({a, b}, {d, e});
     Benchmark input(8, Star::chance(), c);
     std::vector<Star> rev_input;
-    Plane g(input);
+    Plane g(input, Plane::Parameters());
     
     // Reverse all input by inverse rotation.
     rev_input.reserve(input.stars.size());
@@ -175,7 +172,7 @@ int TestPlanarTriangle::test_rotating_match_duplicate_input () {
     Rotation f = Rotation::rotation_across_frames({a, b}, {d, e});
     Benchmark input(8, Star::chance(), c);
     std::vector<Star> rev_input;
-    Plane g(input);
+    Plane g(input, Plane::Parameters());
     
     // Reverse all input by inverse rotation.
     rev_input.reserve(input.stars.size());

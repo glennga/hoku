@@ -27,11 +27,12 @@ Rotation::Rotation (const double w, const Star &v, const bool as_unit) {
 /// @return Quaternion equivalent of r.
 Rotation Rotation::matrix_to_quaternion (const matrix &r) {
     double w = 0.5 * sqrt(r[0][0] + r[1][1] + r[2][2] + 1);
+    double a = (r[2][1] - r[1][2]) / (4 * w);
+    double b = (r[0][2] - r[2][0]) / (4 * w);
+    double c = (r[1][0] - r[0][1]) / (4 * w);
     
     // Result returned is normalized. 
-    return Rotation(w,
-                    Star((r[2][1] - r[1][2]) / (4 * w), (r[0][2] - r[2][0]) / (4 * w), (r[1][0] - r[0][1]) / (4 * w)),
-                    true);
+    return Rotation(w, Star(a, b, c), true);
 }
 
 /// Given two 3x3 matrices A and B, determine the A * B^T (the transpose of B). This is mathematically equivalent
@@ -42,8 +43,8 @@ Rotation Rotation::matrix_to_quaternion (const matrix &r) {
 /// @return The result of A * B^T.
 Rotation::matrix Rotation::matrix_multiply_transpose (const matrix &a, const matrix &b) {
     return {Star(Star::dot(a[0], b[0]), Star::dot(a[0], b[1]), Star::dot(a[0], b[2])),
-            Star(Star::dot(a[1], b[0]), Star::dot(a[1], b[1]), Star::dot(a[1], b[2])),
-            Star(Star::dot(a[2], b[0]), Star::dot(a[2], b[1]), Star::dot(a[2], b[2]))};
+        Star(Star::dot(a[1], b[0]), Star::dot(a[1], b[1]), Star::dot(a[1], b[2])),
+        Star(Star::dot(a[2], b[0]), Star::dot(a[2], b[1]), Star::dot(a[2], b[2]))};
 }
 
 /// Find the quaternion across two different frames given pairs of vectors in each frame. Solution found here: 

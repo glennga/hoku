@@ -106,9 +106,9 @@ QuadNode QuadNode::branch (const QuadNode &p, const child_edges &children) {
 QuadNode::child_edges QuadNode::find_quadrant_centers () const {
     double a = this->w_i / 4.0, child_width = this->w_i / 2.0;
     return {std::make_shared<QuadNode>(QuadNode(x - a, y + a, child_width)),
-            std::make_shared<QuadNode>(QuadNode(x + a, y + a, child_width)),
-            std::make_shared<QuadNode>(QuadNode(x - a, y - a, child_width)),
-            std::make_shared<QuadNode>(QuadNode(x + a, y - a, child_width))};
+        std::make_shared<QuadNode>(QuadNode(x + a, y + a, child_width)),
+        std::make_shared<QuadNode>(QuadNode(x - a, y - a, child_width)),
+        std::make_shared<QuadNode>(QuadNode(x + a, y - a, child_width))};
 }
 
 /// Remove all stars in the given list that aren't within an a*a box around the current star.
@@ -250,8 +250,6 @@ QuadNode QuadNode::load_tree (const double w_n) {
     // Populate the tree. The root is the center of projection.
     return r.find_quad_leaves(r, w_n, projected);
 }
-
-int COUNT = 0;
 
 /// Given a parent node, explore every child for leaf nodes that are within the boundary box.
 ///

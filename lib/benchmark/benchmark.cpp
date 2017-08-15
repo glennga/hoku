@@ -41,15 +41,18 @@ void Benchmark::generate_stars () {
     this->shuffle();
 }
 
-/// Set all of the HR numbers in the current star set to 0. In practice, the HR number of a star set is never given
-/// from the image itself. Return the current star set as this.
+/// Return the current star set with all HR numbers set to 0. In practice, the Hr number of a star set is never given
+/// from the image itself.
 ///
-/// @return Current star set with HR numbers set to 0.
-Star::list Benchmark::clean_stars () {
-    for (unsigned int i = 0; i < this->stars.size(); i++) {
-        this->stars[i] = Star::reset_hr(this->stars[i]);
+/// @return Copy of current star set with HR numbers set to 0.
+Star::list Benchmark::clean_stars () const {
+    // Keep the current star set intact.
+    Star::list clean = this->stars;
+    
+    for (unsigned int i = 0; i < clean.size(); i++) {
+        clean[i] = Star::reset_hr(clean[i]);
     }
-    return this->stars;
+    return clean;
 }
 
 /// Modify the given image_s, image_focus, and image_fov to the current stars, focus, and fov fields. These are all
@@ -58,7 +61,7 @@ Star::list Benchmark::clean_stars () {
 /// @param image_s Reference to the star list to benchmark star set.
 /// @param image_focus Reference to the star to set as the focus star.
 /// @param image_fov Reference to the double to set as the fov.
-void Benchmark::present_image (Star::list &image_s, Star &image_focus, double &image_fov) {
+void Benchmark::present_image (Star::list &image_s, Star &image_focus, double &image_fov) const {
     image_focus = this->focus, image_fov = this->fov;
     image_s = clean_stars();
 }
@@ -203,9 +206,9 @@ void Benchmark::shift_light (const int n, const double sigma) {
     while (current_n < n) {
         // Check inside if n is met early, break if met.
         for (unsigned int i = 0; i < this->stars.size() && current_n < n; i++) {
-            Star candidate =
-                Star(this->stars[i][0] + dist(mersenne_twister), this->stars[i][1] + dist(mersenne_twister),
-                     this->stars[i][2] + dist(mersenne_twister), this->stars[i].get_hr()).as_unit();
+            Star candidate = Star(this->stars[i][0] + dist(mersenne_twister),
+                                  this->stars[i][1] + dist(mersenne_twister),
+                                  this->stars[i][2] + dist(mersenne_twister), this->stars[i].get_hr()).as_unit();
             
             // If shifted star is near focus, add the shifted star and remove the old.
             if (Star::within_angle(candidate, this->focus, this->fov / 2.0)) {

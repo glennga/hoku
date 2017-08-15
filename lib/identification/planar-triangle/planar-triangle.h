@@ -9,6 +9,7 @@
 
 #include "benchmark.h"
 #include "chomp.h"
+#include "quad-node.h"
 #include "trio.h"
 #include <iostream>
 
@@ -51,6 +52,7 @@ class PlanarTriangle {
         unsigned int query_expected = 10; ///< Expected number of stars to be found with query. Better to overshoot.
         double match_sigma = 0.00001; ///< Resultant of inertial->body rotation must within 3 * match_sigma of *a* body.
         unsigned int match_minimum = 10; ///< The minimum number of body-inertial matches.
+        unsigned int bsc5_quadtree_w = 1000; ///< The size of the square to project all BSC5 stars onto (for quadtree).
         std::string table_name = "PLAN20"; ///< Name of the Nibble table created with 'generate_triangle_table'.
     };
     
@@ -80,6 +82,9 @@ class PlanarTriangle {
     /// Chomp instance. This is where multi-threading 'might' fail, with repeated access to database.
     Chomp ch;
     
+    /// Quadtree root. Used for finding nearby stars.
+    std::shared_ptr<QuadNode> q_root;
+    
     /// Current focus of the star set 'input'.
     Star focus;
     
@@ -87,7 +92,7 @@ class PlanarTriangle {
     double fov;
   
   private:
-    PlanarTriangle (Benchmark);
+    PlanarTriangle (const Benchmark &, const Parameters &);
     
     std::vector<hr_trio> query_for_trio (const double, const double);
     std::vector<Trio::stars> match_stars (const index_trio &);

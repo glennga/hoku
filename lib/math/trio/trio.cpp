@@ -26,7 +26,7 @@ Trio::side_lengths Trio::planar_lengths () const {
 /// @return Side lengths in order a, b, c.
 Trio::side_lengths Trio::spherical_lengths () const {
     return {Star::angle_between(this->b_1, this->b_2), Star::angle_between(this->b_2, this->b_3),
-            Star::angle_between(this->b_3, this->b_1)};
+        Star::angle_between(this->b_3, this->b_1)};
 }
 
 /// Find the triangle's semi perimeter (perimeter * 0.5) given the side lengths.
