@@ -51,7 +51,7 @@ int Plane::generate_triangle_table (const int fov, const std::string &table_name
                     
                     nb.insert_into_table("hr_a, hr_b, hr_c, a, i",
                                          {(double) all_stars[i].get_hr(), (double) all_stars[j].get_hr(),
-                                          (double) all_stars[k].get_hr(), a_t, i_t});
+                                             (double) all_stars[k].get_hr(), a_t, i_t});
                 }
             }
         }
@@ -79,8 +79,8 @@ std::vector<Plane::hr_trio> Plane::query_for_trio (const double a, const double 
     
     // First, search for trio of stars matching area condition.
     ch.select_table(this->parameters.table_name);
-    area_match =
-        ch.k_vector_query("a", "hr_a, hr_b, hr_c, i", a - epsilon_a, a + epsilon_a, this->parameters.query_expected);
+    area_match = ch
+        .k_vector_query("a", "hr_a, hr_b, hr_c, i", a - epsilon_a, a + epsilon_a, this->parameters.query_expected);
     
     // Next, search this trio for stars matching the moment condition.
     area_moment_match.reserve(area_match.size() / 4);

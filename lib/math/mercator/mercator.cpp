@@ -93,5 +93,5 @@ int Mercator::get_hr () {
 /// @return Quad of corners, in order of top-left, top-right, bottom-left, bottom-right.
 Mercator::quad Mercator::find_corners (const double a) const {
     return {Mercator(x - a / 2.0, y + a / 2.0, w_n), Mercator(x + a / 2.0, y + a / 2.0, w_n),
-            Mercator(x - a / 2.0, y - a / 2.0, w_n), Mercator(x + a / 2.0, y - a / 2.0, w_n)};
+        Mercator(x - a / 2.0, y - a / 2.0, w_n), Mercator(x + a / 2.0, y - a / 2.0, w_n)};
 }
