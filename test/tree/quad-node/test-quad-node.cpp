@@ -90,7 +90,7 @@ int TestQuadNode::test_reduce () {
 /// Check that the quadrant_intersects_quadrant works as intended.
 ///
 /// @return 0 when finished.
-int TestQuadNode::test_quadrant_intersection() {
+int TestQuadNode::test_quadrant_intersection () {
     QuadNode a(-250, 250, 500), b(250, 250, 500), c(0, 250, 488);
     
     assert_false(a.quadrant_intersects_quadrant(b), "LeftDoesNotIntersectRight", a.str() + "," + b.str());
@@ -103,10 +103,10 @@ int TestQuadNode::test_quadrant_intersection() {
 ///
 /// @return 0 when finished.
 int TestQuadNode::test_expected_leaf_order () {
-    QuadNode::list a =
-        {QuadNode(-251, 251, 1000), QuadNode(251, 249, 1000), QuadNode(-249, -249, 1000), QuadNode(249, -249, 1000)};
-    QuadNode::list
-        b = {QuadNode(-250, 250, 500), QuadNode(250, 250, 500), QuadNode(-250, -250, 500), QuadNode(250, -250, 500)};
+    QuadNode::list a = {QuadNode(-251, 251, 1000), QuadNode(251, 249, 1000), QuadNode(-249, -249, 1000),
+        QuadNode(249, -249, 1000)};
+    QuadNode::list b = {QuadNode(-250, 250, 500), QuadNode(250, 250, 500), QuadNode(-250, -250, 500),
+        QuadNode(250, -250, 500)};
     QuadNode c(0, 0, 1000), d = QuadNode::root(1000).find_quad_leaves(c, 1000, a);
     
     assert_equal(c, d, "ExpectedRoot", c.str() + "," + d.str());
@@ -132,8 +132,8 @@ int TestQuadNode::test_expected_leaf_order () {
 ///
 /// @return 0 when finished.
 int TestQuadNode::test_unbalanced_tree () {
-    QuadNode::list a =
-        {QuadNode(-251, 251, 1000), QuadNode(-252, 252, 1000), QuadNode(-253, 253, 1000), QuadNode(-254, 254, 1000)};
+    QuadNode::list a = {QuadNode(-251, 251, 1000), QuadNode(-252, 252, 1000), QuadNode(-253, 253, 1000),
+        QuadNode(-254, 254, 1000)};
     QuadNode b(0, 0, 1000), c = QuadNode::root(1000).find_quad_leaves(b, 1000, a);
     
     for (int q = 0; q < 4; q++) {
@@ -155,13 +155,12 @@ int TestQuadNode::test_unbalanced_tree () {
 ///
 /// @return 0 when finished.
 int TestQuadNode::test_partition_for_leaves () {
-    QuadNode::list a =
-        {QuadNode(-251, 251, 1000), QuadNode(-252, 252, 1000), QuadNode(-253, 253, 1000), QuadNode(-254, 254, 1000),
-         QuadNode(-126, 126, 1000)};
+    QuadNode::list a = {QuadNode(-251, 251, 1000), QuadNode(-252, 252, 1000), QuadNode(-253, 253, 1000),
+        QuadNode(-254, 254, 1000), QuadNode(-126, 126, 1000)};
     QuadNode b(0, 0, 1000), c = QuadNode::root(1000).find_quad_leaves(b, 1000, a);
     QuadNode d = c.to_child(0).to_child(0), e = c.to_child(0).to_child(3);
-    QuadNode::list
-        f = {QuadNode(-375, 375, 250), QuadNode(-125, 375, 250), QuadNode(-375, 125, 250), QuadNode(-125, 125, 250)};
+    QuadNode::list f = {QuadNode(-375, 375, 250), QuadNode(-125, 375, 250), QuadNode(-375, 125, 250),
+        QuadNode(-125, 125, 250)};
     
     for (int q = 0; q != 6; q += 3) {
         std::string test_name = "ExpectedBranchForChild0" + std::to_string(q);
@@ -188,11 +187,11 @@ int TestQuadNode::test_nearby_stars () {
     Star a = Star::chance();
     Star::list b = Nibble().nearby_stars(a, 10, 90), c = q.nearby_stars(a, 10, 90);
     std::vector<double> d, e;
-
+    
     assert_not_equal(Nibble().nearby_stars(a, 10, 90).size(), 0, "NearbyStarsNoQuadTree");
     assert_not_equal(q.nearby_stars(a, 10, 90).size(), 0, "NearbyStarsUsingQuadTree");
     
-    for(const Star &s : c) {
+    for (const Star &s : c) {
         std::string test_name = "NearbyStarIsActuallyNearFocus" + std::to_string(s.get_hr());
         // Adding 3 degrees to fov... B and C are both defined by different definitions of "nearby".
         assert_less_than(Star::angle_between(s, a), 10 + 3, test_name);

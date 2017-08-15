@@ -35,9 +35,9 @@ int TestTrio::test_spherical_length_computation () {
 int TestTrio::test_semi_perimeter_computation () {
     Trio a(Star(1, 1, 1), Star(-1, 0, -1), Star(2, 4, 3));
     std::array<double, 3> b = a.planar_lengths();
+    double c = 13.1448 / 2.0;
     
-    return 0
-           * assert_equal(a.semi_perimeter(b[0], b[1], b[2]), 13.1448 / 2.0, "SemiPerimeterComputationPlanar", 0.0001);
+    return 0 * assert_equal(a.semi_perimeter(b[0], b[1], b[2]), c, "SemiPerimeterComputationPlanar", 0.0001);
 }
 
 /// Check the planar_area method. Testing involves using the approach found in the link below to verify that both
@@ -86,15 +86,14 @@ int TestTrio::test_planar_centroid_computation () {
 /// @return 0 when finished.
 int TestTrio::test_cut_triangle_computation () {
     Trio a(Star(1, 1, 1), Star(-1, 0, -1), Star(2, 4, 3));
-    Trio yodh_a = Trio::cut_triangle(a.b_1, a.b_2, a.b_3, a.b_1);
-    Trio yodh_b = Trio::cut_triangle(a.b_1, a.b_2, a.b_3, a.b_2);
-    Trio yodh_c = Trio::cut_triangle(a.b_1, a.b_2, a.b_3, a.b_3);
-    Trio yodh_k = Trio::cut_triangle(a.b_1, a.b_2, a.b_3);
+    Trio b_a = Trio::cut_triangle(a.b_1, a.b_2, a.b_3, a.b_1);
+    Trio b_b = Trio::cut_triangle(a.b_1, a.b_2, a.b_3, a.b_2);
+    Trio b_c = Trio::cut_triangle(a.b_1, a.b_2, a.b_3, a.b_3);
+    Trio b_k = Trio::cut_triangle(a.b_1, a.b_2, a.b_3);
     
     double kaph_area = Trio::planar_area(a.b_1, a.b_2, a.b_3);
-    double yodh_area =
-        Trio::planar_area(yodh_a.b_1, yodh_a.b_2, yodh_a.b_3) + Trio::planar_area(yodh_b.b_1, yodh_b.b_2, yodh_b.b_3)
-        + Trio::planar_area(yodh_c.b_1, yodh_c.b_2, yodh_c.b_3) + Trio::planar_area(yodh_k.b_1, yodh_k.b_2, yodh_k.b_3);
+    double yodh_area = Trio::planar_area(b_a.b_1, b_a.b_2, b_a.b_3) + Trio::planar_area(b_b.b_1, b_b.b_2, b_b.b_3)
+                       + Trio::planar_area(b_c.b_1, b_c.b_2, b_c.b_3) + Trio::planar_area(b_k.b_1, b_k.b_2, b_k.b_3);
     
     return 0 * assert_equal(kaph_area, yodh_area, "CutTriangleSummation");
 }

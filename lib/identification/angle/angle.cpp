@@ -79,7 +79,7 @@ Angle::hr_pair Angle::query_for_pair (const double theta) {
     
     // Return the set with the angle closest to theta.
     return hr_pair {(int) nb.table_results_at(candidates, 3, minimum_index)[0],
-                    (int) nb.table_results_at(candidates, 3, minimum_index)[1]};
+        (int) nb.table_results_at(candidates, 3, minimum_index)[1]};
 }
 
 /// Given a set of body (frame B) stars, find the matching inertial (frame R) stars.
