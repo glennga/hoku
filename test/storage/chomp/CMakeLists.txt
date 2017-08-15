@@ -11,5 +11,5 @@ include_directories(${CMAKE_SOURCE_DIR}/lib/storage/chomp)
 # Link and Create Executable
 ##################################################################
 add_executable(TestChomp test-chomp.cpp)
-target_link_libraries(TestChomp BaseTest Chomp Nibble Star SQLiteCpp
-        Sqlite3)
+target_link_libraries(TestChomp BaseTest Chomp Nibble Star
+        SQLiteCpp Sqlite3)

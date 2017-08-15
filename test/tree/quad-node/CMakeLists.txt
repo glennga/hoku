@@ -3,19 +3,14 @@
 ##################################################################
 include_directories(${CMAKE_SOURCE_DIR}/lib/base-test)
 include_directories(${CMAKE_SOURCE_DIR}/lib/math/star)
-include_directories(${CMAKE_SOURCE_DIR}/lib/math/trio)
 include_directories(${CMAKE_SOURCE_DIR}/lib/math/mercator)
+include_directories(${CMAKE_SOURCE_DIR}/lib/tree/quad-node)
 include_directories(${CMAKE_SOURCE_DIR}/lib/third-party/sqlite-cpp)
 include_directories(${CMAKE_SOURCE_DIR}/lib/storage/nibble)
-include_directories(${CMAKE_SOURCE_DIR}/lib/storage/chomp)
-include_directories(${CMAKE_SOURCE_DIR}/lib/math/rotation)
-include_directories(${CMAKE_SOURCE_DIR}/lib/benchmark)
-include_directories(${CMAKE_SOURCE_DIR}/lib/identification/planar-triangle)
 
 ##################################################################
 # Link and Create Executable
 ##################################################################
-add_executable(TestPlanarTriangle test-planar-triangle.cpp)
-target_link_libraries(TestPlanarTriangle BaseTest PlanarTriangle
-        Benchmark Rotation Chomp Nibble Mercator Trio Star SQLiteCpp
-        Sqlite3)
+add_executable(TestQuadNode test-quad-node.cpp)
+target_link_libraries(TestQuadNode BaseTest QuadNode Nibble Mercator
+        Star SQLiteCpp Sqlite3)

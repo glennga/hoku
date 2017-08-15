@@ -1,54 +1,72 @@
-/*
- * @file: rotation.h
- *
- * @brief: Header file for Rotation class, which represents rotations on 3D star vectors using
- * quaternions.
- */
+/// @file rotation.h
+/// @author Glenn Galvizo
+///
+/// Header file for Rotation class, which represents rotations on 3D star vectors using quaternions.
 
 #ifndef HOKU_ROTATION_H
 #define HOKU_ROTATION_H
 
 #include "star.h"
 
-/*
- * @class Rotation
- * @brief Rotation class, which facilitates general 3D rotations.
- *
- * The rotation class uses the vector functions in the star class to form quaternions. Rotations
- * allow us to simulate a true lost-in-space condition.
- */
+/// The rotation class uses the vector functions in the star class to form quaternions. Rotations allow us to
+/// simulate a true lost-in-space condition.
+///
+/// @example
+/// @code{.cpp}
+/// // Rotate {1, 1, 1} by a random rotation.
+/// printf("%s", Star::rotate(Star(1, 1, 1), Rotation::chance()).str());
+///
+/// Star a = Star::chance(), b = Star::chance(), c, d;
+/// Rotation e = Rotation::chance(), f;
+///
+/// // Star C is Star A rotated by Quaternion E. Star D is Star B rotated by Quaternion E.
+/// c = Rotation::rotate(a, e);
+/// d = Rotation::rotate(b, e);
+///
+/// // F is the rotation to take AB frame to CD. F == E.
+/// f = Rotation::rotation_across_frames({a, b}, {c, d});
+///
+/// // Result should show the same star.
+/// printf("%s : %s", Rotation::rotate(a, e).str(), Rotation::rotate(a, f).str());
+/// @endcode
 class Rotation {
-    public:
-        // force default constructor, all components start at zero
-        Rotation() = default;
-
-        // rotate a star with quaternion
-        static Star rotate(const Star &, const Rotation &);
-
-        // identity = no rotation, chance = random rotation
-        static Rotation identity();
-        static Rotation chance();
-
-        // determine mapping across two frames
-        static Rotation rotation_across_frames(const Star::pair &, const Star::pair &);
-
-#ifndef DEBUGGING_MODE_IS_ON
-        private:
-#endif
-        using matrix = std::array<Star, 3>;
-
-        // private component setter constructor, user shouldn't deal with components directly
-        Rotation(const double, const Star &, const bool = false);
-
-        // convert a rotation matrix to a quaternion
-        static Rotation matrix_to_quaternion(const matrix &);
-
-        // multiply a matrix with another matrix's transpose
-        static matrix matrix_multiply_transpose(const matrix &, const matrix &);
-
-        // quaternion components
-        double w = 1, i = 0, j = 0, k = 0;
-
+  private:
+    friend class TestRotation;
+  
+  public:
+    /// Force default constructor. Default is {1, 0, 0, 0} (identity).
+    Rotation () = default;
+  
+  public:
+    static Star rotate (const Star &, const Rotation &);
+    
+    static Rotation identity ();
+    static Rotation chance ();
+    
+    static Rotation rotation_across_frames (const Star::pair &, const Star::pair &);
+  
+  private:
+    /// Matrix alias, by using a 3-element array of 3D vectors.
+    using matrix = std::array<Star, 3>;
+  
+  private:
+    Rotation (const double, const Star &, const bool = false);
+    
+    static Rotation matrix_to_quaternion (const matrix &);
+    static matrix matrix_multiply_transpose (const matrix &, const matrix &);
+  
+  private:
+    /// W component, or the sole real component of a quaternion. Defaults to one (identity quaternion).
+    double w = 1;
+    
+    /// I component (element 0) of quaternion. Defaults to zero (identity quaternion).
+    double i = 0;
+    
+    /// J component (element 1) of quaternion. Defaults to zero (identity quaternion).
+    double j = 0;
+    
+    /// K component (element 2) of quaternion. Defaults to zero (identity quaternion).
+    double k = 0;
 };
 
 #endif /* HOKU_ROTATION_H */
