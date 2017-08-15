@@ -64,6 +64,7 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/lib/storage/chomp)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/benchmark)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/identification/angle)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/identification/planar-triangle)
+add_subdirectory(${CMAKE_SOURCE_DIR}/lib/identification/spherical-triangle)
 
 ##################################################################
 # Add Subdirectory Containing User Tests
@@ -78,3 +79,4 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/test/storage/chomp)
 add_subdirectory(${CMAKE_SOURCE_DIR}/test/benchmark)
 add_subdirectory(${CMAKE_SOURCE_DIR}/test/identification/angle)
 add_subdirectory(${CMAKE_SOURCE_DIR}/test/identification/planar-triangle)
+add_subdirectory(${CMAKE_SOURCE_DIR}/test/identification/spherical-triangle)
