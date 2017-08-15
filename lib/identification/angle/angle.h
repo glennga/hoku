@@ -32,65 +32,60 @@
 /// p.match_minimum = 7;
 ///
 /// // Print all matches (the key here is the 'identify' method).
-/// for (const Star &s : Angle::identify(b, p)) printf("%s", s.str().c_str());
+/// for (const Star &s : Angle::identify(b, p)) {
+///     printf("%s", s.str().c_str());
+/// }
 /// @endcode
-class Angle
-{
-private:
+class Angle {
+  private:
     friend class TestAngle;
-
-public:
+  
+  public:
     /// Defines the query and match operations, user can tweak for custom performance.
-    struct Parameters
-    {
-        /// A query must be within 3 * query_sigma of a given search.
-        double query_sigma = 0.00000000001;
-        /// While performing a basic bound query, limit results by this number.
-        unsigned int query_limit = 5;
-        /// While rotating inertial -> body, the resultant must be 3 * match_sigma of the body.
-        double match_sigma = 0.00001;
-        /// The minimum number of body-inertial matches.
-        unsigned int match_minimum = 10;
-        /// Name of the Nibble database table created with 'generate_sep_table'.
-        std::string table_name = "SEP20";
+    struct Parameters {
+        double query_sigma = 0.00000000001; ///< A query must be within 3 * query_sigma of a given search.
+        unsigned int query_limit = 5; ///< While performing a basic bound query, limit results by this number.
+        double match_sigma = 0.00001; ///< Resultant of inertial->body rotation must within 3 * match_sigma of *a* body.
+        unsigned int match_minimum = 10; ///< The minimum number of body-inertial matches.
+        std::string table_name = "SEP20"; ///< Name of the Nibble database table created with 'generate_sep_table'.
     };
-
+    
     /// User should **NOT** be creating instances of Angle manually. Instead, use the static 'identify' function.
-    Angle() = delete;
-
-public:
-    static Star::list identify(const Benchmark &, const Parameters &);
-    static int generate_sep_table(const int, const std::string &);
-
-private:
+    Angle () = delete;
+  
+  public:
+    static Star::list identify (const Benchmark &, const Parameters &);
+    static int generate_sep_table (const int, const std::string &);
+  
+  private:
     /// Alias for a list of Harvard Revised numbers (STL vector of doubles).
     using hr_list = std::vector<double>;
-
+    
     /// Alias for a pair of Harvard Revised numbers (2-element STL array of doubles).
     using hr_pair = std::array<int, 2>;
-
+    
     /// The star set we are working with. The HR values are all set to 0 here.
     Star::list input;
-
+    
     /// Current working parameters.
     Parameters parameters;
-
+    
     /// Nibble instance. This is where multi-threading 'might' fail, with repeated access to database.
     Nibble nb;
-
+    
     /// Current focus of the star set 'input'.
     Star focus;
-
+    
     /// All stars in 'input' are fov degrees from the focus.
     double fov;
-
-private:
-    Angle(Benchmark);
-
-    hr_pair query_for_pair(const double);
-    Star::pair find_candidate_pair(const Star &, const Star &);
-    Star::list find_matches(const Star::list &, const Rotation &);
-    Star::list check_assumptions(const Star::list &, const Star::pair &, const Star::pair &);
+  
+  private:
+    Angle (Benchmark);
+    
+    hr_pair query_for_pair (const double);
+    Star::pair find_candidate_pair (const Star &, const Star &);
+    Star::list find_matches (const Star::list &, const Rotation &);
+    Star::list check_assumptions (const Star::list &, const Star::pair &, const Star::pair &);
 };
 
 #endif /* HOKU_ANGLE_H */
