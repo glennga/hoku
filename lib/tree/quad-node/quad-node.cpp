@@ -251,8 +251,6 @@ QuadNode QuadNode::load_tree (const double w_n) {
     return r.find_quad_leaves(r, w_n, projected);
 }
 
-int COUNT = 0;
-
 /// Given a parent node, explore every child for leaf nodes that are within the boundary box.
 ///
 /// @param nb Nibble object. Gives us access to the Nibble database.

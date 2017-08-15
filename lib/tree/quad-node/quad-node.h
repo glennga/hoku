@@ -15,6 +15,13 @@
 ///
 /// @example
 /// @code{.cpp}
+/// // Construct the quadtree. Project every star in BSC5 to a square of 1000x1000 size.
+/// QuadNode q_root = QuadNode::load_tree(1000);
+///
+/// // Find all nearby stars that are within 15 degrees of a random star (Star::chance()). Expecting 90 stars.
+/// for (const Star &s : q_root.nearby_stars(Star::chance(), 15, 90)) {
+///     printf("%s", s.str().c_str());
+/// }
 /// @endcode
 class QuadNode : public Mercator {
   private:
