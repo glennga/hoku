@@ -42,6 +42,7 @@ class Benchmark {
     friend class TestBenchmark;
     friend class TestAngle;
     friend class TestPlanarTriangle;
+    friend class TestSphericalTriangle;
   
   public:
     /// Error model structure. Defines the type of error and the stars affected.
