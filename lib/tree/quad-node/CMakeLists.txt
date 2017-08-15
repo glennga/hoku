@@ -21,6 +21,7 @@ include_directories(..)
 include_directories(${CMAKE_SOURCE_DIR}/lib/math/star)
 include_directories(${CMAKE_SOURCE_DIR}/lib/math/mercator)
 include_directories(${CMAKE_SOURCE_DIR}/lib/storage/nibble)
+include_directories(${CMAKE_SOURCE_DIR}/lib/third-party/sqlite-cpp)
 
 ##################################################################
 # Add Library - Install List

@@ -18,9 +18,11 @@ class TestQuadNode : public BaseTest {
     int test_quadrant_centers ();
     int test_within_quad ();
     int test_reduce ();
+    int test_quadrant_intersection ();
     int test_expected_leaf_order ();
-    int test_build_simple_quadtree ();
-    int test_nearby_stars_quadtree ();
+    int test_unbalanced_tree ();
+    int test_partition_for_leaves ();
+    int test_nearby_stars ();
   
   public:
     int enumerate_tests (int);

@@ -12,5 +12,5 @@ include_directories(${CMAKE_SOURCE_DIR}/lib/storage/nibble)
 # Link and Create Executable
 ##################################################################
 add_executable(TestQuadNode test-quad-node.cpp)
-target_link_libraries(TestQuadNode BaseTest Nibble QuadNode Mercator
+target_link_libraries(TestQuadNode BaseTest QuadNode Nibble Mercator
         Star SQLiteCpp Sqlite3)

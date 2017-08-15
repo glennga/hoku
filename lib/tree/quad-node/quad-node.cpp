@@ -10,8 +10,18 @@
 /// @param x X coordinate of the node to set.
 /// @param y Y coordinate of the node to set.
 /// @param w_i Quadrant width of the node to set.
-QuadNode::QuadNode (const double, const double, const double) {
+QuadNode::QuadNode (const double x, const double y, const double w_i) {
     this->x = x, this->y = y, this->w_i = w_i;
+}
+
+/// Constructor for projecting a star. Unlike the Mercator base constructor, this adds the w_i as well.
+///
+/// @param s Star to project.
+/// @param w_n Width to project star with.
+/// @param w_i Boundary box width of the point.
+QuadNode::QuadNode (const Star &s, const double w_n, const double w_i) {
+    project_star(s, w_n);
+    this->w_i = w_i;
 }
 
 /// Determine if the two QuadNode's **components** are within QUADNODE_EQUALITY_PRECISION_DEFAULT units of each other.
@@ -25,13 +35,13 @@ bool QuadNode::operator== (const QuadNode &q) const {
 
 /// Return all components in the current point as a string object.
 ///
-/// @return String of components in form of (x:y:w_n:w_i:hr).
+/// @return String of components in form of (x:y:w_n:w_i:hr:is_green).
 std::string QuadNode::str () const {
     std::stringstream components;
     
     // Need to use stream here to set precision.
     components << std::setprecision(16) << std::fixed << "(";
-    components << x << ":" << y << ":" << w_n << ":" << w_i << ":" << hr << ")";
+    components << x << ":" << y << ":" << w_n << ":" << w_i << ":" << hr << (is_green ? ":1" : ":0") << ")";
     return components.str();
 }
 
@@ -49,7 +59,7 @@ QuadNode QuadNode::root (const double w_n) {
 /// Returns the condition in which a node as no children (i.e. all children pointers are null).
 ///
 /// @return 4 element STL array of null pointers.
-child_edges QuadNode::no_children () {
+QuadNode::child_edges QuadNode::no_children () {
     return {nullptr, nullptr, nullptr, nullptr};
 }
 
@@ -59,7 +69,7 @@ child_edges QuadNode::no_children () {
 /// @return The width the given angle roughly translates to.
 double QuadNode::width_given_angle (const double theta) {
     return (theta / 360.0) * w_n;
-};
+}
 
 /// Branch off from the given node. Construct a new node based off of p and attach the given children to it.
 ///
@@ -93,7 +103,7 @@ QuadNode QuadNode::branch (const QuadNode &p, const child_edges &children) {
 /// @endcode
 ///
 /// @return Array of pointers to QuadNode centers.
-child_edges QuadNode::find_quadrant_centers () const {
+QuadNode::child_edges QuadNode::find_quadrant_centers () const {
     double a = this->w_i / 4.0, child_width = this->w_i / 2.0;
     return {std::make_shared<QuadNode>(QuadNode(x - a, y + a, child_width)),
             std::make_shared<QuadNode>(QuadNode(x + a, y + a, child_width)),
@@ -144,11 +154,25 @@ QuadNode QuadNode::to_child (const int c) const {
     return !is_dead_child(c) ? *children[c] : root(-1);
 }
 
-/// Determine if the current node is terminal (leaf). This means that the current node has no children.
+/// Determine if the current node is a terminal **branch**. This is not a leaf test! This means that there exists one
+/// child of the current node who is colored green (AKA is a leaf).
 ///
-/// @return True if the current node has no children. False otherwise.
-bool QuadNode::is_leaf () {
-    return children == no_children();
+/// @return True if the current node is terminal. False otherwise.
+bool QuadNode::is_terminal_branch () {
+    return this->to_child(0).is_green + this->to_child(1).is_green || this->to_child(2).is_green
+           || this->to_child(3).is_green;
+}
+
+/// Determine if the quadrant of the current node intersects the given quadrant. Conditions are graphically
+/// represented in link (the direction of Y is opposite in the link): https://silentmatt.com/rectangle-intersection/
+///
+/// @param q Quadrant to determine intersection of.
+/// @return True if this intersects quadrant Q. False otherwise.
+bool QuadNode::quadrant_intersects_quadrant (const QuadNode &q) const {
+    double current_half_w = this->w_i / 2.0, q_half_w = q.w_i / 2.0;
+    
+    return (this->x - current_half_w < q.x + q_half_w) && (this->x + current_half_w > q.x - q_half_w)
+           && (this->y + current_half_w > q.y - q_half_w) && (this->y - current_half_w < q.y + q_half_w);
 }
 
 /// Recursively populate a quad-node, built out of QuadNode structures. Only external nodes represent actual stars.
@@ -183,8 +207,9 @@ QuadNode QuadNode::find_quad_leaves (const QuadNode &c, const double w_i, const 
             QuadNode::child_edges leaves = QuadNode::no_children();
             QuadNode terminal_branch = *centers[i];
             
-            // Attach XY values to leaves. Keep these in the heap.
+            // Attach XY values to leaves. Color them green and keep these in the heap.
             for (unsigned int j = 0; j < in_quadrant.size(); j++) {
+                in_quadrant[j].is_green = true;
                 leaves[j] = std::make_shared<QuadNode>(in_quadrant[j]);
             }
             
@@ -211,6 +236,7 @@ QuadNode QuadNode::find_quad_leaves (const QuadNode &c, const double w_i, const 
 /// @param w_n Projection width to use for all stars in BSC5.
 /// @return The root node of the quadtree.
 QuadNode QuadNode::load_tree (const double w_n) {
+    QuadNode r = QuadNode::root(w_n);
     QuadNode::list projected;
     Nibble nb;
     
@@ -218,12 +244,14 @@ QuadNode QuadNode::load_tree (const double w_n) {
     projected.reserve(Nibble::BSC5_TABLE_LENGTH);
     for (const Star &s : nb.all_bsc5_stars()) {
         // From full start to finish: (ra, dec) -> <i, j, k> -> (r, lat, lon) -> (x, y).
-        projected.push_back(QuadNode(s, w_n));
+        projected.push_back(QuadNode(s, w_n, 1));
     }
     
     // Populate the tree. The root is the center of projection.
-    return find_quad_leaves(QuadNode::root(w_n), w_n, projected);
+    return r.find_quad_leaves(r, w_n, projected);
 }
+
+int COUNT = 0;
 
 /// Given a parent node, explore every child for leaf nodes that are within the boundary box.
 ///
@@ -234,26 +262,28 @@ QuadNode QuadNode::load_tree (const double w_n) {
 /// @return List of stars that fit inside the given search box.
 Star::list QuadNode::query_quadtree (Nibble &nb, const QuadNode &focus, const QuadNode &parent, Star::list &t) {
     for (int i = 0; i < 4; i++) {
+        QuadNode working = parent.to_child(i);
+        
         // Do not attempt if there is no child.
         if (parent.is_dead_child(i)) {
             break;
         }
         
-        QuadNode working = parent.to_child(i);
-        bool child_within_bounds = focus.within_quadrant(working);
-        
-        // Current child is within the boundary box and is not a leaf. Traverse down.
-        if (child_within_bounds && !working.is_leaf()) {
-            return query_quadtree(nb, focus, working, t);
+        // Current child is within the boundary box and is not terminal. Traverse down.
+        if (focus.quadrant_intersects_quadrant(working) && !working.is_terminal_branch()) {
+            query_quadtree(nb, focus, working, t);
         }
-        else if (child_within_bounds) {
+        else if (working.is_terminal_branch()) {
             // Child is within the boundary box and holds leaf nodes. Append the leaves.
-            int current_leaf = 0;
-            
-            // Do not append dead children. Search for stars using HR number.
-            while (!working.is_dead_child(current_leaf)) {
-                t.push_back(nb.query_bsc5(working.to_child(current_leaf++).get_hr()));
+            for (int j = 0; j < 4; j++) {
+                // Do not append dead children. Search for stars using HR number.
+                if (!working.is_dead_child(j)) {
+                    t.push_back(nb.query_bsc5(working.to_child(j).get_hr()));
+                }
             }
+        }
+        else {
+            // Move to next node. 0 = upper left, 1 = upper right, 2 = bottom left, 3 = bottom right.
         }
     }
     
@@ -280,5 +310,5 @@ Star::list QuadNode::nearby_stars (const Star &q, const double fov, const unsign
     }
     
     nearby.reserve(expected);
-    return query_quadtree(nb, QuadNode(q, search_width), *this, nearby);
+    return query_quadtree(nb, QuadNode(q, this->w_n, search_width), *this, nearby);
 }

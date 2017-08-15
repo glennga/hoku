@@ -19,11 +19,12 @@
 class QuadNode : public Mercator {
   private:
     friend class TestQuadNode;
+    friend class BaseTest; // Friend to BaseTest for access to '==' operator.
   
   public:
     Star::list nearby_stars (const Star &, const double, const unsigned int);
     
-    QuadNode load_tree (const double);
+    static QuadNode load_tree (const double);
   
   private:
     /// Precision default for '==' method.
@@ -34,24 +35,22 @@ class QuadNode : public Mercator {
     
     /// Alias for edges to QuadNode's children (4-element STL array of shared pointers).
     using child_edges = std::array<std::shared_ptr<QuadNode>, 4>;
-    
-    /// Inherit the Mercator(const Star &, const double) constructor.
-    explicit QuadNode (const Star &s, const double w_n) : Mercator(s, w_n) {
-    }
   
   private:
+    QuadNode (const Star &, const double, const double);
     QuadNode (const double, const double, const double);
     static QuadNode root (const double);
     
+    std::string str () const;
+    
     bool operator== (const QuadNode &) const;
     
-    std::string str() const;
-    
-    bool is_leaf ();
+    bool is_terminal_branch ();
     bool is_dead_child (const int) const;
     static child_edges no_children ();
     
     double width_given_angle (const double);
+    bool quadrant_intersects_quadrant (const QuadNode &) const;
     
     static QuadNode branch (const QuadNode &, const child_edges & = no_children());
     QuadNode to_child (const int c) const;
@@ -66,6 +65,9 @@ class QuadNode : public Mercator {
   private:
     /// Children of the node itself. Defaults to having no children.
     QuadNode::child_edges children = no_children();
+    
+    /// Signals if leaf node or not. Defaults to false.
+    bool is_green = false;
     
     /// Width of the quadrant represented.
     double w_i = 1;
