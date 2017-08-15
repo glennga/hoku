@@ -64,7 +64,7 @@ bool Mercator::is_within_bounds (const quad &corners) const {
 /// https://stackoverflow.com/a/14457180
 ///
 /// @param s Star to project.
-/// @param w_n Width to project width.
+/// @param w_n Width to project with.
 void Mercator::project_star (const Star &s, const double w_n) {
     double theta, phi, r = s.norm();
     

@@ -6,12 +6,17 @@
 
 #include "planar-triangle.h"
 
-/// Constructor. Sets the benchmark data, fov, and focus. Set the current working table to the default 'PLAN20'.
+/// Constructor. Sets the benchmark data, fov, and focus. Sets the parameters and working table. Constructs the
+/// quadtree and saves the root.
 ///
 /// @param input Working Benchmark instance. We are **only** copying the star set, focus star, and the fov.
-PlanarTriangle::PlanarTriangle (Benchmark input) {
+/// @param parameters Parameters to use for identification.
+PlanarTriangle::PlanarTriangle (const Benchmark &input, const Parameters &parameters) {
     input.present_image(this->input, this->focus, this->fov);
-    ch.select_table(Parameters().table_name);
+    this->parameters = parameters;
+    
+    ch.select_table(this->parameters.table_name);
+    q_root = std::make_shared<QuadNode>(QuadNode::load_tree(this->parameters.bsc5_quadtree_w));
 }
 
 /// Generate the triangle table given the specified FOV and table name. This find the planar area and polar moment
@@ -246,7 +251,7 @@ Star::list Plane::check_assumptions (const Star::list &candidates, const Trio::s
 Star::list Plane::identify (const Benchmark &input, const Parameters &parameters) {
     Star::list matches;
     bool matched = false;
-    Plane p(input);
+    Plane p(input, parameters);
     p.parameters = parameters;
     
     // There exists |P_input| choose 3 possibilities.
@@ -265,7 +270,7 @@ Star::list Plane::identify (const Benchmark &input, const Parameters &parameters
                 }
                 
                 // Find candidate stars around the candidate trio.
-                candidates = p.ch.nearby_stars(candidate_trio[0], p.fov, 3 * p.input.size());
+                candidates = (*p.q_root).nearby_stars(candidate_trio[0], p.fov, 3 * p.input.size());
                 
                 // Check all possible configurations. Return the most likely.
                 matches = p.check_assumptions(candidates, candidate_trio, {(double) i, (double) j, (double) k});

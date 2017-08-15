@@ -110,7 +110,7 @@ bool BaseTest::assert_not_equal (double a, double b, const std::string &test_nam
     log_current(fabs(a - b) >= delta, test_name + ",FloatNotEqualAssertion",
                 minimum.str() + "," + std::to_string(a) + "," + std::to_string(b));
     
-    return push_results(fabs(a - b) < delta, test_name, finding_delta + " >= " + minimum.str() + ".",
+    return push_results(fabs(a - b) >= delta, test_name, finding_delta + " >= " + minimum.str() + ".",
                         finding_delta + " < " + minimum.str() + ".");
 }
 

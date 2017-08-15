@@ -59,7 +59,7 @@ class Benchmark {
     
     void generate_stars ();
     
-    void present_image (Star::list &, Star &, double &);
+    void present_image (Star::list &, Star &, double &) const;
     
     int record_current_plot ();
     int display_plot ();
@@ -69,7 +69,7 @@ class Benchmark {
     void shift_light (const int, const double);
   
   private:
-    Star::list clean_stars ();
+    Star::list clean_stars () const;
     void shuffle ();
   
   private:

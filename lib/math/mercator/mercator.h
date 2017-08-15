@@ -14,14 +14,14 @@
 ///
 /// @example
 /// @code{.cpp}
-/// // Project star {1, 1, 1} to a 1000x1000 square.
+/// // Project star {1, 1, 1} to a 1000x1000 square (the jist of it).
 /// Mercator a(Star(1, 1, 1), 1000);
 /// printf("%s", a.str().c_str());
 /// @endcode
 class Mercator {
   private:
     friend class TestMercator;
-    friend class TestChomp;
+    friend class TestQuadNode;
   
   public:
     /// Alias for a quartet of Mercator points.
@@ -34,7 +34,7 @@ class Mercator {
     Mercator (const Star &, const double);
     Mercator (const double, const double, const double, const int = 0);
     
-    std::string str () const;
+    virtual std::string str () const;
     
     int get_hr ();
   
@@ -56,7 +56,7 @@ class Mercator {
     /// Harvard Revised number for the point. Default is 0.
     int hr = 0;
   
-  private:
+  protected:
     void project_star (const Star &, const double);
 };
 
