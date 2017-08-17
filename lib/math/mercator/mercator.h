@@ -34,6 +34,8 @@ class Mercator {
     Mercator (const Star &, const double);
     Mercator (const double, const double, const double, const int = 0);
     
+    static Mercator zero();
+    
     double operator[] (const int) const;
     
     static double distance_between (const Mercator &, const Mercator &);
