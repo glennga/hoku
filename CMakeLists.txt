@@ -63,6 +63,7 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/lib/storage/nibble)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/storage/chomp)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/benchmark)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/identification/angle)
+add_subdirectory(${CMAKE_SOURCE_DIR}/lib/identification/base-triangle)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/identification/planar-triangle)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/identification/spherical-triangle)
 
