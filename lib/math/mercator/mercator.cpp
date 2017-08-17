@@ -24,6 +24,23 @@ Mercator::Mercator (const double x, const double y, const double w_n, const int 
     this->x = x, this->y = y, this->w_n = w_n, this->hr = hr;
 }
 
+/// Access method for the x and y components of the star. Overloads the [] operator.
+///
+/// @param n Index of {x, y to return.
+/// @return 0 if n > 1. Otherwise component at index n of {x, y}.
+double Mercator::operator[] (const int n) const {
+    return n > 1 ? 0 : std::array<double, 2> {x, y}[n];
+}
+
+/// Determine the length of the line that connects points m_1 and m_2.
+///
+/// @param m_1 Point one to determine the distance from.
+/// @param m_2 Point two to determine the distance from.
+/// @return Distance between points m_1 and m_2.
+double Mercator::distance_between (const Mercator &m_1, const Mercator &m_2) {
+    return sqrt(pow(m_2.y - m_1.y, 2) + pow(m_2.x - m_1.x, 2));
+}
+
 /// Return all components in the current point as a string object.
 ///
 /// @return String of components in form of (x:y:w_n:hr).

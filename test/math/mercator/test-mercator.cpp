@@ -45,6 +45,27 @@ int TestMercator::test_is_within_bounds () {
     return 0 * assert_true(Mercator(1, 1, 1000).is_within_bounds(a), "PointWithinBounds", p.str());
 }
 
+/// Test the distance_between method. Answers checked with WolframAlpha.
+///
+/// @return 0 when finished.
+int TestMercator::test_distance_between () {
+    Mercator a(500, 500, 1), b(0, 0, 1), c(-800, -450, 2);
+    
+    assert_equal(Mercator::distance_between(a, b), 500 * sqrt(2.0), "DistanceBetween1");
+    assert_equal(Mercator::distance_between(b, c), 50 * sqrt(337.0), "DistanceBetween2");
+    return 0 * assert_equal(Mercator::distance_between(a, c), 50 * sqrt(1037.0), "DistanceBetween3");
+}
+
+/// Tests the [] operator. These access the X and Y components of the star.
+///
+/// @return 0 when finished.
+int TestMercator::test_bracket_operator() {
+    double a = Mercator(500, 1, 4)[0], b = Mercator(500, 1, 4)[1];
+    
+    assert_equal(a, 500, "BracketOperatorElement0");
+    return 0 * assert_equal(b, 1, "BracketOperatorElement1");
+}
+
 /// Enumerate all tests in TestMercator.
 ///
 /// @param test_case Number of the test case to run.
@@ -54,6 +75,8 @@ int TestMercator::enumerate_tests (int test_case) {
         case 0: return test_projection_within_bounds();
         case 1: return test_corners_form_box();
         case 2: return test_is_within_bounds();
+        case 3: return test_distance_between();
+        case 4: return test_bracket_operator();
         default: return -1;
     }
 }
