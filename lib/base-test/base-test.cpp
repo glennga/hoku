@@ -300,6 +300,8 @@ int BaseTest::execute_tests (const Flavor f, const int specific_test) {
         }
     }
     
-    (*this->log).close();
+    if (f == NO_PRINT_LOG_ON || f == MINIMAL_PRINT_LOG_ON || f == FULL_PRINT_LOG_ON) {
+        (*this->log).close();
+    }
     return print_summary();
 }
