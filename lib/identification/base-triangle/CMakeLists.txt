@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.7)
 ##################################################################
 # User Configuration: Specify library name
 ##################################################################
-set(LIBNAME SphericalTriangle)
+set(LIBNAME BaseTriangle)
 
 ##################################################################
 # User Configuration: Source and Include Files
@@ -27,7 +27,6 @@ include_directories(${CMAKE_SOURCE_DIR}/lib/storage/chomp)
 include_directories(${CMAKE_SOURCE_DIR}/lib/tree/quad-node)
 include_directories(${CMAKE_SOURCE_DIR}/lib/third-party/sqlite-cpp)
 include_directories(${CMAKE_SOURCE_DIR}/lib/benchmark)
-include_directories(${CMAKE_SOURCE_DIR}/lib/identification/base-triangle)
 
 ##################################################################
 # Add Library - Install List

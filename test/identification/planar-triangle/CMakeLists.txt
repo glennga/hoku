@@ -11,6 +11,7 @@ include_directories(${CMAKE_SOURCE_DIR}/lib/storage/nibble)
 include_directories(${CMAKE_SOURCE_DIR}/lib/storage/chomp)
 include_directories(${CMAKE_SOURCE_DIR}/lib/math/rotation)
 include_directories(${CMAKE_SOURCE_DIR}/lib/benchmark)
+include_directories(${CMAKE_SOURCE_DIR}/lib/identification/base-triangle)
 include_directories(${CMAKE_SOURCE_DIR}/lib/identification/planar-triangle)
 
 ##################################################################
@@ -18,5 +19,5 @@ include_directories(${CMAKE_SOURCE_DIR}/lib/identification/planar-triangle)
 ##################################################################
 add_executable(TestPlanarTriangle test-planar-triangle.cpp)
 target_link_libraries(TestPlanarTriangle BaseTest PlanarTriangle
-        Benchmark Rotation QuadNode Chomp Nibble Mercator Trio
+        BaseTriangle Benchmark Rotation QuadNode Chomp Nibble Mercator Trio
         Star SQLiteCpp Sqlite3)
