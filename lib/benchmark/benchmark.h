@@ -60,7 +60,7 @@ class Benchmark {
     
     void generate_stars ();
     
-    void present_image (Star::list &, Star &, double &) const;
+    void present_image (Star::list &, double &) const;
     
     int record_current_plot ();
     int display_plot ();
