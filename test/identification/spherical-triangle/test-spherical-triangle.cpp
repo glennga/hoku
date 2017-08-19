@@ -119,7 +119,7 @@ int TestSphericalTriangle::test_rotating_match_correct_input () {
         rev_input.push_back(Rotation::rotate(rotated, f));
     }
     
-    std::vector<Star> h = g.find_matches(rev_input, c);
+    std::vector<Star> h = g.rotate_stars(rev_input, c);
     assert_equal(h.size(), input.stars.size(), "RotatingMatchAllInputReturned");
     
     for (unsigned int q = 0; q < h.size(); q++) {
@@ -151,7 +151,7 @@ int TestSphericalTriangle::test_rotating_match_error_input () {
     // Append focus as error.
     rev_input.push_back(input.focus);
     
-    std::vector<Star> h = g.find_matches(rev_input, c);
+    std::vector<Star> h = g.rotate_stars(rev_input, c);
     assert_equal(h.size(), input.stars.size(), "RotatingMatchOnlyOriginalInputReturned");
     
     for (unsigned int q = 0; q < h.size(); q++) {
@@ -185,7 +185,7 @@ int TestSphericalTriangle::test_rotating_match_duplicate_input () {
     rev_input.push_back(rev_input[0]);
     rev_input.push_back(rev_input[0]);
     
-    std::vector<Star> h = g.find_matches(rev_input, c);
+    std::vector<Star> h = g.rotate_stars(rev_input, c);
     assert_equal(h.size(), input.stars.size(), "RotatingMatchOnlyNotDuplicateReturned");
     
     for (unsigned int q = 0; q < h.size(); q++) {
@@ -206,7 +206,7 @@ int TestSphericalTriangle::test_identify_clean_input () {
     // we define a match as 66% here
     a.match_minimum = (unsigned int) (input.stars.size() / 3.0);
     
-    std::vector<Star> c = Sphere::identify(input, a);
+    std::vector<Star> c = Sphere(input, a).identify();
     assert_equal(c.size(), input.stars.size(), "IdentificationFoundAllSize");
     
     std::string all_input = "";
@@ -238,7 +238,7 @@ int TestSphericalTriangle::test_identify_error_input () {
     // We define a match as 66% here.
     a.match_minimum = (unsigned int) ((input.stars.size() - 1) / 3.0);
     
-    std::vector<Star> c = Sphere::identify(input, a);
+    std::vector<Star> c = Sphere(input, a).identify();
     assert_equal(c.size(), input.stars.size() - 1, "IdentificationFoundWithErrorSize");
     
     std::string all_input = "";
