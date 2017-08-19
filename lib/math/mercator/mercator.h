@@ -34,9 +34,14 @@ class Mercator {
     Mercator (const Star &, const double);
     Mercator (const double, const double, const double, const int = 0);
     
-    virtual std::string str () const;
+    static Mercator zero();
     
+    double operator[] (const int) const;
+    
+    static double distance_between (const Mercator &, const Mercator &);
     int get_hr ();
+
+    virtual std::string str () const;
   
   protected:
     Mercator::quad find_corners (const double) const;
