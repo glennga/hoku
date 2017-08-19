@@ -73,9 +73,6 @@ class Angle {
     /// Nibble instance. This is where multi-threading 'might' fail, with repeated access to database.
     Nibble nb;
     
-    /// Current focus of the star set 'input'.
-    Star focus;
-    
     /// All stars in 'input' are fov degrees from the focus.
     double fov;
   
