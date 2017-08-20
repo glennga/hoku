@@ -24,6 +24,18 @@ Mercator::Mercator (const double x, const double y, const double w_n, const int 
     this->x = x, this->y = y, this->w_n = w_n, this->hr = hr;
 }
 
+/// Return a point with coordinates (0, 0) and w_n = 0.
+///
+/// @return (0, 0) point with w_n = 0.
+Mercator Mercator::zero() {
+    return Mercator(0, 0, 0);
+}
+
+/// Set the X and Y coordinates of the point to zero. Retains HR and projection width.
+void Mercator::remove_coordinates () {
+    this->x = 0, this->y = 0;
+}
+
 /// Access method for the x and y components of the star. Overloads the [] operator.
 ///
 /// @param n Index of {x, y to return.

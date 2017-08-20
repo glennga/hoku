@@ -40,9 +40,6 @@ class BaseTriangle {
     /// The star set we are working with. The HR values are all set to 0 here.
     Star::list input;
     
-    /// Current focus of the star set 'input'.
-    Star focus;
-    
     /// All stars in 'input' are fov degrees from the focus.
     double fov;
     
