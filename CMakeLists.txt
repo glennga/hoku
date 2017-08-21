@@ -10,13 +10,13 @@ set(CMAKE_BUILD_TYPE Debug)
 
 if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
     message("Building Debug Version")
-endif()
+endif ()
 if (${CMAKE_BUILD_TYPE} MATCHES "Release")
     message("Building Release Version")
-endif()
+endif ()
 
 # remove when CMake >= 2.8.4 is required
-set(CMAKE_LEGACY_CYGWIN_WIN32 0) 
+set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 cmake_minimum_required(VERSION 3.7)
 project(${PROJECT_NAME})
 
@@ -30,19 +30,17 @@ else ()
 	-std=c++0x -U__STRICT_ANSI__ -Wno-invalid-offsetof")
 endif ()
 
-Option(BUILD_STATIC "Build Static Executables" OFF)
-if (BUILD_STATIC AND NOT MSVC)
-    message("Building Static Executables")
-    set(BUILD_SHARED_LIBS OFF)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static \
-	-static-libgcc -static-libstdc++")
-endif ()
+message("Building Static Executables")
+set(BUILD_SHARED_LIBS OFF)
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static \
+        -static-libgcc -static-libstdc++"
+#        -static-libgcc -static-libstdc++ -Wl,--stack,2147483647")
 
 if (WIN32)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
-else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -m64")
+else ()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lpthread -ldl")
-endif()
+endif ()
 
 ##################################################################
 # Add Subdirectory Containing Third Party Libraries
