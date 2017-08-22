@@ -33,7 +33,7 @@ endif ()
 message("Building Static Executables")
 set(BUILD_SHARED_LIBS OFF)
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static \
-        -static-libgcc -static-libstdc++"
+        -static-libgcc -static-libstdc++")
 #        -static-libgcc -static-libstdc++ -Wl,--stack,2147483647")
 
 if (WIN32)
