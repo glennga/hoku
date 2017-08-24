@@ -17,79 +17,71 @@
 /// @example
 /// @code{.cpp}
 /// // Construct the kd-tree for all stars in BSC5. Project every star to a square of 1000x1000 size.
-/// KdNode k_root = KdNode::load_tree(Nibble().all_bsc5_stars(), 1000);
+/// Star::list a = Nibble().all_bsc5_stars();
+/// KdNode k_root = KdNode::load_tree(a, 1000);
 ///
 /// // Find all nearby stars that are within 15 degrees of a random star (Star::chance()). Expecting 90 stars.
 /// for (const Star &s : k_root.nearby_stars(Star::chance(), 15, 90)) {
 ///     printf("%s", s.str().c_str());
 /// }
 /// @endcode
-class KdNode : public Mercator {
+class KdNode : private Mercator {
   private:
     friend class TestKdNode;
-    friend class BaseTest; // Friend to BaseTest for access to '==' operator.
+    friend class BaseTest;
   
   public:
-    Star::list nearby_stars (const Star &, const double, const unsigned int);
-    
     static KdNode load_tree (const Star::list &, const double);
+    
+    Star::list nearby_stars (const Star &, const double, const unsigned int, const Star::list &);
   
   private:
     /// Precision default for '==' method.
     constexpr static double KDNODE_EQUALITY_PRECISION_DEFAULT = 0.000000000001;
     
+    /// Alias for edge to nodes (there should only be a left and right).
+    using child_edge = std::shared_ptr<KdNode>;
+    
     /// Alias for a list of KdNodes (STL vector of KdNodes).
     using list = std::vector<KdNode>;
     
-    /// Alias for edges to nodes (there should only be a left and right).
-    using child_edges = std::array<std::shared_ptr<KdNode>, 2>;
+    /// Alias for the max and min bounds (2D STL array of doubles).
+    using bounds = std::array<double, 2>;
+    
+    /// Alias for the set of bounds (2D STL array of two 2D STL arrays of doubles).
+    using bounds_set = std::array<bounds, 2>;
+    
+    // Inherit Mercator's star projection constructor.
+    KdNode (const Star &s, const double w_n) : Mercator(s, w_n) {
+    };
   
   private:
-    KdNode (const Star &, const double, const int = -1);
-    KdNode (const double, const double, const int = -1);
-    
-    static KdNode root (const double);
-    static KdNode dead_child ();
-    
-    std::string str (const bool = false) const;
-    
-    bool operator== (const KdNode &) const;
-    
-    static void shuffle (list &);
-    
-    static KdNode populate_list (const unsigned int, const std::array<double, 4> &, const KdNode::list &);
-    static std::array<double, 4> find_bounds (const unsigned int, const std::array<double, 4> &, const KdNode::list &);
-    
-    bool is_terminal_branch ();
-    bool is_dead_child (const int) const;
-    static child_edges no_children ();
+    KdNode (const unsigned int, const unsigned int, const int,  const bounds_set &, list &);
+    static void sort_by_dimension (const unsigned int, const unsigned int, const int, list &);
     
     double width_given_angle (const double);
-    bool bounds_cross_bounds (const KdNode &, const int) const;
+    bool does_intersect_quad (const Mercator::quad &) const;
+    static void box_query (const Mercator::quad &, const KdNode &, KdNode::list &);
     
-    static KdNode branch (const KdNode &, const child_edges & = no_children());
-    KdNode to_child (const int c) const;
+    std::string str () const;
     
-    static KdNode::list reduce_using_bounds (const KdNode::list &, const std::array<double, 4> &);
-    bool within_quadrant (const KdNode &, const double) const;
-    
-    Star::list query_kd_tree (const KdNode &, const double, const KdNode &, Star::list &);
+    bool operator== (const KdNode &) const;
   
   private:
-    /// Pointer to list the tree was constructed out of. Only the root should have a non-null value.
-    std::shared_ptr<Star::list> origin_list = nullptr;
+    /// Minimum values for this node's represented box. Used for box queries.
+    bounds b_min;
     
-    /// Children of the node itself. Defaults to having no children.
-    KdNode::child_edges children = no_children();
+    /// Maximum values for this node's represented box. Used for box queries.
+    bounds b_max;
     
-    /// Boundaries for root and branch nodes. Defaults to {{0, 0, 0, 0}} (suggests leaf node).
-    std::array<std::array<double, 4>, 2> bounds = {{0, 0, 0, 0}};
+    /// Edge to left child node.
+    child_edge left_child;
     
-    /// Dimension of split axis. Defaults to -1 (suggests leaf node), but non-terminal nodes should be either 0 or 1.
-    int axis = -1;
+    /// Edge to right child node.
+    child_edge right_child;
     
     /// To generalize this tree to other data. This is a general identification number (as opposed to just HR values).
-    unsigned int origin_index = 0;
+    int origin_index = -1;
 };
 
 #endif /* HOKU_KD_NODE_H */

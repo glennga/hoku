@@ -13,12 +13,9 @@
 class TestKdNode : public BaseTest {
   private:
     int test_star_constructor ();
-    int test_root_property ();
-    int test_branch ();
+    int test_dimension_sort ();
     int test_equal_operator ();
-    int test_reduction ();
-    int test_find_median ();
-    int test_unbalanced_data ();
+    int test_simple_tree ();
     int test_nearby_stars ();
   
   public:
