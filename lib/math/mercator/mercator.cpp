@@ -31,11 +31,6 @@ Mercator Mercator::zero() {
     return Mercator(0, 0, 0);
 }
 
-/// Set the X and Y coordinates of the point to zero. Retains HR and projection width.
-void Mercator::remove_coordinates () {
-    this->x = 0, this->y = 0;
-}
-
 /// Access method for the x and y components of the star. Overloads the [] operator.
 ///
 /// @param n Index of {x, y to return.
