@@ -81,13 +81,13 @@ class Benchmark {
     const std::string PROJECT_LOCATION = std::string(std::getenv("HOKU_PROJECT_PATH"));
     
     /// Path of the 'clean' star set on disk. One of the temporary files used for plotting.
-    const std::string CURRENT_PLOT = PROJECT_LOCATION + "/data/cuplt.tmp";
+    const std::string CURRENT_PLOT = PROJECT_LOCATION + "/data/tmp/cuplt.tmp";
     
     /// Path of the 'error' star set on disk. One of the temporary files used for plotting.
-    const std::string ERROR_PLOT = PROJECT_LOCATION + "/data/errplt.tmp";
+    const std::string ERROR_PLOT = PROJECT_LOCATION + "/data/tmp/errplt.tmp";
     
     /// Path of the Python script used to plot the current Benchmark instance.
-    const std::string PLOT_SCRIPT = PROJECT_LOCATION + "/lib/benchmark/generate-plot.py";
+    const std::string PLOT_SCRIPT = "\"" + PROJECT_LOCATION + "/lib/benchmark/generate-plot.py\"";
     
     /// Current list of stars. All stars must be near the focus.
     Star::list stars;

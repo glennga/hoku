@@ -36,7 +36,7 @@ focus, stars, errors = [], [], []
 fov, norm = 0, 0
 
 # parse the plot file
-with open('../../../data/cuplt.tmp') as current_plot:
+with open('../../../data/tmp/cuplt.tmp') as current_plot:
     # first, record the fov and norm
     fov = float(current_plot.readline())
     norm = float(current_plot.readline())
@@ -53,7 +53,7 @@ with open('../../../data/cuplt.tmp') as current_plot:
         stars.append(star)
 
 # parse the error file
-with open('../../../data/errplt.tmp') as error_plot:
+with open('../../../data/tmp/errplt.tmp') as error_plot:
     for line in error_plot:
         error = []
 
