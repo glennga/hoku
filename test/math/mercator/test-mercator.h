@@ -14,6 +14,8 @@ class TestMercator : public BaseTest {
     int test_projection_within_bounds ();
     int test_corners_form_box ();
     int test_is_within_bounds ();
+    int test_distance_between ();
+    int test_bracket_operator ();
   
   public:
     int enumerate_tests (int);

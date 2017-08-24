@@ -6,13 +6,13 @@
 
 #include "spherical-triangle.h"
 
-/// Constructor. Sets the benchmark data, fov, and focus. Sets the parameters and working table. Constructs the
+/// Constructor. Sets the benchmark data and fov. Sets the parameters and working table. Constructs the
 /// quadtree and saves the root.
 ///
-/// @param input Working Benchmark instance. We are **only** copying the star set, focus star, and the fov.
+/// @param input Working Benchmark instance. We are **only** copying the star set and the fov.
 /// @param parameters Parameters to use for identification.
 SphericalTriangle::SphericalTriangle (const Benchmark &input, const Parameters &parameters) {
-    input.present_image(this->input, this->focus, this->fov);
+    input.present_image(this->input, this->fov);
     this->parameters = parameters;
     
     ch.select_table(this->parameters.table_name);

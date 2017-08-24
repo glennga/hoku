@@ -13,6 +13,8 @@
 #include <algorithm>
 #include <iomanip>
 #include <memory>
+#include <cmath>
+#include <vector>
 
 /// Base class (abstract virtual) for all testing classes. Includes logging and printing functionality.
 ///
