@@ -14,6 +14,7 @@ class TestAsterism : public BaseTest {
     int test_abcd_star_find ();
     int test_hash_normalized ();
     int test_cd_symmetry ();
+    int test_center();
   
   public:
     int enumerate_tests (int);
