@@ -40,9 +40,10 @@ class Mercator {
     Mercator (const double, const double, const double, const int = 0);
     
     static Mercator zero ();
-    void remove_coordinates ();
     
     double operator[] (const int) const;
+    
+    Mercator::quad find_corners (const double) const;
     
     static double distance_between (const Mercator &, const Mercator &);
     int get_hr ();
@@ -50,8 +51,6 @@ class Mercator {
     virtual std::string str () const;
   
   protected:
-    Mercator::quad find_corners (const double) const;
-    
     bool is_within_bounds (const quad &) const;
   
   protected:
