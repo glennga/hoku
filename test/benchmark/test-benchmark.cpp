@@ -99,7 +99,7 @@ int TestBenchmark::test_error_near_focus () {
 /// @return 0 when finished.
 int TestBenchmark::test_extra_light_added () {
     Benchmark input(15, Star::chance(), Rotation::chance());
-    int a = input.stars.size();
+    unsigned long long a = input.stars.size();
     input.add_extra_light(3);
     
     return 0 * assert_equal(input.stars.size(), a + 3, "ExtraLightAddedStars");
@@ -110,7 +110,7 @@ int TestBenchmark::test_extra_light_added () {
 /// @return 0 when finished.
 int TestBenchmark::test_removed_light_removed () {
     Benchmark input(15, Star::chance(), Rotation::chance());
-    unsigned int a = input.stars.size();
+    unsigned long long a = input.stars.size();
     input.remove_light(3, 4);
     
     return 0 * assert_less_than(input.stars.size(), a, "RemoveLightRemovedStars");
@@ -155,6 +155,19 @@ int TestBenchmark::test_hr_number_clear () {
     return 0;
 }
 
+/// We are not checking anything here- this is where the user visually checks and ensures that the plot is displayed
+/// properly.
+///
+/// @return 0 when finished.
+int TestBenchmark::test_display_plot () {
+    Benchmark input(15, Star::chance(), Rotation::chance());
+    input.add_extra_light(2);
+    input.shift_light(2, 0.1);
+    
+    input.display_plot();
+    return 0;
+}
+
 /// Enumerate all tests in TestBenchmark.
 ///
 /// @param test_case Number of the test case to run.
@@ -169,6 +182,7 @@ int TestBenchmark::enumerate_tests (int test_case) {
         case 5: return test_removed_light_removed();
         case 6: return test_shifted_light_shifted();
         case 7: return test_hr_number_clear();
+        case 8: return test_display_plot();
         default: return -1;
     }
 }
