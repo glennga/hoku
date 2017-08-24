@@ -57,7 +57,7 @@ bool Asterism::cd_property_met () {
     return c_prime[0] >= d_prime[0] && c_prime[0] + d_prime[0] < 1;
 }
 
-/// Geometric hash function. Determines the position of C and D stars based on the local coordinate systtem formed by
+/// Geometric hash function. Determines the position of C and D stars based on the local coordinate system formed by
 /// A and B stars.
 ///
 /// @param s Quad of stars to construct asterism of.
@@ -89,5 +89,20 @@ Asterism::points_cd Asterism::hash (const stars &s, const double w_n) {
     }
     
     return {m.c_prime[0], m.c_prime[1], m.d_prime[0], m.d_prime[1]};
+}
+
+/// Find the center of the star set. Used for indexing the results of "hash".
+///
+/// @param s Quad of stars to determine the center of.
+/// @return The center star of the quad.
+Star Asterism::center (const stars &s) {
+    std::array<double, 3> c;
+    
+    // For all three dimensions, record the average of that dimension.
+    for (int i = 0; i < 3; i++) {
+        c[i] = (s[0][i] + s[1][i] + s[2][i] + s[3][i]) / 4;
+    }
+
+    return Star(c[0], c[1], c[2]).as_unit();
 }
 
