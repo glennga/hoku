@@ -66,3 +66,20 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/lib/identification/angle)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/identification/base-triangle)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/identification/planar-triangle)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/identification/spherical-triangle)
+
+##################################################################
+# Add Subdirectory Containing User Tests
+##################################################################
+add_subdirectory(${CMAKE_SOURCE_DIR}/test/math/star)
+add_subdirectory(${CMAKE_SOURCE_DIR}/test/math/rotation)
+add_subdirectory(${CMAKE_SOURCE_DIR}/test/math/trio)
+add_subdirectory(${CMAKE_SOURCE_DIR}/test/math/mercator)
+add_subdirectory(${CMAKE_SOURCE_DIR}/test/math/asterism)
+add_subdirectory(${CMAKE_SOURCE_DIR}/test/tree/quad-node)
+add_subdirectory(${CMAKE_SOURCE_DIR}/test/tree/kd-node)
+add_subdirectory(${CMAKE_SOURCE_DIR}/test/storage/nibble)
+add_subdirectory(${CMAKE_SOURCE_DIR}/test/storage/chomp)
+add_subdirectory(${CMAKE_SOURCE_DIR}/test/benchmark)
+add_subdirectory(${CMAKE_SOURCE_DIR}/test/identification/angle)
+add_subdirectory(${CMAKE_SOURCE_DIR}/test/identification/planar-triangle)
+add_subdirectory(${CMAKE_SOURCE_DIR}/test/identification/spherical-triangle)
