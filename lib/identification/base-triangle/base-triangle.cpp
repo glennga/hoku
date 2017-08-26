@@ -28,7 +28,7 @@ std::vector<BaseTriangle::hr_trio> BaseTriangle::query_for_trio (const double a,
     // Next, search this trio for stars matching the moment condition.
     area_moment_match.reserve(area_match.size() / 4);
     for (unsigned int m = 0; m < area_match.size() / 4; m++) {
-        Chomp::sql_row t = ch.table_results_at(area_match, 4, m);
+        Chomp::tuple t = ch.table_results_at(area_match, 4, m);
         
         if (t[3] <= i - epsilon_i && t[3] > i + epsilon_i) {
             area_moment_match.push_back({t[0], t[1], t[2]});

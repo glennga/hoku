@@ -44,7 +44,7 @@
 /// nb.select_table("BSC5");
 ///
 /// // Search the 'BSC5' table star 3's right ascension and declination. Expecting 2 floats, limit results by 1 row.
-/// Nibble::sql_row a = nb.search_table("HR = 3", "alpha, delta", 2, 1);
+/// Nibble::tuple a = nb.search_table("HR = 3", "alpha, delta", 2, 1);
 ///
 /// // Print the results of the search. Search for a[0][0] (which is star 3's alpha) and a[0][1] (star 3's delta).
 /// printf("%f, %f", nb.table_results_at(a, 0, 0), nb.table_results_at(a, 0, 1));
@@ -58,7 +58,7 @@ class Nibble {
   
   public:
     /// Alias for a SQL row of results or input. Must be real numbers.
-    using sql_row = std::vector<double>;
+    using tuple = std::vector<double>;
     
     /// Length of the BSC5 table. Necessary if loading all stars into RAM.
     static const int BSC5_TABLE_LENGTH = 5029;
@@ -73,20 +73,20 @@ class Nibble {
     
     int generate_bsc5_table ();
     
-    int insert_into_table (const std::string &, const sql_row &);
+    int insert_into_table (const std::string &, const tuple &);
     
     Star::list all_bsc5_stars ();
     Star::list nearby_stars (const Star &, const double, const unsigned int);
     
     Star query_bsc5 (const int);
     
-    sql_row search_table (const std::string &, const std::string &, const unsigned int, const int = -1);
-    sql_row search_table (const std::string &, const unsigned int, const int = -1);
-    sql_row table_results_at (const sql_row &, const unsigned int, const int);
+    tuple search_table (const std::string &, const std::string &, const unsigned int, const int = -1);
+    tuple search_table (const std::string &, const unsigned int, const int = -1);
+    tuple table_results_at (const tuple &, const unsigned int, const int);
     
     int create_table (const std::string &, const std::string &);
     
-    int find_schema_fields (std::string &, std::string &);
+    int find_attributes (std::string &, std::string &);
     int sort_table (const std::string &);
     int polish_table (const std::string &);
   
@@ -105,7 +105,7 @@ class Nibble {
     
     // Path of the Nibble database file.
     const std::string DATABASE_LOCATION = PROJECT_LOCATION + "/data/nibble.db";
-  
+    
   private:
     void load_all_stars ();
     
