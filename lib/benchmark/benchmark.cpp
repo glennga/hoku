@@ -12,10 +12,10 @@ const std::string Benchmark::TABLE_NAME = "BENCH";
 const std::string Benchmark::PROJECT_LOCATION = std::string(std::getenv("HOKU_PROJECT_PATH"));
 
 /// Path of the 'clean' star set on disk. One of the temporary files used for plotting.
-const std::string Benchmark::CURRENT_PLOT = Benchmark::PROJECT_LOCATION + "/data/tmp/cuplt.tmp";
+const std::string Benchmark::CURRENT_PLOT = Benchmark::PROJECT_LOCATION + "/data/logs/tmp/cuplt.tmp";
 
 /// Path of the 'error' star set on disk. One of the temporary files used for plotting.
-const std::string Benchmark::ERROR_PLOT = Benchmark::PROJECT_LOCATION + "/data/tmp/errplt.tmp";
+const std::string Benchmark::ERROR_PLOT = Benchmark::PROJECT_LOCATION + "/data/logs/tmp/errplt.tmp";
 
 /// Path of the Python script used to plot the current Benchmark instance.
 const std::string Benchmark::PLOT_SCRIPT = "\"" + Benchmark::PROJECT_LOCATION + "/lib/benchmark/generate-plot.py\"";
