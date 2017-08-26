@@ -168,6 +168,36 @@ int TestBenchmark::test_display_plot () {
     return 0;
 }
 
+/// Check that the a given benchmark is inserted and can be parsed correctly.
+/// 
+/// @return 
+int TestBenchmark::test_nibble_insertion () {
+    std::string schema = "set_n INT, item_n INT, e INT, r INT, s INT, i FLOAT, j FLOAT, k FLOAT, fov FLOAT";
+    Benchmark input(15, Star::chance(), Rotation::chance());
+    Nibble nb;
+    
+    // We insert our benchmark with the next available set_n.
+    nb.select_table(Benchmark::TABLE_NAME);
+    nb.create_table(Benchmark::TABLE_NAME, schema);
+    unsigned int a = (unsigned int) nb.search_table("MAX(set_n)", 1, 1)[0] + 1;
+    input.insert_into_nibble(nb, a);
+    
+    Benchmark b = Benchmark::parse_from_nibble(nb, a);
+    
+    assert_equal(input.focus, b.focus, "ParsedStarIsEqual", input.focus.str() + "," + b.focus.str());
+    assert_equal(input.fov, b.fov, "ParsedFovIsEqual");
+    
+    if (assert_equal(input.stars.size(), b.stars.size(), "ParsedSizeSameAsOriginal")) {
+        int d = (int) input.stars.size();
+        assert_equal(input.stars[0], b.stars[0], "FirstStarIsEqual", input.stars[0].str() + "," + b.stars[0].str());
+        assert_equal(input.stars[d], b.stars[d], "FirstStarIsEqual", input.stars[d].str() + "," + b.stars[d].str());
+    }
+    
+    // We were never here...
+    (*nb.db).exec("DELETE FROM " + Benchmark::TABLE_NAME + " WHERE set_n = " + std::to_string(a));
+    return 0;
+}
+
 /// Enumerate all tests in TestBenchmark.
 ///
 /// @param test_case Number of the test case to run.
@@ -183,6 +213,7 @@ int TestBenchmark::enumerate_tests (int test_case) {
         case 6: return test_shifted_light_shifted();
         case 7: return test_hr_number_clear();
         case 8: return test_display_plot();
+        case 9: return test_nibble_insertion();
         default: return -1;
     }
 }
@@ -191,5 +222,5 @@ int TestBenchmark::enumerate_tests (int test_case) {
 ///
 /// @return -1 if the log file cannot be opened. 0 otherwise.
 int main () {
-    return TestBenchmark().execute_tests(BaseTest::FULL_PRINT_LOG_ON);
+    return TestBenchmark().execute_tests(BaseTest::FULL_PRINT_LOG_ON, 9);
 }

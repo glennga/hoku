@@ -21,6 +21,7 @@ class TestBenchmark : public BaseTest {
     int test_shifted_light_shifted ();
     int test_hr_number_clear ();
     int test_display_plot ();
+    int test_nibble_insertion ();
   
   public:
     int enumerate_tests (int);

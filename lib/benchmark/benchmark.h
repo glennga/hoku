@@ -62,14 +62,21 @@ class Benchmark {
     
     void present_image (Star::list &, double &) const;
     
+    int insert_into_nibble (Nibble &, const unsigned int) const;
+    static Benchmark parse_from_nibble (Nibble &, const unsigned int);
+    
     int record_current_plot ();
     int display_plot ();
     
     void add_extra_light (const int);
     void remove_light (const int, const double);
     void shift_light (const int, const double);
+    
+    static const std::string TABLE_NAME;
   
   private:
+    Benchmark (const Star::list &, const Star &, const double);
+    
     Star::list clean_stars () const;
     void shuffle ();
   
@@ -77,17 +84,10 @@ class Benchmark {
     /// Alias for the list (stack) of ErrorModels.
     using model_list = std::vector<ErrorModel>;
     
-    /// String of the HOKU_PROJECT_PATH environment variable
-    const std::string PROJECT_LOCATION = std::string(std::getenv("HOKU_PROJECT_PATH"));
-    
-    /// Path of the 'clean' star set on disk. One of the temporary files used for plotting.
-    const std::string CURRENT_PLOT = PROJECT_LOCATION + "/data/tmp/cuplt.tmp";
-    
-    /// Path of the 'error' star set on disk. One of the temporary files used for plotting.
-    const std::string ERROR_PLOT = PROJECT_LOCATION + "/data/tmp/errplt.tmp";
-    
-    /// Path of the Python script used to plot the current Benchmark instance.
-    const std::string PLOT_SCRIPT = "\"" + PROJECT_LOCATION + "/lib/benchmark/generate-plot.py\"";
+    static const std::string PROJECT_LOCATION;
+    static const std::string CURRENT_PLOT;
+    static const std::string ERROR_PLOT;
+    static const std::string PLOT_SCRIPT;
     
     /// Current list of stars. All stars must be near the focus.
     Star::list stars;
