@@ -241,6 +241,29 @@ int Benchmark::display_plot () {
     return 0;
 }
 
+/// Compare the number of matching stars that exist between the two stars sets.
+///
+/// @param a Star list to compare with B.
+/// @param b Star list to compare with A.
+/// @return The number of stars found matching both lists.
+int Benchmark::compare_stars (const Star::list &a, const Star::list &b) {
+    Star::list b_candidates = b;
+    unsigned int c = 0;
+    
+    for (const Star &s_a : a) {
+        for (unsigned int i = 0; i < b_candidates.size(); i++) {
+            
+            // If we find a match, erase this from our candidates list.
+            if (s_a == b_candidates[i]) {
+                b_candidates.erase(b_candidates.begin() + i);
+                c++;
+            }
+        }
+    }
+    
+    return c;
+}
+
 /// Append n randomly placed vectors that fall within fov/2 degrees of the focus. This models stray light that may
 /// randomly wander into the detector.
 ///

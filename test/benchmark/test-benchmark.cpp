@@ -188,13 +188,29 @@ int TestBenchmark::test_nibble_insertion () {
     assert_equal(input.fov, b.fov, "ParsedFovIsEqual");
     
     if (assert_equal(input.stars.size(), b.stars.size(), "ParsedSizeSameAsOriginal")) {
-        int d = (int) input.stars.size();
+        int d = (int) input.stars.size() - 1;
         assert_equal(input.stars[0], b.stars[0], "FirstStarIsEqual", input.stars[0].str() + "," + b.stars[0].str());
-        assert_equal(input.stars[d], b.stars[d], "FirstStarIsEqual", input.stars[d].str() + "," + b.stars[d].str());
+        assert_equal(input.stars[d], b.stars[d], "LastStarIsEqual", input.stars[d].str() + "," + b.stars[d].str());
     }
     
     // We were never here...
     (*nb.db).exec("DELETE FROM " + Benchmark::TABLE_NAME + " WHERE set_n = " + std::to_string(a));
+    return 0;
+}
+
+/// Check that the correct number of stars are returned from the "compare" function.
+///
+/// @return 0 when finished.
+int TestBenchmark::test_compare_stars() {
+    Benchmark a(15, Star::chance(), Rotation::chance());
+    Star::list b = a.stars;
+    
+    // Erase two stars from set B.
+    b.erase(b.begin() + 0);
+    b.erase(b.begin() + 1);
+    
+    assert_equal(a.stars.size(), Benchmark::compare_stars(a.stars, b) + 2, "ComparePresentsCorrectNumber");
+    
     return 0;
 }
 
@@ -214,6 +230,7 @@ int TestBenchmark::enumerate_tests (int test_case) {
         case 7: return test_hr_number_clear();
         case 8: return test_display_plot();
         case 9: return test_nibble_insertion();
+        case 10: return test_compare_stars();
         default: return -1;
     }
 }
@@ -222,5 +239,5 @@ int TestBenchmark::enumerate_tests (int test_case) {
 ///
 /// @return -1 if the log file cannot be opened. 0 otherwise.
 int main () {
-    return TestBenchmark().execute_tests(BaseTest::FULL_PRINT_LOG_ON, 9);
+    return TestBenchmark().execute_tests(BaseTest::FULL_PRINT_LOG_ON);
 }
