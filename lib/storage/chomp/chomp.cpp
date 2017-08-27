@@ -18,7 +18,7 @@ int Chomp::build_k_vector_table (const std::string &focus_column, const double m
     
     int s_l = (*db).execAndGet(std::string("SELECT MAX(rowid) FROM ") + table).getInt();
     SQLite::Transaction transaction(*db);
-    sql_row s_vector;
+    tuple s_vector;
     
     // Load the entire table into RAM.
     s_vector = search_table("*", (unsigned) s_l);
@@ -30,7 +30,7 @@ int Chomp::build_k_vector_table (const std::string &focus_column, const double m
             k_value += (s_vector[j] < ((m * i) + q)) ? 1 : 0;
         }
         
-        insert_into_table("k_value", sql_row {k_value});
+        insert_into_table("k_value", tuple {k_value});
         std::cout << "\r" << "Current *I* Entry: " << i;
     }
     
@@ -79,10 +79,10 @@ int Chomp::create_k_vector (const std::string &focus) {
 /// @param y_b Upper bound of the focus to search for.
 /// @param expected Expected number of results * columns to be returned. Better to overshoot.
 /// @return 1D list of chained results.
-Nibble::sql_row Chomp::k_vector_query (const std::string &focus, const std::string &fields, const double y_a,
+Nibble::tuple Chomp::k_vector_query (const std::string &focus, const std::string &fields, const double y_a,
                                        const double y_b, const unsigned int expected) {
     double focus_0, focus_n, m, q, n, j_b, j_t;
-    sql_row s_endpoints;
+    tuple s_endpoints;
     std::string sql, s_table = table;
     
     // Search for last and first element of sorted table.
