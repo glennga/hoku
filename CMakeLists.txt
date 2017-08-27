@@ -83,3 +83,8 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/test/benchmark)
 add_subdirectory(${CMAKE_SOURCE_DIR}/test/identification/angle)
 add_subdirectory(${CMAKE_SOURCE_DIR}/test/identification/planar-triangle)
 add_subdirectory(${CMAKE_SOURCE_DIR}/test/identification/spherical-triangle)
+
+##################################################################
+# Add Subdirectory Containing Source Files (the meat)
+##################################################################
+add_subdirectory(${CMAKE_SOURCE_DIR}/src/)
