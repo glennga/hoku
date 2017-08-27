@@ -106,7 +106,7 @@ int Nibble::generate_bsc5_table () {
 /// @param hr HR number of the star to return.
 /// @return Star with the components of the matching HR number entry.
 Star Nibble::query_bsc5 (const int hr) {
-    sql_row results;
+    tuple results;
     
     select_table("BSC5");
     results = search_table("hr = " + std::to_string(hr), "i, j, k", 1, 1);
@@ -147,9 +147,9 @@ Star::list Nibble::nearby_stars (const Star &focus, const double fov, const unsi
 /// @param expected Expected number of results * columns to be returned. Better to overshoot.
 /// @param limit Limit the results searched for with this.
 /// @return 1D list of chained results.
-Nibble::sql_row Nibble::search_table (const std::string &constraint, const std::string &fields,
+Nibble::tuple Nibble::search_table (const std::string &constraint, const std::string &fields,
                                       const unsigned int expected, const int limit) {
-    sql_row result;
+    tuple result;
     std::string sql;
     
     result.reserve(expected);
@@ -178,8 +178,8 @@ Nibble::sql_row Nibble::search_table (const std::string &constraint, const std::
 /// @param expected Expected number of results * columns to be returned. Better to overshoot.
 /// @param limit Limit the results searched for with this.
 /// @return 1D list of chained results.
-Nibble::sql_row Nibble::search_table (const std::string &fields, const unsigned int expected, const int limit) {
-    sql_row result;
+Nibble::tuple Nibble::search_table (const std::string &fields, const unsigned int expected, const int limit) {
+    tuple result;
     std::string sql;
     
     result.reserve(expected);
@@ -207,8 +207,8 @@ Nibble::sql_row Nibble::search_table (const std::string &fields, const unsigned 
 /// @param column_length Number of fields queried for in search_result.
 /// @param index Index of result to search for. **zero-based**
 /// @return Vector of size 'result_size' containing the specified result.
-Nibble::sql_row Nibble::table_results_at (const sql_row &searched, const unsigned int column_length, const int index) {
-    sql_row result;
+Nibble::tuple Nibble::table_results_at (const tuple &searched, const unsigned int column_length, const int index) {
+    tuple result;
     result.reserve(column_length);
     for (unsigned int i = 0; i < column_length; i++) {
         result.push_back(searched[(column_length * index) + i]);
@@ -223,7 +223,7 @@ Nibble::sql_row Nibble::table_results_at (const sql_row &searched, const unsigne
 /// @param fields The fields corresponding to vector of in_values.
 /// @param in_values Vector of values to insert to table.
 /// @return 0 when finished.
-int Nibble::insert_into_table (const std::string &fields, const sql_row &in_values) {
+int Nibble::insert_into_table (const std::string &fields, const tuple &in_values) {
     // Create bind statement with necessary amount of '?'.
     std::string sql = "INSERT INTO " + table + " (" + fields + ") VALUES (";
     for (unsigned int a = 0; a < in_values.size() - 1; a++) {
@@ -265,7 +265,7 @@ int Nibble::create_table (const std::string &table, const std::string &schema) {
 /// @param schema Reference to string that will hold schema.
 /// @param fields Reference to string that will hold fields.
 /// @return 0 when finished.
-int Nibble::find_schema_fields (std::string &schema, std::string &fields) {
+int Nibble::find_attributes (std::string &schema, std::string &fields) {
     fields.clear();
     schema.clear();
     
@@ -293,7 +293,7 @@ int Nibble::sort_table (const std::string &focus_column) {
     std::string fields, schema;
     
     // Grab the fields and schema of the table.
-    find_schema_fields(schema, fields);
+    find_attributes(schema, fields);
     
     // Create temporary table to insert sorted data. Insert the sorted data by focus column.
     (*db).exec("CREATE TABLE " + table + "_SORTED (" + schema + ")");

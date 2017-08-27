@@ -45,10 +45,10 @@ class Chomp : private Nibble {
     using Nibble::all_bsc5_stars;
     using Nibble::nearby_stars;
     using Nibble::query_bsc5;
-    using Nibble::sql_row;
+    using Nibble::tuple;
     
     int create_k_vector (const std::string &);
-    sql_row k_vector_query (const std::string &, const std::string &, const double, const double, const unsigned int);
+    tuple k_vector_query (const std::string &, const std::string &, const double, const double, const unsigned int);
   
   private:
     

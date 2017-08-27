@@ -26,6 +26,7 @@ affected_n.i affected_n.j affected_n.k affected_n.bsc_id affected_n.plot_color
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
+import os
 
 # create 3D axis and figure
 fig = plt.figure()
@@ -36,7 +37,7 @@ focus, stars, errors = [], [], []
 fov, norm = 0, 0
 
 # parse the plot file
-with open('../../../data/tmp/cuplt.tmp') as current_plot:
+with open(os.environ['HOKU_PROJECT_PATH'] + '/data/logs/tmp/cuplt.tmp') as current_plot:
     # first, record the fov and norm
     fov = float(current_plot.readline())
     norm = float(current_plot.readline())
@@ -53,7 +54,7 @@ with open('../../../data/tmp/cuplt.tmp') as current_plot:
         stars.append(star)
 
 # parse the error file
-with open('../../../data/tmp/errplt.tmp') as error_plot:
+with open(os.environ['HOKU_PROJECT_PATH'] + '/data/logs/tmp/errplt.tmp') as error_plot:
     for line in error_plot:
         error = []
 
