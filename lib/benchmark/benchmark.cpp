@@ -12,10 +12,10 @@ const std::string Benchmark::TABLE_NAME = "BENCH";
 const std::string Benchmark::PROJECT_LOCATION = std::string(std::getenv("HOKU_PROJECT_PATH"));
 
 /// Path of the 'clean' star set on disk. One of the temporary files used for plotting.
-const std::string Benchmark::CURRENT_PLOT = Benchmark::PROJECT_LOCATION + "/data/tmp/cuplt.tmp";
+const std::string Benchmark::CURRENT_PLOT = Benchmark::PROJECT_LOCATION + "/data/logs/tmp/cuplt.tmp";
 
 /// Path of the 'error' star set on disk. One of the temporary files used for plotting.
-const std::string Benchmark::ERROR_PLOT = Benchmark::PROJECT_LOCATION + "/data/tmp/errplt.tmp";
+const std::string Benchmark::ERROR_PLOT = Benchmark::PROJECT_LOCATION + "/data/logs/tmp/errplt.tmp";
 
 /// Path of the Python script used to plot the current Benchmark instance.
 const std::string Benchmark::PLOT_SCRIPT = "\"" + Benchmark::PROJECT_LOCATION + "/lib/benchmark/generate-plot.py\"";
@@ -239,6 +239,29 @@ int Benchmark::display_plot () {
     this->record_current_plot();
     std::system(cmd.c_str());
     return 0;
+}
+
+/// Compare the number of matching stars that exist between the two stars sets.
+///
+/// @param b Benchmark containing star list to compare with s_l.
+/// @param s_l Star list to compare with B.
+/// @return The number of stars found matching both lists.
+int Benchmark::compare_stars (const Benchmark &b, const Star::list &s_l) {
+    Star::list s_candidates = s_l;
+    unsigned int c = 0;
+    
+    for (const Star &s_a : b.stars) {
+        for (unsigned int i = 0; i < s_candidates.size(); i++) {
+            
+            // If we find b match, erase this from our candidates list.
+            if (s_a == s_candidates[i]) {
+                s_candidates.erase(s_candidates.begin() + i);
+                c++;
+            }
+        }
+    }
+    
+    return c;
 }
 
 /// Append n randomly placed vectors that fall within fov/2 degrees of the focus. This models stray light that may
