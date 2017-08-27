@@ -209,7 +209,7 @@ int TestBenchmark::test_compare_stars() {
     b.erase(b.begin() + 0);
     b.erase(b.begin() + 1);
     
-    assert_equal(a.stars.size(), Benchmark::compare_stars(a.stars, b) + 2, "ComparePresentsCorrectNumber");
+    assert_equal(a.stars.size(), Benchmark::compare_stars(a, b) + 2, "ComparePresentsCorrectNumber");
     
     return 0;
 }

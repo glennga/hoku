@@ -72,7 +72,7 @@ class Benchmark {
     void remove_light (const int, const double);
     void shift_light (const int, const double);
     
-    static int compare_stars(const Star::list &, const Star::list &);
+    static int compare_stars(const Benchmark &, const Star::list &);
     
   public:
     static const std::string TABLE_NAME;

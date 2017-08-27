@@ -243,19 +243,19 @@ int Benchmark::display_plot () {
 
 /// Compare the number of matching stars that exist between the two stars sets.
 ///
-/// @param a Star list to compare with B.
-/// @param b Star list to compare with A.
+/// @param b Benchmark containing star list to compare with s_l.
+/// @param s_l Star list to compare with B.
 /// @return The number of stars found matching both lists.
-int Benchmark::compare_stars (const Star::list &a, const Star::list &b) {
-    Star::list b_candidates = b;
+int Benchmark::compare_stars (const Benchmark &b, const Star::list &s_l) {
+    Star::list s_candidates = s_l;
     unsigned int c = 0;
     
-    for (const Star &s_a : a) {
-        for (unsigned int i = 0; i < b_candidates.size(); i++) {
+    for (const Star &s_a : b.stars) {
+        for (unsigned int i = 0; i < s_candidates.size(); i++) {
             
-            // If we find a match, erase this from our candidates list.
-            if (s_a == b_candidates[i]) {
-                b_candidates.erase(b_candidates.begin() + i);
+            // If we find b match, erase this from our candidates list.
+            if (s_a == s_candidates[i]) {
+                s_candidates.erase(s_candidates.begin() + i);
                 c++;
             }
         }
