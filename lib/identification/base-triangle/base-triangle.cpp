@@ -158,7 +158,6 @@ Star::list BaseTriangle::check_assumptions (const Star::list &candidates, const 
 /// @return Vector of body stars with their inertial BSC IDs that qualify as matches.
 Star::list BaseTriangle::identify () {
     Star::list matches;
-    bool matched = false;
     
     // There exists |input| choose 3 possibilities.
     for (unsigned int i = 0; i < input.size() - 2; i++) {
@@ -177,24 +176,19 @@ Star::list BaseTriangle::identify () {
                 }
                 
                 // Find candidate stars around the candidate trio.
-                candidates = (*q_root).nearby_stars(candidate_trio[0], fov, 3 * input.size());
+                candidates = (*q_root).nearby_stars(candidate_trio[0], fov, (unsigned int) (3.0 * input.size()));
                 
                 // Check all possible configurations. Return the most likely.
                 matches = check_assumptions(candidates, candidate_trio, {(double) i, (double) j, (double) k});
                 
-                // Definition of image match: |match| > match minimum.
+                // Definition of image match: |match| > match minimum. Break early.
                 if (matches.size() > parameters.match_minimum) {
-                    matched = true;
-                    break;
+                    return matches;
                 }
             }
         }
-        
-        // Break early if the matched condition is met.
-        if (matched) {
-            break;
-        }
     }
     
+    // If we don't get a match, return an empty set.
     return matches;
 }
