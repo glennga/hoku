@@ -159,11 +159,12 @@ void record_benchmark (Nibble &nb, unsigned int &set_n, record_function r) {
     }
 }
 
-/// Generate all of the base benchmark data. ALL OF IT. (☞ﾟヮﾟ)☞
+/// Generate all of the base benchmark data. ALL OF IT. (☞ﾟヮﾟ)☞ **(Except for multi-error sets)**
 ///
 /// @return 0 when finished.
 int main () {
-    std::vector<record_function> r_actions = {record_c, record_e, record_r, record_s, record_es, record_rs};
+//    std::vector<record_function> r_actions = {record_c, record_e, record_r, record_s, record_es, record_rs};
+    std::vector<record_function> r_actions = {record_c, record_e, record_r, record_s};
     unsigned int set_n = 0;
     Nibble nb;
     
