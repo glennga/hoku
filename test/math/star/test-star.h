@@ -36,6 +36,7 @@ class TestStar : public BaseTest {
     int test_angle_out_check ();
     int test_angle_same ();
     int test_hr_clear ();
+    int test_angle_within_multiple_stars ();
   
   public:
     int enumerate_tests (int);
