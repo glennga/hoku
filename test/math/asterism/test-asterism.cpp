@@ -22,8 +22,10 @@ int TestAsterism::test_abcd_star_find () {
     }
     
     assert_equal(Mercator::distance_between(p.a, p.b), d_max, "StarsAandBFoundCorrectly");
-    assert_outside(p.c.get_hr(), {p.a.get_hr(), p.b.get_hr()}, "CIsNotAOrB", p.c.str() + "," + p.b.str() + "," + p.a.str());
-    return 0 * assert_outside(p.d.get_hr(), {p.a.get_hr(), p.b.get_hr(), p.c.get_hr()}, "DIsNotABOrC", p.d.str() + "," + p.a.str() + "," + p.b.str() + "," + p.d.str());
+    assert_outside(p.c.get_hr(), {p.a.get_hr(), p.b.get_hr()}, "CIsNotAOrB",
+                   p.c.str() + "," + p.b.str() + "," + p.a.str());
+    return 0 * assert_outside(p.d.get_hr(), {p.a.get_hr(), p.b.get_hr(), p.c.get_hr()}, "DIsNotABOrC",
+                              p.d.str() + "," + p.a.str() + "," + p.b.str() + "," + p.d.str());
 }
 
 /// Local coordinates returned should be inside [-1, 1]. Run this test 50 times.
