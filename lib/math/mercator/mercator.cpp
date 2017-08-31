@@ -107,7 +107,7 @@ void Mercator::project_star (const Star &s, const double w_n) {
 /// Access method for the Harvard revised number.
 ///
 /// @return Harvard revised number for this point.
-int Mercator::get_hr () {
+int Mercator::get_hr () const {
     return hr;
 }
 
