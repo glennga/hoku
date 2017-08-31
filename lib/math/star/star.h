@@ -76,6 +76,7 @@ class Star {
     
     static double angle_between (const Star &, const Star &);
     static bool within_angle (const Star &, const Star &, const double);
+    static bool within_angle (const list &, const double);
     
     static Star reset_hr (const Star &);
   

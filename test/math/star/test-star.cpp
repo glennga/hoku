@@ -223,6 +223,18 @@ int TestStar::test_get_operators () {
     return 0 * assert_equal(a.get_hr(), a.hr, "StarGetBSC");
 }
 
+/// Check that the correct result is returned with within_angle function.
+///
+/// @return 0 when finished. 
+int TestStar::test_angle_within_multiple_stars () {
+    Star::list a = {Star (1, 1, 1), Star(1.1, 1, 1), Star(1.00001, 1, 1)};
+    Star::list b = {Star (1, 1, 1), Star(1.1, 1, 1), Star(-1, 1, 1)};
+    
+    assert_true(Star::within_angle(a, 15), "AngleWithinCheckCorrect");
+    return 0 * assert_false(Star::within_angle(b, 15), "AngleWithinCheckNotCorrect");
+}
+
+
 /// Enumerate all tests in TestStar.
 ///
 /// @param test_case Number of the test case to run.
@@ -253,6 +265,7 @@ int TestStar::enumerate_tests (int test_case) {
         case 21: return test_angle_same();
         case 22: return test_hr_clear();
         case 23: return test_get_operators();
+        case 24: return test_angle_within_multiple_stars ();
         default: return -1;
     }
 }
