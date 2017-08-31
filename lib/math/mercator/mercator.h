@@ -46,7 +46,7 @@ class Mercator {
     Mercator::quad find_corners (const double) const;
     
     static double distance_between (const Mercator &, const Mercator &);
-    int get_hr ();
+    int get_hr () const;
     
     virtual std::string str () const;
   
