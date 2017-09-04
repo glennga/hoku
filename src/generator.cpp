@@ -4,20 +4,21 @@
 /// Source file for the base benchmark data generator. This generates all of the test cases each identification
 /// method will have to solve.
 
+#include <iostream>
 #include "benchmark.h"
 
 /// Defining characteristics of the benchmarks generated.
 ///
 /// @code{.cpp}
-/// Current number of dimensions:  7
+/// Current number of dimensions:   Clean Data (2), Error data (3)
 ///
 /// Current number of permutations: 5 *                                   // 5
-///                                (20 - 7.5) / 0.5 *                     // 25
-///                                (10 - 1) *                             // 9
-///                                (5 - 1) * (10 - 1) / 2 *               // 18
-///                                (10 - 1) * (0.5 - 0.0000000001) / 0.2  // ~22
+///                                (20 - 7.5) / 0.5 *                     // 26
+///                                (10 - 1) *                             // 10
+///                                (5 - 1) * (10 - 1) / 2 *               // 25
+///                                (10 - 1) * (0.4 - 0.000001) / 0.08     // 50
 ///                                -------------------------------------
-///                                445,500 benchmarks generated.
+///                                5 * 26 * (1 + 10 + 25 + 50) benchmarks generated (11180).
 /// @endcode
 namespace DCBG {
     static const int DUP = 5; ///< Number of tests to store for each type.
@@ -37,9 +38,9 @@ namespace DCBG {
     
     static const int SN_MIN = 1; ///< Minimum number of stars to shift.
     static const int SN_MAX = 10; ///< Maximum number of stars to shift.
-    static const double SS_MIN = 0.0000000001; ///< Minimum sigma to shift stars.
-    static const double SS_MAX = 0.5; ///< Maximum sigma to shift stars.
-    static const double SS_STEP = 0.2; ///< Amount of sigma to increment for each test.
+    static const double SS_MIN = 0.000001; ///< Minimum sigma to shift stars.
+    static const double SS_MAX = 0.4; ///< Maximum sigma to shift stars.
+    static const double SS_STEP = 0.08; ///< Amount of sigma to increment for each test.
 }
 
 /// Alias for record function pointers.
@@ -155,6 +156,7 @@ void record_benchmark (Nibble &nb, unsigned int &set_n, record_function r) {
         }
         
         // Record every FOV step.
+        std::cout << "Set Number: " << set_n << " ||| FOV: " << fov << std::endl;
         transaction.commit();
     }
 }
@@ -163,8 +165,9 @@ void record_benchmark (Nibble &nb, unsigned int &set_n, record_function r) {
 ///
 /// @return 0 when finished.
 int main () {
-//    std::vector<record_function> r_actions = {record_c, record_e, record_r, record_s, record_es, record_rs};
+    //    std::vector<record_function> r_actions = {record_c, record_e, record_r, record_s, record_es, record_rs};
     std::vector<record_function> r_actions = {record_c, record_e, record_r, record_s};
+
     unsigned int set_n = 0;
     Nibble nb;
     

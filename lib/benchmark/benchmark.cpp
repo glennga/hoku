@@ -342,11 +342,14 @@ void Benchmark::shift_light (const int n, const double sigma) {
     
     // Loop through entire list again if n not met through past run.
     while (current_n < n || this->stars.size() == (unsigned) current_n + 1) {
+        bool n_condition = true;
+        
         // Check inside if n is met early, break if met.
-        for (unsigned int i = 0; i < this->stars.size() && current_n < n; i++) {
-            Star candidate = Star(this->stars[i][0] + dist(mersenne_twister),
-                                  this->stars[i][1] + dist(mersenne_twister),
-                                  this->stars[i][2] + dist(mersenne_twister), this->stars[i].get_hr()).as_unit();
+        for (unsigned int i = 0; i < this->stars.size() && n_condition; i++) {
+            Star candidate = Star(
+                this->stars[i][0] + dist(mersenne_twister),
+                this->stars[i][1] + dist(mersenne_twister),
+                this->stars[i][2] + dist(mersenne_twister), this->stars[i].get_hr()).as_unit();
             
             // If shifted star is near focus, add the shifted star and remove the old.
             if (Star::within_angle(candidate, this->focus, this->fov / 2.0)) {
@@ -355,6 +358,9 @@ void Benchmark::shift_light (const int n, const double sigma) {
                 shifted_light.affected.emplace_back(candidate);
                 current_n++;
             }
+            
+            // If the n-condition is met early, we break.
+            n_condition = (current_n < n || this->stars.size() == (unsigned) current_n + 1);
         }
     }
     
