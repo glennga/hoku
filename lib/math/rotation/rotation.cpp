@@ -20,6 +20,16 @@ Rotation::Rotation (const double w, const Star &v, const bool as_unit) {
     }
 }
 
+/// Compare the components of the current quaternion with the given one.
+///
+/// @param q Quaternion to compare with.
+/// @return True if all components are the same. False otherwise.
+bool Rotation::operator== (const Rotation &q) const {
+    return fabs(w - q.w) < ROTATION_EQUALITY_PRECISION_DEFAULT && fabs(i - q.i) < ROTATION_EQUALITY_PRECISION_DEFAULT
+           && fabs(j - q.j) < ROTATION_EQUALITY_PRECISION_DEFAULT
+           && fabs(k - q.k) < ROTATION_EQUALITY_PRECISION_DEFAULT;
+}
+
 /// Given a rotation matrix as an array of stars, return the quaternion equivalent. Solution found here:
 /// http://www.euclideanspac.com/maths/geometry/rotations/conversions/matrixToQuaternion/
 ///
@@ -79,12 +89,15 @@ Rotation Rotation::rotation_across_frames (const Star::pair &r, const Star::pair
 /// @param q Quaternion to use with star S.
 /// @return The star S rotated by q.
 Star Rotation::rotate (const Star &s, const Rotation &q) {
-    Star a_1n(pow(q.w, 2) + pow(q.i, 2) - pow(q.j, 2) - pow(q.k, 2), 2.0 * (q.i * q.j - q.w * q.k),
-              2.0 * (q.i * q.k + q.w * q.j));
-    Star a_2n(2.0 * (q.j * q.i + q.w * q.k), pow(q.w, 2) - pow(q.i, 2) + pow(q.j, 2) - pow(q.k, 2),
-              2.0 * (q.j * q.k - q.w * q.i));
-    Star a_3n(2.0 * (q.k * q.i - q.w * q.j), 2.0 * (q.k * q.j + q.w * q.i),
-              pow(q.w, 2) - pow(q.i, 2) - pow(q.j, 2) + pow(q.k, 2));
+    Star a_1n(
+        pow(q.w, 2) + pow(q.i, 2) - pow(q.j, 2) - pow(q.k, 2),
+        2.0 * (q.i * q.j - q.w * q.k), 2.0 * (q.i * q.k + q.w * q.j));
+    Star a_2n(
+        2.0 * (q.j * q.i + q.w * q.k),
+        pow(q.w, 2) - pow(q.i, 2) + pow(q.j, 2) - pow(q.k, 2), 2.0 * (q.j * q.k - q.w * q.i));
+    Star a_3n(
+        2.0 * (q.k * q.i - q.w * q.j),
+        2.0 * (q.k * q.j + q.w * q.i), pow(q.w, 2) - pow(q.i, 2) - pow(q.j, 2) + pow(q.k, 2));
     
     // Form the rotation matrix. Dot with given star.
     return Star(Star::dot(s, a_1n), Star::dot(s, a_2n), Star::dot(s, a_3n), s.get_hr());
