@@ -38,6 +38,8 @@ class Rotation {
     Rotation () = default;
   
   public:
+    bool operator== (const Rotation &) const;
+    
     static Star rotate (const Star &, const Rotation &);
     
     static Rotation identity ();
@@ -46,6 +48,9 @@ class Rotation {
     static Rotation rotation_across_frames (const Star::pair &, const Star::pair &);
   
   private:
+    /// Precision default for '==' method.
+    constexpr static double ROTATION_EQUALITY_PRECISION_DEFAULT = 0.000000000001;
+    
     /// Matrix alias, by using a 3-element array of 3D vectors.
     using matrix = std::array<Star, 3>;
   
