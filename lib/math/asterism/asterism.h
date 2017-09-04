@@ -6,6 +6,7 @@
 #ifndef HOKU_ASTERISM_H
 #define HOKU_ASTERISM_H
 
+#include <algorithm>
 #include "mercator.h"
 #include "star.h"
 
@@ -37,10 +38,14 @@ class Asterism {
   
   public:
     static points_cd hash (const stars &, const double);
+    static stars find_abcd (const stars &, const double);
+    
+    static Star center (const stars &);
   
   private:
     Asterism (const stars &, const double);
     
+    Asterism::points_cd compute_cd_prime (const double);
     bool cd_property_met ();
   
   private:

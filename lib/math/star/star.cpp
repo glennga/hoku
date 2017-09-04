@@ -189,6 +189,22 @@ bool Star::within_angle (const Star &s_1, const Star &s_2, const double theta) {
     return angle_between(s_1, s_2) < theta;
 }
 
+/// Overloaded function. Determines if the angle between all given stars are within theta degrees.
+///
+/// @param s_l List of stars to determine angle between.
+/// @param theta All stars in s_l must be theta degrees from each other.
+/// @return True if angle between all stars are less than theta. False otherwise.
+bool Star::within_angle (const list &s_l, const double theta) {
+    // Fancy for loop wrapping... (: All distinct permutations of s_l.
+    for (unsigned int i = 0, j = 1; i < s_l.size() - 1; j = (j < s_l.size() - 1) ? j + 1 : 1 + ++i) {
+        if (!within_angle(s_l[i], s_l[j], theta)) {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
 /// Return the given star with a HR number of 0.
 ///
 /// @param s Star to remove HR number from.

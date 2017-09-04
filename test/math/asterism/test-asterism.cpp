@@ -47,7 +47,7 @@ int TestAsterism::test_hash_normalized () {
 /// Ensure the conditions x_c <= x_d and x_c + x_d <= 1 hold true. Run test 50 times.
 ///
 /// @return 0 when finished.
-int TestAsterism::test_cd_symmetry() {
+int TestAsterism::test_cd_symmetry () {
     bool is_not_symmetrical = false;
     
     for (int i = 0; i < 50; i++) {
@@ -60,6 +60,25 @@ int TestAsterism::test_cd_symmetry() {
     return 0 * assert_false(is_not_symmetrical, "StarsCandDNotSymmetrical");
 }
 
+/// Ensure that the center of a n=4 group of stars is at the center.
+///
+/// @return 0 when finished.
+int TestAsterism::test_center () {
+    Asterism::stars a = {Star::chance(), Star::chance(), Star::chance(), Star::chance()};
+    Star b = Asterism::center(a);
+    
+    for (int i = 0; i < 3; i++) {
+        std::string test_name = "CenterWithinDimension" + std::to_string(i);
+        std::sort(a.begin(), a.end(), [i] (const Star &s_a, const Star &s_b) -> bool {
+            return s_a[i] < s_b[i];
+        });
+        
+        assert_within(b[i], a[0][i], a[3][i], test_name);
+    }
+    
+    return 0;
+}
+
 /// Enumerate all tests in TestAsterism.
 ///
 /// @param test_case Number of the test case to run.
@@ -69,6 +88,7 @@ int TestAsterism::enumerate_tests (int test_case) {
         case 0: return test_abcd_star_find();
         case 1: return test_hash_normalized();
         case 2: return test_cd_symmetry();
+        case 3: return test_center();
         default: return -1;
     }
 }
