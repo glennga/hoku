@@ -34,17 +34,12 @@
 /// // Print the results of the search. a[0][0] = first result's I component. a[1][1] = second result's J component.
 /// printf("%f, %f", ch.table_results_at(a, 0, 0), ch.table_results_at(a, 1, 1));
 /// @endcode
-class Chomp : private Nibble {
+class Chomp : public Nibble {
     friend class TestChomp;
   
   public:
-    // Use Nibble's constructor and several other methods. Treat Chomp like an 'upgrade' to Nibble.
+    // Use Nibble's constructor.
     using Nibble::Nibble;
-    using Nibble::table_results_at;
-    using Nibble::select_table;
-    using Nibble::all_bsc5_stars;
-    using Nibble::nearby_stars;
-    using Nibble::query_bsc5;
     using Nibble::tuple;
     
     int create_k_vector (const std::string &);
