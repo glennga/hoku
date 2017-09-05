@@ -8,12 +8,12 @@
 
 /// Defining characteristics of the angle identification.
 /// @code{.cpp}
-/// Current number of permutations: (0.0000001 - 0.00000000000001) / 0.00000001    // ~10
-///                                 (20 - 1) / 3                                   // ~7
-///                                 (0.000001 - 0.00000000000001) / 0.0000001      // ~10
-///                                 (10 - 3)                                       // 7
+/// Current number of permutations: (0.0000001 - 0.00000000000001) / 0.00000001    // 10
+///                                 (20 - 1) / 3                                   // 7
+///                                 (0.000001 - 0.00000000000001) / 0.0000001      // 10
+///                                 (10 - 3)                                       // 8
 ///                                 --------------------------------------------
-///                                 4900 variations of Angle identification for each benchmark.
+///                                 5600 variations of Angle identification for each benchmark.
 /// @endcode
 namespace DCAI {
     static const double QS_MIN = 0.00000000000001; ///< Minimum search sigma.
@@ -52,7 +52,8 @@ void trial_ms_sl_mm (Nibble &nb, std::ofstream &log, const unsigned int set_n, c
                 Star::list results = Angle::identify(input, p);
                 int matches_found = Benchmark::compare_stars(input, results);
                 
-                log << set_n << "," << results.size() << "," << matches_found << std::endl;
+                log << set_n << "," << results.size() << "," << matches_found << "," << query_sigma;
+                log << "," << query_limit << "," << match_sigma << "," << match_minimum << std::endl;
             }
         }
     }
@@ -79,9 +80,10 @@ int main () {
     }
     
     // Set the attributes of the log.
-    log << "SetNumber,IdentificationSize,MatchesFound" << std::endl;
+    log << "SetNumber,IdentificationSize,MatchesFound,QuerySigma,QueryLimit,MatchSigma,MatchMinimum" << std::endl;
     
-    // Run the trials! All five dimensions! ¯\_(ツ)_/¯
+    // Run the trials!  ¯\_(ツ)_/¯
+    nb.select_table(Benchmark::TABLE_NAME);
     const unsigned int BENCH_SIZE = (unsigned int) nb.search_table("MAX(set_n)", 1, 1)[0];
     for (unsigned int set_n = 0; set_n < BENCH_SIZE; set_n++) {
         for (double query_sigma = DCAI::QS_MIN; query_sigma <= DCAI::QS_MAX; query_sigma += DCAI::QS_STEP) {
