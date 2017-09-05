@@ -81,11 +81,11 @@ void Nibble::parse_catalog (std::ifstream &catalog) {
 /// are converted from the star's alpha, delta, and an assumed parallax = 1. **This should be the first function run to
 /// generate all other tables.**
 ///
-/// @return -1 if the table cannot be created. -2 if the catalog cannot be found. 0 otherwise.
+/// @return -1 if the BSC5 table already exists. 0 otherwise.
 int Nibble::generate_bsc5_table () {
     std::ifstream catalog(CATALOG_LOCATION);
     if (!catalog.is_open()) {
-        return -2;
+        throw "Catalog file cannot be opened";
     }
     
     SQLite::Transaction transaction(*db);
