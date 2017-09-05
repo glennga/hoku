@@ -302,9 +302,9 @@ Star::list QuadNode::nearby_stars (const Star &q, const double fov, const unsign
     Star::list nearby;
     Nibble nb;
     
-    // Operating node MUST be the root, with coordinates at (0, 0). If not, return list with one (0, 0, 0) star.
+    // Operating node MUST be the root, with coordinates at (0, 0).
     if (this->x != 0 || this->y != 0) {
-        return {Star::zero()};
+        throw "\"nearby_stars\" not operating on root node.";
     }
     
     nearby.reserve(expected);

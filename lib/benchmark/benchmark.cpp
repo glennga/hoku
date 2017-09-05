@@ -110,7 +110,7 @@ void Benchmark::present_image (Star::list &image_s, double &image_fov) const {
 ///
 /// @param nb Open Nibble connection.
 /// @param set_n The distinguishing ID of the current benchmark instance.
-/// @return -1 if there exists a benchmark with the given set_n. 0 otherwise.
+/// @return 0 when finished.
 int Benchmark::insert_into_nibble (Nibble &nb, const unsigned int set_n) const {
     std::string schema = "set_n INT, item_n INT, e INT, r INT, s INT, i FLOAT, j FLOAT, k FLOAT, fov FLOAT";
     std::string fields = "set_n, item_n, e, r, s, i, j, k, fov";
@@ -122,7 +122,7 @@ int Benchmark::insert_into_nibble (Nibble &nb, const unsigned int set_n) const {
     
     // If there exists records with set_n, stop here.
     if (nb.search_table("set_n = " + std::to_string(set_n), "rowid", 1, 1).size() != 0) {
-        return -1;
+        throw "The set_n [" + std::to_string(set_n) + "] exists.";
     }
     
     // We record the number of stars included in each error model for this benchmark.
@@ -154,7 +154,7 @@ int Benchmark::insert_into_nibble (Nibble &nb, const unsigned int set_n) const {
 ///
 /// @param nb Open Nibble connection.
 /// @param set_n ID of the benchmark to return.
-/// @return "Empty" benchmark if there exists no Nibble tuple with that set_n. The appropriate benchmark otherwise.
+/// @return The matching benchmark with the appropriate set_n.
 Benchmark Benchmark::parse_from_nibble (Nibble &nb, const unsigned int set_n) {
     std::string set_n_equal = "set_n = " + std::to_string(set_n);
     Nibble::tuple focus;
@@ -165,7 +165,7 @@ Benchmark Benchmark::parse_from_nibble (Nibble &nb, const unsigned int set_n) {
     
     // If there exists no record with that set_n, return an empty benchmark.
     if (nb.search_table("set_n = " + std::to_string(set_n), "rowid", 1, 1).size() == 0) {
-        return Benchmark(Star::list {Star::zero()}, Star::zero(), 0);
+        throw "The set_n [" + std::to_string(set_n) + "] does not exist.";
     }
     
     // Grab the FOV and the focus star for this test set.
@@ -184,14 +184,14 @@ Benchmark Benchmark::parse_from_nibble (Nibble &nb, const unsigned int set_n) {
 /// Write the current data in the star set to two files. This includes the fov, norm, focus, star set, and the
 /// error set.
 ///
-/// @return -1 if any files were unable to obtain. 0 otherwise.
+/// @return 0 when finished.
 int Benchmark::record_current_plot () {
     std::ofstream current(this->CURRENT_PLOT), error(this->ERROR_PLOT);
     std::ostringstream current_record, error_record;
     
     // Do not record if files are unable to open.
     if (!current || !error) {
-        return -1;
+        throw "Unable to open current and/or error files.";
     }
     
     // Record the fov and norm first.
@@ -225,14 +225,14 @@ int Benchmark::record_current_plot () {
 /// Write the current data in the star set to a file, and let a separate Python script generate the plot. I am most
 /// familiar with Python's MatPlotLib, so this seemed like the most straight-forward approach.
 ///
-/// @return -1 if the previous files could not be deleted. 0 otherwise.
+/// @return 0 when finished.
 int Benchmark::display_plot () {
     std::remove(this->CURRENT_PLOT.c_str());
     std::remove(this->ERROR_PLOT.c_str());
     
     std::string cmd = "python " + this->PLOT_SCRIPT;
     if (std::ifstream(this->CURRENT_PLOT.c_str()) || std::ifstream(this->ERROR_PLOT.c_str())) {
-        return -1;
+        throw "Current and/or error plot files could not deleted.";
     }
     
     // Record the current instance, and let Python work its magic!

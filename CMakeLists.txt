@@ -11,8 +11,9 @@ project(${PROJECT_NAME})
 Option(BUILD_GPROF "Build for Profiling" OFF)
 if (BUILD_GPROF)
     message("Building for GPrOF Profiler")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg -Wall -pedantic \
-	-sttd=c++0x -U__STRICT_ANSI__ -Wno-invalid-offsetof")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -pg -Wall -pedantic \
+	-std=c++0x -U__STRICT_ANSI__ -Wno-invalid-offsetof \
+    -fno-omit-frame-pointer -gdwarf-2")
 else ()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic \
 	-std=c++0x -U__STRICT_ANSI__ -Wno-invalid-offsetof")
@@ -21,7 +22,7 @@ endif ()
 ##################################################################
 # Static Executable Builds
 ##################################################################
-Option(BUILD_STATIC "Build for Static Executables" ON)
+Option(BUILD_STATIC "Build for Static Executables" OFF)
 if (BUILD_STATIC)
     message("Building Static Executables")
     set(BUILD_SHARED_LIBS OFF)
