@@ -5,3 +5,4 @@ doc/build/
 *.csv
 *.db
 *.tmp
+*.out

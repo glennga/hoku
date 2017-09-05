@@ -185,13 +185,13 @@ Star::list Angle::identify (const Benchmark &input, const Parameters &parameters
             }
             
             // Find candidate stars around the candidate pair.
-            candidates = a.nb.nearby_stars(candidate_pair[0], a.fov, 3 * (a.input.size()));
+            candidates = a.nb.nearby_stars(candidate_pair[0], a.fov, 3 * ((unsigned int) a.input.size()));
             
             // Check both possible configurations. Return the most likely of the two.
             matches = a.check_assumptions(candidates, candidate_pair, {a.input[i], a.input[j]});
             
-            // Definition of image match: |match| > match minimum.
-            if (matches.size() > a.parameters.match_minimum) {
+            // Definition of image match: |match| > match minimum OR |match| == |input|.
+            if (matches.size() > a.parameters.match_minimum || matches.size() == a.input.size()) {
                 matched = true;
                 break;
             }
