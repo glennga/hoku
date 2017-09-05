@@ -71,9 +71,13 @@ std::string KdNode::str () const {
 /// **Roughly** determine the width of a box given an angle in degrees. This MUST be called on the root node.
 ///
 /// @param theta Angle to determine width of box from.
-/// @return The width the given angle roughly translates to if this is the root node. 0 otherwise.
+/// @return The width the given angle roughly translates to if this is the root node.
 double KdNode::width_given_angle (const double theta) {
-    return (this->origin_index == -1 && this->hr == -1) ? (theta / 360.0) * this->w_n : 0;
+    if (!(this->origin_index == -1 && this->hr == -1)) {
+        throw "\"width_given_angle\" not operating on the root node.";
+    }
+    
+    return (theta / 360.0) * this->w_n;
 }
 
 /// Determine if the current node's bounds intersect the given search box and the working axis of the node itself.
@@ -169,7 +173,7 @@ Star::list KdNode::nearby_stars (const Star &q, const double fov, const unsigned
     
     // Operating node MUST be the root, with the properties below. If not, stop here.
     if (!(this->origin_index == -1 && this->hr == -1)) {
-        return {Star::zero()};
+        throw "\"nearby_stars\" not operating on root node.";
     }
     
     // Search for nearby nodes in the tree. The fov represents the half width of the search box, so we double it here.

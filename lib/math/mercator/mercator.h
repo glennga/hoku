@@ -41,7 +41,7 @@ class Mercator {
     
     static Mercator zero ();
     
-    double operator[] (const int) const;
+    double operator[] (const unsigned int) const;
     
     Mercator::quad find_corners (const double) const;
     

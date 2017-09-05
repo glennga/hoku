@@ -21,6 +21,7 @@ class TestAngle : public BaseTest {
     int test_rotating_match_duplicate_input ();
     int test_identify_clean_input ();
     int test_identify_error_input ();
+    int test_saturation_match ();
   
   public:
     int enumerate_tests (int);

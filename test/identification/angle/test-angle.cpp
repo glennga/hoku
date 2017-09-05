@@ -237,6 +237,20 @@ int TestAngle::test_identify_error_input () {
     return 0;
 }
 
+/// Check that a match minimum higher than the input size will default to just the size of the input itself.
+/// 
+/// @return 0 when finished. 
+int TestAngle::test_saturation_match () {
+    Benchmark input(15, Star::chance(), Rotation::chance());
+    Angle::Parameters p;
+    
+    // Some ridiculous number...
+    p.match_minimum = 10000;
+    
+    std::vector<Star> a = Angle::identify(input, p);
+    return 0 * assert_not_equal(a.size(), 0, "StarsFoundNotEmpty");
+}
+
 /// Enumerate all tests in TestAngle.
 ///
 /// @param test_case Number of the test case to run.
@@ -252,7 +266,8 @@ int TestAngle::enumerate_tests (int test_case) {
         case 6: return test_rotating_match_error_input();
         case 7: return test_rotating_match_duplicate_input();
         case 8: return test_identify_clean_input();
-        case 9: return test_identify_error_input();
+        case 9: return test_identify_error_input();  
+        case 10: return test_saturation_match();
         default: return -1;
     }
 }

@@ -8,12 +8,12 @@
 
 /// Defining characteristics of the angle identification.
 /// @code{.cpp}
-/// Current number of permutations: (0.0000001 - 0.00000000000001) / 0.00000001    // ~10
-///                                 (20 - 1) / 3                                   // ~7
-///                                 (0.000001 - 0.00000000000001) / 0.0000001      // ~10
-///                                 (10 - 3)                                       // 7
+/// Current number of permutations: (0.0000001 - 0.00000000000001) / 0.00000003    // 4
+///                                 (30 - 1) / 10                                  // 3
+///                                 (0.000001 - 0.00000000000001) / 0.0000003      // 4
+///                                 (30 - 3) / 5                                   // 6
 ///                                 --------------------------------------------
-///                                 4900 variations of Angle identification for each benchmark.
+///                                 228 variations of Angle identification for each benchmark.
 /// @endcode
 namespace DCAI {
     static const double QS_MIN = 0.00000000000001; ///< Minimum search sigma.
@@ -30,6 +30,7 @@ namespace DCAI {
     
     static const int MM_MIN = 3; ///< Minimum number of stars that define a match.
     static const int MM_MAX = 10; ///< Maximum number of stars that define a match.
+    static const int MM_STEP = 5; ///< Amount to increment for each test.
 }
 
 /// Wrap three dimensions of testing (match sigma, query limit, and match minimum) in a small function. Passed in the
@@ -42,7 +43,7 @@ namespace DCAI {
 void trial_ms_sl_mm (Nibble &nb, std::ofstream &log, const unsigned int set_n, const double query_sigma) {
     for (double match_sigma = DCAI::MS_MIN; match_sigma <= DCAI::MS_MAX; match_sigma += DCAI::MS_STEP) {
         for (int query_limit = DCAI::QL_MIN; query_limit <= DCAI::QL_MAX; query_limit += DCAI::QL_STEP) {
-            for (int match_minimum = DCAI::MM_MIN; match_minimum <= DCAI::MM_MAX; match_minimum++) {
+            for (int match_minimum = DCAI::MM_MIN; match_minimum <= DCAI::MM_MAX; match_minimum += DCAI::MM_STEP) {
                 Angle::Parameters p;
                 p.query_limit = (unsigned) match_sigma, p.match_minimum = (unsigned) match_minimum;
                 p.query_sigma = query_sigma, p.match_sigma = match_sigma;
@@ -51,8 +52,9 @@ void trial_ms_sl_mm (Nibble &nb, std::ofstream &log, const unsigned int set_n, c
                 Benchmark input = Benchmark::parse_from_nibble(nb, set_n);
                 Star::list results = Angle::identify(input, p);
                 int matches_found = Benchmark::compare_stars(input, results);
-                
-                log << set_n << "," << results.size() << "," << matches_found << std::endl;
+
+                log << set_n << "," << results.size() << "," << matches_found << "," << query_sigma;
+                log << "," << match_sigma << "," << query_limit << "," << match_minimum << std::endl;
             }
         }
     }
@@ -60,7 +62,7 @@ void trial_ms_sl_mm (Nibble &nb, std::ofstream &log, const unsigned int set_n, c
 
 /// Test each benchmark with varying Angle operating parameters.
 ///
-/// @return -1 if the log file cannot be opened. 0 otherwise.
+/// @return 0 when finished.
 int main () {
     std::ostringstream l;
     std::ofstream log;
@@ -75,13 +77,14 @@ int main () {
     
     // Make sure the log file is open before proceeding.
     if (!log.is_open()) {
-        return -1;
+        throw "Log file cannot be opened.";
     }
     
     // Set the attributes of the log.
-    log << "SetNumber,IdentificationSize,MatchesFound" << std::endl;
+    log << "SetNumber,IdentificationSize,MatchesFound,QuerySigma,MatchSigma,QueryLimit,MatchMinimum" << std::endl;
     
-    // Run the trials! All five dimensions! ¯\_(ツ)_/¯
+    // Run the trials!
+    nb.select_table(Benchmark::TABLE_NAME);
     const unsigned int BENCH_SIZE = (unsigned int) nb.search_table("MAX(set_n)", 1, 1)[0];
     for (unsigned int set_n = 0; set_n < BENCH_SIZE; set_n++) {
         for (double query_sigma = DCAI::QS_MIN; query_sigma <= DCAI::QS_MAX; query_sigma += DCAI::QS_STEP) {
