@@ -35,7 +35,7 @@ Mercator Mercator::zero() {
 ///
 /// @param n Index of {x, y to return.
 /// @return 0 if n > 1. Otherwise component at index n of {x, y}.
-double Mercator::operator[] (const int n) const {
+double Mercator::operator[] (const unsigned int n) const {
     return n > 1 ? 0 : std::array<double, 2> {x, y}[n];
 }
 

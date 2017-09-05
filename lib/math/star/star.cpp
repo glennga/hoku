@@ -45,7 +45,7 @@ std::string Star::str () const {
 ///
 /// @param n Index of {i, j, k} to return.
 /// @return 0 if n > 2. Otherwise component at index n of {i, j, k}.
-double Star::operator[] (const int n) const {
+double Star::operator[] (const unsigned int n) const {
     return n > 2 ? 0 : std::array<double, 3> {i, j, k}[n];
 }
 

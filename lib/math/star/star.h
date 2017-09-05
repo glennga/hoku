@@ -51,7 +51,7 @@ class Star {
     
     std::string str () const;
     
-    double operator[] (const int) const;
+    double operator[] (const unsigned int) const;
     int get_hr () const;
     
     Star operator+ (const Star &) const;
