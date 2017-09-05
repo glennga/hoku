@@ -1,7 +1,6 @@
 .idea/
 bin/
 build/
-!build/.gitkeep
 *.csv
 *.db
 *.tmp
