@@ -12,13 +12,13 @@
 /// @code{.cpp}
 /// Current number of dimensions:   Clean Data (2), Error data (3)
 ///
-/// Current number of permutations: 3 *                                   // 3
-///                                (20 - 7.5) / 2.5 *                     // 6
-///                                (10 - 1) *                             // 10
-///                                (5 - 1) * (10 - 1) / 3 *               // 20
-///                                (10 - 1) * (0.4 - 0.000001) / 0.1      // 20
+/// Current number of permutations: 3                                     // 3
+///                                (20 - 7.5) / 2.5                       // 6
+///                                (10 - 1)                               // 10
+///                                (5 - 1) * (10 - 1) / 3                 // 20
+///                                (5 - 1) * (0.4 - 0.000001) / 0.1       // 20
 ///                                -------------------------------------
-///                                3 * 6 * (1 + 10 + 20 + 20) benchmarks generated (910).
+///                                3 * 6 * (1 + 10 + 20 + 20) benchmarks generated (918).
 /// @endcode
 namespace DCBG {
     static const int DUP = 3; ///< Number of tests to store for each type.
@@ -37,7 +37,7 @@ namespace DCBG {
     static const double RS_STEP = 3; ///< Amount of radius to increment for each test.
     
     static const int SN_MIN = 1; ///< Minimum number of stars to shift.
-    static const int SN_MAX = 10; ///< Maximum number of stars to shift.
+    static const int SN_MAX = 5; ///< Maximum number of stars to shift.
     static const double SS_MIN = 0.000001; ///< Minimum sigma to shift stars.
     static const double SS_MAX = 0.4; ///< Maximum sigma to shift stars.
     static const double SS_STEP = 0.1; ///< Amount of sigma to increment for each test.
