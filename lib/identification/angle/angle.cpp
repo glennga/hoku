@@ -59,6 +59,7 @@ Angle::hr_pair Angle::query_for_pair (const double theta) {
     hr_list candidates;
     
     // Query using theta with epsilon bounds. Return [-1][-1] if nothing is found.
+    nb.select_table(Parameters().table_name);
     condition << "theta BETWEEN " << std::setprecision(16) << std::fixed;
     condition << theta - epsilon << " AND " << theta + epsilon;
     candidates = nb.search_table(condition.str(), "hr_a, hr_b, theta", limit * 3, limit);

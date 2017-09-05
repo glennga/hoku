@@ -12,20 +12,20 @@
 /// @code{.cpp}
 /// Current number of dimensions:   Clean Data (2), Error data (3)
 ///
-/// Current number of permutations: 5 *                                   // 5
-///                                (20 - 7.5) / 0.5 *                     // 26
-///                                (10 - 1) *                             // 10
-///                                (5 - 1) * (10 - 1) / 2 *               // 25
-///                                (10 - 1) * (0.4 - 0.000001) / 0.08     // 50
+/// Current number of permutations: 3                                     // 3
+///                                (20 - 7.5) / 2.5                       // 6
+///                                (10 - 1)                               // 10
+///                                (5 - 1) * (10 - 1) / 3                 // 20
+///                                (5 - 1) * (0.4 - 0.000001) / 0.1       // 20
 ///                                -------------------------------------
-///                                5 * 26 * (1 + 10 + 25 + 50) benchmarks generated (11180).
+///                                3 * 6 * (1 + 10 + 20 + 20) benchmarks generated (918).
 /// @endcode
 namespace DCBG {
-    static const int DUP = 5; ///< Number of tests to store for each type.
+    static const int DUP = 3; ///< Number of tests to store for each type.
     
     static const double FOV_MIN = 7.5; ///< Minimum FOV to start from.
     static const double FOV_MAX = 20; ///< Maximum FOV to end at.
-    static const double FOV_STEP = 0.5; ///< Amount of FOV to increment for each test.
+    static const double FOV_STEP = 2.5; ///< Amount of FOV to increment for each test.
     
     static const int E_MIN = 1; ///< Minimum number of extra stars to add.
     static const int E_MAX = 10; ///< Maximum number of extra stars to add.
@@ -34,13 +34,13 @@ namespace DCBG {
     static const int RN_MAX = 5; ///< Maximum number of dark spots to generate.
     static const double RS_MIN = 1; ///< Minimum dark spot radius.
     static const double RS_MAX = 10; ///< Maximum dark spot radius.
-    static const double RS_STEP = 2; ///< Amount of radius to increment for each test.
+    static const double RS_STEP = 3; ///< Amount of radius to increment for each test.
     
     static const int SN_MIN = 1; ///< Minimum number of stars to shift.
-    static const int SN_MAX = 10; ///< Maximum number of stars to shift.
+    static const int SN_MAX = 5; ///< Maximum number of stars to shift.
     static const double SS_MIN = 0.000001; ///< Minimum sigma to shift stars.
     static const double SS_MAX = 0.4; ///< Maximum sigma to shift stars.
-    static const double SS_STEP = 0.08; ///< Amount of sigma to increment for each test.
+    static const double SS_STEP = 0.1; ///< Amount of sigma to increment for each test.
 }
 
 /// Alias for record function pointers.
