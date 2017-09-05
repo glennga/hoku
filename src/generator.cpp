@@ -12,13 +12,13 @@
 /// @code{.cpp}
 /// Current number of dimensions:   Clean Data (2), Error data (3)
 ///
-/// Current number of permutations: 5 *                                   // 5
-///                                (20 - 7.5) / 0.5 *                     // 26
+/// Current number of permutations: 3 *                                   // 3
+///                                (20 - 7.5) / 2.5 *                     // 6
 ///                                (10 - 1) *                             // 10
-///                                (5 - 1) * (10 - 1) / 2 *               // 25
-///                                (10 - 1) * (0.4 - 0.000001) / 0.08     // 50
+///                                (5 - 1) * (10 - 1) / 3 *               // 20
+///                                (10 - 1) * (0.4 - 0.000001) / 0.1      // 20
 ///                                -------------------------------------
-///                                5 * 26 * (1 + 10 + 25 + 50) benchmarks generated (11180).
+///                                3 * 6 * (1 + 10 + 20 + 20) benchmarks generated (910).
 /// @endcode
 namespace DCBG {
     static const int DUP = 5; ///< Number of tests to store for each type.

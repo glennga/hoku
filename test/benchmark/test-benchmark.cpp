@@ -208,7 +208,9 @@ int TestBenchmark::test_compare_stars() {
     // Erase two stars from set B.
     b.erase(b.begin() + 0);
     b.erase(b.begin() + 1);
+    b.push_back(Star(5, 5, 5));
     
+    assert_not_equal(a.stars.size(), Benchmark::compare_stars(a, b), "ComparePresentsNotCorrectNumber");
     assert_equal(a.stars.size(), Benchmark::compare_stars(a, b) + 2, "ComparePresentsCorrectNumber");
     
     return 0;
