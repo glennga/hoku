@@ -47,10 +47,10 @@ class AstrometryNet {
     /// Defines the query, match, and utility operators, user can tweak for custom performance.
     struct Parameters {
         double query_sigma = 0.00000000001; ///< A hash query must be within 3 * query_sigma of a given search.
-        int query_expected = 10; ///< Expected number of stars to be found with query. Better to overshoot.
+        unsigned int query_expected = 10; ///< Expected number of stars to be found with query. Better to overshoot.
         double match_sigma = 0.00001; ///< Resultant of inertial->body rotation must within 3 * match_sigma of *a* body.
         double kd_tree_w = 1000; ///< Projection width of the KD-trees.
-        int nearby_expected = 100; ///< Expected number of nearby stars to be found. Better to overshoot.
+        unsigned int nearby_expected = 100; ///< Expected number of nearby stars to be found. Better to overshoot.
         double k_alignment_accept = 60; ///< Value of K to accept a given alignment.
         double u_tp = 1.0; ///< Utility of a true positive match. Used in Bayesian decision process.
         double u_fp = -1.0; ///< Utility of a false positive match. Used in Bayesian decision process.
@@ -66,7 +66,7 @@ class AstrometryNet {
   public:
     static Star::list identify (const Benchmark &, const Parameters &);
     
-    static int generate_hash_table (const int, const int, const int, const std::string &);
+    static int generate_hash_table (const int, const int, const std::string &);
     static int generate_center_table (const std::string &, const std::string &);
   
   private:
@@ -88,7 +88,7 @@ class AstrometryNet {
   private:
     AstrometryNet (const Benchmark &, const Parameters &);
     
-    static void insert_astro_h (Nibble &, std::vector<int> &, const double, const hr_quad &, const double, const int);
+    static int insert_astro_h (Nibble &, std::vector<int> &, const double, const hr_quad &, const double);
     
     hr_quad query_for_asterism (const hr_quad &);
     

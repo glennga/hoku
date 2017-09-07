@@ -106,10 +106,14 @@ int Nibble::generate_bsc5_table () {
 /// @param hr HR number of the star to return.
 /// @return Star with the components of the matching HR number entry.
 Star Nibble::query_bsc5 (const int hr) {
+    std::string t_table = this->table;
     tuple results;
     
     select_table("BSC5");
     results = search_table("hr = " + std::to_string(hr), "i, j, k", 1, 1);
+    
+    // Keep our previous table.
+    select_table(t_table);
     return Star(results[0], results[1], results[2], hr);
 }
 
