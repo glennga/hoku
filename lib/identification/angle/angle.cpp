@@ -9,7 +9,7 @@
 /// Constructor. Sets the benchmark data and fov. Set the current working table to the default 'SEP20'.
 ///
 /// @param input Working Benchmark instance. We are **only** copying the star set and the fov.
-Angle::Angle (Benchmark input) {
+Angle::Angle (const Benchmark &input) {
     input.present_image(this->input, this->fov);
     this->nb.select_table(Parameters().table_name);
 }
@@ -59,7 +59,7 @@ Angle::hr_pair Angle::query_for_pair (const double theta) {
     hr_list candidates;
     
     // Query using theta with epsilon bounds. Return [-1][-1] if nothing is found.
-    nb.select_table(Parameters().table_name);
+    nb.select_table(parameters.table_name);
     condition << "theta BETWEEN " << std::setprecision(16) << std::fixed;
     condition << theta - epsilon << " AND " << theta + epsilon;
     candidates = nb.search_table(condition.str(), "hr_a, hr_b, theta", limit * 3, limit);
