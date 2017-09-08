@@ -71,6 +71,7 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/lib/identification/base-triangle)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/identification/planar-triangle)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/identification/spherical-triangle)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/identification/astrometry-net)
+add_subdirectory(${CMAKE_SOURCE_DIR}/lib/identification/pyramid)
 
 ##################################################################
 # Add Subdirectory Containing User Tests
