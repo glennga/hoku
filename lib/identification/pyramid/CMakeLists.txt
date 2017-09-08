@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.7)
 ##################################################################
 # User Configuration: Specify library name
 ##################################################################
-set(LIBNAME Angle)
+set(LIBNAME Pyramid)
 
 ##################################################################
 # User Configuration: Source and Include Files
@@ -21,6 +21,7 @@ include_directories(..)
 include_directories(${CMAKE_SOURCE_DIR}/lib/math/star)
 include_directories(${CMAKE_SOURCE_DIR}/lib/math/rotation)
 include_directories(${CMAKE_SOURCE_DIR}/lib/storage/nibble)
+include_directories(${CMAKE_SOURCE_DIR}/lib/storage/chomp)
 include_directories(${CMAKE_SOURCE_DIR}/lib/third-party/sqlite-cpp)
 include_directories(${CMAKE_SOURCE_DIR}/lib/benchmark)
 
