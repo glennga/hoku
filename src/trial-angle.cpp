@@ -41,19 +41,25 @@ namespace DCAI {
 /// @param set_n Working benchmark set id.
 /// @param query_sigma Working sigma to query Nibble with.
 void trial_ms_sl_mm (Nibble &nb, std::ofstream &log, const unsigned int set_n, const double query_sigma) {
+    Angle::Parameters p;
+    Star::list s;
+    double fov;
+    
     for (double match_sigma = DCAI::MS_MIN; match_sigma <= DCAI::MS_MAX; match_sigma += DCAI::MS_STEP) {
         for (int query_limit = DCAI::QL_MIN; query_limit <= DCAI::QL_MAX; query_limit += DCAI::QL_STEP) {
             for (int match_minimum = DCAI::MM_MIN; match_minimum <= DCAI::MM_MAX; match_minimum += DCAI::MM_STEP) {
-                Angle::Parameters p;
                 p.query_limit = (unsigned) match_sigma, p.match_minimum = (unsigned) match_minimum;
                 p.query_sigma = query_sigma, p.match_sigma = match_sigma;
                 
-                // Read the benchmark, identify the stars, and log the matches found.
+                // Read the benchmark, copy the list here.
                 Benchmark input = Benchmark::parse_from_nibble(nb, set_n);
+                input.present_image(s, fov);
+                
+                // Identify the image, record the number of actual matches that exist.
                 Star::list results = Angle::identify(input, p);
                 int matches_found = Benchmark::compare_stars(input, results);
-
-                log << set_n << "," << results.size() << "," << matches_found << "," << query_sigma;
+                
+                log << set_n << "," << s.size() << "," << results.size() << "," << matches_found << "," << query_sigma;
                 log << "," << match_sigma << "," << query_limit << "," << match_minimum << std::endl;
             }
         }
@@ -81,7 +87,8 @@ int main () {
     }
     
     // Set the attributes of the log.
-    log << "SetNumber,IdentificationSize,MatchesFound,QuerySigma,MatchSigma,QueryLimit,MatchMinimum" << std::endl;
+    log << "SetNumber,InputSize,IdentificationSize,MatchesFound,QuerySigma,MatchSigma,QueryLimit,MatchMinimum";
+    log << std::endl;
     
     // Run the trials!
     nb.select_table(Benchmark::TABLE_NAME);
