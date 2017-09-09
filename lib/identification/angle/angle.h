@@ -55,11 +55,11 @@ class Angle {
   
   public:
     static Star::list identify (const Benchmark &, const Parameters &);
-    static int generate_sep_table (const int, const std::string &);
+    static int generate_sep_table (const double, const std::string &);
   
   private:
-    /// Alias for a list of Harvard Revised numbers (STL vector of doubles).
-    using hr_list = std::vector<double>;
+    /// Alias for a list of Harvard Revised numbers (STL vector of integers).
+    using hr_list = std::vector<int>;
     
     /// Alias for a pair of Harvard Revised numbers (2-element STL array of doubles).
     using hr_pair = std::array<int, 2>;
@@ -77,11 +77,11 @@ class Angle {
     double fov;
   
   private:
-    Angle (Benchmark);
+    Angle (const Benchmark &, const Parameters &);
     
     hr_pair query_for_pair (const double);
-    Star::pair find_candidate_pair (const Star &, const Star &);
     Star::list find_matches (const Star::list &, const Rotation &);
+    Star::pair find_candidate_pair (const Star &, const Star &);
     Star::list check_assumptions (const Star::list &, const Star::pair &, const Star::pair &);
 };
 

@@ -63,6 +63,9 @@ class Nibble {
     /// Length of the BSC5 table. Necessary if loading all stars into RAM.
     static const int BSC5_TABLE_LENGTH = 5029;
     
+    /// Maximum HR value for BSC5 table. Used in sparse representations of BSC5.
+    static const int BSC5_MAX_HR = 9110;
+    
     /// Open and unique database object. This must be public to work with SQLiteCpp library.
     std::unique_ptr<SQLite::Database> db;
   

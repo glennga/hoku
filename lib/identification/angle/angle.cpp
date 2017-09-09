@@ -6,12 +6,14 @@
 
 #include "angle.h"
 
-/// Constructor. Sets the benchmark data and fov. Set the current working table to the default 'SEP20'.
+/// Constructor. Sets the benchmark data, fov, parameters, and current working table.
 ///
 /// @param input Working Benchmark instance. We are **only** copying the star set and the fov.
-Angle::Angle (Benchmark input) {
+Angle::Angle (const Benchmark &input, const Parameters &p) {
     input.present_image(this->input, this->fov);
-    this->nb.select_table(Parameters().table_name);
+    this->parameters = p;
+    
+    this->nb.select_table(parameters.table_name);
 }
 
 /// Generate the separation table given the specified FOV and table name. This finds the angle of separation between
@@ -20,7 +22,7 @@ Angle::Angle (Benchmark input) {
 /// @param fov Field of view limit (degrees) that all pairs must be within.
 /// @param table_name Name of the table to generate.
 /// @return 0 when finished.
-int Angle::generate_sep_table (const int fov, const std::string &table_name) {
+int Angle::generate_sep_table (const double fov, const std::string &table_name) {
     Nibble nb;
     SQLite::Transaction transaction(*nb.db);
     nb.create_table(table_name, "hr_a INT, hr_b INT, theta FLOAT");
@@ -56,10 +58,10 @@ Angle::hr_pair Angle::query_for_pair (const double theta) {
     double epsilon = 3.0 * this->parameters.query_sigma, current_minimum = this->fov;
     unsigned int minimum_index = 0, limit = this->parameters.query_limit;
     std::ostringstream condition;
-    hr_list candidates;
+    Nibble::tuple candidates;
     
     // Query using theta with epsilon bounds. Return [-1][-1] if nothing is found.
-    nb.select_table(Parameters().table_name);
+    nb.select_table(parameters.table_name);
     condition << "theta BETWEEN " << std::setprecision(16) << std::fixed;
     condition << theta - epsilon << " AND " << theta + epsilon;
     candidates = nb.search_table(condition.str(), "hr_a, hr_b, theta", limit * 3, limit);
@@ -69,7 +71,8 @@ Angle::hr_pair Angle::query_for_pair (const double theta) {
     
     // Select the candidate pair with the angle closest to theta.
     for (unsigned int i = 0; i < candidates.size() / 3; i++) {
-        hr_list inertial = nb.table_results_at(candidates, 3, i);
+        Nibble::tuple inertial_tuple = nb.table_results_at(candidates, 3, i);
+        hr_list inertial(inertial_tuple.begin(), inertial_tuple.end());
         
         // Update with the correct minimum.
         if (fabs(inertial[2] - theta) < current_minimum) {
@@ -169,10 +172,7 @@ Star::list Angle::check_assumptions (const Star::list &candidates, const Star::p
 Star::list Angle::identify (const Benchmark &input, const Parameters &parameters) {
     bool matched = false;
     Star::list matches;
-    Angle a(input);
-    
-    a.parameters = parameters;
-    a.nb.select_table(a.parameters.table_name);
+    Angle a(input, parameters);
     
     // There exists |A_input| choose 2 possibilities.
     for (unsigned int i = 0; i < a.input.size() - 1; i++) {

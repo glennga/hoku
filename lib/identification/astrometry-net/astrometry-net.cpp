@@ -46,29 +46,29 @@ AstrometryNet::AstrometryNet (const Benchmark &input, const Parameters &paramete
 /// @param a_limit The limit each star can be in a hash.
 /// @param i The working indices of the BSC5 star list (our current quad).
 /// @param fov All stars must be within fov degrees of each other.
-/// @param w_n The projection width to use for the hash function.
-void Astro::insert_astro_h (Nibble &nb, std::vector<int> &a_count, const double a_limit, const hr_quad &i,
-                            const double fov, const int w_n) {
+/// @return -1 if any of these conditions fail. 0 otherwise.
+int Astro::insert_astro_h (Nibble &nb, std::vector<int> &a_count, const double a_limit, const hr_quad &i,
+                           const double fov) {
     Star::list s_l = {nb.query_bsc5(i[0]), nb.query_bsc5(i[1]), nb.query_bsc5(i[2]), nb.query_bsc5(i[3])};
-    
-    // First, determine if we have passed the hash count for any of the stars.
-    std::vector<double> hr_l = {(double) s_l[0].get_hr(), (double) s_l[1].get_hr(), (double) s_l[2].get_hr(),
-        (double) s_l[3].get_hr()};
-    auto check_hash = [a_count, a_limit, hr_l] (const int &i_hr) -> bool {
-        return a_count[hr_l[i_hr]] < a_limit;
+    auto check_hash = [a_count, a_limit, i] (const int &i_hr) -> bool {
+        return a_count[i[i_hr]] < a_limit;
     };
     
+    // First, determine if we have passed the hash count for any of the stars.
     if (check_hash(0) && check_hash(1) && check_hash(2) && check_hash(3)) {
-        Asterism::points_cd h_t = Asterism::hash({s_l[0], s_l[1], s_l[2], s_l[3]}, w_n);
+        Asterism::points_cd h_t = Asterism::hash({s_l[0], s_l[1], s_l[2], s_l[3]});
         
         // Check if the hash returned is valid, and if all stars are within FOV degrees.
         if (Star::within_angle(s_l, fov) && h_t[0] + h_t[1] + h_t[2] + h_t[3] != 0) {
             // If we are allowed, increment the asterism count and insert into Nibble.
-            a_count[hr_l[0]] += 1, a_count[hr_l[1]] += 1, a_count[hr_l[2]] += 1, a_count[hr_l[3]] += 1;
-            nb.insert_into_table("hr_a, hr_b, hr_c, hr_d, cx, cy, dx, dy", {hr_l[0], hr_l[1], hr_l[2], hr_l[3], h_t[0],
-                h_t[1], h_t[2], h_t[3]});
+            a_count[i[0]] += 1, a_count[i[1]] += 1, a_count[i[2]] += 1, a_count[i[3]] += 1;
+            nb.insert_into_table("hr_0, hr_1, hr_2, hr_3, cx, cy, dx, dy", {(double) i[0], (double) i[1], (double) i[2],
+                (double) i[3], h_t[0], h_t[1], h_t[2], h_t[3]});
+            return 0;
         }
     }
+    
+    return -1;
 }
 
 /// Generate the asterism hash table given the specified FOV and table name. This finds the hash codes between all
@@ -78,20 +78,20 @@ void Astro::insert_astro_h (Nibble &nb, std::vector<int> &a_count, const double 
 ///
 /// @param fov Field of view limit (degrees) that all pairs must be within.
 /// @param a_limit To restrict the number of hashes generated. Each star can only be used a_limit times in a hash.
-/// @param w_n Projection width to use for generating hashes.
 /// @param hash_table Name of the table to generate.
 /// @return 0 when finished.
-int Astro::generate_hash_table (const int fov, const int a_limit, const int w_n, const std::string &hash_table) {
+int Astro::generate_hash_table (const int fov, const int a_limit, const std::string &hash_table) {
     Nibble nb;
     SQLite::Transaction initial_transaction(*nb.db);
-    std::vector<int> a_count(Nibble::BSC5_TABLE_LENGTH);
+    std::vector<int> a_count(Nibble::BSC5_MAX_HR + 1);
     
     // Insert the relation's attributes.
-    nb.create_table(hash_table, "hr_a INT, hr_b INT, hr_c INT, hr_d INT, cx FLOAT, cy FLOAT, dx FLOAT, dy FLOAT");
+    nb.create_table(hash_table, "hr_0 INT, hr_1 INT, hr_2 INT, hr_3 INT, cx FLOAT, cy FLOAT, dx FLOAT, dy FLOAT");
     initial_transaction.commit();
     nb.select_table(hash_table);
     
     // All of our asterism counts start at zero.
+    a_count.resize(Nibble::BSC5_MAX_HR);
     std::fill(a_count.begin(), a_count.end(), 0);
     
     // (i, j, k, m) are distinct, where no (i, j, k, m) = (j, k, m, i), (k, j, m, i), ...
@@ -101,7 +101,7 @@ int Astro::generate_hash_table (const int fov, const int a_limit, const int w_n,
         for (unsigned int j = i + 1; j < Nibble::BSC5_TABLE_LENGTH - 2; j++) {
             for (unsigned int k = j + 1; k < Nibble::BSC5_TABLE_LENGTH - 1; k++) {
                 for (unsigned int m = k + 1; m < Nibble::BSC5_TABLE_LENGTH; m++) {
-                    insert_astro_h(nb, a_count, a_limit, {(signed) i, (signed) j, (signed) k, (signed) m}, fov, w_n);
+                    insert_astro_h(nb, a_count, a_limit, {(signed) i, (signed) j, (signed) k, (signed) m}, fov);
                 }
             }
         }
@@ -130,10 +130,10 @@ int Astro::generate_center_table (const std::string &hash_table, const std::stri
     unsigned n = (unsigned) nb.search_table("MAX(rowid)", 1)[0];
     
     // Find all possible HR values from the ASTRO_H table.
-    Nibble::tuple hr = nb.search_table("hr_a, hr_b, hr_c, hr_d", n);
+    Nibble::tuple hr = nb.search_table("hr_0, hr_1, hr_2, hr_3", n);
     
     // Insert the relation's attributes.
-    nb.create_table(center_table, "hr_a INT, hr_b INT, hr_c INT, hr_d INT, i FLOAT, j FLOAT, k FLOAT");
+    nb.create_table(center_table, "hr_0 INT, hr_1 INT, hr_2 INT, hr_3 INT, i FLOAT, j FLOAT, k FLOAT");
     initial_transaction.commit();
     nb.select_table(center_table);
     
@@ -143,7 +143,7 @@ int Astro::generate_center_table (const std::string &hash_table, const std::stri
         Star center = Asterism::center({nb.query_bsc5(i), nb.query_bsc5(i + 1), nb.query_bsc5(i + 2),
                                            nb.query_bsc5(i + 3)});
         
-        nb.insert_into_table("hr_a, hr_b, hr_c, hr_d, i, j, k", {hr[i], hr[i + 1], hr[i + 2], hr[i + 3], center[0],
+        nb.insert_into_table("hr_0, hr_1, hr_2, hr_3, i, j, k", {hr[i], hr[i + 1], hr[i + 2], hr[i + 3], center[0],
             center[1], center[2]});
         transaction.commit();
     }
@@ -161,8 +161,8 @@ Astro::hr_quad Astro::query_for_asterism (const index_quad &b_i) {
     double epsilon = 3.0 * this->parameters.query_sigma;
     
     // Determine hash, and determine the order of the given stars.
-    Asterism::points_cd h = Asterism::hash(s_q, parameters.kd_tree_w);
-    Asterism::stars s_abcd = Asterism::find_abcd(s_q, parameters.kd_tree_w);
+    Asterism::points_cd h = Asterism::hash(s_q);
+    Asterism::stars s_abcd = Asterism::find_abcd(s_q);
     
     // If a hash cannot be generated, return [-1, -1, -1, -1].
     if (h[0] + h[1] + h[2] + h[3] == 0) {
@@ -171,9 +171,9 @@ Astro::hr_quad Astro::query_for_asterism (const index_quad &b_i) {
     
     // Search for matching C_x first.
     ch.select_table(this->parameters.center_name);
-    Chomp::tuple matches = ch.k_vector_query("cx", "hr_a, hr_b, hr_c, hr_d",
+    Chomp::tuple matches = ch.k_vector_query("cx", "hr_0, hr_1, hr_2, hr_3",
                                              h[0] - epsilon,
-                                             h[0] + epsilon, (unsigned) this->parameters.query_expected);
+                                             h[0] + epsilon, this->parameters.query_expected);
     
     // Filter out all matches that don't match C_y, D_x, and D_y.
     for (unsigned int i = 0; i < matches.size(); i += 4) {
@@ -230,7 +230,8 @@ Astro::models Astro::classify_matches (const hr_quad &r_hr, const Rotation &q) {
     models m;
     
     // Search for nearby stars to the first HR.
-    Star::list nearby = (*star_root).nearby_stars(ch.query_bsc5(r_hr[0]), fov, (unsigned int) parameters.nearby_expected, ch.all_bsc5_stars());
+    Star::list nearby = (*star_root).nearby_stars(ch.query_bsc5(r_hr[0]), fov, parameters.nearby_expected,
+                                                  ch.all_bsc5_stars());
     
     // Note: If a star in 'nearby' is not found, no action is taken. 'm' depends on the input set.
     for (const Star &s: this->input) {
@@ -273,13 +274,13 @@ Astro::hr_list_quad Astro::nearby_asterisms (const hr_quad &r_hr) {
     Star center = Asterism::center({query_for_hr(0), query_for_hr(1), query_for_hr(2), query_for_hr(3)});
     
     // Query the tree for nearby asterism centers.
-    Star::list nearby = (*astro_root).nearby_stars(center, fov, (unsigned) parameters.nearby_expected * 2, astro_stars);
+    Star::list nearby = (*astro_root).nearby_stars(center, fov, parameters.nearby_expected * 2, astro_stars);
     
     // Parse all of quad's HR values.
     nearby_quad.reserve(nearby.size());
     ch.select_table(this->parameters.center_name);
     for (const Star &n : nearby) {
-        Chomp::tuple n_quad = ch.k_vector_query("i", "hr_a, hr_b, hr_c, hr_d",
+        Chomp::tuple n_quad = ch.k_vector_query("i", "hr_0, hr_1, hr_2, hr_3",
                                                 n[0] - std::numeric_limits<double>::epsilon(),
                                                 n[0] + std::numeric_limits<double>::epsilon(), 4);
         

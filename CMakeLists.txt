@@ -11,12 +11,11 @@ project(${PROJECT_NAME})
 Option(BUILD_GPROF "Build for Profiling" OFF)
 if (BUILD_GPROF)
     message("Building for GPrOF Profiler")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -pg -Wall -pedantic \
-	-std=c++0x -U__STRICT_ANSI__ -Wno-invalid-offsetof \
-    -fno-omit-frame-pointer -gdwarf-2")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -pg -g3 -Wall -pedantic \
+	-std=c++11 -U__STRICT_ANSI__ -fno-omit-frame-pointer -gdwarf-2")
 else ()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic \
-	-std=c++0x -U__STRICT_ANSI__ -Wno-invalid-offsetof")
+	-std=c++11 -U__STRICT_ANSI__")
 endif ()
 
 ##################################################################
@@ -35,9 +34,11 @@ endif ()
 # Windows vs. Unix. Grr!!
 ##################################################################
 if (WIN32)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -m64")
+#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -m64")
+#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64")
 else ()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lpthread -ldl")
+#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lpthread -ldl")
+#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ldl")
 endif ()
 
 ##################################################################
@@ -70,6 +71,7 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/lib/identification/base-triangle)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/identification/planar-triangle)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/identification/spherical-triangle)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/identification/astrometry-net)
+add_subdirectory(${CMAKE_SOURCE_DIR}/lib/identification/pyramid)
 
 ##################################################################
 # Add Subdirectory Containing User Tests
@@ -87,6 +89,7 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/test/benchmark)
 add_subdirectory(${CMAKE_SOURCE_DIR}/test/identification/angle)
 add_subdirectory(${CMAKE_SOURCE_DIR}/test/identification/planar-triangle)
 add_subdirectory(${CMAKE_SOURCE_DIR}/test/identification/spherical-triangle)
+add_subdirectory(${CMAKE_SOURCE_DIR}/test/identification/astrometry-net)
 
 ##################################################################
 # Add Subdirectory Containing Source Files (the meat)
