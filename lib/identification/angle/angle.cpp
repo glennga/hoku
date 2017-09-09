@@ -9,9 +9,11 @@
 /// Constructor. Sets the benchmark data and fov. Set the current working table to the default 'SEP20'.
 ///
 /// @param input Working Benchmark instance. We are **only** copying the star set and the fov.
-Angle::Angle (const Benchmark &input) {
+Angle::Angle (const Benchmark &input, const Parameters &p) {
     input.present_image(this->input, this->fov);
-    this->nb.select_table(Parameters().table_name);
+    this->parameters = p;
+    
+    this->nb.select_table(parameters.table_name);
 }
 
 /// Generate the separation table given the specified FOV and table name. This finds the angle of separation between
@@ -170,10 +172,7 @@ Star::list Angle::check_assumptions (const Star::list &candidates, const Star::p
 Star::list Angle::identify (const Benchmark &input, const Parameters &parameters) {
     bool matched = false;
     Star::list matches;
-    Angle a(input);
-    
-    a.parameters = parameters;
-    a.nb.select_table(a.parameters.table_name);
+    Angle a(input, parameters);
     
     // There exists |A_input| choose 2 possibilities.
     for (unsigned int i = 0; i < a.input.size() - 1; i++) {

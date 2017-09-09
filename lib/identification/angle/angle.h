@@ -77,7 +77,7 @@ class Angle {
     double fov;
   
   private:
-    Angle (const Benchmark &);
+    Angle (const Benchmark &, const Parameters &);
     
     hr_pair query_for_pair (const double);
     Star::list find_matches (const Star::list &, const Rotation &);
