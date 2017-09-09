@@ -6,7 +6,7 @@
 
 #include "angle.h"
 
-/// Constructor. Sets the benchmark data and fov. Set the current working table to the default 'SEP20'.
+/// Constructor. Sets the benchmark data, fov, parameters, and current working table.
 ///
 /// @param input Working Benchmark instance. We are **only** copying the star set and the fov.
 Angle::Angle (const Benchmark &input, const Parameters &p) {
