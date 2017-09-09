@@ -55,11 +55,11 @@ class Angle {
   
   public:
     static Star::list identify (const Benchmark &, const Parameters &);
-    static int generate_sep_table (const int, const std::string &);
+    static int generate_sep_table (const double, const std::string &);
   
   private:
-    /// Alias for a list of Harvard Revised numbers (STL vector of doubles).
-    using hr_list = std::vector<double>;
+    /// Alias for a list of Harvard Revised numbers (STL vector of integers).
+    using hr_list = std::vector<int>;
     
     /// Alias for a pair of Harvard Revised numbers (2-element STL array of doubles).
     using hr_pair = std::array<int, 2>;
