@@ -8,7 +8,7 @@
 #define TEST_PLANAR_TRIANGLE_H
 
 #include "base-test/base-test.h"
-#include "planar-triangle.h"
+#include "identification/planar-triangle.h"
 #include <cstdio>
 
 class TestPlanarTriangle : public BaseTest {

@@ -7,7 +7,7 @@
 #define TEST_MERCATOR_H
 
 #include "base-test/base-test.h"
-#include "../../../include/math/mercator.h"
+#include "math/mercator.h"
 
 class TestMercator : public BaseTest {
   private:

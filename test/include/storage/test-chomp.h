@@ -7,7 +7,7 @@
 #define TEST_CHOMP_H
 
 #include "base-test/base-test.h"
-#include "../../../include/storage/chomp.h"
+#include "storage/chomp.h"
 #include <cstdio>
 
 class TestChomp : public BaseTest {

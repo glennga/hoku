@@ -7,7 +7,7 @@
 #define TEST_STAR_H
 
 #include "base-test/base-test.h"
-#include "../../../include/math/star.h"
+#include "math/star.h"
 #include <cstdio>
 
 class TestStar : public BaseTest {

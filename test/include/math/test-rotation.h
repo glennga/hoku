@@ -7,7 +7,7 @@
 #define TEST_ROTATION_H
 
 #include "base-test/base-test.h"
-#include "../../../include/math/rotation.h"
+#include "math/rotation.h"
 
 class TestRotation : public BaseTest {
   private:

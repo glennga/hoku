@@ -7,7 +7,7 @@
 #define TEST_KD_NODE_H
 
 #include "base-test/base-test.h"
-#include "../../../include/storage/kd-node.h"
+#include "storage/kd-node.h"
 #include <cstdio>
 
 class TestKdNode : public BaseTest {

@@ -7,7 +7,7 @@
 #define TEST_QUAD_NODE_H
 
 #include "base-test/base-test.h"
-#include "../../../include/storage/quad-node.h"
+#include "storage/quad-node.h"
 #include <cstdio>
 
 class TestQuadNode : public BaseTest {

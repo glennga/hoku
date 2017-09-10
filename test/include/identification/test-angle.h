@@ -7,7 +7,7 @@
 #define TEST_ANGLE_H
 
 #include "base-test/base-test.h"
-#include "../../../include/identification/angle.h"
+#include "identification/angle.h"
 
 class TestAngle : public BaseTest {
   private:

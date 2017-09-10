@@ -8,7 +8,7 @@
 #define TEST_ASTROMETRY_NET_H
 
 #include "base-test/base-test.h"
-#include "../../../include/identification/astrometry-net.h"
+#include "identification/astrometry-net.h"
 #include <cstdio>
 
 class TestAstrometryNet : public BaseTest {

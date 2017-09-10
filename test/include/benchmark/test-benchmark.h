@@ -8,7 +8,7 @@
 #define TEST_BENCHMARK_H
 
 #include "base-test/base-test.h"
-#include "../../../include/benchmark/benchmark.h"
+#include "benchmark/benchmark.h"
 
 class TestBenchmark : public BaseTest {
   private:

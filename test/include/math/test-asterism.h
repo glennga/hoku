@@ -7,7 +7,7 @@
 #define TEST_ASTERISM_H
 
 #include "base-test/base-test.h"
-#include "../../../include/math/asterism.h"
+#include "math/asterism.h"
 
 class TestAsterism : public BaseTest {
   private:

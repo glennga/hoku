@@ -8,7 +8,7 @@
 #define TEST_SPHERICAL_TRIANGLE_H
 
 #include "base-test/base-test.h"
-#include "../../../include/identification/spherical-triangle.h"
+#include "identification/spherical-triangle.h"
 #include <cstdio>
 
 class TestSphericalTriangle : public BaseTest {

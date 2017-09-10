@@ -7,7 +7,7 @@
 #define TEST_NIBBLE_H
 
 #include "base-test/base-test.h"
-#include "../../../include/storage/nibble.h"
+#include "storage/nibble.h"
 
 class TestNibble : public BaseTest {
   private:

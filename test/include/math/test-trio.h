@@ -7,7 +7,7 @@
 #define TEST_TRIO_H
 
 #include "base-test/base-test.h"
-#include "../../../include/math/trio.h"
+#include "math/trio.h"
 
 class TestTrio : public BaseTest {
   private:
