@@ -31,65 +31,18 @@ if (BUILD_STATIC)
 endif ()
 
 ##################################################################
-# Windows vs. Unix. Grr!!
+# Add Subdirectories Containing Libraries
 ##################################################################
-if (WIN32)
-#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -m64")
-#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64")
-else ()
-#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lpthread -ldl")
-#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ldl")
+add_subdirectory(${CMAKE_SOURCE_DIR}/lib)
+
+##################################################################
+# Add Subdirectory Containing User Tests (If Desired)
+##################################################################
+Option(BUILD_TEST "Build for Testing" OFF)
+if (BUILD_TEST)
+    message("Building Test Executables")
+    add_subdirectory(${CMAKE_SOURCE_DIR}/test)
 endif ()
-
-##################################################################
-# Binary Directory = bin Folder
-##################################################################
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
-
-##################################################################
-# Add Subdirectory Containing Third Party Libraries
-##################################################################
-add_subdirectory(${CMAKE_SOURCE_DIR}/lib/third-party/sqlite-cpp/sqlite3)
-add_subdirectory(${CMAKE_SOURCE_DIR}/lib/third-party/sqlite-cpp)
-
-##################################################################
-# Add Subdirectory Containing User Libraries
-##################################################################
-add_subdirectory(${CMAKE_SOURCE_DIR}/lib/base-test)
-add_subdirectory(${CMAKE_SOURCE_DIR}/lib/math/star)
-add_subdirectory(${CMAKE_SOURCE_DIR}/lib/math/rotation)
-add_subdirectory(${CMAKE_SOURCE_DIR}/lib/math/trio)
-add_subdirectory(${CMAKE_SOURCE_DIR}/lib/math/mercator)
-add_subdirectory(${CMAKE_SOURCE_DIR}/lib/math/asterism)
-add_subdirectory(${CMAKE_SOURCE_DIR}/lib/tree/quad-node)
-add_subdirectory(${CMAKE_SOURCE_DIR}/lib/tree/kd-node)
-add_subdirectory(${CMAKE_SOURCE_DIR}/lib/storage/nibble)
-add_subdirectory(${CMAKE_SOURCE_DIR}/lib/storage/chomp)
-add_subdirectory(${CMAKE_SOURCE_DIR}/lib/benchmark)
-add_subdirectory(${CMAKE_SOURCE_DIR}/lib/identification/angle)
-add_subdirectory(${CMAKE_SOURCE_DIR}/lib/identification/base-triangle)
-add_subdirectory(${CMAKE_SOURCE_DIR}/lib/identification/planar-triangle)
-add_subdirectory(${CMAKE_SOURCE_DIR}/lib/identification/spherical-triangle)
-add_subdirectory(${CMAKE_SOURCE_DIR}/lib/identification/astrometry-net)
-add_subdirectory(${CMAKE_SOURCE_DIR}/lib/identification/pyramid)
-
-##################################################################
-# Add Subdirectory Containing User Tests
-##################################################################
-add_subdirectory(${CMAKE_SOURCE_DIR}/test/math/star)
-add_subdirectory(${CMAKE_SOURCE_DIR}/test/math/rotation)
-add_subdirectory(${CMAKE_SOURCE_DIR}/test/math/trio)
-add_subdirectory(${CMAKE_SOURCE_DIR}/test/math/mercator)
-add_subdirectory(${CMAKE_SOURCE_DIR}/test/math/asterism)
-add_subdirectory(${CMAKE_SOURCE_DIR}/test/tree/quad-node)
-add_subdirectory(${CMAKE_SOURCE_DIR}/test/tree/kd-node)
-add_subdirectory(${CMAKE_SOURCE_DIR}/test/storage/nibble)
-add_subdirectory(${CMAKE_SOURCE_DIR}/test/storage/chomp)
-add_subdirectory(${CMAKE_SOURCE_DIR}/test/benchmark)
-add_subdirectory(${CMAKE_SOURCE_DIR}/test/identification/angle)
-add_subdirectory(${CMAKE_SOURCE_DIR}/test/identification/planar-triangle)
-add_subdirectory(${CMAKE_SOURCE_DIR}/test/identification/spherical-triangle)
-add_subdirectory(${CMAKE_SOURCE_DIR}/test/identification/astrometry-net)
 
 ##################################################################
 # Add Subdirectory Containing Source Files (the meat)

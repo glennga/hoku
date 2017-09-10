@@ -1,18 +1,17 @@
 ##################################################################
-# Include Directories for User Libraries
+# Binary Directory = bin Folder
 ##################################################################
-include_directories(${CMAKE_SOURCE_DIR}/lib/math/star)
-include_directories(${CMAKE_SOURCE_DIR}/lib/third-party/sqlite-cpp)
-include_directories(${CMAKE_SOURCE_DIR}/lib/storage/nibble)
-include_directories(${CMAKE_SOURCE_DIR}/lib/math/rotation)
-include_directories(${CMAKE_SOURCE_DIR}/lib/benchmark)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
-include_directories(${CMAKE_SOURCE_DIR}/lib/identification/angle)
+##################################################################
+# Include Directory for Header Files
+##################################################################
+include_directories(${CMAKE_SOURCE_DIR}/include)
 
 ##################################################################
 # Link and Create Executables
 ##################################################################
-add_executable(Generator generator.cpp)
+add_executable(Generator benchmark-generator.cpp)
 target_link_libraries(Generator Benchmark Rotation Nibble Star
         SQLiteCpp Sqlite3)
 

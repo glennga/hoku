@@ -8,9 +8,9 @@
  * Distributed under the MIT License (MIT) (See accompanying file LICENSE.txt
  * or copy at http://opensource.org/licenses/MIT)
  */
-#include "Column.h"
+#include "../../../include/third-party/sqlite-cpp/Column.h"
 
-#include "sqlite3.h"
+#include "../../../include/third-party/sqlite/sqlite3.h"
 
 #include <iostream>
 

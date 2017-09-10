@@ -11,17 +11,8 @@ set(LIBNAME Benchmark)
 ##################################################################
 # User Configuration: Source and Include Files
 ##################################################################
-# ----------------- Direct Source: This Library ------------------
 FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
-FILE(GLOB INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
-FILE(GLOB INCLUDESPP ${CMAKE_CURRENT_SOURCE_DIR}/*.hpp)
-include_directories(..)
-
-# --------- Additional Direct Source Below This line -------------
-include_directories(${CMAKE_SOURCE_DIR}/lib/math/star)
-include_directories(${CMAKE_SOURCE_DIR}/lib/math/rotation)
-include_directories(${CMAKE_SOURCE_DIR}/lib/storage/nibble)
-include_directories(${CMAKE_SOURCE_DIR}/lib/third-party/sqlite-cpp)
+include_directories(${CMAKE_SOURCE_DIR}/include)
 
 ##################################################################
 # Add Library - Install List
