@@ -4,21 +4,21 @@
 cmake_minimum_required(VERSION 3.7)
 
 ##################################################################
-# User Configuration: Specify library name
+# Include Directory for Header Files
 ##################################################################
-set(LIBNAME Benchmark)
-
-##################################################################
-# User Configuration: Source and Include Files
-##################################################################
-FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
 ##################################################################
-# Add Library - Install List
+# Add Library SQLite
 ##################################################################
-add_library(${LIBNAME} STATIC ${SOURCES} ${INCLUDES})
-install(TARGETS ${LIBNAME} DESTINATION lib)
-install(FILES ${INCLUDES} DESTINATION include)
-install(FILES ${INCLUDESPP} DESTINATION include)
+add_library(Sqlite3 ${CMAKE_SOURCE_DIR}/lib/third-party/sqlite3/sqlite3.c
+        ${CMAKE_SOURCE_DIR}/include/third-party/sqlite/sqlite3.h)
 
+##################################################################
+# Build Library SQLiteCPP
+##################################################################
+FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/sqlite-cpp/*.cpp)
+FILE(GLOB INCLUDES ${CMAKE_SOURCE_DIR}/sqlite-cpp/*.h)
+add_library(SQLiteCpp STATIC ${SOURCES} ${INCLUDES})
+install(TARGETS SQLiteCpp DESTINATION lib)
+install(FILES ${INCLUDES} DESTINATION include)

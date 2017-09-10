@@ -3,7 +3,7 @@
 ///
 /// Source file for Benchmark class, which generates the input data for star identification testing.
 
-#include "benchmark.h"
+#include "benchmark/benchmark.h"
 
 /// Name of the Nibble table all results are saved to.
 const std::string Benchmark::TABLE_NAME = "BENCH";
@@ -18,7 +18,7 @@ const std::string Benchmark::CURRENT_PLOT = Benchmark::PROJECT_LOCATION + "/data
 const std::string Benchmark::ERROR_PLOT = Benchmark::PROJECT_LOCATION + "/data/logs/tmp/errplt.tmp";
 
 /// Path of the Python script used to plot the current Benchmark instance.
-const std::string Benchmark::PLOT_SCRIPT = "\"" + Benchmark::PROJECT_LOCATION + "/lib/benchmark/generate-plot.py\"";
+const std::string Benchmark::PLOT_SCRIPT = "\"" + Benchmark::PROJECT_LOCATION + "/script/python/generate-plot.py\"";
 
 /// Constructor. Sets the fov, focus, and rotation of the star set. Generate the stars after collecting this
 /// information.
