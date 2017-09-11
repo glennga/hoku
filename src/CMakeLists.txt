@@ -31,3 +31,10 @@ add_executable(TrialAngle trial-angle.cpp)
 target_link_libraries(TrialAngle Angle Benchmark Rotation Nibble Star
         SQLiteCpp Sqlite3)
 
+##################################################################
+# Link and Create Executable TrialPlane
+##################################################################
+add_executable(TrialPlane trial-plane.cpp)
+target_link_libraries(TrialPlane PlanarTriangle BaseTriangle Benchmark
+        Rotation QuadNode Chomp Nibble Mercator Trio Star SQLiteCpp
+        Sqlite3)
