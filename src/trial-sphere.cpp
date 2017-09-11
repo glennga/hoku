@@ -37,6 +37,8 @@ namespace DCPI {
     static const int BQT_MIN = 500; ///< Minimum size of the square to project the nearby-stars quad tree with.
     static const int BQT_MAX = 1499; ///< Maximum size of the square to project the nearby-stars quad tree with.
     static const int BQT_STEP = 500; ///< Amount to increment for each test.
+    
+    static const int TD_H_FOR_TREE = 3; ///< This MUST be the td_h used to construct the Nibble table.
 }
 
 /// Wrap three dimensions of testing (area sigma, moment sigma, and match sigma) in a small function. Passed in the
@@ -58,6 +60,7 @@ void trial_as_ms_ms (Nibble &nb, std::ofstream &log, const unsigned int set_n, c
             for (double match_sigma = DCPI::MS_MIN; match_sigma <= DCPI::MS_MAX; match_sigma += DCPI::MS_STEP) {
                 p.sigma_a = sigma_a, p.sigma_i = sigma_i, p.match_sigma = match_sigma;
                 p.match_minimum = match_minimum, p.bsc5_quadtree_w = bsc5_quadtree_w;
+                p.moment_td_h = DCPI::TD_H_FOR_TREE;
                 
                 // Read the benchmark, copy the list here.
                 Benchmark input = Benchmark::parse_from_nibble(nb, set_n);
@@ -89,7 +92,7 @@ void trial_mm_qw_et(Nibble &nb, std::ofstream &log, const unsigned int set_n) {
     }
 }
 
-/// Test each benchmark with varying Angle operating parameters.
+/// Test each benchmark with varying Sphere operating parameters.
 ///
 /// @return 0 when finished.
 int main () {
