@@ -83,7 +83,7 @@ Star Pyramid::find_reference (const hr_list_pair &ei, const hr_list_pair &ej, co
 /// @param b_f Quad of indices for the input set that represent the stars in our body frame.
 /// @return [-1][-1][-1][-1] if no quad can be found. Otherwise, the HR values of stars from the inertial frame.
 Pyramid::hr_quad Pyramid::find_candidate_quad (const index_quad &b_f) {
-    auto find_pairs = [this, b_f] (const int triangle_index) -> hr_list_pair {
+    auto find_pairs = [this, &b_f] (const int triangle_index) -> hr_list_pair {
         return this->query_for_pairs(Star::angle_between(this->input[b_f[triangle_index]], this->input[b_f[3]]));
     };
     hr_list_pair ei_pairs = find_pairs(0), ej_pairs = find_pairs(1), ek_pairs = find_pairs(2);
@@ -92,7 +92,7 @@ Pyramid::hr_quad Pyramid::find_candidate_quad (const index_quad &b_f) {
     Star e_candidate = find_reference(ei_pairs, ej_pairs, ek_pairs);
     
     // Remove all pairs that don't contain our reference star.
-    auto does_contain_e = [e_candidate] (const hr_pair &pair) -> bool {
+    auto does_contain_e = [&e_candidate] (const hr_pair &pair) -> bool {
         return pair[0] == e_candidate.get_hr() || pair[1] == e_candidate.get_hr();
     };
     std::remove_if(ei_pairs.begin(), ei_pairs.end(), does_contain_e);
@@ -103,7 +103,7 @@ Pyramid::hr_quad Pyramid::find_candidate_quad (const index_quad &b_f) {
     for (const hr_pair &p_i : ei_pairs) {
         for (const hr_pair &p_j : ej_pairs) {
             for (const hr_pair &p_k : ek_pairs) {
-                auto choose_not_e = [e_candidate] (const hr_pair &pair) -> int {
+                auto choose_not_e = [&e_candidate] (const hr_pair &pair) -> int {
                     return (pair[0] == e_candidate.get_hr()) ? pair[1] : pair[0];
                 };
                 int i = choose_not_e(p_i), j = choose_not_e(p_j), k = choose_not_e(p_k);

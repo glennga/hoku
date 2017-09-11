@@ -53,7 +53,7 @@ namespace DCNT {
 ///
 /// @param choice Number associated with the table to remove.
 void remove_table (const int choice) {
-    auto choose_table = [] (const int &c) -> std::string {
+    auto choose_table = [choice] (const int &c) -> std::string {
         switch (choice) {
             case 0: return DCNT::ANGLE_NAME;
             case 1: return DCNT::ASTROH_NAME;
@@ -95,7 +95,7 @@ void generate_kvec_table (const int choice) {
     Chomp ch;
     
     // Create the K-Vector for the given table using the given focus. Polish the table using the focus as well.
-    auto create_and_polish = [ch] (const std::string &table, const std::string &focus) -> void {
+    auto create_and_polish = [&ch] (const std::string &table, const std::string &focus) -> void {
         ch.select_table(table);
         ch.create_k_vector(focus);
         ch.polish_table(focus);

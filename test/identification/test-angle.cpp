@@ -193,7 +193,7 @@ int TestAngle::test_identify_clean_input () {
     }
     
     for (unsigned int q = 0; q < c.size() - 1; q++) {
-        auto match = [c, q] (const Star &b) -> bool {
+        auto match = [&c, q] (const Star &b) -> bool {
             return b.get_hr() == c[q].get_hr();
         };
         auto is_found = std::find_if(input.stars.begin(), input.stars.end(), match);
@@ -225,7 +225,7 @@ int TestAngle::test_identify_error_input () {
     }
     
     for (unsigned int q = 0; q < c.size() - 1; q++) {
-        auto match = [c, q] (const Star &b) -> bool {
+        auto match = [&c, q] (const Star &b) -> bool {
             return b.get_hr() == c[q].get_hr();
         };
         auto is_found = std::find_if(input.stars.begin(), input.stars.end(), match);

@@ -177,7 +177,7 @@ Astro::hr_quad Astro::query_for_asterism (const index_quad &b_i) {
     
     // Filter out all matches that don't match C_y, D_x, and D_y.
     for (unsigned int i = 0; i < matches.size(); i += 4) {
-        auto within_epsilon = [epsilon, matches] (const int &j, const double &v) -> bool {
+        auto within_epsilon = [epsilon, &matches] (const int &j, const double &v) -> bool {
             return v - epsilon < matches[j] && matches[j] < v + epsilon;
         };
         
@@ -204,7 +204,7 @@ Astro::hr_quad Astro::query_for_asterism (const index_quad &b_i) {
 /// @param r_hr HR values that represent the asterism.
 /// @return Identity quaternion if no asterism is found. An inertial->body rotation otherwise.
 Rotation Astro::propose_alignment (const index_quad &b_i, const hr_quad &r_hr) {
-    auto query_for_hr = [this, r_hr] (const int &hr) -> Star {
+    auto query_for_hr = [this, &r_hr] (const int &hr) -> Star {
         return this->ch.query_bsc5(r_hr[hr]);
     };
     
@@ -261,7 +261,7 @@ Astro::models Astro::classify_matches (const hr_quad &r_hr, const Rotation &q) {
 /// @return List with r_hr if this is not a valid asterism. Otherwise, the HR values of the nearby asterisms.
 Astro::hr_list_quad Astro::nearby_asterisms (const hr_quad &r_hr) {
     hr_list_quad nearby_quad;
-    auto query_for_hr = [this, r_hr] (const int &hr) -> Star {
+    auto query_for_hr = [this, &r_hr] (const int &hr) -> Star {
         return this->ch.query_bsc5(r_hr[hr]);
     };
     
