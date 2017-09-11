@@ -1,12 +1,13 @@
-/// @file trial-plane.cpp
+/// @file trial-sphere.cpp
 /// @author Glenn Galvizo
 ///
-/// Source file for the planar-triangle trials. This parses the benchmarks in Nibble, and logs the data into a CSV file.
+/// Source file for the spherical-triangle trials. This parses the benchmarks in Nibble, and logs the data into a 
+/// CSV file.
 
 #include <chrono>
-#include "identification/planar-triangle.h"
+#include "identification/spherical-triangle.h"
 
-/// Defining characteristics of the plane identification.
+/// Defining characteristics of the sphere identification.
 /// @code{.cpp}
 /// Current number of permutations: (0.0000001 - 0.00000000000001) / 0.00000003    // 4
 ///                                 (0.0000001 - 0.00000000000001) / 0.00000003    // 4
@@ -14,7 +15,7 @@
 ///                                 (30 - 3) / 5                                   // 6
 ///                                 (1499 - 500) / 500                             // 3
 ///                                 --------------------------------------------
-///                                 1152 variations of Plane identification for each benchmark.
+///                                 1152 variations of Sphere identification for each benchmark.
 /// @endcode
 namespace DCPI {
     static const double SA_MIN = 0.00000000000001; ///< Minimum area sigma.
@@ -88,7 +89,7 @@ void trial_mm_qw_et(Nibble &nb, std::ofstream &log, const unsigned int set_n) {
     }
 }
 
-/// Test each benchmark with varying Plane operating parameters.
+/// Test each benchmark with varying Angle operating parameters.
 ///
 /// @return 0 when finished.
 int main () {
@@ -100,7 +101,7 @@ int main () {
     using clock = std::chrono::high_resolution_clock;
     
     // Construct the log file based on the HOKU_PROJECT_PATH environment variable.
-    l << "/data/logs/trial/plane-" << clock::to_time_t(clock::now() - std::chrono::hours(24)) << ".csv";
+    l << "/data/logs/trial/sphere-" << clock::to_time_t(clock::now() - std::chrono::hours(24)) << ".csv";
     log.open(std::string(std::getenv("HOKU_PROJECT_PATH")) + l.str());
     
     // Make sure the log file is open before proceeding.

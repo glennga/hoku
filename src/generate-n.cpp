@@ -33,6 +33,7 @@
 namespace DCNT {
     static const double FOV = 20; ///< Maximum field-of-view for each generated table.
     static const int A_LIMIT = 1000; ///< Asterism limit for AstrometryNet tables.
+    static const int TD_H = 3; ///< Recursion depth maximum (moment calculation) for SphericalTriangle tables.
     
     static const std::string ANGLE_NAME = "SEP20"; ///< Name of table generated for Angle method.
     static const std::string ASTROH_NAME = "ASTRO_H20"; ///< Name of hash table generated for AstrometryNet method.
@@ -81,7 +82,7 @@ void generate_table (const int choice) {
         case 0: return (void) Angle::generate_sep_table(DCNT::FOV, DCNT::ANGLE_NAME);
         case 1: return (void) AstrometryNet::generate_hash_table(DCNT::FOV, DCNT::A_LIMIT, DCNT::ASTROH_NAME);
         case 2: return (void) AstrometryNet::generate_center_table(DCNT::ASTROH_NAME, DCNT::ASTROC_NAME);
-        case 3: return (void) Sphere::generate_triangle_table(DCNT::FOV, DCNT::SPHERE_NAME);
+        case 3: return (void) Sphere::generate_triangle_table(DCNT::FOV, DCNT::TD_H, DCNT::SPHERE_NAME);
         case 4: return (void) Plane::generate_triangle_table(DCNT::FOV, DCNT::PLANE_NAME);
         case 5: return (void) Pyramid::generate_sep_table(DCNT::FOV, DCNT::PYRAMID_NAME);
         default: throw "Table choice is not within space {0, 1, 2, 3, 4, 5}.";
