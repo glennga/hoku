@@ -33,9 +33,6 @@ class BaseTriangle {
         std::string table_name; ///< Name of the Nibble table created with 'generate_triangle_table'.
     };
     
-  public:
-    Star::list identify ();
-  
   protected:
     /// The star set we are working with. The HR values are all set to 0 here.
     Star::list input;
@@ -62,6 +59,7 @@ class BaseTriangle {
     using index_trio = std::array<double, 3>;
     
   protected:
+    Star::list identify_stars ();
     std::vector<hr_trio> query_for_trio (const double, const double);
     
   private:

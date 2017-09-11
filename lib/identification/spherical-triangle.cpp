@@ -97,3 +97,13 @@ std::vector<Trio::stars> Sphere::match_stars (const index_trio &hr_b) {
     
     return matched_stars;
 }
+
+/// Wrapper for BaseTriangle's identify_stars method. Match the stars found in the given benchmark to those in the
+/// Nibble database.
+///
+/// @param input The set of benchmark data to work with.
+/// @param parameters Adjustments to the identification process.
+/// @return Vector of body stars with their inertial BSC IDs that qualify as matches.
+Star::list Sphere::identify(const Benchmark &input, const Parameters &p) {
+    return Sphere(input, p).identify_stars();
+}
