@@ -4,7 +4,7 @@
 /// Source file for the angle trials. This parses the benchmarks in Nibble, and logs the data into a CSV file.
 
 #include <chrono>
-#include "angle.h"
+#include "identification/angle.h"
 
 /// Defining characteristics of the angle identification.
 /// @code{.cpp}
