@@ -66,7 +66,7 @@ class AstrometryNet {
   public:
     static Star::list identify (const Benchmark &, const Parameters &);
     
-    static int generate_hash_table (const int, const int, const std::string &);
+    static int generate_hash_table (const double, const int, const std::string &);
     static int generate_center_table (const std::string &, const std::string &);
   
   private:
@@ -119,9 +119,6 @@ class AstrometryNet {
     
     /// Another Kd-tree root. Used for finding nearby **asterisms**.
     std::shared_ptr<KdNode> astro_root;
-    
-    /// Current proposed alignment.
-    Rotation proposed;
 };
 
 /// Alias for the AstrometryNet class. 'Astro' distinguishes the process I am testing here enough from the 4 other

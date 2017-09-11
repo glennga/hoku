@@ -47,7 +47,7 @@ class PlanarTriangle : private BaseTriangle {
   
   public:
     PlanarTriangle (const Benchmark &, const Parameters &);
-    static int generate_triangle_table (const int, const std::string &);
+    static int generate_triangle_table (const double, const std::string &);
   
   private:
     std::vector<Trio::stars> match_stars (const index_trio &);

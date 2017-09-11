@@ -80,7 +80,7 @@ int Astro::insert_astro_h (Nibble &nb, std::vector<int> &a_count, const double a
 /// @param a_limit To restrict the number of hashes generated. Each star can only be used a_limit times in a hash.
 /// @param hash_table Name of the table to generate.
 /// @return 0 when finished.
-int Astro::generate_hash_table (const int fov, const int a_limit, const std::string &hash_table) {
+int Astro::generate_hash_table (const double fov, const int a_limit, const std::string &hash_table) {
     Nibble nb;
     SQLite::Transaction initial_transaction(*nb.db);
     std::vector<int> a_count(Nibble::BSC5_MAX_HR + 1);
@@ -170,7 +170,7 @@ Astro::hr_quad Astro::query_for_asterism (const index_quad &b_i) {
     }
     
     // Search for matching C_x first.
-    ch.select_table(this->parameters.center_name);
+    ch.select_table(this->parameters.hash_name);
     Chomp::tuple matches = ch.k_vector_query("cx", "hr_0, hr_1, hr_2, hr_3",
                                              h[0] - epsilon,
                                              h[0] + epsilon, this->parameters.query_expected);
@@ -323,7 +323,7 @@ unsigned int Astro::compare_alignments (const models &proposed, const models &co
             }
         }
         // Not-matched in proposed but not in compared -> false negative.
-        b_f += parameters.u_tn;
+        b_f += parameters.u_fn;
     }
     
     return b_f;

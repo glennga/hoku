@@ -26,7 +26,7 @@ SphericalTriangle::SphericalTriangle (const Benchmark &input, const Parameters &
 /// @param fov Field of view limit (degrees) that all pairs must be within.
 /// @param table_name Name of the table to generate.
 /// @return 0 when finished.
-int Sphere::generate_triangle_table (const int fov, const std::string &table_name) {
+int Sphere::generate_triangle_table (const double fov, const std::string &table_name) {
     Nibble nb;
     SQLite::Transaction initial_transaction(*nb.db);
     
