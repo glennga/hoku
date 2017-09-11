@@ -1,21 +1,32 @@
 ##################################################################
-# Include Directories for User Libraries
+# Binary Directory = bin Folder
 ##################################################################
-include_directories(${CMAKE_SOURCE_DIR}/lib/math/star)
-include_directories(${CMAKE_SOURCE_DIR}/lib/third-party/sqlite-cpp)
-include_directories(${CMAKE_SOURCE_DIR}/lib/storage/nibble)
-include_directories(${CMAKE_SOURCE_DIR}/lib/math/rotation)
-include_directories(${CMAKE_SOURCE_DIR}/lib/benchmark)
-
-include_directories(${CMAKE_SOURCE_DIR}/lib/identification/angle)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 ##################################################################
-# Link and Create Executables
+# Include Directory for Header Files
 ##################################################################
-add_executable(Generator generator.cpp)
-target_link_libraries(Generator Benchmark Rotation Nibble Star
+include_directories(${CMAKE_SOURCE_DIR}/include)
+
+##################################################################
+# Link and Create Executable GenerateN
+##################################################################
+add_executable(GenerateN generate-n.cpp)
+
+target_link_libraries(GenerateN Pyramid AstrometryNet PlanarTriangle
+        SphericalTriangle Angle BaseTriangle Benchmark Rotation QuadNode
+        KdNode Chomp Nibble Asterism Mercator Trio Star SQLiteCpp Sqlite3)
+
+##################################################################
+# Link and Create Executable GenerateB
+##################################################################
+add_executable(GenerateB generate-b.cpp)
+target_link_libraries(GenerateB Benchmark Rotation Nibble Star
         SQLiteCpp Sqlite3)
 
+##################################################################
+# Link and Create Executable TrialAngle
+##################################################################
 add_executable(TrialAngle trial-angle.cpp)
 target_link_libraries(TrialAngle Angle Benchmark Rotation Nibble Star
         SQLiteCpp Sqlite3)
