@@ -49,7 +49,7 @@ namespace DCPI {
 /// @param bsc5_quadtree_w Working quadtree width for this set of trials.
 void trial_as_ms_ms (Nibble &nb, std::ofstream &log, const unsigned int set_n, const unsigned int match_minimum,
                      const unsigned int bsc5_quadtree_w) {
-    Plane::Parameters p;
+    Sphere::Parameters p;
     Star::list s;
     double fov;
     
@@ -64,7 +64,7 @@ void trial_as_ms_ms (Nibble &nb, std::ofstream &log, const unsigned int set_n, c
                 input.present_image(s, fov);
                 
                 // Identify the image, record the number of actual matches that exist.
-                Star::list results = Plane::identify(input, p);
+                Star::list results = Sphere::identify(input, p);
                 int matches_found = Benchmark::compare_stars(input, results);
                 
                 log << set_n << "," << s.size() << "," << results.size() << "," << matches_found << ",";

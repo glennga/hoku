@@ -38,3 +38,12 @@ add_executable(TrialPlane trial-plane.cpp)
 target_link_libraries(TrialPlane PlanarTriangle BaseTriangle Benchmark
         Rotation QuadNode Chomp Nibble Mercator Trio Star SQLiteCpp
         Sqlite3)
+
+##################################################################
+# Link and Create Executable TrialSphere
+##################################################################
+add_executable(TrialSphere trial-sphere.cpp)
+target_link_libraries(TrialSphere SphericalTriangle BaseTriangle
+        Benchmark Rotation QuadNode Chomp Nibble Mercator Trio Star
+        SQLiteCpp Sqlite3)
+
