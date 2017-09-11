@@ -9,12 +9,24 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
 ##################################################################
-# Link and Create Executables
+# Link and Create Executable GenerateN
 ##################################################################
-add_executable(Generator benchmark-generator.cpp)
-target_link_libraries(Generator Benchmark Rotation Nibble Star
+add_executable(GenerateN generate-n.cpp)
+
+target_link_libraries(GenerateN Pyramid AstrometryNet PlanarTriangle
+        SphericalTriangle Angle BaseTriangle Benchmark Rotation QuadNode
+        KdNode Chomp Nibble Asterism Mercator Trio Star SQLiteCpp Sqlite3)
+
+##################################################################
+# Link and Create Executable GenerateB
+##################################################################
+add_executable(GenerateB generate-b.cpp)
+target_link_libraries(GenerateB Benchmark Rotation Nibble Star
         SQLiteCpp Sqlite3)
 
+##################################################################
+# Link and Create Executable TrialAngle
+##################################################################
 add_executable(TrialAngle trial-angle.cpp)
 target_link_libraries(TrialAngle Angle Benchmark Rotation Nibble Star
         SQLiteCpp Sqlite3)

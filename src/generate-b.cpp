@@ -1,4 +1,4 @@
-/// @file generator.cpp
+/// @file generate-b.cpp
 /// @author Glenn Galvizo
 ///
 /// Source file for the base benchmark data generator. This generates all of the test cases each identification
