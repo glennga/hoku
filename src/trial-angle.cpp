@@ -29,7 +29,7 @@ namespace DCAI {
     static const double MS_STEP = 0.0000001; ///< Amount to increment for each test.
     
     static const int MM_MIN = 3; ///< Minimum number of stars that define a match.
-    static const int MM_MAX = 10; ///< Maximum number of stars that define a match.
+    static const int MM_MAX = 30; ///< Maximum number of stars that define a match.
     static const int MM_STEP = 5; ///< Amount to increment for each test.
 }
 
