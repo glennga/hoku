@@ -11,7 +11,6 @@
 
 class TestPyramid : public BaseTest {
   private:
-    int test_pairs_query ();
     int test_reference_find ();
     int test_candidate_quad_find();
     int test_identify_clean_input ();

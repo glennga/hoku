@@ -17,7 +17,7 @@
 /// @example
 /// @code{.cpp}
 /// // Populate a table named "SEP20" in Nibble.db of all distinct pair of stars whose angle of separation is
-/// // less than 20 degrees of each. The entries stored are the HR numbers, and the separation angle
+/// // less than 20 degrees of each. The entries stored are the HR numbers, and the separation angle.
 /// Pyramid::generate_sep_table(20, "SEP20");
 ///
 /// /* The snippet above should only be run ONCE. The snippet below is run with every different test. */
@@ -61,13 +61,13 @@ class Pyramid {
     using hr_quad = std::array<int, 4>;
     
     /// Alias for a list of Harvard Revised number quads (STL vector of 3-element arrays of integers).
-    using hr_list_trio = std::vector<std::array<int, 4>>;
+    using hr_list_trio = std::vector<hr_quad>;
     
     /// Alias for a pair of Harvard Revised numbers (2-element STL array of doubles).
-    using hr_pair = Angle::hr_pair;
+    using hr_pair = std::array<int, 2>;
     
     /// Alias for a list of Harvard Revised number pairs (STL vector of 2-element arrays of integers).
-    using hr_list_pair = std::vector<std::array<int, 2>>;
+    using hr_list_pair = std::vector<hr_pair>;
     
     /// Alias for a quad of index numbers for the input star list (4-element STL array of doubles).
     using index_quad = std::array<int, 4>;

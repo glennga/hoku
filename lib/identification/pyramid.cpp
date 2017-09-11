@@ -31,7 +31,7 @@ int Pyramid::generate_sep_table (const double fov, const std::string &table_name
 /// @return List of star pairs that fall within epsilon degrees of theta.
 Pyramid::hr_list_pair Pyramid::query_for_pairs (const double theta) {
     // Noise is normally distributed. Angle within 3 sigma of theta.
-    double epsilon = 3.0 * this->parameters.query_sigma, current_minimum = this->fov;
+    double epsilon = 3.0 * this->parameters.query_sigma;
     unsigned int limit = this->parameters.query_limit;
     Chomp::tuple results;
     hr_list_pair candidates;
@@ -56,23 +56,24 @@ Pyramid::hr_list_pair Pyramid::query_for_pairs (const double theta) {
 /// @param ek List of HR pairs for potential candidates of stars E and K.
 /// @return First common star found in all pair lists.
 Star Pyramid::find_reference (const hr_list_pair &ei, const hr_list_pair &ej, const hr_list_pair &ek) {
-    auto flatten_pairs = [] (const hr_pair &pair) -> hr_list {
-        return {pair[0], pair[1]};
+    auto flatten_pairs = [] (const hr_list_pair &candidates, hr_list &out_list) -> void {
+        out_list.reserve(candidates.size() * 2);
+        for (unsigned int m = 0; m < candidates.size(); m++) {
+            out_list.push_back(candidates[m][0]);
+            out_list.push_back(candidates[m][1]);
+        }
     };
     hr_list ei_list, ej_list, ek_list, eij_common, candidates;
     
     // Flatten our list of pairs.
-    ei_list.reserve(ei.size() / 2), ej_list.reserve(ej.size() / 2), ek_list.reserve(ek.size());
-    std::transform(ei.begin(), ei.end(), ei_list.begin(), flatten_pairs);
-    std::transform(ej.begin(), ej.end(), ej_list.begin(), flatten_pairs);
-    std::transform(ek.begin(), ek.end(), ek_list.begin(), flatten_pairs);
+    flatten_pairs(ei, ei_list), flatten_pairs(ej, ej_list), flatten_pairs(ek, ek_list);
     
     // Find the intersection between lists EI and EJ.
     eij_common.reserve((ei_list.size() < ej_list.size()) ? ei_list.size() : ej_list.size());
-    std::set_intersection(ei_list.begin(), ei_list.end(), ej_list.begin(), ej_list.end(), eij_common);
+    std::set_intersection(ei_list.begin(), ei_list.end(), ej_list.begin(), ej_list.end(), eij_common.begin());
     
     // Find the intersection between our previous intersection and EK.
-    std::set_intersection(eij_common.begin(), eij_common.end(), ek_list.begin(), ek_list.end(), candidates);
+    std::set_intersection(eij_common.begin(), eij_common.end(), ek_list.begin(), ek_list.end(), candidates.begin());
     return ch.query_bsc5((int) candidates[0]);
 }
 
@@ -82,8 +83,8 @@ Star Pyramid::find_reference (const hr_list_pair &ei, const hr_list_pair &ej, co
 /// @param b_f Quad of indices for the input set that represent the stars in our body frame.
 /// @return [-1][-1][-1][-1] if no quad can be found. Otherwise, the HR values of stars from the inertial frame.
 Pyramid::hr_quad Pyramid::find_candidate_quad (const index_quad &b_f) {
-    auto find_pairs = [this, Star, input, b_f] (const int triangle_index) -> hr_list_pair {
-        return this->query_for_pairs(Star::angle_between(input[b_f[triangle_index]], input[b_f[3]]));
+    auto find_pairs = [this, b_f] (const int triangle_index) -> hr_list_pair {
+        return this->query_for_pairs(Star::angle_between(this->input[b_f[triangle_index]], this->input[b_f[3]]));
     };
     hr_list_pair ei_pairs = find_pairs(0), ej_pairs = find_pairs(1), ek_pairs = find_pairs(2);
     
@@ -102,9 +103,10 @@ Pyramid::hr_quad Pyramid::find_candidate_quad (const index_quad &b_f) {
     for (const hr_pair &p_i : ei_pairs) {
         for (const hr_pair &p_j : ej_pairs) {
             for (const hr_pair &p_k : ek_pairs) {
-                int i = (p_i[0] == e_candidate.get_hr()) ? p_i[1] : p_i[0];
-                int j = (p_j[0] == e_candidate.get_hr()) ? p_j[1] : p_j[0];
-                int k = (p_k[0] == e_candidate.get_hr()) ? p_k[1] : p_k[0];
+                auto choose_not_e = [e_candidate] (const hr_pair &pair) -> int {
+                    return (pair[0] == e_candidate.get_hr()) ? pair[1] : pair[0];
+                };
+                int i = choose_not_e(p_i), j = choose_not_e(p_j), k = choose_not_e(p_k);
                 
                 if (Star::within_angle({ch.query_bsc5(i), ch.query_bsc5(j), ch.query_bsc5(k)}, fov)) {
                     return {i, j, k, e_candidate.get_hr()};
@@ -154,7 +156,8 @@ Star::list Pyramid::find_matches (const Star::list &candidates, const Rotation &
 /// @return Set of matching stars found in candidates and the body sets.
 Star::list Pyramid::match_remaining (const Star::list &candidates, const index_quad &b, const hr_quad &r) {
     // Find rotation between the stars I and E. Use this to find the matches.
-    return this->find_matches(candidates, Rotation::rotation_across_frames({b[0], b[3]}, {r[0], r[3]}));
+    return this->find_matches(candidates, Rotation::rotation_across_frames(
+        {input[b[0]], input[b[3]]}, {ch.query_bsc5(r[0]), ch.query_bsc5(r[3])}));
 }
 
 /// Match the stars found in the given benchmark to those in the Nibble database.
@@ -171,22 +174,22 @@ Star::list Pyramid::identify (const Benchmark &input, const Parameters &paramete
     }
     
     // Otherwise, there exists |A_input| choose 4 possibilities. Looping specified in paper.
-    for (int e = 0; e < p.input.size(); e++) {
-        for (int dj = 0; dj < p.input.size() - 2; dj++) {
-            for (int dk = 0; dk < p.input.size() - dj - 1; dk++) {
-                for (int i = 0; i < p.input.size() - dj - dk; i++) {
+    for (unsigned int e = 0; e < p.input.size(); e++) {
+        for (unsigned int dj = 0; dj < p.input.size() - 2; dj++) {
+            for (unsigned int dk = 0; dk < p.input.size() - dj - 1; dk++) {
+                for (unsigned int i = 0; i < p.input.size() - dj - dk; i++) {
                     int j = i + dj, k = j + dk;
                     Star::list candidates;
                     
                     // We check for cases where e == i, e == j, ... for duplicates. If so, break early.
-                    std::array<int, 4> indices = {i, j, k, e};
+                    std::array<int, 4> indices = {(int) i, j, k, (int) e};
                     std::sort(indices.begin(), indices.end());
                     if (std::unique(indices.begin(), indices.end()) != indices.end()) {
                         break;
                     }
                     
                     // Given four stars in our catalog, find their HR values in the catalog.
-                    hr_quad r_quad = p.find_candidate_quad({i, j, k, e});
+                    hr_quad r_quad = p.find_candidate_quad({(int) i, j, k, (int) e});
                     if (r_quad[0] == 0 && r_quad[1] == 0 && r_quad[2] == 0 && r_quad[3] == 0) {
                         break;
                     }
@@ -196,7 +199,7 @@ Star::list Pyramid::identify (const Benchmark &input, const Parameters &paramete
                                                    3 * ((unsigned int) p.input.size()));
                     
                     // Return all stars from our input that match the candidates. Append the appropriate HR values.
-                    return p.match_remaining(candidates, {i, j, k, e}, r_quad);
+                    return p.match_remaining(candidates, {(int) i, j, k, (int) e}, r_quad);
                 }
             }
         }
