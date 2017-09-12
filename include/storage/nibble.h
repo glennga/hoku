@@ -10,6 +10,7 @@
 #include <fstream>
 #include <sstream>
 #include <memory>
+#include <algorithm>
 #include "../third-party/sqlite-cpp/SQLiteCpp.h"
 #include "math/star.h"
 
@@ -71,6 +72,7 @@ class Nibble {
   
   public:
     Nibble ();
+    Nibble (const std::string &, const std::string & = "");
     
     void select_table (const std::string &);
     

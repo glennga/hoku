@@ -22,6 +22,7 @@ class TestNibble : public BaseTest {
     int test_table_insertion ();
     int test_bsc5_all_stars_grab ();
     int test_nearby_star_grab ();
+    int test_in_memory_instance ();
   
   public:
     int enumerate_tests (int);
