@@ -35,12 +35,12 @@ namespace DCNT {
     static const int A_LIMIT = 1000; ///< Asterism limit for AstrometryNet tables.
     static const int TD_H = 3; ///< Recursion depth maximum (moment calculation) for SphericalTriangle tables.
     
-    static const std::string ANGLE_NAME = "SEP20"; ///< Name of table generated for Angle method.
+    static const std::string ANGLE_NAME = "SEP_20"; ///< Name of table generated for Angle method.
     static const std::string ASTROH_NAME = "ASTRO_H20"; ///< Name of hash table generated for AstrometryNet method.
     static const std::string ASTROC_NAME = "ASTRO_C20"; ///< Name of centers table generated for AstrometryNet method.
     static const std::string SPHERE_NAME = "SPHERE_20"; ///< Name of table generated for SphericalTriangle method.
     static const std::string PLANE_NAME = "PLANE_20"; ///< Name of table generated for PlanarTriangle method.
-    static const std::string PYRAMID_NAME = "SEP20"; ///< Name of table generated for Pyramid method.
+    static const std::string PYRAMID_NAME = "PYRA_20"; ///< Name of table generated for Pyramid method.
     
     static const std::string KVEC_ANGLE_FOCUS = "theta"; ///< Focus attribute for K-Vector Angle table.
     static const std::string KVEC_ASTROH_FOCUS = "cx"; ///< Focus attribute for K-Vector AstrometryNet hash table.

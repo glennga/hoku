@@ -18,7 +18,7 @@
 ///                                 --------------------------------------------
 ///                                 1152 variations of Sphere identification for each benchmark.
 /// @endcode
-namespace DCPI {
+namespace DCSI {
     static const double SA_MIN = 0.00000000000001; ///< Minimum area sigma.
     static const double SA_MAX = 0.000001; ///< Maximum area sigma.
     static const double SA_STEP = 0.0000001; ///< Amount to increment for each test.
@@ -56,12 +56,12 @@ void trial_as_ms_ms (Nibble &nb, std::ofstream &log, const unsigned int set_n, c
     Star::list s;
     double fov;
     
-    for (double sigma_a = DCPI::SA_MIN; sigma_a <= DCPI::SA_MAX; sigma_a += DCPI::SA_STEP) {
-        for (double sigma_i = DCPI::SI_MIN; sigma_i <= DCPI::SI_MAX; sigma_i += DCPI::SI_STEP) {
-            for (double match_sigma = DCPI::MS_MIN; match_sigma <= DCPI::MS_MAX; match_sigma += DCPI::MS_STEP) {
+    for (double sigma_a = DCSI::SA_MIN; sigma_a <= DCSI::SA_MAX; sigma_a += DCSI::SA_STEP) {
+        for (double sigma_i = DCSI::SI_MIN; sigma_i <= DCSI::SI_MAX; sigma_i += DCSI::SI_STEP) {
+            for (double match_sigma = DCSI::MS_MIN; match_sigma <= DCSI::MS_MAX; match_sigma += DCSI::MS_STEP) {
                 p.sigma_a = sigma_a, p.sigma_i = sigma_i, p.match_sigma = match_sigma;
                 p.match_minimum = match_minimum, p.bsc5_quadtree_w = bsc5_quadtree_w;
-                p.moment_td_h = DCPI::TD_H_FOR_TREE;
+                p.moment_td_h = DCSI::TD_H_FOR_TREE;
                 
                 // Read the benchmark, copy the list here.
                 Benchmark input = Benchmark::parse_from_nibble(nb, set_n);
@@ -86,8 +86,8 @@ void trial_as_ms_ms (Nibble &nb, std::ofstream &log, const unsigned int set_n, c
 /// @param log Open stream to log file.
 /// @param set_n Working benchmark set id.
 void trial_mm_qw_et(Nibble &nb, std::ofstream &log, const unsigned int set_n) {
-    for (unsigned int match_minimum = DCPI::MM_MIN; match_minimum <= DCPI::MM_MAX; match_minimum += DCPI::MM_STEP) {
-        for (unsigned int quadtree_w = DCPI::BQT_MIN; quadtree_w <= DCPI::BQT_MAX; quadtree_w += DCPI::BQT_STEP) {
+    for (unsigned int match_minimum = DCSI::MM_MIN; match_minimum <= DCSI::MM_MAX; match_minimum += DCSI::MM_STEP) {
+        for (unsigned int quadtree_w = DCSI::BQT_MIN; quadtree_w <= DCSI::BQT_MAX; quadtree_w += DCSI::BQT_STEP) {
             trial_as_ms_ms(nb, log, set_n, match_minimum, quadtree_w);
         }
     }
