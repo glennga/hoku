@@ -8,6 +8,7 @@
 #include "identification/spherical-triangle.h"
 
 /// Defining characteristics of the sphere identification.
+///
 /// @code{.cpp}
 /// Current number of permutations: (0.0000001 - 0.00000000000001) / 0.00000003    // 4
 ///                                 (0.0000001 - 0.00000000000001) / 0.00000003    // 4
@@ -79,7 +80,7 @@ void trial_as_ms_ms (Nibble &nb, std::ofstream &log, const unsigned int set_n, c
 }
 
 /// Wrap two dimensions of testing (match minimum and quadtree w) in a small function. Passed in the working
-/// benchmark, and calls a trial_as_ms_ms to test the other dimensions.
+/// benchmark, and calls trial_as_ms_ms to test the other dimensions.
 ///
 /// @param nb Open Nibble connection.
 /// @param log Open stream to log file.

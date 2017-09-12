@@ -7,6 +7,7 @@
 #include "identification/angle.h"
 
 /// Defining characteristics of the angle identification.
+///
 /// @code{.cpp}
 /// Current number of permutations: (0.0000001 - 0.00000000000001) / 0.00000003    // 4
 ///                                 (30 - 1) / 10                                  // 3
