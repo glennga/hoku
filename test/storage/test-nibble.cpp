@@ -198,6 +198,19 @@ int TestNibble::test_nearby_star_grab () {
     return 0;
 }
 
+/// Check that the in-memory connection of Nibble works identically to the disk connection.
+///
+/// @return 0 when finished.
+int TestNibble::test_in_memory_instance () {
+    Nibble nb ("BSC5");
+    Star a = nb.query_bsc5(3);
+    bool assertion = false;
+    
+    assert_equal(a[0], 0.994772975556659, "BSC5QueryComponentIInMemory");
+    assert_equal(a[1], 0.0231608361523004, "BSC5QueryComponentJInMemory");
+    return 0 * assert_equal(a[2], -0.0994500013618795, "BSC5QueryComponentKInMemory");
+}
+
 /// Enumerate all tests in TestNibble.
 ///
 /// @param test_case Number of the test case to run.
@@ -215,6 +228,7 @@ int TestNibble::enumerate_tests (int test_case) {
         case 8: return test_table_insertion();
         case 9: return test_bsc5_all_stars_grab();
         case 10: return test_nearby_star_grab();
+        case 11: return test_in_memory_instance();
         default: return -1;
     }
 }

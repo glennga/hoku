@@ -18,11 +18,55 @@ Nibble::Nibble () {
     load_all_stars();
 }
 
-/// Change the current working table that is being operated on.
+/// Overloaded constructor. If a table name is specified, we load this table into memory. Note that ONLY this table
+/// will reside in memory upon creation. No other tables in Nibble will exist with this connection. Polish table if a
+/// focus attribute is specified.
+///
+/// @param table_name Name of the table to load into memory.
+/// @param focus Name of the focus column to polish table with.
+Nibble::Nibble(const std::string &table_name, const std::string &focus) {
+    const int FLAGS = SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE;
+    
+    // We have two connections: one in memory, and one to our Nibble database on disk.
+    this->db = std::unique_ptr<SQLite::Database>(new SQLite::Database(":memory:", FLAGS));
+    Nibble nb;
+    
+    // Copy the entire table to RAM.
+    const unsigned int CARDINALITY = (*nb.db).execAndGet(std::string("SELECT MAX(rowid) FROM ") + table_name).getUInt();
+    tuple table = nb.search_table("*", CARDINALITY);
+    
+    // Determine the schema and fields for insertion. Create the table.
+    std::string schema, fields;
+    nb.find_attributes(schema, fields);
+    if (this->create_table(table_name, schema) == -1) {
+        throw "Unable to create specified table";
+    }
+    
+    // Copy the table from our search tuple to our in-memory database.
+    this->select_table(table_name);
+    const unsigned int DEGREE = (unsigned int) std::count(fields.begin(), fields.end(), ',') + 1;
+    for (unsigned int i = 0; i < CARDINALITY; i++) {
+        this->insert_into_table(fields, table_results_at(table, DEGREE, i));
+    }
+    
+    // If desired, then polish the table (index and sort).
+    if (focus != "") {
+        this->polish_table(table_name);
+    }
+}
+
+/// Change the current working table that is being operated on. Checks if the table exists before changing state.
 ///
 /// @param table Table to be selected.
 void Nibble::select_table (const std::string &table) {
-    this->table = table;
+    std::string sql = "SELECT name FROM sqlite_master WHERE type='table' AND name = '" + table + "'";
+    
+    if ((*db).execAndGet(sql).size() > 0) {
+        this->table = table;
+    }
+    else {
+        throw "Table does not exist.";
+    }
 }
 
 /// Helper method for parse_catalog method. Read the star catalog data and compute the {i, j, k} components given a
