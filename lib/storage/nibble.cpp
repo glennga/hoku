@@ -29,6 +29,7 @@ Nibble::Nibble(const std::string &table_name, const std::string &focus) {
     Nibble nb;
     
     // Copy the entire table to RAM.
+    nb.select_table(table_name, true);
     const unsigned int CARDINALITY = (*nb.db).execAndGet(std::string("SELECT MAX(rowid) FROM ") + table_name).getUInt();
     tuple table = nb.search_table("*", CARDINALITY);
     
@@ -60,7 +61,7 @@ void Nibble::select_table (const std::string &table, const bool check_existence)
     if (check_existence) {
         SQLite::Statement query(*db, "SELECT name FROM sqlite_master WHERE type=\'table\' AND name=\'" + table + "\'");
         while (query.executeStep()) {
-            if (query.getColumnCount() > 0) {
+            if (query.getColumnCount() == 0) {
                 throw "Table does not exist. 'check_existence' flag raised";
             }
         }

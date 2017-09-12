@@ -161,7 +161,7 @@ Benchmark Benchmark::parse_from_nibble (Nibble &nb, const unsigned int set_n) {
     Star::list stars;
     double fov;
     
-    nb.select_table(TABLE_NAME);
+    nb.select_table(TABLE_NAME, true);
     
     // If there exists no record with that set_n, return an empty benchmark.
     if (nb.search_table("set_n = " + std::to_string(set_n), "rowid", 1, 1).size() == 0) {
