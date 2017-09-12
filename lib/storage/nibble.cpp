@@ -11,9 +11,6 @@ Nibble::Nibble () {
     const int FLAGS = SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE;
     this->db = std::unique_ptr<SQLite::Database>(new SQLite::Database(DATABASE_LOCATION, FLAGS));
     
-    // Starting table is 'BSC5'.
-    this->table = "BSC5";
-    
     // Load all stars into instance's 'all_stars'.
     load_all_stars();
 }
@@ -51,22 +48,25 @@ Nibble::Nibble(const std::string &table_name, const std::string &focus) {
     
     // If desired, then polish the table (index and sort).
     if (focus != "") {
-        this->polish_table(table_name);
+        this->polish_table(focus);
     }
 }
 
-/// Change the current working table that is being operated on. Checks if the table exists before changing state.
+/// Change the current working table that is being operated on. If desired, can check
 ///
 /// @param table Table to be selected.
-void Nibble::select_table (const std::string &table) {
-    std::string sql = "SELECT name FROM sqlite_master WHERE type='table' AND name = '" + table + "'";
+/// @param check_existence If desired, can check table existence and throw error if not found.
+void Nibble::select_table (const std::string &table, const bool check_existence) {
+    if (check_existence) {
+        SQLite::Statement query(*db, "SELECT name FROM sqlite_master WHERE type=\'table\' AND name=\'" + table + "\'");
+        while (query.executeStep()) {
+            if (query.getColumnCount() > 0) {
+                throw "Table does not exist. 'check_existence' flag raised";
+            }
+        }
+    }
     
-    if ((*db).execAndGet(sql).size() > 0) {
-        this->table = table;
-    }
-    else {
-        throw "Table does not exist.";
-    }
+    this->table = table;
 }
 
 /// Helper method for parse_catalog method. Read the star catalog data and compute the {i, j, k} components given a
@@ -374,6 +374,8 @@ int Nibble::polish_table (const std::string &focus_column) {
 
 /// Load all of the stars in BSC5 to star_list.
 void Nibble::load_all_stars () {
+    this->generate_bsc5_table();
+    
     // Reserve space for the list.
     this->all_stars.reserve(BSC5_TABLE_LENGTH);
     

@@ -202,9 +202,8 @@ int TestNibble::test_nearby_star_grab () {
 ///
 /// @return 0 when finished.
 int TestNibble::test_in_memory_instance () {
-    Nibble nb ("BSC5");
+    Nibble nb ("BSC5", "hr");
     Star a = nb.query_bsc5(3);
-    bool assertion = false;
     
     assert_equal(a[0], 0.994772975556659, "BSC5QueryComponentIInMemory");
     assert_equal(a[1], 0.0231608361523004, "BSC5QueryComponentJInMemory");
