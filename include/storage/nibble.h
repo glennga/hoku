@@ -10,7 +10,8 @@
 #include <fstream>
 #include <sstream>
 #include <memory>
-#include "../third-party/sqlite-cpp/SQLiteCpp.h"
+#include <algorithm>
+#include "third-party/sqlite-cpp/SQLiteCpp.h"
 #include "math/star.h"
 
 /// The nibble class is used with all identification implementations. A group is stars are linked with certain
@@ -71,8 +72,9 @@ class Nibble {
   
   public:
     Nibble ();
+    Nibble (const std::string &, const std::string & = "");
     
-    void select_table (const std::string &);
+    void select_table (const std::string &, const bool = false);
     
     int generate_bsc5_table ();
     

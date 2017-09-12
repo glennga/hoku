@@ -7,7 +7,7 @@
 #ifndef HOKU_PYRAMID_H
 #define HOKU_PYRAMID_H
 
-#include "angle.h"
+#include "identification/angle.h"
 #include "storage/chomp.h"
 #include <iostream>
 

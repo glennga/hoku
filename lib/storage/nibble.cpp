@@ -11,17 +11,62 @@ Nibble::Nibble () {
     const int FLAGS = SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE;
     this->db = std::unique_ptr<SQLite::Database>(new SQLite::Database(DATABASE_LOCATION, FLAGS));
     
-    // Starting table is 'BSC5'.
-    this->table = "BSC5";
-    
     // Load all stars into instance's 'all_stars'.
     load_all_stars();
 }
 
-/// Change the current working table that is being operated on.
+/// Overloaded constructor. If a table name is specified, we load this table into memory. Note that ONLY this table
+/// will reside in memory upon creation. No other tables in Nibble will exist with this connection. Polish table if a
+/// focus attribute is specified.
+///
+/// @param table_name Name of the table to load into memory.
+/// @param focus Name of the focus column to polish table with.
+Nibble::Nibble(const std::string &table_name, const std::string &focus) {
+    const int FLAGS = SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE;
+    
+    // We have two connections: one in memory, and one to our Nibble database on disk.
+    this->db = std::unique_ptr<SQLite::Database>(new SQLite::Database(":memory:", FLAGS));
+    Nibble nb;
+    
+    // Copy the entire table to RAM.
+    nb.select_table(table_name, true);
+    const unsigned int CARDINALITY = (*nb.db).execAndGet(std::string("SELECT MAX(rowid) FROM ") + table_name).getUInt();
+    tuple table = nb.search_table("*", CARDINALITY);
+    
+    // Determine the schema and fields for insertion. Create the table.
+    std::string schema, fields;
+    nb.find_attributes(schema, fields);
+    if (this->create_table(table_name, schema) == -1) {
+        throw "Unable to create specified table";
+    }
+    
+    // Copy the table from our search tuple to our in-memory database.
+    this->select_table(table_name);
+    const unsigned int DEGREE = (unsigned int) std::count(fields.begin(), fields.end(), ',') + 1;
+    for (unsigned int i = 0; i < CARDINALITY; i++) {
+        this->insert_into_table(fields, table_results_at(table, DEGREE, i));
+    }
+    
+    // If desired, then polish the table (index and sort).
+    if (focus != "") {
+        this->polish_table(focus);
+    }
+}
+
+/// Change the current working table that is being operated on. If desired, can check
 ///
 /// @param table Table to be selected.
-void Nibble::select_table (const std::string &table) {
+/// @param check_existence If desired, can check table existence and throw error if not found.
+void Nibble::select_table (const std::string &table, const bool check_existence) {
+    if (check_existence) {
+        SQLite::Statement query(*db, "SELECT name FROM sqlite_master WHERE type=\'table\' AND name=\'" + table + "\'");
+        while (query.executeStep()) {
+            if (query.getColumnCount() == 0) {
+                throw "Table does not exist. 'check_existence' flag raised";
+            }
+        }
+    }
+    
     this->table = table;
 }
 
@@ -330,6 +375,8 @@ int Nibble::polish_table (const std::string &focus_column) {
 
 /// Load all of the stars in BSC5 to star_list.
 void Nibble::load_all_stars () {
+    this->generate_bsc5_table();
+    
     // Reserve space for the list.
     this->all_stars.reserve(BSC5_TABLE_LENGTH);
     

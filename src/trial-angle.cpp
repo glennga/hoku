@@ -7,6 +7,7 @@
 #include "identification/angle.h"
 
 /// Defining characteristics of the angle identification.
+///
 /// @code{.cpp}
 /// Current number of permutations: (0.0000001 - 0.00000000000001) / 0.00000003    // 4
 ///                                 (30 - 1) / 10                                  // 3
@@ -29,7 +30,7 @@ namespace DCAI {
     static const double MS_STEP = 0.0000001; ///< Amount to increment for each test.
     
     static const int MM_MIN = 3; ///< Minimum number of stars that define a match.
-    static const int MM_MAX = 10; ///< Maximum number of stars that define a match.
+    static const int MM_MAX = 30; ///< Maximum number of stars that define a match.
     static const int MM_STEP = 5; ///< Amount to increment for each test.
 }
 
@@ -72,7 +73,7 @@ void trial_ms_sl_mm (Nibble &nb, std::ofstream &log, const unsigned int set_n, c
 int main () {
     std::ostringstream l;
     std::ofstream log;
-    Nibble nb;
+    Nibble nb(Benchmark::TABLE_NAME, "set_n");
     
     /// Alias for the clock in the Chrono library.
     using clock = std::chrono::high_resolution_clock;

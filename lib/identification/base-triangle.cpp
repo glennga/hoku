@@ -153,12 +153,12 @@ Star::list BaseTriangle::check_assumptions (const Star::list &candidates, const 
     })[0];
 }
 
-/// Match the stars found in the current benchmark to those in the Nibble database.
+/// Match the stars found in the current benchmark to those in the Nibble database. The child class should wrap this
+/// function as 'identify' to mimic the other methods.
 ///
 /// @return Vector of body stars with their inertial BSC IDs that qualify as matches.
-Star::list BaseTriangle::identify () {
+Star::list BaseTriangle::identify_stars () {
     Star::list matches;
-    bool matched = false;
     
     // There exists |input| choose 3 possibilities.
     for (unsigned int i = 0; i < input.size() - 2; i++) {
@@ -177,24 +177,19 @@ Star::list BaseTriangle::identify () {
                 }
                 
                 // Find candidate stars around the candidate trio.
-                candidates = (*q_root).nearby_stars(candidate_trio[0], fov, 3 * input.size());
+                candidates = (*q_root).nearby_stars(candidate_trio[0], fov, 3 * (unsigned int) input.size());
                 
                 // Check all possible configurations. Return the most likely.
                 matches = check_assumptions(candidates, candidate_trio, {(double) i, (double) j, (double) k});
                 
                 // Definition of image match: |match| > match minimum.
                 if (matches.size() > parameters.match_minimum) {
-                    matched = true;
-                    break;
+                    return matches;
                 }
             }
         }
-        
-        // Break early if the matched condition is met.
-        if (matched) {
-            break;
-        }
     }
     
-    return matches;
+    // Return an empty list if nothing is found.
+    return {};
 }

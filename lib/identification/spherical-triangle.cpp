@@ -24,9 +24,10 @@ SphericalTriangle::SphericalTriangle (const Benchmark &input, const Parameters &
 /// field-of-view.
 ///
 /// @param fov Field of view limit (degrees) that all pairs must be within.
+/// @param td_h Maximum depth to recurse to when constructing spherical triangle for moment calculations.
 /// @param table_name Name of the table to generate.
 /// @return 0 when finished.
-int Sphere::generate_triangle_table (const double fov, const std::string &table_name) {
+int Sphere::generate_triangle_table (const double fov, const unsigned int td_h, const std::string &table_name) {
     Nibble nb;
     SQLite::Transaction initial_transaction(*nb.db);
     
@@ -47,8 +48,7 @@ int Sphere::generate_triangle_table (const double fov, const std::string &table_
                     && Star::angle_between(all_stars[j], all_stars[k]) < fov
                     && Star::angle_between(all_stars[k], all_stars[i]) < fov) {
                     double a_t = Trio::spherical_area(all_stars[i], all_stars[j], all_stars[k]);
-                    double i_t = Trio::spherical_moment(all_stars[i], all_stars[j], all_stars[k],
-                                                        Parameters().moment_td_h);
+                    double i_t = Trio::spherical_moment(all_stars[i], all_stars[j], all_stars[k], td_h);
                     
                     nb.insert_into_table("hr_a, hr_b, hr_c, a, i",
                                          {(double) all_stars[i].get_hr(), (double) all_stars[j].get_hr(),
@@ -96,4 +96,14 @@ std::vector<Trio::stars> Sphere::match_stars (const index_trio &hr_b) {
     }
     
     return matched_stars;
+}
+
+/// Wrapper for BaseTriangle's identify_stars method. Match the stars found in the given benchmark to those in the
+/// Nibble database.
+///
+/// @param input The set of benchmark data to work with.
+/// @param parameters Adjustments to the identification process.
+/// @return Vector of body stars with their inertial BSC IDs that qualify as matches.
+Star::list Sphere::identify(const Benchmark &input, const Parameters &p) {
+    return Sphere(input, p).identify_stars();
 }

@@ -31,3 +31,32 @@ add_executable(TrialAngle trial-angle.cpp)
 target_link_libraries(TrialAngle Angle Benchmark Rotation Nibble Star
         SQLiteCpp Sqlite3)
 
+##################################################################
+# Link and Create Executable TrialPlane
+##################################################################
+add_executable(TrialPlane trial-plane.cpp)
+target_link_libraries(TrialPlane PlanarTriangle BaseTriangle Benchmark
+        Rotation QuadNode Chomp Nibble Mercator Trio Star SQLiteCpp
+        Sqlite3)
+
+##################################################################
+# Link and Create Executable TrialSphere
+##################################################################
+add_executable(TrialSphere trial-sphere.cpp)
+target_link_libraries(TrialSphere SphericalTriangle BaseTriangle
+        Benchmark Rotation QuadNode Chomp Nibble Mercator Trio Star
+        SQLiteCpp Sqlite3)
+
+##################################################################
+# Link and Create Executable TrialAstro
+##################################################################
+add_executable(TrialAstro trial-astro.cpp)
+target_link_libraries(TrialAstro AstrometryNet Benchmark Rotation
+        KdNode Chomp Nibble Asterism Mercator Star SQLiteCpp Sqlite3)
+
+##################################################################
+# Link and Create Executable TrialPyramid
+##################################################################
+add_executable(TrialPyramid trial-pyramid.cpp)
+target_link_libraries(TrialPyramid Pyramid Angle Chomp Benchmark
+        Rotation Nibble Star SQLiteCpp Sqlite3)

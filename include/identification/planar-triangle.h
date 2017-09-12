@@ -46,10 +46,12 @@ class PlanarTriangle : private BaseTriangle {
     friend class TestPlanarTriangle;
   
   public:
-    PlanarTriangle (const Benchmark &, const Parameters &);
+    static Star::list identify(const Benchmark &, const Parameters &);
     static int generate_triangle_table (const double, const std::string &);
-  
+    using BaseTriangle::Parameters;
+    
   private:
+    PlanarTriangle (const Benchmark &, const Parameters &);
     std::vector<Trio::stars> match_stars (const index_trio &);
 };
 
