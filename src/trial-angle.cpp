@@ -73,7 +73,7 @@ void trial_ms_sl_mm (Nibble &nb, std::ofstream &log, const unsigned int set_n, c
 int main () {
     std::ostringstream l;
     std::ofstream log;
-    Nibble nb;
+    Nibble nb(Benchmark::TABLE_NAME, "set_n");
     
     /// Alias for the clock in the Chrono library.
     using clock = std::chrono::high_resolution_clock;

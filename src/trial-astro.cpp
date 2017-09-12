@@ -117,7 +117,7 @@ void trial_tp_fp_tn_fn_et (Nibble &nb, std::ofstream &log, const unsigned int se
 int main () {
     std::ostringstream l;
     std::ofstream log;
-    Nibble nb;
+    Nibble nb(Benchmark::TABLE_NAME, "set_n");
     
     /// Alias for the clock in the Chrono library.
     using clock = std::chrono::high_resolution_clock;
