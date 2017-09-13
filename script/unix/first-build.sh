@@ -1,9 +1,10 @@
 #!/bin/bash
 
-echo "export $HOKU_PROJECT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"/../../" >> ~/.bashrc
-echo HOKU_PROJECT_PATH=""$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"/../../" >> ~/.profile
-echo HOKU_PROJECT_PATH=""$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"/../../" >> /etc/environment
+echo "export "HOKU_PROJECT_PATH"=\"$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/../../"\" >> ~/.bashrc
+echo HOKU_PROJECT_PATH=\"$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/../../\" >> ~/.profile
+echo HOKU_PROJECT_PATH=\"$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/../../\" >> /etc/environment
 
+set HOKU_PROJECT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/../.."
 mkdir "$HOKU_PROJECT_PATH/data/logs"
 mkdir "$HOKU_PROJECT_PATH/data/logs/test"
 mkdir "$HOKU_PROJECT_PATH/data/logs/tmp"
