@@ -10,8 +10,8 @@
 /// @return 0 when finished.
 int TestAsterism::test_abcd_star_find () {
     Asterism::stars m = {Star::chance(1), Star::chance(2), Star::chance(3), Star::chance(4)};
-    Asterism::points n = {Mercator(m[0], 1000), Mercator(m[1], 1000), Mercator(m[2], 1000), Mercator(m[3], 1000)};
-    Asterism p(m, 1000);
+    Asterism::points n = {Mercator(m[0], 1), Mercator(m[1], 1), Mercator(m[2], 1), Mercator(m[3], 1)};
+    Asterism p(m);
     double d_max = 0;
     
     for (int i = 0; i < 4; i++) {
@@ -35,7 +35,7 @@ int TestAsterism::test_hash_normalized () {
     bool is_not_normal = false;
     
     for (int i = 0; i < 50; i++) {
-        Asterism::points_cd m = Asterism::hash({Star::chance(), Star::chance(), Star::chance(), Star::chance()}, 1000);
+        Asterism::points_cd m = Asterism::hash({Star::chance(), Star::chance(), Star::chance(), Star::chance()});
         if (fabs(m[0]) > 1 || fabs(m[1]) > 1 || fabs(m[2]) > 1 || fabs(m[3]) > 1) {
             is_not_normal = true;
         }
@@ -51,7 +51,7 @@ int TestAsterism::test_cd_symmetry () {
     bool is_not_symmetrical = false;
     
     for (int i = 0; i < 50; i++) {
-        Asterism::points_cd m = Asterism::hash({Star::chance(), Star::chance(), Star::chance(), Star::chance()}, 1000);
+        Asterism::points_cd m = Asterism::hash({Star::chance(), Star::chance(), Star::chance(), Star::chance()});
         if ((m[0] < m[2] || m[0] + m[2] > 1) && m[0] + m[1] + m[2] + m[3] != 0) {
             is_not_symmetrical = true;
         }

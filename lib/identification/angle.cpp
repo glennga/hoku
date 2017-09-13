@@ -72,11 +72,10 @@ Angle::hr_pair Angle::query_for_pair (const double theta) {
     // Select the candidate pair with the angle closest to theta.
     for (unsigned int i = 0; i < candidates.size() / 3; i++) {
         Nibble::tuple inertial_tuple = nb.table_results_at(candidates, 3, i);
-        hr_list inertial(inertial_tuple.begin(), inertial_tuple.end());
         
         // Update with the correct minimum.
-        if (fabs(inertial[2] - theta) < current_minimum) {
-            current_minimum = inertial[2];
+        if (fabs(inertial_tuple[2] - theta) < current_minimum) {
+            current_minimum = inertial_tuple[2];
             minimum_index = i;
         }
     }
