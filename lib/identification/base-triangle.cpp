@@ -177,19 +177,19 @@ Star::list BaseTriangle::identify_stars () {
                 }
                 
                 // Find candidate stars around the candidate trio.
-                candidates = (*q_root).nearby_stars(candidate_trio[0], fov, 3 * (unsigned int) input.size());
+                candidates = (*q_root).nearby_stars(candidate_trio[0], fov, (unsigned int) (3.0 * input.size()));
                 
                 // Check all possible configurations. Return the most likely.
                 matches = check_assumptions(candidates, candidate_trio, {(double) i, (double) j, (double) k});
                 
-                // Definition of image match: |match| > match minimum.
+                // Definition of image match: |match| > match minimum. Break early.
                 if (matches.size() > parameters.match_minimum) {
                     return matches;
                 }
             }
         }
     }
-    
+
     // Return an empty list if nothing is found.
     return {};
 }
