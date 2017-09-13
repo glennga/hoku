@@ -31,6 +31,17 @@ if (BUILD_STATIC)
 endif ()
 
 ##################################################################
+# Threading in Unix and Windows
+##################################################################
+if (WIN32)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -m64")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64")
+else ()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lpthread -ldl")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ldl")
+endif ()
+
+##################################################################
 # Add Subdirectories Containing Libraries
 ##################################################################
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib)
