@@ -60,23 +60,27 @@ int TestAsterism::test_cd_symmetry () {
     return 0 * assert_false(is_not_symmetrical, "StarsCandDNotSymmetrical");
 }
 
-/// Ensure that the center of a n=4 group of stars is at the center.
+/// Ensure that the center of a n=4 group of stars is **unique**. The fact that the stars actually lie dead in the
+/// center of the asterism isn't important.
 ///
 /// @return 0 when finished.
 int TestAsterism::test_center () {
-    Asterism::stars a = {Star::chance(), Star::chance(), Star::chance(), Star::chance()};
-    Star b = Asterism::center(a);
-    
-    for (int i = 0; i < 3; i++) {
-        std::string test_name = "CenterWithinDimension" + std::to_string(i);
-        std::sort(a.begin(), a.end(), [i] (const Star &s_a, const Star &s_b) -> bool {
-            return s_a[i] < s_b[i];
-        });
-        
-        assert_within(b[i], a[0][i], a[3][i], test_name);
+    Star::list a;
+    a.reserve(10000);
+    for (int i = 0; i < 10000; i++) {
+        Asterism::stars b = {Star::chance(), Star::chance(), Star::chance(), Star::chance()};
+        a.push_back(Asterism::center(b));
     }
     
-    return 0;
+    bool assertion = true;
+    for (unsigned int i = 0; i < a.size(); i++) {
+        for (unsigned int j = 0; j < a.size(); j++) {
+            if (a[i] == a[j] && i != j) {
+                assertion = false;
+            }
+        }
+    }
+    return 0 * assert_true(assertion, "NoDuplicatesExist");
 }
 
 /// Enumerate all tests in TestAsterism.
