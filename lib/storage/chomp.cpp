@@ -24,6 +24,7 @@ int Chomp::build_k_vector_table (const std::string &focus_column, const double m
     s_vector = search_table("*", (unsigned) s_l);
     
     // Load K-Vector into table, K(i) = j where s(j) <= z(i) < s(j + 1).
+    select_table(table + "_KVEC");
     for (int i = 0; i < s_l; i++) {
         double k_value = 0;
         for (int j = 0; j < s_l; j++) {
@@ -49,7 +50,7 @@ int Chomp::create_k_vector (const std::string &focus) {
     sort_table(focus);
     SQLite::Transaction transaction(*db);
     double focus_0, focus_n, m, q, n;
-    std::string sql, fields, schema;
+    std::string sql, fields, schema, original_table = this->table;
     
     // search for last and first element of sorted table
     std::string sql_for_max_id = std::string("(SELECT MAX(rowid) FROM ") + table + ")";
@@ -65,6 +66,7 @@ int Chomp::create_k_vector (const std::string &focus) {
     create_table(table + "_KVEC", "k_value INT");
     transaction.commit();
     
+    select_table(original_table);
     return build_k_vector_table(focus, m, q);
 }
 

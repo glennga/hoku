@@ -95,11 +95,12 @@ void generate_table (const int choice) {
 void generate_kvec_table (const int choice) {
     Chomp ch;
     
-    // Create the K-Vector for the given table using the given focus. Polish the table using the focus as well.
+    // Create the K-Vector for the given table using the given focus. Polish the K-Vector table afterward.
     auto create_and_polish = [&ch] (const std::string &table, const std::string &focus) -> void {
         ch.select_table(table);
         ch.create_k_vector(focus);
-        ch.polish_table(focus);
+        ch.select_table(table + "_KVEC");
+        ch.polish_table("k_value");
     };
     
     switch (choice) {
@@ -144,25 +145,26 @@ int main (int argc, char *argv[]) {
     };
     
     // Validate our input.
-    if (argc < 1 || argc > 2) {
+    if (argc < 2 || argc > 3) {
         std::cout << "Usage: GenerateN [TableSpecification] [GenerateKVector/DeleteTable]" << std::endl;
         return -1;
     }
-    else if (is_valid_arg(argv[0], {"0", "1", "2", "3", "4", "5"}) && is_valid_arg(argv[1], {"1", "2000"})) {
+    else if (!(is_valid_arg(argv[1], {"0", "1", "2", "3", "4", "5"}) && is_valid_arg(argv[2], {"1", "2000"}))) {
         std::cout << "Usage: GenerateN [0/1/2/3/4/5] [1/2000] " << std::endl;
         return -1;
     }
     
     // If desired, delete all tables related to the specified table.
-    if (argc == 2 && atoi(argv[1]) == 2000) {
+    if (argc == 3 && atoi(argv[2]) == 2000) {
         remove_table(atoi(argv[0]));
+        return 0;
     }
     
     // Attempt to generate the specified table.
-    generate_table(atoi(argv[0]));
+    generate_table(atoi(argv[1]));
     
     // If desired, generate the K-Vector for the specified table.
-    if (argc == 2 && std::string(argv[1]) == "1") {
+    if (argc == 3 && std::string(argv[2]) == "1") {
         generate_kvec_table(atoi(argv[0]));
     }
     
