@@ -17,7 +17,7 @@
 int Chomp::build_k_vector_table (const std::string &focus_column, const double m, const double q) {
     
     int s_l = (*db).execAndGet(std::string("SELECT MAX(rowid) FROM ") + table).getInt();
-    SQLite::Transaction transaction(*db);
+    SQLite::Transaction table_transaction(*db);
     tuple s_vector;
     
     // Load the entire table into RAM.
@@ -34,11 +34,13 @@ int Chomp::build_k_vector_table (const std::string &focus_column, const double m
         insert_into_table("k_value", tuple {k_value});
         std::cout << "\r" << "Current *I* Entry: " << i;
     }
+    table_transaction.commit();
     
     // Index the K-Vector column.
+    SQLite::Transaction index_transaction(*db);
     (*db).exec("CREATE INDEX " + table + "_" + focus_column + " ON " + table + "(k_value)");
+    index_transaction.commit();
     
-    transaction.commit();
     return 0;
 }
 
@@ -63,7 +65,7 @@ int Chomp::create_k_vector (const std::string &focus) {
     q = focus_0 - m - DOUBLE_EPSILON;
     
     // sorted table is s-vector, create k-vector and build the k-vector table
-    create_table(table + "_KVEC", "k_value INT");
+    create_table(table + "_KVEC", "k_value FLOAT");
     transaction.commit();
     
     select_table(original_table);
