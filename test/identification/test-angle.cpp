@@ -35,7 +35,7 @@ int TestAngle::test_pair_multiple_choice_query () {
     
     std::array<int, 2> d = a.query_for_pair(Star::angle_between(b, c));
     assert_inside(d[0], {1466, 1467}, "QueryPairMultipleChoicesStar0", std::to_string(d[0]) + ",1466, 1467");
-    return 0 * assert_inside(d[1], {1466, 1467}, "QueryPairMultipleChoicesStar1", std::to_string(d[0]) + ",1466, 1467");
+    return 0 * assert_inside(d[1], {1466, 1467}, "QueryPairMultipleChoicesStar1", std::to_string(d[1]) + ",1466, 1467");
 }
 
 /// Check that the zero-length stars are returned wgn theta is greater than the current fov.

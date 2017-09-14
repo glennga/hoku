@@ -13,6 +13,10 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 ##################################################################
 add_library(Sqlite3 ${CMAKE_SOURCE_DIR}/lib/third-party/sqlite3/sqlite3.c
         ${CMAKE_SOURCE_DIR}/include/third-party/sqlite/sqlite3.h)
+if(WIN32)
+else()
+	target_link_libraries(Sqlite3 dl)
+endif()
 
 ##################################################################
 # Build Library SQLiteCPP
