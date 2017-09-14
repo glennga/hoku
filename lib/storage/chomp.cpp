@@ -65,7 +65,7 @@ int Chomp::create_k_vector (const std::string &focus) {
     q = focus_0 - m - DOUBLE_EPSILON;
     
     // sorted table is s-vector, create k-vector and build the k-vector table
-    create_table(table + "_KVEC", "k_value FLOAT");
+    create_table(table + "_KVEC", "k_value INT");
     transaction.commit();
     
     select_table(original_table);

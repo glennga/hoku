@@ -99,9 +99,10 @@ void generate_table (const int choice) {
 void generate_kvec_table (const int choice) {
     Chomp ch;
     
-    // Create the K-Vector for the given table using the given focus. Polish the K-Vector table afterward.
+    // Polish the selected table. Create the K-Vector for the given table using the given focus.
     auto create_and_polish = [&ch] (const std::string &table, const std::string &focus) -> void {
         ch.select_table(table);
+        ch.polish_table(focus);
         ch.create_k_vector(focus);
         ch.select_table(table + "_KVEC");
     };
