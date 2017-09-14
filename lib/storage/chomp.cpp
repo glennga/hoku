@@ -36,7 +36,7 @@ int Chomp::build_k_vector_table (const std::string &focus_column, const double m
     }
     
     // Index the K-Vector column.
-    (*db).exec("CREATE INDEX " + table + "_" + focus_column + " ON " + table + "(" + focus_column + ")");
+    (*db).exec("CREATE INDEX " + table + "_" + focus_column + " ON " + table + "(k_value)");
     
     transaction.commit();
     return 0;
