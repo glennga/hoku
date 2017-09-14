@@ -162,7 +162,7 @@ int main (int argc, char *argv[]) {
     
     // If desired, delete all tables related to the specified table.
     if (argc == 3 && std::string(argv[2]) == "d") {
-        remove_table(atoi(argv[0]));
+        remove_table(atoi(argv[1]));
         return 0;
     }
     
@@ -171,7 +171,7 @@ int main (int argc, char *argv[]) {
     
     // If desired, generate the K-Vector for the specified table.
     if (argc == 3 && std::string(argv[2]) == "k") {
-        generate_kvec_table(atoi(argv[0]));
+        generate_kvec_table(atoi(argv[1]));
     }
     
     return 0;
