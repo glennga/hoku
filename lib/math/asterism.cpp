@@ -168,18 +168,17 @@ Asterism::stars Asterism::find_abcd (const stars &s) {
     return s_abcd;
 }
 
-/// Find the center of the star set. Used for indexing the results of "hash".
+/// Find the center of the star set. Used for indexing the results of "hash". Note that this is **only** used for
+/// hashing the asterism, and represents a rough centroid rather than a really accurate one.
 ///
 /// @param s Quad of stars to determine the center of.
 /// @return The center star of the quad.
 Star Asterism::center (const stars &s) {
-    std::array<double, 3> c;
+    auto average_dim = [&s] (const int n) -> double {
+        std::array<double, 4> n_vector = {s[0][n], s[1][n], s[2][n], s[3][n]};
+        return std::accumulate(n_vector.begin(), n_vector.end(), 0.0) / 4;
+    };
     
-    // For all three dimensions, record the average of that dimension.
-    for (int i = 0; i < 3; i++) {
-        c[i] = (s[0][i] + s[1][i] + s[2][i] + s[3][i]) / 4;
-    }
-    
-    return Star(c[0], c[1], c[2]).as_unit();
+    return Star(average_dim(0), average_dim(1), average_dim(2), 0, true);
 }
 
