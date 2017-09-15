@@ -21,16 +21,25 @@ int Chomp::build_k_vector_table (const std::string &focus_column, const double m
     tuple s_vector;
     
     // Load the entire table into RAM.
-    s_vector = search_table("*", (unsigned) s_l);
+    s_vector = search_table(focus_column, (unsigned) s_l);
+    select_table(table + "_KVEC");
     
     // Load K-Vector into table, K(i) = j where s(j) <= z(i) < s(j + 1).
-    select_table(table + "_KVEC");
+    double k_value_hat = 0, j_hat = 0;
     for (int i = 0; i < s_l; i++) {
-        double k_value = 0;
-        for (int j = 0; j < s_l; j++) {
-            k_value += (s_vector[j] < ((m * i) + q)) ? 1 : 0;
-        }
-        
+	double k_value = k_value_hat;
+        for (int j = j_hat; j < s_l; j++) {
+	    if (s_vector[j] < m * i + q) {
+	        k_value++;
+	    }
+	    else {
+                // We remember our previous point, and continue here for i + 1.
+		k_value_hat = k_value;
+		j_hat = j;
+		break;
+	    }
+	}
+
         insert_into_table("k_value", tuple {k_value});
         std::cout << "\r" << "Current *I* Entry: " << i;
     }
@@ -65,7 +74,7 @@ int Chomp::create_k_vector (const std::string &focus) {
     q = focus_0 - m - DOUBLE_EPSILON;
     
     // sorted table is s-vector, create k-vector and build the k-vector table
-    create_table(table + "_KVEC", "k_value FLOAT");
+    create_table(table + "_KVEC", "k_value INT");
     transaction.commit();
     
     select_table(original_table);
