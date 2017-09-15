@@ -15,32 +15,27 @@
 /// @param q Y-Intercept parameter of Z equation.
 /// @return 0 when finished.
 int Chomp::build_k_vector_table (const std::string &focus_column, const double m, const double q) {
-    
     int s_l = (*db).execAndGet(std::string("SELECT MAX(rowid) FROM ") + table).getInt();
     SQLite::Transaction table_transaction(*db);
     tuple s_vector;
+    int k_hat = 0;
     
     // Load the entire table into RAM.
     s_vector = search_table(focus_column, (unsigned) s_l);
     select_table(table + "_KVEC");
     
     // Load K-Vector into table, K(i) = j where s(j) <= z(i) < s(j + 1).
-    double k_value_hat = 0, j_hat = 0;
     for (int i = 0; i < s_l; i++) {
-	double k_value = k_value_hat;
-        for (int j = j_hat; j < s_l; j++) {
-	    if (s_vector[j] < m * i + q) {
-	        k_value++;
-	    }
-	    else {
-                // We remember our previous point, and continue here for i + 1.
-		k_value_hat = k_value;
-		j_hat = j;
-		break;
-	    }
-	}
-
-        insert_into_table("k_value", tuple {k_value});
+        for (int k = k_hat; k < s_l; k++) {
+            if (s_vector[k] >= m * i + q) {
+                insert_into_table("k_value", tuple {(double) k});
+                
+                // We remember our previous k, and continue here for i + 1.
+                k_hat = k;
+                break;
+            }
+        }
+        
         std::cout << "\r" << "Current *I* Entry: " << i;
     }
     table_transaction.commit();
@@ -93,7 +88,7 @@ int Chomp::create_k_vector (const std::string &focus) {
 /// @param expected Expected number of results * columns to be returned. Better to overshoot.
 /// @return 1D list of chained results.
 Nibble::tuple Chomp::k_vector_query (const std::string &focus, const std::string &fields, const double y_a,
-                                       const double y_b, const unsigned int expected) {
+                                     const double y_b, const unsigned int expected) {
     double focus_0, focus_n, m, q, n, j_b, j_t;
     tuple s_endpoints;
     std::string sql, s_table = table;
