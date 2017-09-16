@@ -3,7 +3,7 @@
 ///
 /// Source file for the TestAngle class, as well as the main function to run the tests.
 
-#include "../include/identification/test-angle.h"
+#include "identification/test-angle.h"
 
 /// Check that query_for_pair method returns the BSC ID of the correct stars.
 ///
@@ -182,7 +182,7 @@ int TestAngle::test_identify_clean_input () {
     Angle::Parameters a;
     
     // We define a match as 66% here.
-    a.match_minimum = (unsigned int) (input.stars.size() / 3.0);
+    a.match_minimum = (unsigned int) (input.stars.size() *(2.0 / 3.0));
     
     std::vector<Star> c = Angle::identify(input, a);
     assert_equal(c.size(), input.stars.size(), "IdentificationFoundAllSize");
@@ -214,7 +214,7 @@ int TestAngle::test_identify_error_input () {
     input.add_extra_light(1);
     
     // We define a match as 66% here.
-    a.match_minimum = (unsigned int) ((input.stars.size() - 1) / 3.0);
+    a.match_minimum = (unsigned int) ((input.stars.size() - 1) * (2.0 / 3.0));
     
     std::vector<Star> c = Angle::identify(input, a);
     assert_equal(c.size(), input.stars.size() - 1, "IdentificationFoundWithErrorSize");
