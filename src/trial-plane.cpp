@@ -47,8 +47,9 @@ namespace DCPI {
 /// @param set_n Working benchmark set id.
 /// @param match_minimum Working match minimum for this set of trials.
 /// @param bsc5_quadtree_w Working quadtree width for this set of trials.
+/// @param q_root Working quad-tree root. Generated with every iteration of bsc5_quadtree_w.
 void trial_as_ms_ms (Nibble &nb, std::ofstream &log, const unsigned int set_n, const unsigned int match_minimum,
-                     const unsigned int bsc5_quadtree_w) {
+                     const unsigned int bsc5_quadtree_w, std::shared_ptr<QuadNode> &q_root) {
     Plane::Parameters p;
     Star::list s;
     double fov;
@@ -81,10 +82,13 @@ void trial_as_ms_ms (Nibble &nb, std::ofstream &log, const unsigned int set_n, c
 /// @param nb Open Nibble connection.
 /// @param log Open stream to log file.
 /// @param set_n Working benchmark set id.
-void trial_mm_qw_et(Nibble &nb, std::ofstream &log, const unsigned int set_n) {
-    for (unsigned int match_minimum = DCPI::MM_MIN; match_minimum <= DCPI::MM_MAX; match_minimum += DCPI::MM_STEP) {
-        for (unsigned int quadtree_w = DCPI::BQT_MIN; quadtree_w <= DCPI::BQT_MAX; quadtree_w += DCPI::BQT_STEP) {
-            trial_as_ms_ms(nb, log, set_n, match_minimum, quadtree_w);
+void trial_qw_mm_et (Nibble &nb, std::ofstream &log, const unsigned int set_n) {
+    for (unsigned int quadtree_w = DCPI::BQT_MIN; quadtree_w <= DCPI::BQT_MAX; quadtree_w += DCPI::BQT_STEP) {
+        
+        // Build the quadtree for the given W- as early as possible to avoid constant rebuilding.
+        std::shared_ptr<QuadNode> q_root = std::make_shared<QuadNode>(QuadNode::load_tree(quadtree_w));
+        for (unsigned int match_minimum = DCPI::MM_MIN; match_minimum <= DCPI::MM_MAX; match_minimum += DCPI::MM_STEP) {
+            trial_as_ms_ms(nb, log, set_n, match_minimum, quadtree_w, q_root);
         }
     }
 }
@@ -117,7 +121,7 @@ int main () {
     nb.select_table(Benchmark::TABLE_NAME);
     const unsigned int BENCH_SIZE = (unsigned int) nb.search_table("MAX(set_n)", 1, 1)[0];
     for (unsigned int set_n = 0; set_n < BENCH_SIZE; set_n++) {
-        trial_mm_qw_et(nb, log, set_n);
+        trial_qw_mm_et(nb, log, set_n);
     }
     
     return 0;
