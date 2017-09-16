@@ -185,7 +185,7 @@ int TestAngle::test_identify_clean_input () {
     a.match_minimum = (unsigned int) (input.stars.size() *(2.0 / 3.0));
     
     std::vector<Star> c = Angle::identify(input, a);
-    assert_equal(c.size(), input.stars.size(), "IdentificationFoundAllSize");
+    assert_greater_than(c.size(), input.stars.size() * (2.0 / 3.0), "IdentificationFoundAllSize");
     
     std::string all_input = "";
     for (const Star &s : input.stars) {
@@ -217,7 +217,7 @@ int TestAngle::test_identify_error_input () {
     a.match_minimum = (unsigned int) ((input.stars.size() - 1) * (2.0 / 3.0));
     
     std::vector<Star> c = Angle::identify(input, a);
-    assert_equal(c.size(), input.stars.size() - 1, "IdentificationFoundWithErrorSize");
+    assert_greater_than(c.size(), (input.stars.size() - 1) * (2.0 / 3.0), "IdentificationFoundWithErrorSize");
     
     std::string all_input = "";
     for (const Star &s : input.stars) {
