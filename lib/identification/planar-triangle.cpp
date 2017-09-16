@@ -11,12 +11,19 @@
 ///
 /// @param input Working Benchmark instance. We are **only** copying the star set and the fov.
 /// @param parameters Parameters to use for identification.
-PlanarTriangle::PlanarTriangle (const Benchmark &input, const Parameters &parameters) {
+/// @param q_root Working quad-tree root node. If none is specified, build the quad-tree here.
+PlanarTriangle::PlanarTriangle (const Benchmark &input, const Parameters &parameters,
+                                const std::shared_ptr<QuadNode> &q_root) {
     input.present_image(this->input, this->fov);
     this->parameters = parameters;
     
     ch.select_table(this->parameters.table_name);
-    q_root = std::make_shared<QuadNode>(QuadNode::load_tree(this->parameters.bsc5_quadtree_w));
+    if (q_root == nullptr) {
+        this->q_root = std::make_shared<QuadNode>(QuadNode::load_tree(this->parameters.bsc5_quadtree_w));
+    }
+    else {
+        this->q_root = q_root;
+    }
 }
 
 /// Generate the triangle table given the specified FOV and table name. This find the planar area and polar moment
@@ -38,14 +45,12 @@ int Plane::generate_triangle_table (const double fov, const std::string &table_n
     Star::list all_stars = nb.all_bsc5_stars();
     for (unsigned int i = 0; i < all_stars.size() - 2; i++) {
         SQLite::Transaction transaction(*nb.db);
-        std::cout << "\r" << "Current *A* Star: " << all_stars[i].get_hr();
+        std::cout << "\r" << "Current *I* Star: " << all_stars[i].get_hr();
         for (unsigned int j = i + 1; j < all_stars.size() - 1; j++) {
             for (unsigned int k = j + 1; k < all_stars.size(); k++) {
                 
                 // Only insert if the angle between all stars are separated by fov degrees or less.
-                if (Star::angle_between(all_stars[i], all_stars[j]) < fov
-                    && Star::angle_between(all_stars[j], all_stars[k]) < fov
-                    && Star::angle_between(all_stars[k], all_stars[i]) < fov) {
+                if (Star::within_angle({all_stars[i], all_stars[j], all_stars[k]}, fov)) {
                     double a_t = Trio::planar_area(all_stars[i], all_stars[j], all_stars[k]);
                     double i_t = Trio::planar_moment(all_stars[i], all_stars[j], all_stars[k]);
                     
@@ -66,25 +71,23 @@ int Plane::generate_triangle_table (const double fov, const std::string &table_n
 /// Given a trio of body stars, find matching trios of inertial stars using their respective planar areas and polar
 /// moments.
 ///
-/// @param hr_b Index trio of stars in body (B) frame.
+/// @param i_b Index trio of stars in body (B) frame.
 /// @return 1D vector of a trio of Star(0, 0, 0) if stars are not within the fov or if no matches currently exist.
 /// Otherwise, vector of trios whose areas and moments are close.
-std::vector<Trio::stars> Plane::match_stars (const index_trio &hr_b) {
+std::vector<Trio::stars> Plane::match_stars (const index_trio &i_b) {
     std::vector<hr_trio> match_hr;
     std::vector<Trio::stars> matched_stars;
-    Trio::stars b_stars{this->input[hr_b[0]], this->input[hr_b[1]], this->input[hr_b[2]]};
+    Trio::stars b_stars{this->input[i_b[0]], this->input[i_b[1]], this->input[i_b[2]]};
     
-    // Do not attempt to find mathes if all stars are not within fov.
-    if (Star::angle_between(b_stars[0], b_stars[1]) > this->fov
-        || Star::angle_between(b_stars[1], b_stars[2]) > this->fov
-        || Star::angle_between(b_stars[2], b_stars[0]) > this->fov) {
+    // Do not attempt to find matches if all stars are not within fov.
+    if (!Star::within_angle({b_stars[0], b_stars[1], b_stars[2]}, this->fov)) {
         return {{Star::zero(), Star::zero(), Star::zero()}};
     }
     
     // Search for the current trio. If this is empty, then break early.
     match_hr = this->query_for_trio(Trio::planar_area(b_stars[0], b_stars[1], b_stars[2]),
                                     Trio::planar_moment(b_stars[0], b_stars[1], b_stars[2]));
-    if (match_hr[0][0] == -1 && match_hr[0][1] == -1 && match_hr[0][2] == -1) {
+    if (std::equal(match_hr[0].begin() + 1, match_hr[0].end(), match_hr[0].begin())) {
         return {{Star::zero(), Star::zero(), Star::zero()}};
     }
     
@@ -102,7 +105,8 @@ std::vector<Trio::stars> Plane::match_stars (const index_trio &hr_b) {
 ///
 /// @param input The set of benchmark data to work with.
 /// @param parameters Adjustments to the identification process.
+/// @param q_root Working quad-tree root node. If none is specified, we build the quad-tree here.
 /// @return Vector of body stars with their inertial BSC IDs that qualify as matches.
-Star::list Plane::identify(const Benchmark &input, const Parameters &p) {
-    return Plane(input, p).identify_stars();
+Star::list Plane::identify(const Benchmark &input, const Parameters &p, const std::shared_ptr<QuadNode> &q_root) {
+    return Plane(input, p, q_root).identify_stars();
 }

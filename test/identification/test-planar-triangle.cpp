@@ -10,7 +10,9 @@
 /// @return 0 when finished.
 int TestPlanarTriangle::test_trio_query () {
     Benchmark input(15, Star::chance(), Rotation::chance());
-    Plane p(input, Plane::Parameters());
+    Plane::Parameters par;
+    par.table_name = "PLANE_20";
+    Plane p(input, par);
     
     double a = Trio::planar_area(input.stars[0], input.stars[1], input.stars[2]);
     double b = Trio::planar_moment(input.stars[0], input.stars[1], input.stars[2]);
@@ -35,36 +37,48 @@ int TestPlanarTriangle::test_trio_query () {
 ///
 /// @return 0 when finished.
 int TestPlanarTriangle::test_match_stars_fov () {
-    Plane a(Benchmark(10, Star::chance(), Rotation::chance()), Plane::Parameters());
-    a.input[0] = Star(a.input[0][0], a.input[0][1], a.input[0][2], 3);
-    a.input[1] = Star(a.input[1][0], a.input[1][1], a.input[1][2], 4);
-    a.input[2] = Star(a.input[2][0], a.input[2][1], a.input[2][2], 5);
+    Plane::Parameters par;
+    par.table_name = "PLANE_20";
+    Chomp ch;
+    
+    Plane a(Benchmark(10, Star::chance(), Rotation::chance()), par);
+    a.input[0] = Star::reset_hr(ch.query_bsc5(3));
+    a.input[1] = Star::reset_hr(ch.query_bsc5(4));
+    a.input[2] = Star::reset_hr(ch.query_bsc5(5));
     
     std::vector<Trio::stars> b = a.match_stars({0, 1, 2});
-    return 0 * assert_true(b[0][0] == Star() && b[0][1] == Star() && b[0][2] == Star(), "CandidateOutOfFOV");
+    return 0 * assert_true(std::all_of(b[0].begin(), b[0].end(), [] (const Star &s) -> bool {
+        return s == Star::zero();
+    }), "CandidateOutOfFOV", b[0][0].str() + "," + b[0][1].str() + "," + b[0][2].str());
 }
 
 /// Check that the zero-length stars are returned when no matching trio is found.
 ///
 /// @return 0 when finished.
 int TestPlanarTriangle::test_match_stars_none () {
-    Plane a(Benchmark(10, Star::chance(), Rotation::chance()), Plane::Parameters());
+    Plane::Parameters par;
+    par.table_name = "PLANE_20";
+    par.sigma_a = std::numeric_limits<double>::epsilon();
+    
+    Plane a(Benchmark(10, Star::chance(), Rotation::chance()), par);
     a.input[0] = Star(1, 1, 1.1);
     a.input[1] = Star(1, 1, 1);
     a.input[2] = Star(1.1, 1, 1);
     
     std::vector<Trio::stars> b = a.match_stars({0, 1, 2});
-    return 0 * assert_true(b[0][0] == Star() && b[0][1] == Star() && b[0][2] == Star(), "CandidateNoMatchingPair");
+    return 0 * assert_true(std::all_of(b[0].begin(), b[0].end(), [] (const Star &s) -> bool {
+        return s == Star::zero();
+    }), "CandidateNoMatchingPair", b[0][0].str() + "," + b[0][1].str() + "," + b[0][2].str());
 }
 
 /// Check that the correct stars are returned from the candidate trio query.
 ///
 /// @return 0 when finished.
 int TestPlanarTriangle::test_match_stars_results () {
-    Plane a(Benchmark(15, Star::chance(), Rotation::chance()), Plane::Parameters());
-    a.input[0] = a.ch.query_bsc5(3898);
-    a.input[1] = a.ch.query_bsc5(4325);
-    a.input[2] = a.ch.query_bsc5(4502);
+    Plane::Parameters par;
+    par.table_name = "PLANE_20";
+    Plane a(Benchmark(20, Star::chance(), Rotation::chance()), par);
+    a.input[0] = a.ch.query_bsc5(475), a.input[1] = a.ch.query_bsc5(530), a.input[2] = a.ch.query_bsc5(660);
     
     std::vector<Trio::stars> b = a.match_stars({0, 1, 2});
     std::array<bool, 3> matched = {false, false, false};
@@ -87,10 +101,10 @@ int TestPlanarTriangle::test_match_stars_results () {
 ///
 /// @return 0 when finished.
 int TestPlanarTriangle::test_pivot_query_results () {
-    Plane a(Benchmark(15, Star::chance(), Rotation::chance()), Plane::Parameters());
-    a.input[0] = a.ch.query_bsc5(3898);
-    a.input[1] = a.ch.query_bsc5(4325);
-    a.input[2] = a.ch.query_bsc5(4502);
+    Plane::Parameters par;
+    par.table_name = "PLANE_20";
+    Plane a(Benchmark(20, Star::chance(), Rotation::chance()), par);
+    a.input[0] = a.ch.query_bsc5(475), a.input[1] = a.ch.query_bsc5(530), a.input[2] = a.ch.query_bsc5(660);
     
     std::vector<Trio::stars> b = a.match_stars({0, 1, 2});
     Trio::stars c = a.pivot({0, 1, 2}, b);
@@ -105,13 +119,16 @@ int TestPlanarTriangle::test_pivot_query_results () {
 ///
 /// @return 0 when finished.
 int TestPlanarTriangle::test_rotating_match_correct_input () {
+    Plane::Parameters par;
     Star a = Star::chance(), b = Star::chance();
     Rotation c = Rotation::chance();
     Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
     Rotation f = Rotation::rotation_across_frames({a, b}, {d, e});
     Benchmark input(8, Star::chance(), c);
     std::vector<Star> rev_input;
-    Plane g(input, Plane::Parameters());
+    
+    par.table_name = "PLANE_20";
+    Plane g(input, par);
     
     // Reverse all input by inverse rotation.
     rev_input.reserve(input.stars.size());
@@ -134,13 +151,16 @@ int TestPlanarTriangle::test_rotating_match_correct_input () {
 ///
 /// @return 0 when finished.
 int TestPlanarTriangle::test_rotating_match_error_input () {
+    Plane::Parameters par;
     Star a = Star::chance(), b = Star::chance();
     Rotation c = Rotation::chance();
     Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
     Rotation f = Rotation::rotation_across_frames({a, b}, {d, e});
     Benchmark input(8, Star::chance(), c);
     std::vector<Star> rev_input;
-    Plane g(input, Plane::Parameters());
+    
+    par.table_name = "PLANE_20";
+    Plane g(input, par);
     
     // Reverse all input by inverse rotation.
     rev_input.reserve(input.stars.size());
@@ -166,13 +186,16 @@ int TestPlanarTriangle::test_rotating_match_error_input () {
 ///
 /// @return 0 when finished.
 int TestPlanarTriangle::test_rotating_match_duplicate_input () {
+    Plane::Parameters par;
     Star a = Star::chance(), b = Star::chance();
     Rotation c = Rotation::chance();
     Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
     Rotation f = Rotation::rotation_across_frames({a, b}, {d, e});
     Benchmark input(8, Star::chance(), c);
     std::vector<Star> rev_input;
-    Plane g(input, Plane::Parameters());
+    
+    par.table_name = "PLANE_20";
+    Plane g(input, par);
     
     // Reverse all input by inverse rotation.
     rev_input.reserve(input.stars.size());
@@ -203,11 +226,12 @@ int TestPlanarTriangle::test_identify_clean_input () {
     Benchmark input(8, Star::chance(), Rotation::chance());
     Plane::Parameters a;
     
-    // we define a match as 66% here
-    a.match_minimum = (unsigned int) (input.stars.size() / 3.0);
+    // We define a match as 66% here.
+    a.match_minimum = (unsigned int) (input.stars.size() * (2.0 / 3.0));
+    a.table_name = "PLANE_20";
     
-    std::vector<Star> c = Plane(input, a).identify();
-    assert_equal(c.size(), input.stars.size(), "IdentificationFoundAllSize");
+    std::vector<Star> c = Plane::identify(input, a);
+    assert_greater_than(c.size(), input.stars.size() * (2.0 / 3.0), "IdentificationFoundAllSize");
     
     std::string all_input = "";
     for (const Star &s : input.stars) {
@@ -227,20 +251,55 @@ int TestPlanarTriangle::test_identify_clean_input () {
     return 0;
 }
 
-/// Check that correct result is returned with an error input.
+/// Check **a** correct result is returned with an error input.
 ///
 /// @return 0 when finished.
 int TestPlanarTriangle::test_identify_error_input () {
-    Benchmark input(9, Star::chance(), Rotation::chance());
+    Benchmark input(20, Star::chance(), Rotation::chance());
     Plane::Parameters a;
     input.add_extra_light(1);
     
-    // We define a match as 66% here.
+    // We define a match as 33% here.
     a.match_minimum = (unsigned int) ((input.stars.size() - 1) / 3.0);
+    a.match_sigma = 0.0001;
+    a.table_name = "PLANE_20";
     
-    std::vector<Star> c = Plane(input, a).identify();
-    assert_equal(c.size(), input.stars.size() - 1, "IdentificationFoundWithErrorSize");
+    std::vector<Star> c = Plane::identify(input, a);
+    assert_greater_than(c.size(), (input.stars.size() - 1) / 3.0, "IdentificationFoundWithErrorSize");
     
+    if (c.size() != 0) {
+        std::string all_input = "";
+        for (const Star &s : input.stars) {
+            all_input += !(s == input.stars[input.stars.size() - 1]) ? s.str() + "," : s.str();
+        }
+        
+        for (unsigned int q = 0; q < c.size() - 1; q++) {
+            auto match = [&c, q] (const Star &b) -> bool {
+                return b.get_hr() == c[q].get_hr();
+            };
+            auto is_found = std::find_if(input.stars.begin(), input.stars.end(), match);
+            
+            std::string test_name = "IdentificationErrorInputStar" + std::to_string(q + 1);
+            assert_true(is_found != input.stars.end(), test_name, c[q].str() + "," + all_input);
+        }
+    }
+    
+    return 0;
+}
+
+/// Check that identification can occur when building the quad-tree outside.
+///
+/// @return 0 when finished.
+int TestPlanarTriangle::test_tree_built_outside () {
+    Benchmark input(15, Star::chance(), Rotation::chance());
+    Plane::Parameters a;
+    
+    // We define a match as 66% here.
+    a.match_minimum = (unsigned int) ((input.stars.size() - 1) * (2.0 / 3.0));
+    a.table_name = "PLANE_20";
+    std::shared_ptr<QuadNode> q_root = std::make_shared<QuadNode>(QuadNode::load_tree(1000));
+    
+    std::vector<Star> c = Plane::identify(input, a, q_root);
     std::string all_input = "";
     for (const Star &s : input.stars) {
         all_input += !(s == input.stars[input.stars.size() - 1]) ? s.str() + "," : s.str();
@@ -252,7 +311,7 @@ int TestPlanarTriangle::test_identify_error_input () {
         };
         auto is_found = std::find_if(input.stars.begin(), input.stars.end(), match);
         
-        std::string test_name = "IdentificationErrorInputStar" + std::to_string(q + 1);
+        std::string test_name = "IdentificationCleanQuadTreeBuiltOutside" + std::to_string(q + 1);
         assert_true(is_found != input.stars.end(), test_name, c[q].str() + "," + all_input);
     }
     
@@ -275,6 +334,7 @@ int TestPlanarTriangle::enumerate_tests (int test_case) {
         case 7: return test_rotating_match_duplicate_input();
         case 8: return test_identify_clean_input();
         case 9: return test_identify_error_input();
+        case 10: return test_tree_built_outside();
         default: return -1;
     }
 }
@@ -283,8 +343,5 @@ int TestPlanarTriangle::enumerate_tests (int test_case) {
 ///
 /// @return -1 if the log file cannot be opened. 0 otherwise.
 int main () {
-    //    PlanarTriangle::generate_triangle_table(20, "PLAN20");
-    //    Chomp::create_k_vector("PLAN20", "a");
-    //    Nibble::polish_table("PLAN20_KVEC", "k_value");
-    return TestPlanarTriangle().execute_tests();
+    return TestPlanarTriangle().execute_tests(BaseTest::Flavor::FULL_PRINT_LOG_ON);
 }
