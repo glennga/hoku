@@ -210,6 +210,7 @@ int Benchmark::record_current_plot () {
     current << current_record.str();
     
     // Record each error model, which has it's own set of stars and plot colors.
+    error_record << std::setprecision(16) << std::fixed;
     for (const ErrorModel &model: this->error_models) {
         for (const Star &s: model.affected) {
             error_record << s[0] << " " << s[1] << " " << s[2] << " " << s.get_hr() << " " << model.plot_color << "\n";
@@ -229,8 +230,13 @@ int Benchmark::record_current_plot () {
 int Benchmark::display_plot () {
     std::remove(this->CURRENT_PLOT.c_str());
     std::remove(this->ERROR_PLOT.c_str());
-    
+
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
     std::string cmd = "python " + this->PLOT_SCRIPT;
+#else
+    std::string cmd = "python3 " + this->PLOT_SCRIPT;
+#endif
+
     if (std::ifstream(this->CURRENT_PLOT.c_str()) || std::ifstream(this->ERROR_PLOT.c_str())) {
         throw "Current and/or error plot files could not deleted.";
     }
