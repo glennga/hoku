@@ -1,9 +1,9 @@
 """"
-This file is used to read the temporary files data/***.dat and plot the stars with the id numbers as annotations. 
+This file is used to read the temporary files data/***.tmp and plot the stars with the id numbers as annotations. 
 This is visualized as a translucent 3D sphere cap (representing the Celestial sphere) with the current star vector 
 endpoints projected onto it. 
 
-data/cuplt.tmp is formatted as such:
+data/logs/tmp/cuplt.tmp is formatted as such:
 fov
 norm
 focus.i focus.j focus.k
@@ -13,7 +13,7 @@ star_1.i star_1.j star_1.k star_1.bsc_id
 .
 star_n.i star_n.j star_n.k star_n.bsc_id
 
-data/errplt.dat is formatted as such:
+data/logs/tmp/errplt.dat is formatted as such:
 affected_1.i affected_1.j affected_1.k affected_1.bsc_id affected_1.plot_color
 .
 .

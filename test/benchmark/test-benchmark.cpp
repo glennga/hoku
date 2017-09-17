@@ -44,11 +44,11 @@ int TestBenchmark::test_current_plot_file () {
     assert_equal(1, std::stod(d.c_str()), "CurrentPlotNormEquality");
     
     std::getline(current_plot_from_input, d);
-    sprintf(e, "%f %f %f ", c[0], c[1], c[2]);
+    sprintf(e, "%0.16f %0.16f %0.16f ", c[0], c[1], c[2]);
     assert_equal(d, std::string(e), "CurrentPlotFocusEquality", 2);
     
     std::getline(current_plot_from_input, d);
-    sprintf(e, "%f %f %f %d", input.stars[0][0], input.stars[0][1], input.stars[0][2], input.stars[0].get_hr());
+    sprintf(e, "%0.16f %0.16f %0.16f %d", input.stars[0][0], input.stars[0][1], input.stars[0][2], input.stars[0].get_hr());
     return 0 * assert_equal(d, std::string(e), "CurrentPlotStar0Equality", 2);
 }
 
@@ -70,7 +70,7 @@ int TestBenchmark::test_error_plot_file () {
     
     // NOTE: Here b truncates a digit, but this is correct otherwise.
     std::getline(error_plot_from_input, a);
-    sprintf(b, "%f %f %f %d %s", input.error_models[0].affected[0][0], input.error_models[0].affected[0][1],
+    sprintf(b, "%0.16f %0.16f %0.16f %d %s", input.error_models[0].affected[0][0], input.error_models[0].affected[0][1],
             input.error_models[0].affected[0][2], input.error_models[0].affected[0].get_hr(),
             input.error_models[0].plot_color.c_str());
     return 0 * assert_equal(a, std::string(b), "ErrorPlotExtraLightEquality", 2);
@@ -111,7 +111,7 @@ int TestBenchmark::test_extra_light_added () {
 int TestBenchmark::test_removed_light_removed () {
     Benchmark input(15, Star::chance(), Rotation::chance());
     unsigned long long a = input.stars.size();
-    input.remove_light(3, 4);
+    input.remove_light(3, 15);
     
     return 0 * assert_less_than(input.stars.size(), a, "RemoveLightRemovedStars");
 }
