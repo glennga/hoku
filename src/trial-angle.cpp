@@ -32,6 +32,8 @@ namespace DCAI {
     static const int MM_MIN = 3; ///< Minimum number of stars that define a match.
     static const int MM_MAX = 30; ///< Maximum number of stars that define a match.
     static const int MM_STEP = 5; ///< Amount to increment for each test.
+    
+    static const std::string TABLE_NAME = "SEP_20"; ///< Name of table generated for Angle method.
 }
 
 /// Wrap three dimensions of testing (match sigma, query limit, and match minimum) in a small function. Passed in the
@@ -50,7 +52,7 @@ void trial_ms_sl_mm (Nibble &nb, std::ofstream &log, const unsigned int set_n, c
         for (int query_limit = DCAI::QL_MIN; query_limit <= DCAI::QL_MAX; query_limit += DCAI::QL_STEP) {
             for (int match_minimum = DCAI::MM_MIN; match_minimum <= DCAI::MM_MAX; match_minimum += DCAI::MM_STEP) {
                 p.query_limit = (unsigned) match_sigma, p.match_minimum = (unsigned) match_minimum;
-                p.query_sigma = query_sigma, p.match_sigma = match_sigma;
+                p.query_sigma = query_sigma, p.match_sigma = match_sigma, p.table_name = DCAI::TABLE_NAME;
                 
                 // Read the benchmark, copy the list here.
                 Benchmark input = Benchmark::parse_from_nibble(nb, set_n);
