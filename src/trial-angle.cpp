@@ -19,15 +19,15 @@
 namespace DCAI {
     static const double QS_MIN = 0.00000000000001; ///< Minimum search sigma.
     static const double QS_MAX = 0.0000001; ///< Maximum search sigma.
-    static const double QS_STEP = 0.00000001; ///< Amount to increment for each test.
+    static const double QS_STEP = 0.00000003; ///< Amount to increment for each test.
     
     static const int QL_MIN = 1; ///< Minimum number of results to limit search by.
-    static const int QL_MAX = 20; ///< Maximum number of results to limit search by.
-    static const int QL_STEP = 3; ///< Amount to increment for each test.
+    static const int QL_MAX = 30; ///< Maximum number of results to limit search by.
+    static const int QL_STEP = 10; ///< Amount to increment for each test.
     
     static const double MS_MIN = 0.00000000000001; ///< Minimum match sigma.
     static const double MS_MAX = 0.000001; ///< Maximum match sigma.
-    static const double MS_STEP = 0.0000001; ///< Amount to increment for each test.
+    static const double MS_STEP = 0.0000003; ///< Amount to increment for each test.
     
     static const int MM_MIN = 3; ///< Minimum number of stars that define a match.
     static const int MM_MAX = 30; ///< Maximum number of stars that define a match.
@@ -95,6 +95,8 @@ int main () {
     nb.select_table(Benchmark::TABLE_NAME);
     const unsigned int BENCH_SIZE = (unsigned int) nb.search_table("MAX(set_n)", 1, 1)[0];
     for (unsigned int set_n = 0; set_n < BENCH_SIZE; set_n++) {
+        std::cout << "\r" << "Current *Set* Number: " << set_n;
+
         for (double query_sigma = DCAI::QS_MIN; query_sigma <= DCAI::QS_MAX; query_sigma += DCAI::QS_STEP) {
             trial_ms_sl_mm(nb, log, set_n, query_sigma);
         }
