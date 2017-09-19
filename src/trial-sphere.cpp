@@ -74,7 +74,7 @@ void trial_as_ms_ms (Nibble &nb, std::ofstream &log, const unsigned int set_n, c
                 
                 log << set_n << "," << s.size() << "," << results.size() << "," << matches_found << ",";
                 log << sigma_a << "," << sigma_i << "," << match_sigma << "," << match_minimum << ",";
-                log << bsc5_quadtree_w << std::endl;
+                log << bsc5_quadtree_w << '\n';
             }
         }
     }
@@ -102,6 +102,7 @@ int main () {
     std::ostringstream l;
     std::ofstream log;
     Nibble nb(Benchmark::TABLE_NAME, "set_n");
+    std::ios::sync_with_stdio(false);
     
     /// Alias for the clock in the Chrono library.
     using clock = std::chrono::high_resolution_clock;
@@ -116,8 +117,7 @@ int main () {
     }
     
     // Set the attributes of the log.
-    log << "SetNumber,InputSize,IdentificationSize,MatchesFound,SigmaA,SigmaI,MatchSigma,MatchMinimum";
-    log << ",QuadtreeW" << std::endl;
+    log << "SetNumber,InputSize,IdentificationSize,MatchesFound,SigmaA,SigmaI,MatchSigma,MatchMinimum,QuadtreeW\n";
     
     // Run the trials!
     nb.select_table(Benchmark::TABLE_NAME);
@@ -127,8 +127,7 @@ int main () {
         // Build the quadtree for the given W- as early as possible to avoid constant rebuilding.
         std::shared_ptr<QuadNode> q_root = std::make_shared<QuadNode>(QuadNode::load_tree(quadtree_w));
         for (unsigned int set_n = 0; set_n < BENCH_SIZE; set_n++) {
-            std::cout << "\r" << "Current *Set* Number: " << set_n;
-    
+            std::cout << "\rCurrent *Set* Number: " << set_n;
             trial_mm_et(nb, log, set_n, quadtree_w, q_root);
         }
     }
