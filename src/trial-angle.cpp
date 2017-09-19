@@ -10,20 +10,15 @@
 ///
 /// @code{.cpp}
 /// Current number of permutations: (0.0000001 - 0.00000000000001) / 0.00000003    // 4
-///                                 (30 - 1) / 10                                  // 3
 ///                                 (0.000001 - 0.00000000000001) / 0.0000003      // 4
 ///                                 (30 - 3) / 5                                   // 6
 ///                                 --------------------------------------------
-///                                 228 variations of Angle identification for each benchmark.
+///                                 96 variations of Angle identification for each benchmark.
 /// @endcode
 namespace DCAI {
     static const double QS_MIN = 0.00000000000001; ///< Minimum search sigma.
     static const double QS_MAX = 0.0000001; ///< Maximum search sigma.
     static const double QS_STEP = 0.00000003; ///< Amount to increment for each test.
-    
-    static const int QL_MIN = 1; ///< Minimum number of results to limit search by.
-    static const int QL_MAX = 30; ///< Maximum number of results to limit search by.
-    static const int QL_STEP = 10; ///< Amount to increment for each test.
     
     static const double MS_MIN = 0.00000000000001; ///< Minimum match sigma.
     static const double MS_MAX = 0.000001; ///< Maximum match sigma.
@@ -32,25 +27,26 @@ namespace DCAI {
     static const int MM_MIN = 3; ///< Minimum number of stars that define a match.
     static const int MM_MAX = 30; ///< Maximum number of stars that define a match.
     static const int MM_STEP = 5; ///< Amount to increment for each test.
+    
+    static const std::string TABLE_NAME = "SEP_20"; ///< Name of table generated for Angle method.
 }
 
-/// Wrap three dimensions of testing (match sigma, query limit, and match minimum) in a small function. Passed in the
-/// working benchmark and the query sigma.
+/// Wrap three dimensions of testing (query sigma, match sigma, match minimum) in a small function. Passed in the
+/// working benchmark.
 ///
 /// @param nb Open Nibble connection.
 /// @param log Open stream to log file.
 /// @param set_n Working benchmark set id.
-/// @param query_sigma Working sigma to query Nibble with.
-void trial_ms_sl_mm (Nibble &nb, std::ofstream &log, const unsigned int set_n, const double query_sigma) {
+void trial_qs_ms_mm (Nibble &nb, std::ofstream &log, const unsigned int set_n) {
     Angle::Parameters p;
     Star::list s;
     double fov;
     
-    for (double match_sigma = DCAI::MS_MIN; match_sigma <= DCAI::MS_MAX; match_sigma += DCAI::MS_STEP) {
-        for (int query_limit = DCAI::QL_MIN; query_limit <= DCAI::QL_MAX; query_limit += DCAI::QL_STEP) {
+    for (double query_sigma = DCAI::QS_MIN; query_sigma <= DCAI::QS_MAX; query_sigma += DCAI::QS_STEP) {
+        for (double match_sigma = DCAI::MS_MIN; match_sigma <= DCAI::MS_MAX; match_sigma += DCAI::MS_STEP) {
             for (int match_minimum = DCAI::MM_MIN; match_minimum <= DCAI::MM_MAX; match_minimum += DCAI::MM_STEP) {
-                p.query_limit = (unsigned) match_sigma, p.match_minimum = (unsigned) match_minimum;
-                p.query_sigma = query_sigma, p.match_sigma = match_sigma;
+                p.match_minimum = (unsigned) match_minimum, p.query_sigma = query_sigma, p.match_sigma = match_sigma;
+                p.table_name = DCAI::TABLE_NAME;
                 
                 // Read the benchmark, copy the list here.
                 Benchmark input = Benchmark::parse_from_nibble(nb, set_n);
@@ -61,7 +57,7 @@ void trial_ms_sl_mm (Nibble &nb, std::ofstream &log, const unsigned int set_n, c
                 int matches_found = Benchmark::compare_stars(input, results);
                 
                 log << set_n << "," << s.size() << "," << results.size() << "," << matches_found << "," << query_sigma;
-                log << "," << match_sigma << "," << query_limit << "," << match_minimum << std::endl;
+                log << "," << match_sigma << "," << match_minimum << '\n';
             }
         }
     }
@@ -74,6 +70,7 @@ int main () {
     std::ostringstream l;
     std::ofstream log;
     Nibble nb(Benchmark::TABLE_NAME, "set_n");
+    std::ios::sync_with_stdio(false);
     
     /// Alias for the clock in the Chrono library.
     using clock = std::chrono::high_resolution_clock;
@@ -88,18 +85,14 @@ int main () {
     }
     
     // Set the attributes of the log.
-    log << "SetNumber,InputSize,IdentificationSize,MatchesFound,QuerySigma,MatchSigma,QueryLimit,MatchMinimum";
-    log << std::endl;
+    log << "SetNumber,InputSize,IdentificationSize,MatchesFound,QuerySigma,MatchSigma,MatchMinimum\n";
     
     // Run the trials!
     nb.select_table(Benchmark::TABLE_NAME);
     const unsigned int BENCH_SIZE = (unsigned int) nb.search_table("MAX(set_n)", 1, 1)[0];
     for (unsigned int set_n = 0; set_n < BENCH_SIZE; set_n++) {
-        std::cout << "\r" << "Current *Set* Number: " << set_n;
-
-        for (double query_sigma = DCAI::QS_MIN; query_sigma <= DCAI::QS_MAX; query_sigma += DCAI::QS_STEP) {
-            trial_ms_sl_mm(nb, log, set_n, query_sigma);
-        }
+        std::cout << "\rCurrent *Set* Number: " << set_n;
+        trial_qs_ms_mm(nb, log, set_n);
     }
     
     return 0;
