@@ -11,12 +11,19 @@
 ///
 /// @param input Working Benchmark instance. We are **only** copying the star set and the fov.
 /// @param parameters Parameters to use for identification.
-SphericalTriangle::SphericalTriangle (const Benchmark &input, const Parameters &parameters) {
+/// @param q_root Working quad-tree root node. If none is specified, we build the quad-tree here.
+SphericalTriangle::SphericalTriangle (const Benchmark &input, const Parameters &parameters,
+                                      const std::shared_ptr<QuadNode> &q_root) {
     input.present_image(this->input, this->fov);
     this->parameters = parameters;
     
     ch.select_table(this->parameters.table_name);
-    q_root = std::make_shared<QuadNode>(QuadNode::load_tree(this->parameters.bsc5_quadtree_w));
+    if (q_root == nullptr) {
+        this->q_root = std::make_shared<QuadNode>(QuadNode::load_tree(this->parameters.quadtree_w));
+    }
+    else {
+        this->q_root = q_root;
+    }
 }
 
 /// Generate the triangle table given the specified FOV and table name. This find the spherical area and polar moment
@@ -50,9 +57,8 @@ int Sphere::generate_triangle_table (const double fov, const unsigned int td_h, 
                     double a_t = Trio::spherical_area(all_stars[i], all_stars[j], all_stars[k]);
                     double i_t = Trio::spherical_moment(all_stars[i], all_stars[j], all_stars[k], td_h);
                     
-                    nb.insert_into_table("hr_a, hr_b, hr_c, a, i",
-                                         {(double) all_stars[i].get_hr(), (double) all_stars[j].get_hr(),
-                                             (double) all_stars[k].get_hr(), a_t, i_t});
+                    nb.insert_into_table("hr_a, hr_b, hr_c, a, i", {(double) all_stars[i].get_hr(),
+                        (double) all_stars[j].get_hr(), (double) all_stars[k].get_hr(), a_t, i_t});
                 }
             }
         }
@@ -83,8 +89,7 @@ std::vector<Trio::stars> Sphere::match_stars (const index_trio &hr_b) {
     }
     
     // Search for the current trio. If this is empty, then break early.
-    match_hr = this->query_for_trio(Trio::spherical_area(b_stars[0], b_stars[1], b_stars[2]),
-                                    Trio::spherical_moment(b_stars[0], b_stars[1], b_stars[2], parameters.moment_td_h));
+    match_hr = this->query_for_trio(Trio::spherical_area(b_stars[0], b_stars[1], b_stars[2]), Trio::spherical_moment(b_stars[0], b_stars[1], b_stars[2], parameters.moment_td_h));
     if (match_hr[0][0] == -1 && match_hr[0][1] == -1 && match_hr[0][2] == -1) {
         return {{Star::zero(), Star::zero(), Star::zero()}};
     }
@@ -103,7 +108,8 @@ std::vector<Trio::stars> Sphere::match_stars (const index_trio &hr_b) {
 ///
 /// @param input The set of benchmark data to work with.
 /// @param parameters Adjustments to the identification process.
+/// @param q_root Working quad-tree root node. If none is specified, we build the quad-tree here.
 /// @return Vector of body stars with their inertial BSC IDs that qualify as matches.
-Star::list Sphere::identify(const Benchmark &input, const Parameters &p) {
-    return Sphere(input, p).identify_stars();
+Star::list Sphere::identify (const Benchmark &input, const Parameters &p, const std::shared_ptr<QuadNode> &q_root) {
+    return Sphere(input, p, q_root).identify_stars();
 }

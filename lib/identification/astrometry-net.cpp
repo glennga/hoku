@@ -11,7 +11,10 @@
 ///
 /// @param input Working Benchmark instance. We are **only** copying the star set and the fov.
 /// @param parameters Parameters to use for identification.
-AstrometryNet::AstrometryNet (const Benchmark &input, const Parameters &parameters) {
+/// @param star_root Working kd-tree root node for nearby stars. If none is specified, build the kd-tree here.
+/// @param astro_root Working kd-tree root node for nearby asterisms. If none is specified, build the kd-tree here.
+AstrometryNet::AstrometryNet (const Benchmark &input, const Parameters &parameters,
+                              const std::shared_ptr<KdNode> &star_root, const std::shared_ptr<KdNode> &astro_root) {
     Nibble::tuple asterisms;
     unsigned int n;
     
@@ -24,7 +27,12 @@ AstrometryNet::AstrometryNet (const Benchmark &input, const Parameters &paramete
     asterisms = ch.search_table("i, j, k", n * 3);
     
     // Load KD tree for nearby stars.
-    star_root = std::make_shared<KdNode>(KdNode::load_tree(ch.all_bsc5_stars(), this->parameters.kd_tree_w));
+    if (star_root == nullptr) {
+        this->star_root = std::make_shared<KdNode>(KdNode::load_tree(ch.all_bsc5_stars(), this->parameters.kd_tree_w));
+    }
+    else {
+        this->star_root = star_root;
+    }
     
     // Convert ASTRO_C table into stars.
     astro_stars.reserve(n / 3);
@@ -34,7 +42,13 @@ AstrometryNet::AstrometryNet (const Benchmark &input, const Parameters &paramete
     }
     
     // Load KD tree for nearby asterisms.
-    astro_root = std::make_shared<KdNode>(KdNode::load_tree(astro_stars, this->parameters.kd_tree_w));
+    if (astro_root == nullptr) {
+        this->astro_root = std::make_shared<KdNode>(KdNode::load_tree(astro_stars, this->parameters.kd_tree_w));
+    }
+    else {
+        this->astro_root = astro_root;
+    
+    }
 }
 
 /// Helper method for the ASTRO_H table generation. Checks if all stars are within the given FOV, if an asterism can be
@@ -172,8 +186,7 @@ Astro::hr_quad Astro::query_for_asterism (const index_quad &b_i) {
     // Search for matching C_x first.
     ch.select_table(this->parameters.hash_name);
     Chomp::tuple matches = ch.k_vector_query("cx", "hr_0, hr_1, hr_2, hr_3",
-                                             h[0] - epsilon,
-                                             h[0] + epsilon, this->parameters.query_expected);
+                                             h[0] - epsilon, h[0] + epsilon, this->parameters.query_expected);
     
     // Filter out all matches that don't match C_y, D_x, and D_y.
     for (unsigned int i = 0; i < matches.size(); i += 4) {
@@ -230,8 +243,7 @@ Astro::models Astro::classify_matches (const hr_quad &r_hr, const Rotation &q) {
     models m;
     
     // Search for nearby stars to the first HR.
-    Star::list nearby = (*star_root).nearby_stars(ch.query_bsc5(r_hr[0]), fov, parameters.nearby_expected,
-                                                  ch.all_bsc5_stars());
+    Star::list nearby = (*star_root).nearby_stars(ch.query_bsc5(r_hr[0]), fov, parameters.nearby_expected, ch.all_bsc5_stars());
     
     // Note: If a star in 'nearby' is not found, no action is taken. 'm' depends on the input set.
     for (const Star &s: this->input) {
@@ -333,9 +345,12 @@ unsigned int Astro::compare_alignments (const models &proposed, const models &co
 ///
 /// @param input The set of benchmark data to work with.
 /// @param parameters Adjustments to the identification process.
+/// @param star_root Working kd-tree root node for nearby stars.
+/// @param astro_root Working kd-tree root node for nearby asterisms.
 /// @return Vector of body stars with their inertial BSC IDs that qualify as matches.
-Star::list Astro::identify (const Benchmark &input, const Parameters &parameters) {
-    Astro a(input, parameters);
+Star::list Astro::identify (const Benchmark &input, const Parameters &parameters,
+                            const std::shared_ptr<KdNode> &star_root, const std::shared_ptr<KdNode> &astro_root) {
+    Astro a(input, parameters, star_root, astro_root);
     
     // This procedure will not work |A_input| < 4. Exit early with empty list.
     if (a.input.size() < 4) {
@@ -366,7 +381,7 @@ Star::list Astro::identify (const Benchmark &input, const Parameters &parameters
             }
             
             // Bayes factor condition is met. Return the proposed match set above.
-            if (b_f > a.parameters.k_alignment_accept) {
+            if (b_f > a.parameters.k_accept) {
                 return bf_models[0];
             }
         }

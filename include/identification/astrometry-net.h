@@ -51,7 +51,7 @@ class AstrometryNet {
         double match_sigma = 0.00001; ///< Resultant of inertial->body rotation must within 3 * match_sigma of *a* body.
         double kd_tree_w = 1000; ///< Projection width of the KD-trees.
         unsigned int nearby_expected = 100; ///< Expected number of nearby stars to be found. Better to overshoot.
-        double k_alignment_accept = 60; ///< Value of K to accept a given alignment.
+        double k_accept = 60; ///< Value of K to accept a given alignment.
         double u_tp = 1.0; ///< Utility of a true positive match. Used in Bayesian decision process.
         double u_fp = -1.0; ///< Utility of a false positive match. Used in Bayesian decision process.
         double u_tn = 1.0; ///< Utility of a true negative match. Used in Bayesian decision process.
@@ -64,7 +64,8 @@ class AstrometryNet {
     AstrometryNet () = delete;
   
   public:
-    static Star::list identify (const Benchmark &, const Parameters &);
+    static Star::list identify (const Benchmark &, const Parameters &, const std::shared_ptr<KdNode> & = nullptr,
+                                const std::shared_ptr<KdNode> & = nullptr);
     
     static int generate_hash_table (const double, const int, const std::string &);
     static int generate_center_table (const std::string &, const std::string &);
@@ -86,7 +87,8 @@ class AstrometryNet {
     using models = std::array<Star::list, 2>;
   
   private:
-    AstrometryNet (const Benchmark &, const Parameters &);
+    AstrometryNet (const Benchmark &, const Parameters &, const std::shared_ptr<KdNode> & = nullptr,
+                   const std::shared_ptr<KdNode> & = nullptr);
     
     static int insert_astro_h (Nibble &, std::vector<int> &, const double, const hr_quad &, const double);
     
