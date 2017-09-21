@@ -141,7 +141,7 @@ void generate_kvec_table (const int choice) {
 /// GenerateN 0 1
 /// @endcode
 ///
-/// @param argc Argument count. Domain is [1, 2].
+/// @param argc Argument count. Domain is [2, 3].
 /// @param argv Argument vector. argv[1] is our selected table. argv[2] is our additional operation specification.
 /// @return -1 if the arguments are incorrect. 0 otherwise.
 int main (int argc, char *argv[]) {
