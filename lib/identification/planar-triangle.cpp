@@ -19,7 +19,7 @@ PlanarTriangle::PlanarTriangle (const Benchmark &input, const Parameters &parame
     
     ch.select_table(this->parameters.table_name);
     if (q_root == nullptr) {
-        this->q_root = std::make_shared<QuadNode>(QuadNode::load_tree(this->parameters.bsc5_quadtree_w));
+        this->q_root = std::make_shared<QuadNode>(QuadNode::load_tree(this->parameters.quadtree_w));
     }
     else {
         this->q_root = q_root;
