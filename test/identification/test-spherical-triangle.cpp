@@ -10,7 +10,9 @@
 /// @return 0 when finished.
 int TestSphericalTriangle::test_trio_query () {
     Benchmark input(15, Star::chance(), Rotation::chance());
-    Sphere s(input, Sphere::Parameters());
+    Sphere::Parameters par;
+    par.table_name = "SPHERE_20";
+    Sphere s(input, par);
     
     double a = Trio::spherical_area(input.stars[0], input.stars[1], input.stars[2]);
     double b = Trio::spherical_moment(input.stars[0], input.stars[1], input.stars[2]);
@@ -35,36 +37,48 @@ int TestSphericalTriangle::test_trio_query () {
 ///
 /// @return 0 when finished.
 int TestSphericalTriangle::test_match_stars_fov () {
-    Sphere a(Benchmark(10, Star::chance(), Rotation::chance()), Sphere::Parameters());
-    a.input[0] = Star(a.input[0][0], a.input[0][1], a.input[0][2], 3);
-    a.input[1] = Star(a.input[1][0], a.input[1][1], a.input[1][2], 4);
-    a.input[2] = Star(a.input[2][0], a.input[2][1], a.input[2][2], 5);
+    Sphere::Parameters par;
+    par.table_name = "SPHERE_20";
+    Chomp ch;
+    
+    Sphere a(Benchmark(10, Star::chance(), Rotation::chance()), par);
+    a.input[0] = Star::reset_hr(ch.query_bsc5(3));
+    a.input[1] = Star::reset_hr(ch.query_bsc5(4));
+    a.input[2] = Star::reset_hr(ch.query_bsc5(5));
     
     std::vector<Trio::stars> b = a.match_stars({0, 1, 2});
-    return 0 * assert_true(b[0][0] == Star() && b[0][1] == Star() && b[0][2] == Star(), "CandidateOutOfFOV");
+    return 0 * assert_true(std::all_of(b[0].begin(), b[0].end(), [] (const Star &s) -> bool {
+        return s == Star::zero();
+    }), "CandidateOutOfFOV", b[0][0].str() + "," + b[0][1].str() + "," + b[0][2].str());
 }
 
 /// Check that the zero-length stars are returned when no matching trio is found.
 ///
 /// @return 0 when finished.
 int TestSphericalTriangle::test_match_stars_none () {
-    Sphere a(Benchmark(10, Star::chance(), Rotation::chance()), Sphere::Parameters());
+    Sphere::Parameters par;
+    par.table_name = "SPHERE_20";
+    par.sigma_a = std::numeric_limits<double>::epsilon();
+    
+    Sphere a(Benchmark(10, Star::chance(), Rotation::chance()), par);
     a.input[0] = Star(1, 1, 1.1);
     a.input[1] = Star(1, 1, 1);
     a.input[2] = Star(1.1, 1, 1);
     
     std::vector<Trio::stars> b = a.match_stars({0, 1, 2});
-    return 0 * assert_true(b[0][0] == Star() && b[0][1] == Star() && b[0][2] == Star(), "CandidateNoMatchingPair");
+    return 0 * assert_true(std::all_of(b[0].begin(), b[0].end(), [] (const Star &s) -> bool {
+        return s == Star::zero();
+    }), "CandidateNoMatchingPair", b[0][0].str() + "," + b[0][1].str() + "," + b[0][2].str());
 }
 
 /// Check that the correct stars are returned from the candidate trio query.
 ///
 /// @return 0 when finished.
 int TestSphericalTriangle::test_match_stars_results () {
-    Sphere a(Benchmark(15, Star::chance(), Rotation::chance()), Sphere::Parameters());
-    a.input[0] = a.ch.query_bsc5(3898);
-    a.input[1] = a.ch.query_bsc5(4325);
-    a.input[2] = a.ch.query_bsc5(4502);
+    Sphere::Parameters par;
+    par.table_name = "SPHERE_20";
+    Sphere a(Benchmark(20, Star::chance(), Rotation::chance()), par);
+    a.input[0] = a.ch.query_bsc5(475), a.input[1] = a.ch.query_bsc5(530), a.input[2] = a.ch.query_bsc5(660);
     
     std::vector<Trio::stars> b = a.match_stars({0, 1, 2});
     std::array<bool, 3> matched = {false, false, false};
@@ -87,10 +101,10 @@ int TestSphericalTriangle::test_match_stars_results () {
 ///
 /// @return 0 when finished.
 int TestSphericalTriangle::test_pivot_query_results () {
-    Sphere a(Benchmark(15, Star::chance(), Rotation::chance()), Sphere::Parameters());
-    a.input[0] = a.ch.query_bsc5(3898);
-    a.input[1] = a.ch.query_bsc5(4325);
-    a.input[2] = a.ch.query_bsc5(4502);
+    Sphere::Parameters par;
+    par.table_name = "SPHERE_20";
+    Sphere a(Benchmark(20, Star::chance(), Rotation::chance()), par);
+    a.input[0] = a.ch.query_bsc5(475), a.input[1] = a.ch.query_bsc5(530), a.input[2] = a.ch.query_bsc5(660);
     
     std::vector<Trio::stars> b = a.match_stars({0, 1, 2});
     Trio::stars c = a.pivot({0, 1, 2}, b);
@@ -105,13 +119,16 @@ int TestSphericalTriangle::test_pivot_query_results () {
 ///
 /// @return 0 when finished.
 int TestSphericalTriangle::test_rotating_match_correct_input () {
+    Sphere::Parameters par;
     Star a = Star::chance(), b = Star::chance();
     Rotation c = Rotation::chance();
     Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
     Rotation f = Rotation::rotation_across_frames({a, b}, {d, e});
     Benchmark input(8, Star::chance(), c);
     std::vector<Star> rev_input;
-    Sphere g(input, Sphere::Parameters());
+    
+    par.table_name = "SPHERE_20";
+    Sphere g(input, par);
     
     // Reverse all input by inverse rotation.
     rev_input.reserve(input.stars.size());
@@ -134,13 +151,16 @@ int TestSphericalTriangle::test_rotating_match_correct_input () {
 ///
 /// @return 0 when finished.
 int TestSphericalTriangle::test_rotating_match_error_input () {
+    Sphere::Parameters par;
     Star a = Star::chance(), b = Star::chance();
     Rotation c = Rotation::chance();
     Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
     Rotation f = Rotation::rotation_across_frames({a, b}, {d, e});
     Benchmark input(8, Star::chance(), c);
     std::vector<Star> rev_input;
-    Sphere g(input, Sphere::Parameters());
+    
+    par.table_name = "SPHERE_20";
+    Sphere g(input, par);
     
     // Reverse all input by inverse rotation.
     rev_input.reserve(input.stars.size());
@@ -166,13 +186,16 @@ int TestSphericalTriangle::test_rotating_match_error_input () {
 ///
 /// @return 0 when finished.
 int TestSphericalTriangle::test_rotating_match_duplicate_input () {
+    Sphere::Parameters par;
     Star a = Star::chance(), b = Star::chance();
     Rotation c = Rotation::chance();
     Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
     Rotation f = Rotation::rotation_across_frames({a, b}, {d, e});
     Benchmark input(8, Star::chance(), c);
     std::vector<Star> rev_input;
-    Sphere g(input, Sphere::Parameters());
+    
+    par.table_name = "SPHERE_20";
+    Sphere g(input, par);
     
     // Reverse all input by inverse rotation.
     rev_input.reserve(input.stars.size());
@@ -203,11 +226,12 @@ int TestSphericalTriangle::test_identify_clean_input () {
     Benchmark input(8, Star::chance(), Rotation::chance());
     Sphere::Parameters a;
     
-    // we define a match as 66% here
-    a.match_minimum = (unsigned int) (input.stars.size() / 3.0);
+    // We define a match as 66% here.
+    a.match_minimum = (unsigned int) (input.stars.size() * (2.0 / 3.0));
+    a.table_name = "SPHERE_20";
     
-    std::vector<Star> c = Sphere(input, a).identify();
-    assert_equal(c.size(), input.stars.size(), "IdentificationFoundAllSize");
+    std::vector<Star> c = Sphere::identify(input, a);
+    assert_greater_than(c.size(), input.stars.size() * (2.0 / 3.0), "IdentificationFoundAllSize");
     
     std::string all_input = "";
     for (const Star &s : input.stars) {
@@ -235,11 +259,13 @@ int TestSphericalTriangle::test_identify_error_input () {
     Sphere::Parameters a;
     input.add_extra_light(1);
     
-    // We define a match as 66% here.
+    // We define a match as 33% here.
     a.match_minimum = (unsigned int) ((input.stars.size() - 1) / 3.0);
+    a.match_sigma = 0.0001;
+    a.table_name = "SPHERE_20";
     
-    std::vector<Star> c = Sphere(input, a).identify();
-    assert_equal(c.size(), input.stars.size() - 1, "IdentificationFoundWithErrorSize");
+    std::vector<Star> c = Sphere::identify(input, a);
+    assert_greater_than(c.size(), (input.stars.size() - 1) / 3.0, "IdentificationFoundWithErrorSize");
     
     std::string all_input = "";
     for (const Star &s : input.stars) {
@@ -283,8 +309,5 @@ int TestSphericalTriangle::enumerate_tests (int test_case) {
 ///
 /// @return -1 if the log file cannot be opened. 0 otherwise.
 int main () {
-    //    SphericalTriangle::generate_triangle_table(20, "SPHERE20");
-    //    Chomp::create_k_vector("SPHERE20", "a");
-    //    Nibble::polish_table("SPHERE20_KVEC", "k_value");
     return TestSphericalTriangle().execute_tests();
 }
