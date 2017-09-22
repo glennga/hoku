@@ -46,14 +46,12 @@ int Sphere::generate_triangle_table (const double fov, const unsigned int td_h, 
     Star::list all_stars = nb.all_bsc5_stars();
     for (unsigned int i = 0; i < all_stars.size() - 2; i++) {
         SQLite::Transaction transaction(*nb.db);
-        std::cout << "\r" << "Current *A* Star: " << all_stars[i].get_hr();
+        std::cout << "\r" << "Current *I* Star: " << all_stars[i].get_hr();
         for (unsigned int j = i + 1; j < all_stars.size() - 1; j++) {
             for (unsigned int k = j + 1; k < all_stars.size(); k++) {
                 
                 // Only insert if the angle between all stars are separated by fov degrees or less.
-                if (Star::angle_between(all_stars[i], all_stars[j]) < fov
-                    && Star::angle_between(all_stars[j], all_stars[k]) < fov
-                    && Star::angle_between(all_stars[k], all_stars[i]) < fov) {
+                if (Star::within_angle({all_stars[i], all_stars[j], all_stars[k]}, fov)) {
                     double a_t = Trio::spherical_area(all_stars[i], all_stars[j], all_stars[k]);
                     double i_t = Trio::spherical_moment(all_stars[i], all_stars[j], all_stars[k], td_h);
                     
@@ -82,14 +80,13 @@ std::vector<Trio::stars> Sphere::match_stars (const index_trio &hr_b) {
     std::vector<Trio::stars> matched_stars;
     
     // Do not attempt to find matches if all stars are not within fov.
-    if (Star::angle_between(b_stars[0], b_stars[1]) > this->fov
-        || Star::angle_between(b_stars[1], b_stars[2]) > this->fov
-        || Star::angle_between(b_stars[2], b_stars[0]) > this->fov) {
+    if (Star::within_angle({b_stars[0], b_stars[1], b_stars[2]}, this->fov)) {
         return {{Star::zero(), Star::zero(), Star::zero()}};
     }
     
     // Search for the current trio. If this is empty, then break early.
-    match_hr = this->query_for_trio(Trio::spherical_area(b_stars[0], b_stars[1], b_stars[2]), Trio::spherical_moment(b_stars[0], b_stars[1], b_stars[2], parameters.moment_td_h));
+    match_hr = this->query_for_trio(Trio::spherical_area(b_stars[0], b_stars[1], b_stars[2]),
+                                    Trio::spherical_moment(b_stars[0], b_stars[1], b_stars[2], parameters.moment_td_h));
     if (match_hr[0][0] == -1 && match_hr[0][1] == -1 && match_hr[0][2] == -1) {
         return {{Star::zero(), Star::zero(), Star::zero()}};
     }
