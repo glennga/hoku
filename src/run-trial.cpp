@@ -136,8 +136,6 @@ int main (int argc, char *argv[]) {
     l << "/data/logs/trial/" << argv[1] << "-"  << clock::to_time_t(clock::now() - std::chrono::hours(24)) << ".csv";
     log.open(std::string(std::getenv("HOKU_PROJECT_PATH")) + l.str());
     
-    auto asdsadsd = std::string(std::getenv("HOKU_PROJECT_PATH")) + l.str();
-    
     // Make sure the log file is open before proceeding.
     if (!log.is_open()) {
         throw "Log file cannot be opened.";
