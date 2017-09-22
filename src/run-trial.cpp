@@ -37,7 +37,7 @@ void record_header(const int choice, std::ofstream &log) {
         case 2: return (void) (log << Trial::SPHERE_ATTRIBUTE);
         case 3: return (void) (log << Trial::PLANE_ATTRIBUTE);
         case 4: return (void) (log << Trial::PYRAMID_ATTRIBUTE);
-        default: throw "Identification choice is not within space {0, 1, 2, 3, 4, 5, 6}.";
+        default: throw "Identification choice is not within space {0, 1, 2, 3, 4}.";
     }
 }
 
@@ -52,7 +52,7 @@ trial_function select_trial_function(const int choice) {
         case 2: return &Trial::record_sphere;
         case 3: return &Trial::record_plane;
         case 4: return &Trial::record_pyramid;
-        default: throw "Identification choice is not within space {0, 1, 2, 3, 4, 5, 6}.";
+        default: throw "Identification choice is not within space {0, 1, 2, 3, 4}.";
     }
 }
 
