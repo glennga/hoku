@@ -15,12 +15,6 @@
 
 /// Contains functions to iterate through various dimensions of identification and to log the results.
 namespace Trial {
-    /// All trial functions require a Nibble connection and the number of the working benchmark.
-    struct WorkingBenchmark {
-        std::shared_ptr<Nibble> nb; ///< Pointer to a connection to Nibble. Only requires the BENCH table.
-        const unsigned int set_n; ///< Working benchmark number.
-    };
-    
     /// Attribute header that corresponds to the log file for Angle trials.
     const std::string ANGLE_ATTRIBUTE = "SetNumber,InputSize,IdentificationSize,MatchesFound,QuerySigma,MatchSigma,"
         "MatchMinimum\n";
@@ -40,20 +34,21 @@ namespace Trial {
     /// Attribute header that corresponds to the log file for Pyramid trials.
     const std::string PYRAMID_ATTRIBUTE = "SetNumber,InputSize,IdentificationSize,MatchesFound,QuerySigma,MatchSigma";
     
-    void record_angle (WorkingBenchmark &, std::ofstream &);
+    void record_angle (Nibble &, const unsigned int, std::ofstream &);
     
-    void record_plane (WorkingBenchmark &, std::ofstream &);
-    void record_plane_as_ms_ms (WorkingBenchmark &, std::ofstream &, std::shared_ptr<QuadNode> &, Plane::Parameters &);
+    void record_plane (Nibble &, const unsigned int, std::ofstream &);
+    void record_plane_as_ms_ms (Nibble &, const unsigned int, std::ofstream &, std::shared_ptr<QuadNode> &,
+                                Plane::Parameters &);
     
-    void record_sphere (WorkingBenchmark &, std::ofstream &);
-    void record_sphere_as_ms_ms (WorkingBenchmark &, std::ofstream &, std::shared_ptr<QuadNode> &,
+    void record_sphere (Nibble &, const unsigned int, std::ofstream &);
+    void record_sphere_as_ms_ms (Nibble &, const unsigned int, std::ofstream &, std::shared_ptr<QuadNode> &,
                                  Sphere::Parameters &);
     
-    void record_astro (WorkingBenchmark &, std::ofstream &);
-    void record_astro_ka_qs_ms (WorkingBenchmark &, std::ofstream &, std::shared_ptr<KdNode> &,
+    void record_astro (Nibble &, const unsigned int, std::ofstream &);
+    void record_astro_ka_qs_ms (Nibble &, const unsigned int, std::ofstream &, std::shared_ptr<KdNode> &,
                                 std::shared_ptr<KdNode> &, Astro::Parameters &);
     
-    void record_pyramid (WorkingBenchmark &, std::ofstream &);
+    void record_pyramid (Nibble &, const unsigned int, std::ofstream &);
 }
 
 #endif /* HOKU_RECORD_ANGLE_H */

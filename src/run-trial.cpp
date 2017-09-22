@@ -24,7 +24,7 @@
 #include "trial/trial.h"
 
 /// Alias for trial function pointers.
-typedef void (*trial_function) (Trial::WorkingBenchmark &, std::ofstream &);
+typedef void (*trial_function) (Nibble &, const unsigned int, std::ofstream &);
 
 /// Record the header given the identification choice.
 ///
@@ -47,11 +47,11 @@ void record_header(const int choice, std::ofstream &log) {
 /// @return Appropriate function pointer to a function in Trial.
 trial_function select_trial_function(const int choice) {
     switch(choice) {
-        case 0: return Trial::record_angle;
-        case 1: return Trial::record_astro;
-        case 2: return Trial::record_sphere;
-        case 3: return Trial::record_plane;
-        case 4: return Trial::record_pyramid;
+        case 0: return &Trial::record_angle;
+        case 1: return &Trial::record_astro;
+        case 2: return &Trial::record_sphere;
+        case 3: return &Trial::record_plane;
+        case 4: return &Trial::record_pyramid;
         default: throw "Identification choice is not within space {0, 1, 2, 3, 4, 5, 6}.";
     }
 }
@@ -74,14 +74,12 @@ int perform_trial (Nibble &nb, std::ofstream &log, const int choice, const int s
     
     // Select the specific trial function and prepare the WorkingBenchmark object.
     trial_function t_f = select_trial_function(choice);
-    Trial::WorkingBenchmark b;
-    b.nb = std::make_shared<Nibble>(nb);
     
     // Run the trials!
     nb.select_table(Benchmark::TABLE_NAME);
     for (unsigned int set_n = BENCH_START; set_n < BENCH_END; set_n++) {
         std::cout << "\rCurrent *Set* Number: " << set_n;
-        t_f(b, log);
+        t_f(nb, set_n, log);
     }
     
     return 0;
@@ -135,8 +133,10 @@ int main (int argc, char *argv[]) {
     }
     
     // Construct the log file based on the HOKU_PROJECT_PATH environment variable.
-    l << "data/logs/trial" << argv[1] << "-"  << clock::to_time_t(clock::now() - std::chrono::hours(24)) << ".csv";
+    l << "/data/logs/trial/" << argv[1] << "-"  << clock::to_time_t(clock::now() - std::chrono::hours(24)) << ".csv";
     log.open(std::string(std::getenv("HOKU_PROJECT_PATH")) + l.str());
+    
+    auto asdsadsd = std::string(std::getenv("HOKU_PROJECT_PATH")) + l.str();
     
     // Make sure the log file is open before proceeding.
     if (!log.is_open()) {
