@@ -49,12 +49,12 @@ int Sphere::generate_triangle_table (const double fov, const unsigned int td_h, 
         std::cout << "\r" << "Current *I* Star: " << all_stars[i].get_hr();
         for (unsigned int j = i + 1; j < all_stars.size() - 1; j++) {
             for (unsigned int k = j + 1; k < all_stars.size(); k++) {
-                
+
                 // Only insert if the angle between all stars are separated by fov degrees or less.
                 if (Star::within_angle({all_stars[i], all_stars[j], all_stars[k]}, fov)) {
                     double a_t = Trio::spherical_area(all_stars[i], all_stars[j], all_stars[k]);
                     double i_t = Trio::spherical_moment(all_stars[i], all_stars[j], all_stars[k], td_h);
-                    
+
                     nb.insert_into_table("hr_a, hr_b, hr_c, a, i", {(double) all_stars[i].get_hr(),
                         (double) all_stars[j].get_hr(), (double) all_stars[k].get_hr(), a_t, i_t});
                 }
@@ -63,7 +63,7 @@ int Sphere::generate_triangle_table (const double fov, const unsigned int td_h, 
         // Commit every star I change.
         transaction.commit();
     }
-    
+
     // Create an index for area searches. We aren't searching for polar moments.
     return nb.polish_table("a");
 }
@@ -100,13 +100,16 @@ std::vector<Trio::stars> Sphere::match_stars (const index_trio &hr_b) {
     return matched_stars;
 }
 
-/// Wrapper for BaseTriangle's identify_stars method. Match the stars found in the given benchmark to those in the
-/// Nibble database.
+
+
+/// Overloaded wrapper for BaseTriangle's identify_stars method. Match the stars found in the given benchmark to those
+/// in the Nibble database.
 ///
 /// @param input The set of benchmark data to work with.
 /// @param parameters Adjustments to the identification process.
 /// @param q_root Working quad-tree root node. If none is specified, we build the quad-tree here.
 /// @return Vector of body stars with their inertial BSC IDs that qualify as matches.
 Star::list Sphere::identify (const Benchmark &input, const Parameters &p, const std::shared_ptr<QuadNode> &q_root) {
-    return Sphere(input, p, q_root).identify_stars();
+    unsigned int z;
+    return Sphere(input, p, q_root).identify_stars(z);
 }
