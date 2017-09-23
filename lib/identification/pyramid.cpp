@@ -220,5 +220,5 @@ Star::list Pyramid::identify (const Benchmark &input, const Parameters &paramete
 /// @return Vector of body stars with their inertial BSC IDs that qualify as matches.
 Star::list Pyramid::identify (const Benchmark &input, const Parameters &parameters) {
     unsigned int z;
-    return Pyramid::identify(input, parameters);
+    return Pyramid::identify(input, parameters, z);
 }
