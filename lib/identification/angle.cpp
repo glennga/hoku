@@ -37,8 +37,8 @@ int Angle::generate_sep_table (const double fov, const std::string &table_name) 
             
             // Only insert if the angle between both stars is less than fov.
             if (theta < fov) {
-                nb.insert_into_table("hr_a, hr_b, theta",
-                                     {(double) all_stars[i].get_hr(), (double) all_stars[j].get_hr(), theta});
+                nb.insert_into_table("hr_a, hr_b, theta", {(double) all_stars[i].get_hr(),
+                    (double) all_stars[j].get_hr(), theta});
             }
         }
     }
@@ -167,16 +167,18 @@ Star::list Angle::check_assumptions (const Star::list &candidates, const Star::p
 ///
 /// @param input The set of benchmark data to work with.
 /// @param parameters Adjustments to the identification process.
+/// @param z Reference to variable that will hold the input comparison count.
 /// @return Vector of body stars with their inertial BSC IDs that qualify as matches.
-Star::list Angle::identify (const Benchmark &input, const Parameters &parameters) {
-    bool matched = false;
+Star::list Angle::identify (const Benchmark &input, const Parameters &parameters, unsigned int &z) {
     Star::list matches;
     Angle a(input, parameters);
+    z = 0;
     
     // There exists |A_input| choose 2 possibilities.
     for (unsigned int i = 0; i < a.input.size() - 1; i++) {
         for (unsigned int j = i + 1; j < a.input.size(); j++) {
             Star::list candidates;
+            z++;
             
             // Narrow down current pair to two stars in catalog. The order is currently unknown.
             Star::pair candidate_pair = a.find_candidate_pair(a.input[i], a.input[j]);
@@ -192,16 +194,23 @@ Star::list Angle::identify (const Benchmark &input, const Parameters &parameters
             
             // Definition of image match: |match| > match minimum OR |match| == |input|.
             if (matches.size() > a.parameters.match_minimum || matches.size() == a.input.size()) {
-                matched = true;
-                break;
+                return matches;
             }
-        }
-        
-        // Break early if the matched condition is met.
-        if (matched) {
-            break;
         }
     }
     
+    // Return an empty list if no matches found.
     return matches;
 }
+
+/// Overloaded to not include the comparison count parameter. Match the stars found in the given benchmark to those in
+/// the Nibble database.
+///
+/// @param input The set of benchmark data to work with.
+/// @param parameters Adjustments to the identification process.
+/// @return Vector of body stars with their inertial BSC IDs that qualify as matches.
+Star::list Angle::identify (const Benchmark &input, const Parameters &parameters) {
+    unsigned int z = 0;
+    return Angle::identify(input, parameters, z);
+}
+

@@ -59,7 +59,7 @@ class BaseTriangle {
     using index_trio = std::array<double, 3>;
     
   protected:
-    Star::list identify_stars ();
+    Star::list identify_stars (unsigned int &);
     std::vector<hr_trio> query_for_trio (const double, const double);
     
   private:

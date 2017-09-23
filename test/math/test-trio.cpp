@@ -22,10 +22,13 @@ int TestTrio::test_planar_length_computation () {
 int TestTrio::test_spherical_length_computation () {
     Trio a(Star(1, 1, 1), Star(1, -1, 1), Star(-1, -1, 5));
     std::array<double, 3> b = a.spherical_lengths();
+    auto compute_length = [] (const Star &beta_1, const Star &beta_2) -> double {
+        return acos(Star::dot(beta_1, beta_2) / (beta_1.norm() * beta_2.norm()));
+    };
     
-    assert_equal(b[0], Star::angle_between(a.b_1, a.b_2), "SphericalLengthComputationAB");
-    assert_equal(b[1], Star::angle_between(a.b_2, a.b_3), "SphericalLengthComputationBC");
-    return 0 * assert_equal(b[2], Star::angle_between(a.b_3, a.b_1), "SphericalLengthComputationCA");
+    assert_equal(b[0], compute_length(a.b_1, a.b_2), "SphericalLengthComputationAB");
+    assert_equal(b[1], compute_length(a.b_2, a.b_3), "SphericalLengthComputationBC");
+    return 0 * assert_equal(b[2], compute_length(a.b_3, a.b_1), "SphericalLengthComputationCA");
 }
 
 /// Check that the semi perimeter is correctly computed. The should be half the triangle's perimeter. Answers checked
