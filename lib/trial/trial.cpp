@@ -25,13 +25,14 @@ void Trial::record_angle (Nibble &nb, const unsigned int set_n, std::ofstream &l
                 // Read the benchmark, copy the list here.
                 Benchmark input = Benchmark::parse_from_nibble(nb, set_n);
                 input.present_image(s, fov);
+                unsigned int z = 0;
                 
                 // Identify the image, record the number of actual matches that exist.
                 Star::list results = Angle::identify(input, p);
                 int matches_found = Benchmark::compare_stars(input, results);
                 
                 log << set_n << "," << s.size() << "," << results.size() << "," << matches_found << ",";
-                log << p.query_sigma << "," << p.match_sigma << "," << p.match_minimum << '\n';
+                log << p.query_sigma << "," << p.match_sigma << "," << p.match_minimum << "," <<  z << '\n';
             }
         }
     }
@@ -75,14 +76,15 @@ void Trial::record_plane_as_ms_ms (Nibble &nb, const unsigned int set_n, std::of
                 // Read the benchmark, copy the list here.
                 Benchmark input = Benchmark::parse_from_nibble(nb, set_n);
                 input.present_image(s, fov);
-                
+                unsigned int z = 0;
+    
                 // Identify the image, record the number of actual matches that exist.
-                Star::list results = Plane::identify(input, p, q_root);
+                Star::list results = Plane::identify(input, p, z, q_root);
                 int matches_found = Benchmark::compare_stars(input, results);
                 
                 log << set_n << "," << s.size() << "," << results.size() << "," << matches_found << ",";
                 log << p.sigma_a << "," << p.sigma_i << "," << p.match_sigma << "," << p.match_minimum << ",";
-                log << p.quadtree_w << '\n';
+                log << p.quadtree_w << "," << z << '\n';
             }
         }
     }
@@ -126,14 +128,15 @@ void Trial::record_sphere_as_ms_ms (Nibble &nb, const unsigned int set_n, std::o
                 // Read the benchmark, copy the list here.
                 Benchmark input = Benchmark::parse_from_nibble(nb, set_n);
                 input.present_image(s, fov);
+                unsigned int z = 0;
                 
                 // Identify the image, record the number of actual matches that exist.
-                Star::list results = Sphere::identify(input, p, q_root);
+                Star::list results = Sphere::identify(input, p, z, q_root);
                 int matches_found = Benchmark::compare_stars(input, results);
                 
                 log << set_n << "," << s.size() << "," << results.size() << "," << matches_found << ",";
                 log << p.sigma_a << "," << p.sigma_i << "," << p.match_sigma << "," << p.match_minimum << ",";
-                log << p.quadtree_w << '\n';
+                log << p.quadtree_w << "," << z << '\n';
             }
         }
     }
@@ -201,14 +204,15 @@ void Trial::record_astro_ka_qs_ms (Nibble &nb, const unsigned int set_n, std::of
                 // Read the benchmark, copy the list here.
                 Benchmark input = Benchmark::parse_from_nibble(nb, set_n);
                 input.present_image(s, fov);
+                unsigned int z = 0;
                 
                 // Identify the image, record the number of actual matches that exist.
-                Star::list results = Astro::identify(input, p, star_root, astro_root);
+                Star::list results = Astro::identify(input, p, z, star_root, astro_root);
                 int matches_found = Benchmark::compare_stars(input, results);
                 
                 log << set_n << "," << s.size() << "," << results.size() << "," << matches_found << ",";
                 log << p.query_sigma << "," << p.match_sigma << "," << p.kd_tree_w << "," << p.k_accept << ",";
-                log << p.u_fn << "," << p.u_fp << "," << p.u_tn << "," << p.u_tp << '\n';
+                log << p.u_fn << "," << p.u_fp << "," << p.u_tn << "," << p.u_tp << "," << z << '\n';
             }
         }
     }
@@ -231,13 +235,14 @@ void Trial::record_pyramid (Nibble &nb, const unsigned int set_n, std::ofstream 
             // Read the benchmark, copy the list here.
             Benchmark input = Benchmark::parse_from_nibble(nb, set_n);
             input.present_image(s, fov);
+            unsigned int z = 0;
             
             // Identify the image, record the number of actual matches that exist.
-            Star::list results = Pyramid::identify(input, p);
+            Star::list results = Pyramid::identify(input, p, z);
             int matches_found = Benchmark::compare_stars(input, results);
             
             log << set_n << "," << s.size() << "," << results.size() << "," << matches_found << ",";
-            log << p.query_sigma << "," << p.match_sigma << '\n';
+            log << p.query_sigma << "," << p.match_sigma << "," << z << '\n';
         }
     }
 }

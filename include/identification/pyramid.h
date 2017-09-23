@@ -50,6 +50,7 @@ class Pyramid {
     Pyramid () = delete;
   
   public:
+    static Star::list identify (const Benchmark &, const Parameters &, unsigned int &);
     static Star::list identify (const Benchmark &, const Parameters &);
     static int generate_sep_table (const double, const std::string &);
   
@@ -83,7 +84,7 @@ class Pyramid {
     
     /// All stars in 'input' are fov degrees from the focus.
     double fov;
-  
+    
   private:
     Pyramid (const Benchmark &, const Parameters &);
     

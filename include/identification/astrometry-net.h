@@ -64,6 +64,8 @@ class AstrometryNet {
     AstrometryNet () = delete;
   
   public:
+    static Star::list identify (const Benchmark &, const Parameters &, unsigned int &,
+                                const std::shared_ptr<KdNode> & = nullptr, const std::shared_ptr<KdNode> & = nullptr);
     static Star::list identify (const Benchmark &, const Parameters &, const std::shared_ptr<KdNode> & = nullptr,
                                 const std::shared_ptr<KdNode> & = nullptr);
     
@@ -121,6 +123,7 @@ class AstrometryNet {
     
     /// Another Kd-tree root. Used for finding nearby **asterisms**.
     std::shared_ptr<KdNode> astro_root;
+    
 };
 
 /// Alias for the AstrometryNet class. 'Astro' distinguishes the process I am testing here enough from the 4 other
