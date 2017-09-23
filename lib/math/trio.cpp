@@ -71,7 +71,7 @@ double Trio::planar_moment (const Star &b_1, const Star &b_2, const Star &b_3) {
 /// @param b_3 Star B_3 of the trio.
 /// @return The spherical area of {B_1, B_2, B_3}.
 double Trio::spherical_area (const Star &b_1, const Star &b_2, const Star &b_3) {
-    side_lengths ell = Trio(b_2, b_2, b_3).spherical_lengths();
+    side_lengths ell = Trio(b_1, b_2, b_3).spherical_lengths();
     double s = semi_perimeter(ell[0], ell[1], ell[2]);
     double rad = M_PI / 180.0;
     
