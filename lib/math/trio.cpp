@@ -21,12 +21,14 @@ Trio::side_lengths Trio::planar_lengths () const {
     return {(this->b_1 - this->b_2).norm(), (this->b_2 - this->b_3).norm(), (this->b_3 - this->b_1).norm()};
 }
 
-/// Compute the spherical side lengths (angular separation) of the triangle.
+/// Compute the spherical side lengths of the triangle.
 ///
-/// @return Side lengths in order a, b, c.
+/// @return Side lengths in order a, b, c in **radians**.
 Trio::side_lengths Trio::spherical_lengths () const {
-    return {Star::angle_between(this->b_1, this->b_2), Star::angle_between(this->b_2, this->b_3),
-        Star::angle_between(this->b_3, this->b_1)};
+    auto compute_length = [] (const Star &beta_1, const Star &beta_2) -> double {
+        return acos(Star::dot(beta_1, beta_2) / (beta_1.norm() * beta_2.norm()));
+    };
+    return {compute_length(b_1, b_2), compute_length(b_2, b_3), compute_length(b_3, b_1)};
 }
 
 /// Find the triangle's semi perimeter (perimeter * 0.5) given the side lengths.
@@ -64,23 +66,39 @@ double Trio::planar_moment (const Star &b_1, const Star &b_2, const Star &b_3) {
 }
 
 /// The three stars are connected with great arcs facing inward (modeling extended sphere of Earth), forming a
-/// spherical triangle. Find the surface area of this.
+/// spherical triangle. Find the surface area of this. Based on L'Huilier's Formula and using the excess formula
+/// defined in terms of two edges and their included angle:
+/// https://en.wikipedia.org/wiki/Spherical_trigonometry#Area_and_spherical_excess
 ///
 /// @param b_1 Star B_1 of the trio.
 /// @param b_2 Star B_2 of the trio.
 /// @param b_3 Star B_3 of the trio.
-/// @return The spherical area of {B_1, B_2, B_3}.
-double Trio::spherical_area (const Star &b_1, const Star &b_2, const Star &b_3) {
-    side_lengths ell = Trio(b_2, b_2, b_3).spherical_lengths();
-    double s = semi_perimeter(ell[0], ell[1], ell[2]);
-    double rad = M_PI / 180.0;
+/// @param h Recursion depth. This should never be more than two.
+/// @return 0 if any of the stars are equal to each other. The spherical area of {B_1, B_2, B_3} otherwise.
+double Trio::spherical_area (const Star &b_1, const Star &b_2, const Star &b_3, const int h) {
+    side_lengths ell = Trio(b_1, b_2, b_3).spherical_lengths();
     
-    // Determine inner component of the square root.
-    double f = tan(rad * s / 2.0) * tan(rad * (s - ell[0]) / 2.0);
-    f *= tan(rad * (s - ell[1]) / 2.0) * tan(rad * (s - ell[2]) / 2.0);
+    // If any of the stars are positioned in the same spot, this is a line. There exists no area.
+    if (b_1 == b_2 || b_2 == b_3 || b_3 == b_1) {
+        return 0;
+    }
     
-    // Convert back to degrees.
-    return 4.0 * atan(sqrt(f)) / rad;
+    // We find the angle of [b_2,b_3,b_1] ~(at b_3).
+    double c_hat = (cos(ell[2]) - cos(ell[1]) * cos(ell[0])) / (sin(ell[1]) * sin(ell[0]));
+    
+    // If we have a negative angle, we recurse with different different stars.
+    if (c_hat < 0 && h < 2) {
+        return Trio::spherical_area(b_2, b_3, b_1, h + 1);
+    }
+    else if (c_hat < 0 && h == 2) {
+        throw "Unable to find positive c_hat.";
+    }
+    else {
+        // Find and return the excess.
+        double f = tan(ell[0] * 0.5) * tan(ell[1] * 0.5) * sin(c_hat);
+        f /= 1 + tan(ell[0] * 0.5) * tan(ell[1] * 0.5) * sin(c_hat);
+        return 2.0 * atan(f);
+    }
 }
 
 /// Determine the centroid of a **planar** triangle formed by the given three stars. It's use is appropriate for the

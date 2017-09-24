@@ -38,7 +38,7 @@ class Trio {
     static double planar_area (const Star &, const Star &, const Star &);
     static double planar_moment (const Star &, const Star &, const Star &);
     
-    static double spherical_area (const Star &, const Star &, const Star &);
+    static double spherical_area (const Star &, const Star &, const Star &, const int= 0);
     static double spherical_moment (const Star &, const Star &, const Star &, const int= 3);
   
   private:
