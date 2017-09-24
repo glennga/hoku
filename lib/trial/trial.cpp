@@ -28,7 +28,7 @@ void Trial::record_angle (Nibble &nb, const unsigned int set_n, std::ofstream &l
                 unsigned int z = 0;
                 
                 // Identify the image, record the number of actual matches that exist.
-                Star::list results = Angle::identify(input, p);
+                Star::list results = Angle::identify(input, p, z);
                 int matches_found = Benchmark::compare_stars(input, results);
                 
                 log << set_n << "," << s.size() << "," << results.size() << "," << matches_found << ",";
