@@ -47,7 +47,7 @@ AstrometryNet::AstrometryNet (const Benchmark &input, const Parameters &paramete
     }
     else {
         this->astro_root = astro_root;
-    
+        
     }
 }
 
@@ -345,12 +345,14 @@ unsigned int Astro::compare_alignments (const models &proposed, const models &co
 ///
 /// @param input The set of benchmark data to work with.
 /// @param parameters Adjustments to the identification process.
+/// @param z Reference to variable that will hold the input comparison count.
 /// @param star_root Working kd-tree root node for nearby stars.
 /// @param astro_root Working kd-tree root node for nearby asterisms.
 /// @return Vector of body stars with their inertial BSC IDs that qualify as matches.
-Star::list Astro::identify (const Benchmark &input, const Parameters &parameters,
+Star::list Astro::identify (const Benchmark &input, const Parameters &parameters, unsigned int &z,
                             const std::shared_ptr<KdNode> &star_root, const std::shared_ptr<KdNode> &astro_root) {
     Astro a(input, parameters, star_root, astro_root);
+    z = 0;
     
     // This procedure will not work |A_input| < 4. Exit early with empty list.
     if (a.input.size() < 4) {
@@ -363,6 +365,7 @@ Star::list Astro::identify (const Benchmark &input, const Parameters &parameters
         for (int k = j + 1, m = k + 1; k < INPUT_SIZE - 1; m = (m < INPUT_SIZE - 1) ? m + 1 : k++ + 2) {
             hr_quad r_hr = a.query_for_asterism({i, j, k, m});
             unsigned long b_f = 1;
+            z++;
             
             // Propose an alignment (r -> b frame). If no asterism can be generated, we break early.
             Rotation a_p = a.propose_alignment({i, j, k, m}, r_hr);
@@ -388,4 +391,18 @@ Star::list Astro::identify (const Benchmark &input, const Parameters &parameters
     }
     
     return Star::list{};
+}
+
+/// Overloaded to not include the comparison count parameter. Match the stars found in the given benchmark to those in
+/// the Nibble database.
+///
+/// @param input The set of benchmark data to work with.
+/// @param parameters Adjustments to the identification process.
+/// @param star_root Working kd-tree root node for nearby stars.
+/// @param astro_root Working kd-tree root node for nearby asterisms.
+/// @return Vector of body stars with their inertial BSC IDs that qualify as matches.
+Star::list Astro::identify (const Benchmark &input, const Parameters &parameters,
+                            const std::shared_ptr<KdNode> &star_root, const std::shared_ptr<KdNode> &astro_root) {
+    unsigned int z;
+    return Astro::identify(input, parameters, z, star_root, astro_root);
 }

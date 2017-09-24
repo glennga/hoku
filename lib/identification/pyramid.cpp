@@ -164,9 +164,11 @@ Star::list Pyramid::match_remaining (const Star::list &candidates, const index_q
 ///
 /// @param input The set of benchmark data to work with.
 /// @param parameters Adjustments to the identification process.
+/// @param z Reference to variable that will hold the input comparison count.
 /// @return Vector of body stars with their inertial BSC IDs that qualify as matches.
-Star::list Pyramid::identify (const Benchmark &input, const Parameters &parameters) {
+Star::list Pyramid::identify (const Benchmark &input, const Parameters &parameters, unsigned int &z) {
     Pyramid p(input, parameters);
+    z = 0;
     
     // This procedure will not work |P_input| < 4. Exit early with empty list.
     if (p.input.size() < 4) {
@@ -180,6 +182,7 @@ Star::list Pyramid::identify (const Benchmark &input, const Parameters &paramete
                 for (unsigned int i = 0; i < p.input.size() - dj - dk; i++) {
                     int j = i + dj, k = j + dk;
                     Star::list candidates;
+                    z++;
                     
                     // We check for cases where e == i, e == j, ... for duplicates. If so, break early.
                     std::array<int, 4> indices = {(int) i, j, k, (int) e};
@@ -207,4 +210,15 @@ Star::list Pyramid::identify (const Benchmark &input, const Parameters &paramete
     
     // There exists no matches. Return an empty list.
     return {};
+}
+
+/// Overloaded to not include the comparison count parameter. Match the stars found in the given benchmark to those in
+/// the Nibble database.
+///
+/// @param input The set of benchmark data to work with.
+/// @param parameters Adjustments to the identification process.
+/// @return Vector of body stars with their inertial BSC IDs that qualify as matches.
+Star::list Pyramid::identify (const Benchmark &input, const Parameters &parameters) {
+    unsigned int z;
+    return Pyramid::identify(input, parameters, z);
 }

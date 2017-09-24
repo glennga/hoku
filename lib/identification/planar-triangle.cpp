@@ -54,9 +54,8 @@ int Plane::generate_triangle_table (const double fov, const std::string &table_n
                     double a_t = Trio::planar_area(all_stars[i], all_stars[j], all_stars[k]);
                     double i_t = Trio::planar_moment(all_stars[i], all_stars[j], all_stars[k]);
                     
-                    nb.insert_into_table("hr_a, hr_b, hr_c, a, i",
-                                         {(double) all_stars[i].get_hr(), (double) all_stars[j].get_hr(),
-                                             (double) all_stars[k].get_hr(), a_t, i_t});
+                    nb.insert_into_table("hr_a, hr_b, hr_c, a, i", {(double) all_stars[i].get_hr(),
+                        (double) all_stars[j].get_hr(), (double) all_stars[k].get_hr(), a_t, i_t});
                 }
             }
         }
@@ -85,8 +84,7 @@ std::vector<Trio::stars> Plane::match_stars (const index_trio &i_b) {
     }
     
     // Search for the current trio. If this is empty, then break early.
-    match_hr = this->query_for_trio(Trio::planar_area(b_stars[0], b_stars[1], b_stars[2]),
-                                    Trio::planar_moment(b_stars[0], b_stars[1], b_stars[2]));
+    match_hr = this->query_for_trio(Trio::planar_area(b_stars[0], b_stars[1], b_stars[2]), Trio::planar_moment(b_stars[0], b_stars[1], b_stars[2]));
     if (std::equal(match_hr[0].begin() + 1, match_hr[0].end(), match_hr[0].begin())) {
         return {{Star::zero(), Star::zero(), Star::zero()}};
     }
@@ -105,8 +103,22 @@ std::vector<Trio::stars> Plane::match_stars (const index_trio &i_b) {
 ///
 /// @param input The set of benchmark data to work with.
 /// @param parameters Adjustments to the identification process.
+/// @param z Reference to variable that will hold the input comparison count.
 /// @param q_root Working quad-tree root node. If none is specified, we build the quad-tree here.
 /// @return Vector of body stars with their inertial BSC IDs that qualify as matches.
-Star::list Plane::identify(const Benchmark &input, const Parameters &p, const std::shared_ptr<QuadNode> &q_root) {
-    return Plane(input, p, q_root).identify_stars();
+Star::list Plane::identify (const Benchmark &input, const Parameters &p, unsigned int &z,
+                            const std::shared_ptr<QuadNode> &q_root) {
+    return Plane(input, p, q_root).identify_stars(z);
+}
+
+/// Overloaded wrapper for BaseTriangle's identify_stars method. Match the stars found in the given benchmark to those
+/// in the Nibble database.
+///
+/// @param input The set of benchmark data to work with.
+/// @param parameters Adjustments to the identification process.
+/// @param q_root Working quad-tree root node. If none is specified, we build the quad-tree here.
+/// @return Vector of body stars with their inertial BSC IDs that qualify as matches.
+Star::list Plane::identify (const Benchmark &input, const Parameters &p, const std::shared_ptr<QuadNode> &q_root) {
+    unsigned int z;
+    return Plane(input, p, q_root).identify_stars(z);
 }

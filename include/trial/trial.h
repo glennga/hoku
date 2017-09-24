@@ -17,22 +17,24 @@
 namespace Trial {
     /// Attribute header that corresponds to the log file for Angle trials.
     const std::string ANGLE_ATTRIBUTE = "SetNumber,InputSize,IdentificationSize,MatchesFound,QuerySigma,MatchSigma,"
-        "MatchMinimum\n";
+        "MatchMinimum,ComparisonCount\n";
     
     /// Attribute header that corresponds to the log file for Plane trials.
     const std::string PLANE_ATTRIBUTE = "SetNumber,InputSize,IdentificationSize,MatchesFound,SigmaA,SigmaI,MatchSigma,"
-        "MatchMinimum,QuadtreeW\n";
+        "MatchMinimum,QuadtreeW,ComparisonCount\n";
     
     /// Attribute header that corresponds to the log file for Sphere trials.
     const std::string SPHERE_ATTRIBUTE = "SetNumber,InputSize,IdentificationSize,MatchesFound,SigmaA,SigmaI,MatchSigma,"
-        "MatchMinimum,QuadtreeW\n";
+        "MatchMinimum,QuadtreeW,ComparisonCount\n";
     
     /// Attribute header that corresponds to the log file for Astro trials.
     const std::string ASTRO_ATTRIBUTE = "SetNumber,InpputSize,IdentificationSize,MatchesFound,QuerySigma,MatchSigma,"
-        "KdTreeW,KAcceptAlignment,UtilityFalseNegative,UtilityFalsePositive,UtilityTrueNegative,UtilityTruePositive";
+        "KdTreeW,KAcceptAlignment,UtilityFalseNegative,UtilityFalsePositive,UtilityTrueNegative,UtilityTruePositive,"
+        "ComparisonCount";
     
     /// Attribute header that corresponds to the log file for Pyramid trials.
-    const std::string PYRAMID_ATTRIBUTE = "SetNumber,InputSize,IdentificationSize,MatchesFound,QuerySigma,MatchSigma";
+    const std::string PYRAMID_ATTRIBUTE = "SetNumber,InputSize,IdentificationSize,MatchesFound,QuerySigma,MatchSigma,"
+        "ComparisonCount";
     
     void record_angle (Nibble &, const unsigned int, std::ofstream &);
     

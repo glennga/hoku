@@ -54,9 +54,10 @@ class Angle {
     Angle () = delete;
   
   public:
+    static Star::list identify (const Benchmark &, const Parameters &, unsigned int &);
     static Star::list identify (const Benchmark &, const Parameters &);
     static int generate_sep_table (const double, const std::string &);
-  
+    
   private:
     /// Alias for a pair of Harvard Revised numbers (2-element STL array of doubles).
     using hr_pair = std::array<int, 2>;
@@ -72,7 +73,7 @@ class Angle {
     
     /// All stars in 'input' are fov degrees from the focus.
     double fov;
-  
+    
   private:
     Angle (const Benchmark &, const Parameters &);
     

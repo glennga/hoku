@@ -298,8 +298,9 @@ int TestPlanarTriangle::test_tree_built_outside () {
     a.match_minimum = (unsigned int) ((input.stars.size() - 1) * (2.0 / 3.0));
     a.table_name = "PLANE_20";
     std::shared_ptr<QuadNode> q_root = std::make_shared<QuadNode>(QuadNode::load_tree(1000));
+    unsigned int z = 0;
     
-    std::vector<Star> c = Plane::identify(input, a, q_root);
+    std::vector<Star> c = Plane::identify(input, a, z, q_root);
     std::string all_input = "";
     for (const Star &s : input.stars) {
         all_input += !(s == input.stars[input.stars.size() - 1]) ? s.str() + "," : s.str();

@@ -37,7 +37,7 @@ void record_header(const int choice, std::ofstream &log) {
         case 2: return (void) (log << Trial::SPHERE_ATTRIBUTE);
         case 3: return (void) (log << Trial::PLANE_ATTRIBUTE);
         case 4: return (void) (log << Trial::PYRAMID_ATTRIBUTE);
-        default: throw "Identification choice is not within space {0, 1, 2, 3, 4, 5, 6}.";
+        default: throw "Identification choice is not within space {0, 1, 2, 3, 4}.";
     }
 }
 
@@ -52,7 +52,7 @@ trial_function select_trial_function(const int choice) {
         case 2: return &Trial::record_sphere;
         case 3: return &Trial::record_plane;
         case 4: return &Trial::record_pyramid;
-        default: throw "Identification choice is not within space {0, 1, 2, 3, 4, 5, 6}.";
+        default: throw "Identification choice is not within space {0, 1, 2, 3, 4}.";
     }
 }
 
@@ -89,16 +89,16 @@ int perform_trial (Nibble &nb, std::ofstream &log, const int choice, const int s
 /// benchmark to run the trials from.
 ///
 /// /// @code{.cpp}
-/// - 0 -> Run the trials with the Angle method.
-/// - 1 -> Run the trials with the AstrometryNet method.
-/// - 2 -> Run the trials with the SphericalTriangle method.
-/// - 3 -> Run the trials with the PlanarTriangle method.
-/// - 4 -> Run the trials with the Pyramid method.
+/// - 0 x -> Run the trials with the Angle method.
+/// - 1 x -> Run the trials with the AstrometryNet method.
+/// - 2 x -> Run the trials with the SphericalTriangle method.
+/// - 3 x -> Run the trials with the PlanarTriangle method.
+/// - 4 x -> Run the trials with the Pyramid method.
 ///
 /// - x [0->MAX(set_n)] -> Start the trial with the given set_n (Benchmark) number.
 /// @endcode
 ///
-/// @param argc Argument count. Domain is [2, 3].
+/// @param argc Argument count. This must be equal to 3.
 /// @param argv Argument vector. Determines which identification method to use, and which Benchmark to start from.
 /// @return -1 if the arguments are incorrect. 0 otherwise.
 int main (int argc, char *argv[]) {
@@ -111,32 +111,31 @@ int main (int argc, char *argv[]) {
     using clock = std::chrono::high_resolution_clock;
     
     // Verify the arguments.
-    if (argc < 2 || argc > 3) {
+    if (argc != 3) {
         std::cout << "Usage: RunTrial [IdentificationChoice] [StartingBenchmark]" << std::endl;
         return -1;
     }
-    if (argc > 2) {
+    else {
         // Verify that the first argument is within [0, 1, 2, 3, 4].
         auto is_valid_arg = [] (const char *arg, const std::vector<std::string> &input_space) -> bool {
             std::string a = std::string(arg);
             return std::find(input_space.begin(), input_space.end(), a) != input_space.end();
         };
         if (!is_valid_arg(argv[1], {"0", "1", "2", "3", "4"})) {
-            std::cout << "Usage RunTrial [0 - 4] [0 - MAX(set_n)]" << std::endl;
+            std::cout << "Usage: RunTrial [0 - 4] [0 - MAX(set_n)]" << std::endl;
             return -1;
         }
-    }
-    if (argc == 3 && (atoi(argv[2]) <= 0 || atoi(argv[2]) > nb.search_table("MAX(set_n)", 1, 1)[0])) {
-        // Verify that the second argument is a valid set_n number.
-        std::cout << "Usage RunTrial [0 - 4] [0 - MAX(set_n)]" << std::endl;
-        return -1;
+        
+        if (atoi(argv[2]) < 0 || atoi(argv[2]) > nb.search_table("MAX(set_n)", 1, 1)[0]) {
+            // Verify that the second argument is a valid set_n number.
+            std::cout << "Usage: RunTrial [0 - 4] [0 - MAX(set_n)]" << std::endl;
+            return -1;
+        }
     }
     
     // Construct the log file based on the HOKU_PROJECT_PATH environment variable.
     l << "/data/logs/trial/" << argv[1] << "-"  << clock::to_time_t(clock::now() - std::chrono::hours(24)) << ".csv";
     log.open(std::string(std::getenv("HOKU_PROJECT_PATH")) + l.str());
-    
-    auto asdsadsd = std::string(std::getenv("HOKU_PROJECT_PATH")) + l.str();
     
     // Make sure the log file is open before proceeding.
     if (!log.is_open()) {
