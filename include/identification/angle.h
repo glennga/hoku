@@ -47,16 +47,17 @@ class Angle {
         unsigned int query_limit = 5; ///< While performing a basic bound query, limit results by this number.
         double match_sigma = 0.00001; ///< Resultant of inertial->body rotation must within 3 * match_sigma of *a* body.
         unsigned int match_minimum = 10; ///< The minimum number of body-inertial matches.
-        std::string table_name = "SEP20"; ///< Name of the Nibble database table created with 'generate_sep_table'.
+        std::string table_name = "SEP_20"; ///< Name of the Nibble database table created with 'generate_sep_table'.
     };
     
     /// User should **NOT** be creating instances of Angle manually. Instead, use the static 'identify' function.
     Angle () = delete;
   
   public:
+    static Star::list identify (const Benchmark &, const Parameters &, unsigned int &);
     static Star::list identify (const Benchmark &, const Parameters &);
     static int generate_sep_table (const double, const std::string &);
-  
+    
   private:
     /// Alias for a pair of Harvard Revised numbers (2-element STL array of doubles).
     using hr_pair = std::array<int, 2>;
@@ -72,7 +73,7 @@ class Angle {
     
     /// All stars in 'input' are fov degrees from the focus.
     double fov;
-  
+    
   private:
     Angle (const Benchmark &, const Parameters &);
     

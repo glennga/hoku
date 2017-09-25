@@ -30,7 +30,7 @@ std::vector<BaseTriangle::hr_trio> BaseTriangle::query_for_trio (const double a,
     for (unsigned int m = 0; m < area_match.size() / 4; m++) {
         Chomp::tuple t = ch.table_results_at(area_match, 4, m);
         
-        if (t[3] <= i - epsilon_i && t[3] > i + epsilon_i) {
+        if (t[3] >= i - epsilon_i && t[3] < i + epsilon_i) {
             area_moment_match.push_back({t[0], t[1], t[2]});
         }
     }
@@ -156,9 +156,11 @@ Star::list BaseTriangle::check_assumptions (const Star::list &candidates, const 
 /// Match the stars found in the current benchmark to those in the Nibble database. The child class should wrap this
 /// function as 'identify' to mimic the other methods.
 ///
+/// @param z Reference to variable that will hold the input comparison count.
 /// @return Vector of body stars with their inertial BSC IDs that qualify as matches.
-Star::list BaseTriangle::identify_stars () {
+Star::list BaseTriangle::identify_stars (unsigned int &z) {
     Star::list matches;
+    z = 0;
     
     // There exists |input| choose 3 possibilities.
     for (unsigned int i = 0; i < input.size() - 2; i++) {
@@ -167,6 +169,7 @@ Star::list BaseTriangle::identify_stars () {
                 std::vector<Trio::stars> candidate_trios;
                 Trio::stars candidate_trio;
                 Star::list candidates;
+                z++;
                 
                 // Find matches of current body trio to catalog. Pivot if necessary.
                 candidate_trios = match_stars({(double) i, (double) j, (double) k});

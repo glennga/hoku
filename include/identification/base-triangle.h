@@ -23,12 +23,12 @@ class BaseTriangle {
   public:
     /// Defines the query and match operations, user can tweak for custom performance.
     struct Parameters {
-        double sigma_a = 0.00000000001; ///< An area query must be within 3 * sigma_a of a given search.
+        double sigma_a = 0.000000001; ///< An area query must be within 3 * sigma_a of a given search.
         double sigma_i = 0.00000000001; ///< A moment query must be within 3 * sigma_i of a given search.
-        unsigned int query_expected = 10; ///< Expected number of stars to be found with query. Better to overshoot.
+        unsigned int query_expected = 30; ///< Expected number of stars to be found with query. Better to overshoot.
         double match_sigma = 0.00001; ///< Resultant of inertial->body rotation must within 3 * match_sigma of *a* body.
         unsigned int match_minimum = 10; ///< The minimum number of body-inertial matches.
-        unsigned int bsc5_quadtree_w = 1000; ///< The size of the square to project all BSC5 stars onto (for quadtree).
+        unsigned int quadtree_w = 1000; ///< The size of the square to project all BSC5 stars onto (for quadtree).
         int moment_td_h = 3; ///< Maximum level of recursion to generate polar moment (spherical only).
         std::string table_name; ///< Name of the Nibble table created with 'generate_triangle_table'.
     };
@@ -59,7 +59,7 @@ class BaseTriangle {
     using index_trio = std::array<double, 3>;
     
   protected:
-    Star::list identify_stars ();
+    Star::list identify_stars (unsigned int &);
     std::vector<hr_trio> query_for_trio (const double, const double);
     
   private:

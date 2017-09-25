@@ -145,11 +145,5 @@ int TestAstrometryNet::enumerate_tests (int test_case) {
 ///
 /// @return -1 if the log file cannot be opened. 0 otherwise.
 int main () {
-    //    AstromteryNet::generate_hash_table(20, 1000, 1000, "ASTRO_H20");
-    //    AstrometryNet::generate_center_table("ASTRO_H20", "ASTRO_C20");
-    //    Chomp::create_k_vector("ASTRO_H20", "cx");
-    //    Chomp::create_k_vector("ASTRO_C20", "i");
-    //    Nibble::polish_table("ASTRO_H20_KVEC", "k_value");
-    //    Nibble::polish_table("ASTRO_C20_KVEC", "k_value");
     return TestAstrometryNet().execute_tests();
 }
