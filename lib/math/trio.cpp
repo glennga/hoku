@@ -74,9 +74,14 @@ double Trio::planar_moment (const Star &b_1, const Star &b_2, const Star &b_3) {
 /// @param b_2 Star B_2 of the trio.
 /// @param b_3 Star B_3 of the trio.
 /// @param h Recursion depth. This should never be more than two.
-/// @return The spherical area of {B_1, B_2, B_3}.
+/// @return 0 if any of the stars are equal to each other. The spherical area of {B_1, B_2, B_3} otherwise.
 double Trio::spherical_area (const Star &b_1, const Star &b_2, const Star &b_3, const int h) {
     side_lengths ell = Trio(b_1, b_2, b_3).spherical_lengths();
+    
+    // If any of the stars are positioned in the same spot, this is a line. There exists no area.
+    if (b_1 == b_2 || b_2 == b_3 || b_3 == b_1) {
+        return 0;
+    }
     
     // We find the angle of [b_2,b_3,b_1] ~(at b_3).
     double c_hat = (cos(ell[2]) - cos(ell[1]) * cos(ell[0])) / (sin(ell[1]) * sin(ell[0]));
