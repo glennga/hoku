@@ -68,8 +68,8 @@ void record_c (Nibble &nb, unsigned int &set_n, double fov) {
 /// @param set_n Reference to the current ID. This is logged with Nibble, and must **NOT** already exist in Nibble.
 /// @param fov Current field-of-view.
 void record_e (Nibble &nb, unsigned int &set_n, double fov) {
-    Benchmark b(fov, Star::chance(), Rotation::chance());
     for (int n_added = DCBG::E_MIN; n_added <= DCBG::E_MAX; n_added++) {
+        Benchmark b(fov, Star::chance(), Rotation::chance());
         b.add_extra_light(n_added);
         b.insert_into_nibble(nb, set_n++);
     }
@@ -81,9 +81,9 @@ void record_e (Nibble &nb, unsigned int &set_n, double fov) {
 /// @param set_n Reference to the current ID. This is logged with Nibble, and must **NOT** already exist in Nibble.
 /// @param fov Current field-of-view.
 void record_r (Nibble &nb, unsigned int &set_n, double fov) {
-    Benchmark b(fov, Star::chance(), Rotation::chance());
     for (int n_spots = DCBG::RN_MIN; n_spots <= DCBG::RN_MAX; n_spots++) {
         for (double spot_radius = DCBG::RS_MIN; spot_radius <= DCBG::RS_MAX; spot_radius += DCBG::RS_STEP) {
+            Benchmark b(fov, Star::chance(), Rotation::chance());
             b.remove_light(n_spots, spot_radius);
             b.insert_into_nibble(nb, set_n++);
         }
@@ -96,9 +96,9 @@ void record_r (Nibble &nb, unsigned int &set_n, double fov) {
 /// @param set_n Reference to the current ID. This is logged with Nibble, and must **NOT** already exist in Nibble.
 /// @param fov Current field-of-view.
 void record_s (Nibble &nb, unsigned int &set_n, double fov) {
-    Benchmark b(fov, Star::chance(), Rotation::chance());
     for (int n_shifted = DCBG::SN_MIN; n_shifted <= DCBG::SN_MAX; n_shifted++) {
         for (double shift_sigma = DCBG::SS_MIN; shift_sigma <= DCBG::SS_MAX; shift_sigma += DCBG::SS_STEP) {
+            Benchmark b(fov, Star::chance(), Rotation::chance());
             b.shift_light(n_shifted, shift_sigma);
             b.insert_into_nibble(nb, set_n++);
         }
@@ -111,10 +111,10 @@ void record_s (Nibble &nb, unsigned int &set_n, double fov) {
 /// @param set_n Reference to the current ID. This is logged with Nibble, and must **NOT** already exist in Nibble.
 /// @param fov Current field-of-view.
 void record_es (Nibble &nb, unsigned int &set_n, double fov) {
-    Benchmark b(fov, Star::chance(), Rotation::chance());
     for (int n_shifted = DCBG::SN_MIN; n_shifted <= DCBG::SN_MAX; n_shifted++) {
         for (double shift_sigma = DCBG::SS_MIN; shift_sigma <= DCBG::SS_MAX; shift_sigma += DCBG::SS_STEP) {
             for (int n_added = DCBG::E_MIN; n_added <= DCBG::E_MAX; n_added++) {
+                Benchmark b(fov, Star::chance(), Rotation::chance());
                 b.add_extra_light(n_added);
                 b.shift_light(n_shifted, shift_sigma);
                 b.insert_into_nibble(nb, set_n++);
@@ -129,11 +129,11 @@ void record_es (Nibble &nb, unsigned int &set_n, double fov) {
 /// @param set_n Reference to the current ID. This is logged with Nibble, and must **NOT** already exist in Nibble.
 /// @param fov Current field-of-view.
 void record_rs (Nibble &nb, unsigned int &set_n, double fov) {
-    Benchmark b(fov, Star::chance(), Rotation::chance());
     for (int n_shifted = DCBG::SN_MIN; n_shifted <= DCBG::SN_MAX; n_shifted++) {
         for (double shift_sigma = DCBG::SS_MIN; shift_sigma <= DCBG::SS_MAX; shift_sigma += DCBG::SS_STEP) {
             for (int n_spots = DCBG::RN_MIN; n_spots <= DCBG::RN_MAX; n_spots++) {
                 for (double spot_radius = DCBG::RS_MIN; spot_radius <= DCBG::RS_MAX; spot_radius += DCBG::RS_STEP) {
+                    Benchmark b(fov, Star::chance(), Rotation::chance());
                     b.remove_light(n_spots, spot_radius);
                     b.shift_light(n_shifted, shift_sigma);
                     b.insert_into_nibble(nb, set_n++);
