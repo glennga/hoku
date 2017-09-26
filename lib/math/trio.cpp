@@ -67,38 +67,34 @@ double Trio::planar_moment (const Star &b_1, const Star &b_2, const Star &b_3) {
 
 /// The three stars are connected with great arcs facing inward (modeling extended sphere of Earth), forming a
 /// spherical triangle. Find the surface area of this. Based on L'Huilier's Formula and using the excess formula
-/// defined in terms of two edges and their included angle:
+/// defined in terms of the semiperimeter.
 /// https://en.wikipedia.org/wiki/Spherical_trigonometry#Area_and_spherical_excess
 ///
 /// @param b_1 Star B_1 of the trio.
 /// @param b_2 Star B_2 of the trio.
 /// @param b_3 Star B_3 of the trio.
-/// @param h Recursion depth. This should never be more than two.
 /// @return 0 if any of the stars are equal to each other. The spherical area of {B_1, B_2, B_3} otherwise.
-double Trio::spherical_area (const Star &b_1, const Star &b_2, const Star &b_3, const int h) {
+double Trio::spherical_area (const Star &b_1, const Star &b_2, const Star &b_3) {
     side_lengths ell = Trio(b_1, b_2, b_3).spherical_lengths();
+    double s = semi_perimeter(ell[0], ell[1], ell[2]);
     
     // If any of the stars are positioned in the same spot, this is a line. There exists no area.
     if (b_1 == b_2 || b_2 == b_3 || b_3 == b_1) {
         return 0;
     }
     
-    // We find the angle of [b_2,b_3,b_1] ~(at b_3).
-    double c_hat = (cos(ell[2]) - cos(ell[1]) * cos(ell[0])) / (sin(ell[1]) * sin(ell[0]));
+    // Determine the inner component of the square root.
+    double f = tan(0.5 * s) * tan(0.5 * (s - ell[0]));
+    f *= tan(0.5 * (s - ell[1])) * tan(0.5 * (s - ell[2]));
     
-    // If we have a negative angle, we recurse with different different stars.
-    if (c_hat < 0 && h < 2) {
-        return Trio::spherical_area(b_2, b_3, b_1, h + 1);
+    // F should NEVER be negative. If this is the case, we halt.
+    if (f < 0) {
+        throw "F is negative.";
     }
-    else if (c_hat < 0 && h == 2) {
-        throw "Unable to find positive c_hat.";
-    }
-    else {
-        // Find and return the excess.
-        double f = tan(ell[0] * 0.5) * tan(ell[1] * 0.5) * sin(c_hat);
-        f /= 1 + tan(ell[0] * 0.5) * tan(ell[1] * 0.5) * sin(c_hat);
-        return 2.0 * atan(f);
-    }
+    
+    // Find and return the excess.
+    return 4.0 * atan(sqrt(f));
+    
 }
 
 /// Determine the centroid of a **planar** triangle formed by the given three stars. It's use is appropriate for the

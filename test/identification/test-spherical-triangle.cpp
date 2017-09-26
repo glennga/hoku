@@ -16,6 +16,7 @@ int TestSphericalTriangle::test_trio_query () {
     
     double a = Trio::spherical_area(input.stars[0], input.stars[1], input.stars[2]);
     double b = Trio::spherical_moment(input.stars[0], input.stars[1], input.stars[2]);
+    
     std::vector<Sphere::hr_trio> c = s.query_for_trio(a, b);
     std::array<bool, 3> matched = {false, false, false};
     

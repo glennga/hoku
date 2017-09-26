@@ -84,7 +84,8 @@ std::vector<Trio::stars> Plane::match_stars (const index_trio &i_b) {
     }
     
     // Search for the current trio. If this is empty, then break early.
-    match_hr = this->query_for_trio(Trio::planar_area(b_stars[0], b_stars[1], b_stars[2]), Trio::planar_moment(b_stars[0], b_stars[1], b_stars[2]));
+    match_hr = this->query_for_trio(Trio::planar_area(b_stars[0], b_stars[1], b_stars[2]),
+                                    Trio::planar_moment(b_stars[0], b_stars[1], b_stars[2]));
     if (std::equal(match_hr[0].begin() + 1, match_hr[0].end(), match_hr[0].begin())) {
         return {{Star::zero(), Star::zero(), Star::zero()}};
     }

@@ -67,10 +67,24 @@ int TestTrio::test_planar_moment_computation () {
     return 0 * assert_equal(b, Trio::planar_moment(a.b_1, a.b_2, a.b_3), "PlanarMomentIdentityComputation", 0.001);
 }
 
-/// Check the spherical_area method. **no current method to verify this**
+/// Check the spherical_area method. We are only checking if this function returns the same result for different
+/// triangle configurations.
 ///
 /// @return 0 when finished.
 int TestTrio::test_spherical_area_computation () {
+    for (int i = 0; i < 10; i++) {
+        std::array<Star, 3> t = {Star::chance(), Star::chance(), Star::chance()};
+        
+        assert_equal(Trio::spherical_area(t[0], t[1], t[2]), Trio::spherical_area(t[1], t[2], t[0]),
+                     "Shift1EqualSphericalArea" + std::to_string(i));
+        assert_equal(Trio::spherical_area(t[0], t[1], t[2]), Trio::spherical_area(t[2], t[1], t[0]),
+                     "Shift2EqualSphericalArea" + std::to_string(i));
+        assert_equal(Trio::spherical_area(t[0], t[1], t[2]), Trio::spherical_area(t[1], t[0], t[2]),
+                     "Shift3EqualSphericalArea" + std::to_string(i));
+        assert_equal(Trio::spherical_area(t[0], t[1], t[2]), Trio::spherical_area(t[2], t[0], t[1]),
+                     "Shift3EqualSphericalArea" + std::to_string(i));
+    }
+    
     return 0;
 }
 
@@ -101,16 +115,24 @@ int TestTrio::test_cut_triangle_computation () {
     return 0 * assert_equal(kaph_area, yodh_area, "CutTriangleSummation");
 }
 
-/// Check the spherical_moment method. **no current method to verify this**
+/// Check the spherical_moment method. We are only checking if this function returns the same result for different
+/// triangle configurations.
 ///
 /// @return 0 when finished.
 int TestTrio::test_spherical_moment_computation () {
-    //    for (int i = 0; i < 10; i ++)
-    //    {
-    //        Trio a(Star::chance(), Star::chance(), Star::chance());
-    //        double b = Trio::spherical_moment(a.b_1, a.b_2, a.b_3);
-    //        std::cout << "SphericalMomentComputation: " << b << std::endl;
-    //    }
+    for (int i = 0; i < 10; i++) {
+        std::array<Star, 3> t = {Star::chance(), Star::chance(), Star::chance()};
+        
+        assert_equal(Trio::spherical_area(t[0], t[1], t[2]), Trio::spherical_area(t[1], t[2], t[0]),
+                     "Shift1EqualSphericalMoment" + std::to_string(i));
+        assert_equal(Trio::spherical_area(t[0], t[1], t[2]), Trio::spherical_area(t[2], t[1], t[0]),
+                     "Shift2EqualSphericalMoment" + std::to_string(i));
+        assert_equal(Trio::spherical_area(t[0], t[1], t[2]), Trio::spherical_area(t[1], t[0], t[2]),
+                     "Shift3EqualSphericalMoment" + std::to_string(i));
+        assert_equal(Trio::spherical_area(t[0], t[1], t[2]), Trio::spherical_area(t[2], t[0], t[1]),
+                     "Shift3EqualSphericalMoment" + std::to_string(i));
+    }
+    
     return 0;
 }
 
