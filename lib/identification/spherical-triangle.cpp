@@ -81,14 +81,14 @@ std::vector<Trio::stars> Sphere::match_stars (const index_trio &hr_b) {
     std::vector<Trio::stars> matched_stars;
     
     // Do not attempt to find matches if all stars are not within fov.
-    if (Star::within_angle({b_stars[0], b_stars[1], b_stars[2]}, this->fov)) {
+    if (!Star::within_angle({b_stars[0], b_stars[1], b_stars[2]}, this->fov)) {
         return {{Star::zero(), Star::zero(), Star::zero()}};
     }
     
     // Search for the current trio. If this is empty, then break early.
     match_hr = this->query_for_trio(Trio::spherical_area(b_stars[0], b_stars[1], b_stars[2]),
                                     Trio::spherical_moment(b_stars[0], b_stars[1], b_stars[2], parameters.moment_td_h));
-    if (match_hr[0][0] == -1 && match_hr[0][1] == -1 && match_hr[0][2] == -1) {
+    if (std::equal(match_hr[0].begin() + 1, match_hr[0].end(), match_hr[0].begin())) {
         return {{Star::zero(), Star::zero(), Star::zero()}};
     }
     
