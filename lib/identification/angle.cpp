@@ -173,10 +173,10 @@ Star::list Angle::identify (const Benchmark &input, const Parameters &parameters
     Star::list matches;
     Angle a(input, parameters);
     z = 0;
-    
+
     // There exists |A_input| choose 2 possibilities.
-    for (unsigned int i = 0; i < a.input.size() - 1; i++) {
-        for (unsigned int j = i + 1; j < a.input.size(); j++) {
+    for (int i = 0; i < (signed) a.input.size() - 1; i++) {
+        for (int j = i + 1; j < (signed)  a.input.size(); j++) {
             Star::list candidates;
             z++;
             

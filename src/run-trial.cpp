@@ -72,14 +72,14 @@ int perform_trial (Nibble &nb, std::ofstream &log, const int choice, const int s
     const unsigned int BENCH_START = (unsigned) start_bench;
     const unsigned int BENCH_END = (unsigned int) nb.search_table("MAX(set_n)", 1, 1)[0];
     
-    // Select the specific trial function and prepare the WorkingBenchmark object.
+    // Select the specific trial function.
     trial_function t_f = select_trial_function(choice);
     
     // Run the trials!
     nb.select_table(Benchmark::TABLE_NAME);
     for (unsigned int set_n = BENCH_START; set_n < BENCH_END; set_n++) {
-        std::cout << "\rCurrent *Set* Number: " << set_n;
         t_f(nb, set_n, log);
+        log << std::flush;
     }
     
     return 0;
