@@ -176,10 +176,10 @@ Star::list Pyramid::identify (const Benchmark &input, const Parameters &paramete
     }
     
     // Otherwise, there exists |A_input| choose 4 possibilities. Looping specified in paper.
-    for (unsigned int e = 0; e < p.input.size(); e++) {
-        for (unsigned int dj = 0; dj < p.input.size() - 2; dj++) {
-            for (unsigned int dk = 0; dk < p.input.size() - dj - 1; dk++) {
-                for (unsigned int i = 0; i < p.input.size() - dj - dk; i++) {
+    for (int e = 0; e < (signed) p.input.size(); e++) {
+        for (int dj = 0; dj < (signed) p.input.size() - 2; dj++) {
+            for (int dk = 0; dk < (signed) p.input.size() - dj - 1; dk++) {
+                for (int i = 0; i < (signed) p.input.size() - dj - dk; i++) {
                     int j = i + dj, k = j + dk;
                     Star::list candidates;
                     z++;
@@ -220,5 +220,5 @@ Star::list Pyramid::identify (const Benchmark &input, const Parameters &paramete
 /// @return Vector of body stars with their inertial BSC IDs that qualify as matches.
 Star::list Pyramid::identify (const Benchmark &input, const Parameters &parameters) {
     unsigned int z;
-    return Pyramid::identify(input, parameters);
+    return Pyramid::identify(input, parameters, z);
 }

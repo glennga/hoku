@@ -163,9 +163,9 @@ Star::list BaseTriangle::identify_stars (unsigned int &z) {
     z = 0;
     
     // There exists |input| choose 3 possibilities.
-    for (unsigned int i = 0; i < input.size() - 2; i++) {
-        for (unsigned int j = i + 1; j < input.size() - 1; j++) {
-            for (unsigned int k = j + 1; k < input.size(); k++) {
+    for (int i = 0; i < (signed) input.size() - 2; i++) {
+        for (int j = i + 1; j < (signed) input.size() - 1; j++) {
+            for (int k = j + 1; k < (signed) input.size(); k++) {
                 std::vector<Trio::stars> candidate_trios;
                 Trio::stars candidate_trio;
                 Star::list candidates;
