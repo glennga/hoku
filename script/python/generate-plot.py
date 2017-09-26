@@ -28,32 +28,32 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import os
 
-# create 3D axis and figure
+# Create 3D axis and figure.
 fig = plt.figure()
 ax = fig.gca(projection='3d')
 
-# data used to specify plot
+# Specify data used to plot.
 focus, stars, errors = [], [], []
 fov, norm = 0, 0
 
-# parse the plot file
+# Parse the plot file.
 with open(os.environ['HOKU_PROJECT_PATH'] + '/data/logs/tmp/cuplt.tmp') as current_plot:
-    # first, record the fov and norm
+    # First, record the fov and norm.
     fov = float(current_plot.readline())
     norm = float(current_plot.readline())
 
-    # second, record the focus vector
+    # Second, record the focus vector.
     for component in current_plot.readline().split():
         focus.append(float(component))
 
-    # next, record all of the stars
+    # Next, record all of the stars.
     for line in current_plot:
         star = []
         for component in line.split():
             star.append(float(component))
         stars.append(star)
 
-# parse the error file
+# Parse the error file.
 with open(os.environ['HOKU_PROJECT_PATH'] + '/data/logs/tmp/errplt.tmp') as error_plot:
     for line in error_plot:
         error = []
@@ -65,12 +65,12 @@ with open(os.environ['HOKU_PROJECT_PATH'] + '/data/logs/tmp/errplt.tmp') as erro
                 error.append(component)
         errors.append([error])
 
-# determine sphere cap boundaries using focus vector
+# Determine the sphere cap boundaries using focus vector.
 delta = np.arccos(focus[2] / norm)
 alpha = np.arctan2(focus[1], focus[0])
 fov_limit = np.deg2rad(fov) / 2.0
 
-# plot sphere cap
+# Plot sphere cap.
 u = np.linspace(alpha - fov_limit, alpha + fov_limit, 100)
 v = np.linspace(delta - fov_limit, delta + fov_limit, 100)
 sphere_x = np.outer(np.cos(u), np.sin(v))
@@ -78,16 +78,16 @@ sphere_y = np.outer(np.sin(u), np.sin(v))
 sphere_z = np.outer(np.ones(np.size(u)), np.cos(v))
 ax.plot_surface(sphere_x, sphere_y, sphere_z, color='b', alpha='0.1')
 
-# plot clean data set as black
+# Plot clean data set as black.
 for star in stars:
     ax.scatter(star[0], star[1], star[2], marker='*', color='k')
     ax.text(star[0], star[1], star[2], '{}'.format(int(star[3])))
 
-# plot error models with specified colors
+# Plot error models with specified colors.
 for model in errors:
     for error in model:
         ax.scatter(error[0], error[1], error[2], marker='*', color=error[4])
         ax.text(error[0], error[1], error[2], '{}'.format(int(error[3])))
 
-# display the plot!
+# Display the plot!
 plt.show()
