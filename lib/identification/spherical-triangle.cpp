@@ -55,9 +55,12 @@ int Sphere::generate_triangle_table (const double fov, const unsigned int td_h, 
                     double a_t = Trio::spherical_area(all_stars[i], all_stars[j], all_stars[k]);
                     double i_t = Trio::spherical_moment(all_stars[i], all_stars[j], all_stars[k], td_h);
                     
-                    nb.insert_into_table("hr_a, hr_b, hr_c, a, i",
-                                         {(double) all_stars[i].get_hr(), (double) all_stars[j].get_hr(),
-                                             (double) all_stars[k].get_hr(), a_t, i_t});
+                    // Prevent insertion of trios with areas = -1.
+                    if (a_t == -1) {
+                        nb.insert_into_table("hr_a, hr_b, hr_c, a, i",
+                                             {(double) all_stars[i].get_hr(), (double) all_stars[j].get_hr(),
+                                                 (double) all_stars[k].get_hr(), a_t, i_t});
+                    }
                 }
             }
         }
@@ -85,9 +88,15 @@ std::vector<Trio::stars> Sphere::match_stars (const index_trio &hr_b) {
         return {{Star::zero(), Star::zero(), Star::zero()}};
     }
     
+    // Do not proceed if the trio is invalid (negative value returned from area).
+    double a = Trio::spherical_area(b_stars[0], b_stars[1], b_stars[2]);
+    double i = Trio::spherical_moment(b_stars[0], b_stars[1], b_stars[2], parameters.moment_td_h);
+    if (a == -1) {
+        return {{Star::zero(), Star::zero(), Star::zero()}};
+    }
+    
     // Search for the current trio. If this is empty, then break early.
-    match_hr = this->query_for_trio(Trio::spherical_area(b_stars[0], b_stars[1], b_stars[2]),
-                                    Trio::spherical_moment(b_stars[0], b_stars[1], b_stars[2], parameters.moment_td_h));
+    match_hr = this->query_for_trio(a, i);
     if (std::equal(match_hr[0].begin() + 1, match_hr[0].end(), match_hr[0].begin())) {
         return {{Star::zero(), Star::zero(), Star::zero()}};
     }
