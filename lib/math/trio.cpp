@@ -113,16 +113,12 @@ Star Trio::planar_centroid () const {
 /// @param c_1 New trio has midpoint between keep-c_1 edge.
 /// @param c_2 New trio has midpoint between keep-c_2 edge.
 /// @param c_3 New trio has midpoint between c_1-c_2 edge, if focus = {0, 0, 0}.
-/// @param keep Star to retain with cut. Vector with components {0, 0, 0,} by default.
-/// @return Cut trio of stars {c_1_prime, c_2_prime, c_3_prime}.
+/// @param keep Star to retain with cut. Vector with components {0, 0, 0} by default.
+/// @return Cut trio of stars {c_12, c_23, c_31}.
 Trio Trio::cut_triangle (const Star &c_1, const Star &c_2, const Star &c_3, const Star &keep) {
-    Star c_12 = c_1 + c_2, c_23 = c_2 + c_3, c_13 = c_1 + c_3;
-    Star c_2_prime = Star(c_13[0] / 2.0, c_13[1] / 2.0, c_13[2] / 2.0);
-    Star c_3_prime = Star(c_23[0] / 2.0, c_23[1] / 2.0, c_23[2] / 2.0);
-    
-    // If focus is {0, 0, 0}, then find the middle triangle.
-    Star c_1_prime = (keep == Star()) ? Star(c_12[0] / 2.0, c_12[1] / 2.0, c_12[2] / 2.0) : keep;
-    return Trio(c_1_prime, c_2_prime, c_3_prime);
+    // Keep desired stars. Only include those who are directly related to the midpoint.
+    return Trio((keep == c_3) ? c_3 : (c_1 + c_2).as_unit(), (keep == c_2) ? c_2 : (c_1 + c_3).as_unit(),
+                (keep == c_1) ? c_1 : (c_2 + c_3).as_unit());
 }
 
 /// Recursively determine the spherical moment of a trio. This is a divide-and-conquer approach, creating four

@@ -94,25 +94,11 @@ int TestTrio::test_spherical_area_computation () {
 int TestTrio::test_planar_centroid_computation () {
     Trio a(Star(1, 1, 1), Star(-1, 0, -1), Star(2, 4, 3));
     Star b(0.66666666666666666, 1.6666666666666666, 1.0), c = a.planar_centroid();
+    Trio d(Star(-1, 0, -1), Star(1, 1, 1), Star(2, 4, 3));
+    Star e = d.planar_centroid();
     
+    assert_equal(e, c, "PlanarCentroidComputationDifferentTriangle", e.str() + "," + c.str());
     return 0 * assert_equal(b, c, "PlanarCentroidComputation", b.str() + "," + c.str());
-}
-
-/// Check the cut_triangle method. Sum of partitions should add up to the original.
-///
-/// @return 0 when finished.
-int TestTrio::test_cut_triangle_computation () {
-    Trio a(Star(1, 1, 1), Star(-1, 0, -1), Star(2, 4, 3));
-    Trio b_a = Trio::cut_triangle(a.b_1, a.b_2, a.b_3, a.b_1);
-    Trio b_b = Trio::cut_triangle(a.b_1, a.b_2, a.b_3, a.b_2);
-    Trio b_c = Trio::cut_triangle(a.b_1, a.b_2, a.b_3, a.b_3);
-    Trio b_k = Trio::cut_triangle(a.b_1, a.b_2, a.b_3);
-    
-    double kaph_area = Trio::planar_area(a.b_1, a.b_2, a.b_3);
-    double yodh_area = Trio::planar_area(b_a.b_1, b_a.b_2, b_a.b_3) + Trio::planar_area(b_b.b_1, b_b.b_2, b_b.b_3)
-                       + Trio::planar_area(b_c.b_1, b_c.b_2, b_c.b_3) + Trio::planar_area(b_k.b_1, b_k.b_2, b_k.b_3);
-    
-    return 0 * assert_equal(kaph_area, yodh_area, "CutTriangleSummation");
 }
 
 /// Check the spherical_moment method. We are only checking if this function returns the same result for different
@@ -123,13 +109,13 @@ int TestTrio::test_spherical_moment_computation () {
     for (int i = 0; i < 10; i++) {
         std::array<Star, 3> t = {Star::chance(), Star::chance(), Star::chance()};
         
-        assert_equal(Trio::spherical_area(t[0], t[1], t[2]), Trio::spherical_area(t[1], t[2], t[0]),
+        assert_equal(Trio::spherical_moment(t[0], t[1], t[2], 3), Trio::spherical_moment(t[1], t[2], t[0], 3),
                      "Shift1EqualSphericalMoment" + std::to_string(i));
-        assert_equal(Trio::spherical_area(t[0], t[1], t[2]), Trio::spherical_area(t[2], t[1], t[0]),
+        assert_equal(Trio::spherical_moment(t[0], t[1], t[2], 3), Trio::spherical_moment(t[2], t[1], t[0], 3),
                      "Shift2EqualSphericalMoment" + std::to_string(i));
-        assert_equal(Trio::spherical_area(t[0], t[1], t[2]), Trio::spherical_area(t[1], t[0], t[2]),
+        assert_equal(Trio::spherical_moment(t[0], t[1], t[2], 3), Trio::spherical_moment(t[1], t[0], t[2], 3),
                      "Shift3EqualSphericalMoment" + std::to_string(i));
-        assert_equal(Trio::spherical_area(t[0], t[1], t[2]), Trio::spherical_area(t[2], t[0], t[1]),
+        assert_equal(Trio::spherical_moment(t[0], t[1], t[2], 3), Trio::spherical_moment(t[2], t[0], t[1], 3),
                      "Shift3EqualSphericalMoment" + std::to_string(i));
     }
     
@@ -149,7 +135,6 @@ int TestTrio::enumerate_tests (int test_case) {
         case 4: return test_planar_moment_computation();
         case 5: return test_spherical_area_computation();
         case 6: return test_planar_centroid_computation();
-        case 7: return test_cut_triangle_computation();
         case 8: return test_spherical_moment_computation();
         default: return -1;
     }
