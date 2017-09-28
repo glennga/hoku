@@ -67,13 +67,13 @@ double Trio::planar_moment (const Star &b_1, const Star &b_2, const Star &b_3) {
 
 /// The three stars are connected with great arcs facing inward (modeling extended sphere of Earth), forming a
 /// spherical triangle. Find the surface area of this. Based on L'Huilier's Formula and using the excess formula
-/// defined in terms of the semiperimeter.
+/// defined in terms of the semi-perimeter.
 /// https://en.wikipedia.org/wiki/Spherical_trigonometry#Area_and_spherical_excess
 ///
 /// @param b_1 Star B_1 of the trio.
 /// @param b_2 Star B_2 of the trio.
 /// @param b_3 Star B_3 of the trio.
-/// @return 0 if any of the stars are equal to each other. The spherical area of {B_1, B_2, B_3} otherwise.
+/// @return -1 if f is negative. 0 if two stars are the same. The spherical area of {B_1, B_2, B_3} otherwise.
 double Trio::spherical_area (const Star &b_1, const Star &b_2, const Star &b_3) {
     side_lengths ell = Trio(b_1, b_2, b_3).spherical_lengths();
     double s = semi_perimeter(ell[0], ell[1], ell[2]);
@@ -87,14 +87,13 @@ double Trio::spherical_area (const Star &b_1, const Star &b_2, const Star &b_3) 
     double f = tan(0.5 * s) * tan(0.5 * (s - ell[0]));
     f *= tan(0.5 * (s - ell[1])) * tan(0.5 * (s - ell[2]));
     
-    // F should NEVER be negative. If this is the case, we halt.
+    // F should not be negative. If this is the case, then we don't proceed. Return zero.
     if (f < 0) {
-        throw "F is negative.";
+        return -1;
     }
     
     // Find and return the excess.
     return 4.0 * atan(sqrt(f));
-    
 }
 
 /// Determine the centroid of a **planar** triangle formed by the given three stars. It's use is appropriate for the
