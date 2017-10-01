@@ -56,7 +56,7 @@ int Sphere::generate_triangle_table (const double fov, const unsigned int td_h, 
                     double i_t = Trio::spherical_moment(all_stars[i], all_stars[j], all_stars[k], td_h);
                     
                     // Prevent insertion of trios with areas = -1.
-                    if (a_t != -1) {
+                    if (a_t > 0) {
                         nb.insert_into_table("hr_a, hr_b, hr_c, a, i",
                                              {(double) all_stars[i].get_hr(), (double) all_stars[j].get_hr(),
                                                  (double) all_stars[k].get_hr(), a_t, i_t});
@@ -91,7 +91,7 @@ std::vector<Trio::stars> Sphere::match_stars (const index_trio &hr_b) {
     // Do not proceed if the trio is invalid (negative value returned from area).
     double a = Trio::spherical_area(b_stars[0], b_stars[1], b_stars[2]);
     double i = Trio::spherical_moment(b_stars[0], b_stars[1], b_stars[2], parameters.moment_td_h);
-    if (a == -1) {
+    if (a < 0) {
         return {{Star::zero(), Star::zero(), Star::zero()}};
     }
     
