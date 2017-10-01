@@ -34,10 +34,10 @@ namespace DCANG {
 /// Current number of permutations: (0.0000001 - 0.00000000000001) / 0.00000004    // 3
 ///                                 (0.0000001 - 0.00000000000001) / 0.00000004    // 3
 ///                                 (0.000001 - 0.00000000000001) / 0.000004       // 3
-///                                 (30 - 3) / 7                                   // 4
-///                                 (1500 - 500) / 1000                            // 2
+///                                 (30 - 3) / 15                                  // 3
+///                                 (1499 - 500) / 1000                            // 2
 ///                                 --------------------------------------------
-///                                 216 variations of Plane identification for each benchmark.
+///                                 162 variations of Plane identification for each benchmark.
 /// @endcode
 namespace DCPLA {
     static const double SA_MIN = 0.00000000000001; ///< Minimum area sigma.
@@ -54,11 +54,12 @@ namespace DCPLA {
     
     static const int MM_MIN = 3; ///< Minimum number of stars that define a match.
     static const int MM_MAX = 30; ///< Maximum number of stars that define a match.
-    static const int MM_STEP = 7; ///< Amount to increment for each test.
+    static const int MM_STEP = 15; ///< Amount to increment for each test.
     
     static const int BQT_MIN = 500; ///< Minimum size of the square to project the nearby-stars quad tree with.
-    static const int BQT_MAX = 1500; ///< Maximum size of the square to project the nearby-stars quad tree with.
+    static const int BQT_MAX = 1499; ///< Maximum size of the square to project the nearby-stars quad tree with.
     static const int BQT_STEP = 1000; ///< Amount to increment for each test.
+    static const int BQT_ITER = 1 + (int) ((BQT_MAX - BQT_MIN) / BQT_STEP); ///< Number of quad-trees generated.
     
     static const std::string TABLE_NAME = "PLANE_20"; ///< Name of table generated for PlanarTriangle method.
 }
@@ -69,10 +70,10 @@ namespace DCPLA {
 /// Current number of permutations: (0.0000001 - 0.00000000000001) / 0.00000004    // 3
 ///                                 (0.0000001 - 0.00000000000001) / 0.00000004    // 3
 ///                                 (0.000001 - 0.00000000000001) / 0.000004       // 3
-///                                 (30 - 3) / 7                                   // 4
-///                                 (1500 - 500) / 1000                            // 2
+///                                 (30 - 3) / 15                                  // 3
+///                                 (1499 - 500) / 1000                            // 2
 ///                                 --------------------------------------------
-///                                 216 variations of Plane identification for each benchmark.
+///                                 162 variations of Sphere identification for each benchmark.
 /// @endcode
 namespace DCSPH {
     static const double SA_MIN = 0.00000000000001; ///< Minimum area sigma.
@@ -89,11 +90,12 @@ namespace DCSPH {
     
     static const int MM_MIN = 3; ///< Minimum number of stars that define a match.
     static const int MM_MAX = 30; ///< Maximum number of stars that define a match.
-    static const int MM_STEP = 7; ///< Amount to increment for each test.
+    static const int MM_STEP = 15; ///< Amount to increment for each test.
     
     static const int BQT_MIN = 500; ///< Minimum size of the square to project the nearby-stars quad tree with.
-    static const int BQT_MAX = 1500; ///< Maximum size of the square to project the nearby-stars quad tree with.
+    static const int BQT_MAX = 1499; ///< Maximum size of the square to project the nearby-stars quad tree with.
     static const int BQT_STEP = 1000; ///< Amount to increment for each test.
+    static const int BQT_ITER = 1 + (int) ((BQT_MAX - BQT_MIN) / BQT_STEP); ///< Number of quad-trees generated.
     
     static const std::string TABLE_NAME = "SPHERE_20"; ///< Name of table generated for SphericalTriangle method.
     static const int TD_H_FOR_TREE = 3; ///< This MUST be the td_h used to construct the Nibble table.
@@ -104,7 +106,7 @@ namespace DCSPH {
 /// @code{.cpp}
 /// Current number of permutations: (0.0000001 - 0.00000000000001) / 0.00000005    // 2
 ///                                 (0.000001 - 0.00000000000001) / 0.0000005      // 2
-///                                 (1500 - 500) / 1000                            // 2
+///                                 (1499 - 500) / 1000                            // 2
 ///                                 (250 - 50) / 200                               // 2
 ///                                 (10 - 1) / 10                                  // 2
 ///                                 (10 - 1) / 10                                  // 2
@@ -123,8 +125,9 @@ namespace DCAST {
     static const double MS_STEP = 0.0000005; ///< Amount to increment for each test.
     
     static const int BKT_MIN = 500; ///< Minimum size of the square to project the nearby-stars kd-tree with.
-    static const int BKT_MAX = 1500; ///< Maximum size of the square to project the nearby-stars kd-tree with.
+    static const int BKT_MAX = 1499; ///< Maximum size of the square to project the nearby-stars kd-tree with.
     static const int BKT_STEP = 1000; ///< Amount to increment for each test.
+    static const int BKT_ITER = 1 + (int) ((BKT_MAX - BKT_MIN) / BKT_STEP); ///< Number of kd-trees generated.
     
     static const int KAA_MIN = 50; ///< Minimum bayes factor to accept an alignment.
     static const int KAA_MAX = 250; ///< Maximum bayes factor to accept an alignment.

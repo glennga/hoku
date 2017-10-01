@@ -56,6 +56,21 @@ trial_function select_trial_function(const int choice) {
     }
 }
 
+/// If necessary, we generate the appropriate trees for the given identification choice. This only changes state of
+/// trial.cpp for PlanarTriangle, SphericalTriangle, and AstrometryNet methods.
+///
+/// @param choice Identification method choice.
+void generate_trees(const int choice) {
+    switch(choice) {
+        case 0: return (void) 0;
+        case 1: return Trial::generate_astro_trees();
+        case 2: return Trial::generate_sphere_trees();
+        case 3: return Trial::generate_plane_trees();
+        case 4: return (void) 0;
+        default: throw "Identification choice is not within space {0, 1, 2, 3, 4}.";
+    }
+}
+
 /// Run the trials! Select the appropriate header and trial function given the identification choice, and iterate
 /// this for the defined benchmark bounds.
 ///
@@ -74,6 +89,9 @@ int perform_trial (Nibble &nb, std::ofstream &log, const int choice, const int s
     
     // Select the specific trial function.
     trial_function t_f = select_trial_function(choice);
+    
+    // Generate the trees for the given methods (if defined).
+    generate_trees(choice);
     
     // Run the trials!
     nb.select_table(Benchmark::TABLE_NAME);
