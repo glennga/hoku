@@ -7,6 +7,57 @@
 #include "trial/trial.h"
 #include "trial/character.h"
 
+/// Quad-tree roots for the PlanarTriangle method. Restrict scope to this file.
+static std::array<std::shared_ptr<QuadNode>, DCPLA::BQT_ITER> pla_roots;
+
+/// Quad-tree roots for the SphericalTriangle method. Restrict scope to this file.
+static std::array<std::shared_ptr<QuadNode>, DCSPH::BQT_ITER> sph_roots;
+
+/// Star kd-tree roots for the AstrometryNet method. Restrict scope to this file.
+static std::array<std::shared_ptr<KdNode>, DCAST::BKT_ITER> ast_sta_roots;
+
+/// Astro kd-tree roots for the AstrometryNet method. Restrict scope to this file.
+static std::array<std::shared_ptr<KdNode>, DCAST::BKT_ITER> ast_ast_roots;
+
+/// Produce the quad-tree roots for the PlanarTriangle method. This **MUST** be run before calling the record function.
+void Trial::generate_plane_trees () {
+    for (int i = 0; i < DCPLA::BQT_ITER; i++) {
+        pla_roots[i] = std::make_shared<QuadNode>(QuadNode::load_tree(DCPLA::BQT_MIN + DCPLA::BQT_STEP * i));
+    }
+}
+
+/// Produce the quad-tree roots for the SphericalTriangle method. This **MUST** be run before calling the record 
+/// function.
+void Trial::generate_sphere_trees () {
+    for (int i = 0; i < DCSPH::BQT_ITER; i++) {
+        sph_roots[i] = std::make_shared<QuadNode>(QuadNode::load_tree(DCSPH::BQT_MIN + DCSPH::BQT_STEP * i));
+    }
+}
+
+/// Produce the kd-tree roots for the AstrometryNet method. This **MUST** be run before calling the record function.
+void Trial::generate_astro_trees () {
+    Star::list astro_stars;
+    Nibble nb;
+    
+    // Load ASTRO_C table into RAM.
+    nb.select_table(DCAST::ASTROC_NAME);
+    unsigned int n = (unsigned) (nb).search_table("MAX(rowid)", 1)[0];
+    Nibble::tuple asterisms = (nb).search_table("i, j, k", n * 3);
+    
+    // Convert ASTRO_C table into stars.
+    astro_stars.reserve(n / 3);
+    for (unsigned int i = 0; i < n; i += 3) {
+        Nibble::tuple astro_i = (nb).table_results_at(asterisms, 3, i);
+        astro_stars.push_back(Star(astro_i[0], astro_i[1], astro_i[2]));
+    }
+    
+    for (int i = 0; i < DCSPH::BQT_ITER; i++) {
+        int kd_tree_w = DCAST::BKT_MIN + DCAST::BKT_STEP * i;
+        ast_sta_roots[i] = std::make_shared<KdNode>(KdNode::load_tree(nb.all_bsc5_stars(), kd_tree_w));
+        ast_ast_roots[i] = std::make_shared<KdNode>(KdNode::load_tree(astro_stars, kd_tree_w));
+    }
+}
+
 /// Wrap three dimensions of Angle testing (query sigma, match sigma, match minimum) in a small function. Passed in the
 /// working benchmark.
 ///
@@ -48,11 +99,11 @@ void Trial::record_plane (Nibble &nb, const unsigned int set_n, std::ofstream &l
     Plane::Parameters p;
     p.table_name = DCPLA::TABLE_NAME;
     
-    // Build the quadtree for the given W- as early as possible to avoid constant rebuilding.
-    for (p.quadtree_w = DCPLA::BQT_MIN; p.quadtree_w <= DCPLA::BQT_MAX; p.quadtree_w += DCPLA::BQT_STEP) {
-        std::shared_ptr<QuadNode> q_root = std::make_shared<QuadNode>(QuadNode::load_tree(p.quadtree_w));
+    // We parse in an already-generated quad-tree from pla_roots. 
+    for (int i = 0; i < DCPLA::BQT_ITER; i++) {
+        p.quadtree_w = (unsigned) DCPLA::BQT_MIN + DCPLA::BQT_STEP * i;
         for (p.match_minimum = DCPLA::MM_MIN; p.match_minimum <= DCPLA::MM_MAX; p.match_minimum += DCPLA::MM_STEP) {
-            record_plane_as_ms_ms(nb, set_n, log, q_root, p);
+            record_plane_as_ms_ms(nb, set_n, log, pla_roots[i], p);
         }
     }
 }
@@ -100,11 +151,11 @@ void Trial::record_sphere (Nibble &nb, const unsigned int set_n, std::ofstream &
     Sphere::Parameters p;
     p.table_name = DCSPH::TABLE_NAME;
     
-    // Build the quadtree for the given W- as early as possible to avoid constant rebuilding.
-    for (p.quadtree_w = DCSPH::BQT_MIN; p.quadtree_w <= DCSPH::BQT_MAX; p.quadtree_w += DCSPH::BQT_STEP) {
-        std::shared_ptr<QuadNode> q_root = std::make_shared<QuadNode>(QuadNode::load_tree(p.quadtree_w));
+    // We parse in an already-generated quad-tree from sph_roots.
+    for (int i = 0; i < DCSPH::BQT_ITER; i++) {
+        p.quadtree_w = (unsigned) DCSPH::BQT_MIN + DCSPH::BQT_STEP * i;
         for (p.match_minimum = DCSPH::MM_MIN; p.match_minimum <= DCSPH::MM_MAX; p.match_minimum += DCSPH::MM_STEP) {
-            record_sphere_as_ms_ms(nb, set_n, log, q_root, p);
+            record_sphere_as_ms_ms(nb, set_n, log, sph_roots[i], p);
         }
     }
 }
@@ -150,33 +201,16 @@ void Trial::record_sphere_as_ms_ms (Nibble &nb, const unsigned int set_n, std::o
 /// @param log Open stream to log file.
 void Trial::record_astro (Nibble &nb, const unsigned int set_n, std::ofstream &log) {
     Astro::Parameters p;
-    p.hash_name = DCAST::ASTROH_NAME;
-    p.center_name = DCAST::ASTROC_NAME;
-    Star::list astro_stars;
     
-    // Load ASTRO_C table into RAM.
-    (nb).select_table(p.center_name);
-    unsigned int n = (unsigned) (nb).search_table("MAX(rowid)", 1)[0];
-    Nibble::tuple asterisms = (nb).search_table("i, j, k", n * 3);
-    
-    // Convert ASTRO_C table into stars.
-    astro_stars.reserve(n / 3);
-    for (unsigned int i = 0; i < n; i += 3) {
-        Nibble::tuple astro_i = (nb).table_results_at(asterisms, 3, i);
-        astro_stars.push_back(Star(astro_i[0], astro_i[1], astro_i[2]));
-    }
-    
-    // Build the kd-trees for the given W- as early as possible to avoid constant rebuilding.
-    for (p.kd_tree_w = DCAST::BKT_MIN; p.kd_tree_w <= DCAST::BKT_MAX; p.kd_tree_w += DCAST::BKT_STEP) {
-        std::shared_ptr<KdNode> star_root = std::make_shared<
-            KdNode>(KdNode::load_tree((nb).all_bsc5_stars(), p.kd_tree_w));
-        std::shared_ptr<KdNode> astro_root = std::make_shared<KdNode>(KdNode::load_tree(astro_stars, p.kd_tree_w));
-        
+    // We parse in an already-generated quad-tree from ast_star_roots and ast_ast_roots.
+    for (int i = 0; i < DCAST::BKT_ITER; i++) {
+        p.kd_tree_w = (unsigned) DCAST::BKT_MIN + DCAST::BKT_STEP * i;
+
         for (p.u_tp = DCAST::UT_MIN; p.u_tp <= DCAST::UT_MAX; p.u_tp += DCAST::UT_STEP) {
             for (p.u_tn = DCAST::UT_MIN; p.u_tn <= DCAST::UT_MAX; p.u_tn += DCAST::UT_STEP) {
                 for (p.u_fp = DCAST::UT_MIN; p.u_fp <= DCAST::UT_MAX; p.u_fp += DCAST::UT_STEP) {
                     for (p.u_fn = DCAST::UT_MIN; p.u_fn <= DCAST::UT_MAX; p.u_fn += DCAST::UT_STEP) {
-                        record_astro_ka_qs_ms(nb, set_n, log, star_root, astro_root, p);
+                        record_astro_ka_qs_ms(nb, set_n, log, ast_sta_roots[i], ast_ast_roots[i], p);
                     }
                 }
             }

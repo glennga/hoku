@@ -38,14 +38,17 @@ namespace Trial {
     
     void record_angle (Nibble &, const unsigned int, std::ofstream &);
     
+    void generate_plane_trees ();
     void record_plane (Nibble &, const unsigned int, std::ofstream &);
     void record_plane_as_ms_ms (Nibble &, const unsigned int, std::ofstream &, std::shared_ptr<QuadNode> &,
                                 Plane::Parameters &);
     
+    void generate_sphere_trees ();
     void record_sphere (Nibble &, const unsigned int, std::ofstream &);
     void record_sphere_as_ms_ms (Nibble &, const unsigned int, std::ofstream &, std::shared_ptr<QuadNode> &,
                                  Sphere::Parameters &);
     
+    void generate_astro_trees ();
     void record_astro (Nibble &, const unsigned int, std::ofstream &);
     void record_astro_ka_qs_ms (Nibble &, const unsigned int, std::ofstream &, std::shared_ptr<KdNode> &,
                                 std::shared_ptr<KdNode> &, Astro::Parameters &);
