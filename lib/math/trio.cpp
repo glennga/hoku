@@ -67,38 +67,33 @@ double Trio::planar_moment (const Star &b_1, const Star &b_2, const Star &b_3) {
 
 /// The three stars are connected with great arcs facing inward (modeling extended sphere of Earth), forming a
 /// spherical triangle. Find the surface area of this. Based on L'Huilier's Formula and using the excess formula
-/// defined in terms of two edges and their included angle:
+/// defined in terms of the semi-perimeter.
 /// https://en.wikipedia.org/wiki/Spherical_trigonometry#Area_and_spherical_excess
 ///
 /// @param b_1 Star B_1 of the trio.
 /// @param b_2 Star B_2 of the trio.
 /// @param b_3 Star B_3 of the trio.
-/// @param h Recursion depth. This should never be more than two.
-/// @return 0 if any of the stars are equal to each other. The spherical area of {B_1, B_2, B_3} otherwise.
-double Trio::spherical_area (const Star &b_1, const Star &b_2, const Star &b_3, const int h) {
+/// @return -1 if f is negative. 0 if two stars are the same. The spherical area of {B_1, B_2, B_3} otherwise.
+double Trio::spherical_area (const Star &b_1, const Star &b_2, const Star &b_3) {
     side_lengths ell = Trio(b_1, b_2, b_3).spherical_lengths();
+    double s = semi_perimeter(ell[0], ell[1], ell[2]);
     
     // If any of the stars are positioned in the same spot, this is a line. There exists no area.
     if (b_1 == b_2 || b_2 == b_3 || b_3 == b_1) {
         return 0;
     }
     
-    // We find the angle of [b_2,b_3,b_1] ~(at b_3).
-    double c_hat = (cos(ell[2]) - cos(ell[1]) * cos(ell[0])) / (sin(ell[1]) * sin(ell[0]));
+    // Determine the inner component of the square root.
+    double f = tan(0.5 * s) * tan(0.5 * (s - ell[0]));
+    f *= tan(0.5 * (s - ell[1])) * tan(0.5 * (s - ell[2]));
     
-    // If we have a negative angle, we recurse with different different stars.
-    if (c_hat < 0 && h < 2) {
-        return Trio::spherical_area(b_2, b_3, b_1, h + 1);
+    // F should not be negative. If this is the case, then we don't proceed. Return zero.
+    if (f < 0) {
+        return -1;
     }
-    else if (c_hat < 0 && h == 2) {
-        throw "Unable to find positive c_hat.";
-    }
-    else {
-        // Find and return the excess.
-        double f = tan(ell[0] * 0.5) * tan(ell[1] * 0.5) * sin(c_hat);
-        f /= 1 + tan(ell[0] * 0.5) * tan(ell[1] * 0.5) * sin(c_hat);
-        return 2.0 * atan(f);
-    }
+    
+    // Find and return the excess.
+    return 4.0 * atan(sqrt(f));
 }
 
 /// Determine the centroid of a **planar** triangle formed by the given three stars. It's use is appropriate for the
@@ -117,16 +112,12 @@ Star Trio::planar_centroid () const {
 /// @param c_1 New trio has midpoint between keep-c_1 edge.
 /// @param c_2 New trio has midpoint between keep-c_2 edge.
 /// @param c_3 New trio has midpoint between c_1-c_2 edge, if focus = {0, 0, 0}.
-/// @param keep Star to retain with cut. Vector with components {0, 0, 0,} by default.
-/// @return Cut trio of stars {c_1_prime, c_2_prime, c_3_prime}.
+/// @param keep Star to retain with cut. Vector with components {0, 0, 0} by default.
+/// @return Cut trio of stars {c_12, c_23, c_31}.
 Trio Trio::cut_triangle (const Star &c_1, const Star &c_2, const Star &c_3, const Star &keep) {
-    Star c_12 = c_1 + c_2, c_23 = c_2 + c_3, c_13 = c_1 + c_3;
-    Star c_2_prime = Star(c_13[0] / 2.0, c_13[1] / 2.0, c_13[2] / 2.0);
-    Star c_3_prime = Star(c_23[0] / 2.0, c_23[1] / 2.0, c_23[2] / 2.0);
-    
-    // If focus is {0, 0, 0}, then find the middle triangle.
-    Star c_1_prime = (keep == Star()) ? Star(c_12[0] / 2.0, c_12[1] / 2.0, c_12[2] / 2.0) : keep;
-    return Trio(c_1_prime, c_2_prime, c_3_prime);
+    // Keep desired stars. Only include those who are directly related to the midpoint.
+    return Trio((keep == c_3) ? c_3 : (c_1 + c_2).as_unit(), (keep == c_2) ? c_2 : (c_1 + c_3).as_unit(),
+                (keep == c_1) ? c_1 : (c_2 + c_3).as_unit());
 }
 
 /// Recursively determine the spherical moment of a trio. This is a divide-and-conquer approach, creating four
