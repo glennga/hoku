@@ -46,7 +46,7 @@ class SphericalTriangle : private BaseTriangle {
     friend class TestSphericalTriangle;
   
   public:
-    static int generate_triangle_table (const double, const unsigned int, const std::string &);
+    static int generate_triangle_table (double, unsigned int, const std::string &);
     static Star::list identify (const Benchmark &, const Parameters &, unsigned int &,
                                 const std::shared_ptr<QuadNode> & = nullptr);
     static Star::list identify (const Benchmark &, const Parameters &, const std::shared_ptr<QuadNode> & = nullptr);

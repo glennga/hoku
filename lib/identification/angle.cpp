@@ -65,7 +65,7 @@ Angle::hr_pair Angle::query_for_pair (const double theta) {
     condition << "theta BETWEEN " << std::setprecision(16) << std::fixed;
     condition << theta - epsilon << " AND " << theta + epsilon;
     candidates = nb.search_table(condition.str(), "hr_a, hr_b, theta", limit * 3, limit);
-    if (candidates.size() == 0) {
+    if (candidates.empty()) {
         return hr_pair {-1, -1};
     }
     
@@ -93,7 +93,6 @@ Angle::hr_pair Angle::query_for_pair (const double theta) {
 /// the given body.
 Star::pair Angle::find_candidate_pair (const Star &b_a, const Star &b_b) {
     double theta = Star::angle_between(b_a, b_b);
-    hr_pair candidates;
     
     // If the current angle is greater than the current fov, break early.
     if (theta > this->fov) {
@@ -101,7 +100,7 @@ Star::pair Angle::find_candidate_pair (const Star &b_a, const Star &b_b) {
     }
     
     // If no candidate is found, break early.
-    candidates = this->query_for_pair(theta);
+    hr_pair candidates = this->query_for_pair(theta);
     if (candidates[0] == -1 && candidates[1] == -1) {
         return {Star::zero(), Star::zero()};
     }
@@ -126,7 +125,7 @@ Star::list Angle::find_matches (const Star::list &candidates, const Rotation &q)
         for (unsigned int i = 0; i < non_matched.size(); i++) {
             if (Star::angle_between(r_prime, non_matched[i]) < epsilon) {
                 // Add this match to the list by noting the candidate star's HR number.
-                matches.push_back(Star(non_matched[i][0], non_matched[i][1], non_matched[i][2], candidate.get_hr()));
+                matches.emplace_back(Star(non_matched[i][0], non_matched[i][1], non_matched[i][2], candidate.get_hr()));
                 
                 // Remove the current star from the searching set. End the search for this star.
                 non_matched.erase(non_matched.begin() + i);

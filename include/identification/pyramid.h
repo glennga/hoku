@@ -52,7 +52,7 @@ class Pyramid {
   public:
     static Star::list identify (const Benchmark &, const Parameters &, unsigned int &);
     static Star::list identify (const Benchmark &, const Parameters &);
-    static int generate_sep_table (const double, const std::string &);
+    static int generate_sep_table (double, const std::string &);
   
   private:
     /// Alias for a list of Harvard Revised numbers (STL vector of doubles).
@@ -89,7 +89,7 @@ class Pyramid {
     Pyramid (const Benchmark &, const Parameters &);
     
     Star find_reference (const hr_list_pair &, const hr_list_pair &, const hr_list_pair &);
-    hr_list_pair query_for_pairs (const double);
+    hr_list_pair query_for_pairs (double);
     Star::list find_matches (const Star::list &, const Rotation &);
     hr_quad find_candidate_quad (const index_quad &);
     Star::list match_remaining (const Star::list &, const index_quad &, const hr_quad &);

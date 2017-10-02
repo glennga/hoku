@@ -55,7 +55,7 @@ class Rotation {
     using matrix = std::array<Star, 3>;
   
   private:
-    Rotation (const double, const Star &, const bool = false);
+    Rotation (double, const Star &, bool = false);
     
     static Rotation matrix_to_quaternion (const matrix &);
     static matrix matrix_multiply_transpose (const matrix &, const matrix &);

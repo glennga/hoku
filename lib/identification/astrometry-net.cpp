@@ -38,7 +38,7 @@ AstrometryNet::AstrometryNet (const Benchmark &input, const Parameters &paramete
     astro_stars.reserve(n / 3);
     for (unsigned int i = 0; i < n; i += 3) {
         Nibble::tuple astro_i = ch.table_results_at(asterisms, 3, i);
-        astro_stars.push_back(Star(astro_i[0], astro_i[1], astro_i[2]));
+        astro_stars.emplace_back(Star(astro_i[0], astro_i[1], astro_i[2]));
     }
     
     // Load KD tree for nearby asterisms.
@@ -196,7 +196,7 @@ Astro::hr_quad Astro::query_for_asterism (const index_quad &b_i) {
         
         // We return the first match we find.
         if (within_epsilon(i + 1, h[1]) && within_epsilon(i + 2, h[2]) && within_epsilon(i + 3, h[3])) {
-            Astro::hr_quad in_given_order;
+            Astro::hr_quad in_given_order = {0, 0, 0, 0};
             
             // Return the given list in the order of the indices given to us (fancy nested for loop below).
             for (int j = 0, k = 0; j < 4; k = (k < 3) ? k + 1 : 0 * j++) {
@@ -252,7 +252,7 @@ Astro::models Astro::classify_matches (const hr_quad &r_hr, const Rotation &q) {
             
             if (Star::angle_between(b_prime, s) < 3.0 * parameters.match_sigma) {
                 // We insert the matched input star with the proper HR if found.
-                m[0].push_back(Star(s[0], s[1], s[2], b_prime.get_hr()));
+                m[0].emplace_back(Star(s[0], s[1], s[2], b_prime.get_hr()));
                 
                 // Remove the current star from the searching set. End the search for this star.
                 nearby.erase(nearby.begin() + i);
@@ -360,7 +360,7 @@ Star::list Astro::identify (const Benchmark &input, const Parameters &parameters
     }
     
     // Otherwise, there exists |A_input| choose 4 possibilities (fancy for loop wrapping below).
-    const int INPUT_SIZE = (int) a.input.size();
+    const auto INPUT_SIZE = (int) a.input.size();
     for (int i = 0, j = 1; i < INPUT_SIZE - 3; j = (j < INPUT_SIZE - 3) ? j + 1 : i++ + 2) {
         for (int k = j + 1, m = k + 1; k < INPUT_SIZE - 1; m = (m < INPUT_SIZE - 1) ? m + 1 : k++ + 2) {
             hr_quad r_hr = a.query_for_asterism({i, j, k, m});

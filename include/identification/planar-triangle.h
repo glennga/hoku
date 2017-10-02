@@ -49,7 +49,7 @@ class PlanarTriangle : private BaseTriangle {
     static Star::list identify (const Benchmark &, const Parameters &, unsigned int &,
                                 const std::shared_ptr<QuadNode> & = nullptr);
     static Star::list identify (const Benchmark &, const Parameters &, const std::shared_ptr<QuadNode> & = nullptr);
-    static int generate_triangle_table (const double, const std::string &);
+    static int generate_triangle_table (double, const std::string &);
     using BaseTriangle::Parameters;
   
   private:

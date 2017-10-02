@@ -42,7 +42,7 @@ Rotation Rotation::matrix_to_quaternion (const matrix &r) {
     double c = (r[1][0] - r[0][1]) / (4 * w);
     
     // Result returned is normalized. 
-    return Rotation(w, Star(a, b, c), true);
+    return {w, Star(a, b, c), true};
 }
 
 /// Given two 3x3 matrices A and B, determine the A * B^T (the transpose of B). This is mathematically equivalent
@@ -100,14 +100,14 @@ Star Rotation::rotate (const Star &s, const Rotation &q) {
         2.0 * (q.k * q.j + q.w * q.i), pow(q.w, 2) - pow(q.i, 2) - pow(q.j, 2) + pow(q.k, 2));
     
     // Form the rotation matrix. Dot with given star.
-    return Star(Star::dot(s, a_1n), Star::dot(s, a_2n), Star::dot(s, a_3n), s.get_hr());
+    return {Star::dot(s, a_1n), Star::dot(s, a_2n), Star::dot(s, a_3n), s.get_hr()};
 }
 
 /// Return the identity quaternion, as a Rotation object.
 /// 
 /// @return Identity quaternion: <1, 0, 0, 0>.
 Rotation Rotation::identity () {
-    return Rotation(1, Star::zero());
+    return {1, Star::zero()};
 }
 
 /// Return a unit quaternion with random components. Achieved by find the rotation from one random star to another
@@ -116,5 +116,5 @@ Rotation Rotation::identity () {
 /// @return Random quaternion.
 Rotation Rotation::chance () {
     Star p = Star::chance(), q = Star::chance();
-    return Rotation(sqrt(1.0 + Star::dot(p, q)), Star::cross(p, q), true);
+    return {sqrt(1.0 + Star::dot(p, q)), Star::cross(p, q), true};
 }

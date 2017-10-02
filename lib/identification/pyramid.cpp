@@ -58,9 +58,9 @@ Pyramid::hr_list_pair Pyramid::query_for_pairs (const double theta) {
 Star Pyramid::find_reference (const hr_list_pair &ei, const hr_list_pair &ej, const hr_list_pair &ek) {
     auto flatten_pairs = [] (const hr_list_pair &candidates, hr_list &out_list) -> void {
         out_list.reserve(candidates.size() * 2);
-        for (unsigned int m = 0; m < candidates.size(); m++) {
-            out_list.push_back(candidates[m][0]);
-            out_list.push_back(candidates[m][1]);
+        for (const hr_pair &candidate : candidates) {
+            out_list.push_back(candidate[0]);
+            out_list.push_back(candidate[1]);
         }
     };
     hr_list ei_list, ej_list, ek_list, eij_common, candidates;
@@ -135,7 +135,7 @@ Star::list Pyramid::find_matches (const Star::list &candidates, const Rotation &
         for (unsigned int i = 0; i < non_matched.size(); i++) {
             if (Star::angle_between(r_prime, non_matched[i]) < epsilon) {
                 // Add this match to the list by noting the candidate star's HR number.
-                matches.push_back(Star(non_matched[i][0], non_matched[i][1], non_matched[i][2], candidate.get_hr()));
+                matches.emplace_back(Star(non_matched[i][0], non_matched[i][1], non_matched[i][2], candidate.get_hr()));
                 
                 // Remove the current star from the searching set. End the search for this star.
                 non_matched.erase(non_matched.begin() + i);
@@ -185,14 +185,14 @@ Star::list Pyramid::identify (const Benchmark &input, const Parameters &paramete
                     z++;
                     
                     // We check for cases where e == i, e == j, ... for duplicates. If so, break early.
-                    std::array<int, 4> indices = {(int) i, j, k, (int) e};
+                    std::array<int, 4> indices = {i, j, k, e};
                     std::sort(indices.begin(), indices.end());
                     if (std::unique(indices.begin(), indices.end()) != indices.end()) {
                         break;
                     }
                     
                     // Given four stars in our catalog, find their HR values in the catalog.
-                    hr_quad r_quad = p.find_candidate_quad({(int) i, j, k, (int) e});
+                    hr_quad r_quad = p.find_candidate_quad({i, j, k, e});
                     if (r_quad[0] == 0 && r_quad[1] == 0 && r_quad[2] == 0 && r_quad[3] == 0) {
                         break;
                     }
@@ -202,7 +202,7 @@ Star::list Pyramid::identify (const Benchmark &input, const Parameters &paramete
                                                    3 * ((unsigned int) p.input.size()));
                     
                     // Return all stars from our input that match the candidates. Append the appropriate HR values.
-                    return p.match_remaining(candidates, {(int) i, j, k, (int) e}, r_quad);
+                    return p.match_remaining(candidates, {i, j, k, e}, r_quad);
                 }
             }
         }

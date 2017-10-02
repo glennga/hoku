@@ -61,7 +61,7 @@ int Star::get_hr () const {
 /// @param s Star to add the current star with.
 /// @return The summation of the current star and star S.
 Star Star::operator+ (const Star &s) const {
-    return Star(this->i + s.i, this->j + s.j, this->k + s.k, s.hr);
+    return {this->i + s.i, this->j + s.j, this->k + s.k, s.hr};
 }
 
 /// Subtract star S from the current star. This subtracts the two vector's components.
@@ -69,7 +69,7 @@ Star Star::operator+ (const Star &s) const {
 /// @param s Star to subtract the current star with.
 /// @return The resultant of subtracting the current star with star S.
 Star Star::operator- (const Star &s) const {
-    return Star(this->i - s.i, this->j - s.j, this->k - s.k, s.hr);
+    return {this->i - s.i, this->j - s.j, this->k - s.k, s.hr};
 }
 
 /// Scale the current star with the constant kappa.
@@ -77,7 +77,7 @@ Star Star::operator- (const Star &s) const {
 /// @param kappa kappa Every component will be multiplied by this.
 /// @return Resultant of the current star scaled by kappa.
 Star Star::operator* (const double kappa) const {
-    return Star(this->i * kappa, this->j * kappa, this->k * kappa, this->hr);
+    return {this->i * kappa, this->j * kappa, this->k * kappa, this->hr};
 }
 
 /// Find the magnitude of the current star.
@@ -98,7 +98,7 @@ Star Star::as_unit () const {
         return *this;
     }
     
-    return Star(this->i / norm, this->j / norm, this->k / norm, this->hr);
+    return {this->i / norm, this->j / norm, this->k / norm, this->hr};
 }
 
 /// Determine if the two values's **components** are within epsilon units of each other.
@@ -124,7 +124,7 @@ bool Star::operator== (const Star &s) const {
 ///
 /// @return Star with components {0, 0, 0} and hr = 0.
 Star Star::zero () {
-    return Star(0, 0, 0, 0);
+    return {0, 0, 0, 0};
 }
 
 /// Generate a random star with normalized components. Using C++11 random functions.
@@ -166,7 +166,7 @@ double Star::dot (const Star &s_1, const Star &s_2) {
 /// @param s_2 Star to cross with s_1.
 /// @return Resultant of s_1 cross s_2.
 Star Star::cross (const Star &s_1, const Star &s_2) {
-    return Star(s_1.j * s_2.k - s_1.k * s_2.j, s_1.k * s_2.i - s_1.i * s_2.k, s_1.i * s_2.j - s_1.j * s_2.i, 0);
+    return {s_1.j * s_2.k - s_1.k * s_2.j, s_1.k * s_2.i - s_1.i * s_2.k, s_1.i * s_2.j - s_1.j * s_2.i, 0};
 }
 
 /// Finds the angle between stars s_1 and s_2. Range of hat(s^1) dot hat(s^2) is [-1.0, 1.0], which is the
@@ -210,5 +210,5 @@ bool Star::within_angle (const list &s_l, const double theta) {
 /// @param s Star to remove HR number from.
 /// @return Same star with HR number equal to 0.
 Star Star::reset_hr (const Star &s) {
-    return Star(s.i, s.j, s.k, 0);
+    return {s.i, s.j, s.k, 0};
 }

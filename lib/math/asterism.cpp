@@ -179,6 +179,6 @@ Star Asterism::center (const stars &s) {
         return std::accumulate(n_vector.begin(), n_vector.end(), 0.0) / 4;
     };
     
-    return Star(average_dim(0), average_dim(1), average_dim(2), 0, true);
+    return {average_dim(0), average_dim(1), average_dim(2), 0, true};
 }
 

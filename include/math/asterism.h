@@ -43,7 +43,7 @@ class Asterism {
     static Star center (const stars &);
   
   private:
-    Asterism (const stars &);
+    explicit Asterism (const stars &);
     
     void verify_ab_stars ();
     Asterism::points_cd compute_cd_prime ();

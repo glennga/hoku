@@ -60,11 +60,11 @@ class BaseTriangle {
     
   protected:
     Star::list identify_stars (unsigned int &);
-    std::vector<hr_trio> query_for_trio (const double, const double);
+    std::vector<hr_trio> query_for_trio (double, double);
     
   private:
     virtual std::vector<Trio::stars> match_stars (const index_trio &) = 0;
-    Trio::stars pivot (const index_trio &, const std::vector<Trio::stars> & = {{}});
+    Trio::stars pivot (const index_trio &, const std::vector<Trio::stars> & = {});
     Star::list rotate_stars (const Star::list &, const Rotation &);
     Star::list check_assumptions (const Star::list &, const Trio::stars &, const index_trio &);
 };

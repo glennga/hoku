@@ -58,7 +58,7 @@ class Benchmark {
     Benchmark () = delete;
   
   public:
-    Benchmark (const double, const Star &, const Rotation & = Rotation::identity());
+    Benchmark (double, const Star &, const Rotation & = Rotation::identity());
     
     void generate_stars ();
     
@@ -70,17 +70,17 @@ class Benchmark {
     int record_current_plot ();
     int display_plot ();
     
-    void add_extra_light (const int);
-    void remove_light (const int, const double);
-    void shift_light (const int, const double);
+    void add_extra_light (int);
+    void remove_light (int, double);
+    void shift_light (int, double);
     
     static int compare_stars(const Benchmark &, const Star::list &);
     
   public:
-    static const std::string TABLE_NAME;
+    static const char* const TABLE_NAME;
   
   private:
-    Benchmark (const Star::list &, const Star &, const double);
+    Benchmark (const Star::list &, const Star &, double);
     
     Star::list clean_stars () const;
     void shuffle ();
@@ -88,11 +88,11 @@ class Benchmark {
   private:
     /// Alias for the list (stack) of ErrorModels.
     using model_list = std::vector<ErrorModel>;
-    
-    static const std::string PROJECT_LOCATION;
-    static const std::string CURRENT_PLOT;
-    static const std::string ERROR_PLOT;
-    static const std::string PLOT_SCRIPT;
+
+    static const char* const PROJECT_LOCATION;
+    static const char* const CURRENT_PLOT;
+    static const char* const ERROR_PLOT;
+    static const char* const PLOT_SCRIPT;
     
     /// Current list of stars. All stars must be near the focus.
     Star::list stars;

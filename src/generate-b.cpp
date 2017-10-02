@@ -50,7 +50,7 @@ typedef void (*record_function) (Nibble &, unsigned int &, double);
 ///
 /// @param nb Open Nibble connection.
 void delete_existing_benchmark (Nibble &nb) {
-    (*nb.db).exec("DROP TABLE IF EXISTS " + Benchmark::TABLE_NAME);
+    (*nb.db).exec("DROP TABLE IF EXISTS " + std::string(Benchmark::TABLE_NAME));
 }
 
 /// Return a non-empty benchmark. If we are unable to find a non-empty benchmark in N_BOUND iterations, halt.

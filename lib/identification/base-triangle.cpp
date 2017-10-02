@@ -45,27 +45,27 @@ std::vector<BaseTriangle::hr_trio> BaseTriangle::query_for_trio (const double a,
 /// Match the stars in the given set {B_1, B_2, B_3} to a trio in the database. If a past_set is given, then remove
 /// all stars found matching the B trio that aren't found in the past set. Recurse until one definitive trio exists.
 ///
-/// @param hr_b Index trio of stars in body (B) frame.
+/// @param i_b Index trio of stars in body (B) frame.
 /// @param past_set Matches found in a previous search.
 /// @return A trio of stars that match the given B stars to R stars.
-Trio::stars BaseTriangle::pivot (const index_trio &hr_b, const std::vector<Trio::stars> &past_set) {
-    std::vector<Trio::stars> matches = this->match_stars(hr_b);
+Trio::stars BaseTriangle::pivot (const index_trio &i_b, const std::vector<Trio::stars> &past_set) {
+    std::vector<Trio::stars> matches = this->match_stars(i_b);
     
     // Function to increment hr_b3 first, then hr_b2, then hr_b1 last. This is the "pivoting".
-    auto increment_hr = [matches] (const index_trio &hr_t) {
-        if (hr_t[2] != matches.size() - 1) {
-            return index_trio {hr_t[0], hr_t[1], hr_t[2] + 1};
+    auto increment_hr = [&matches] (const index_trio &i_t) {
+        if (i_t[2] != matches.size() - 1) {
+            return index_trio {i_t[0], i_t[1], i_t[2] + 1};
         }
-        else if (hr_t[1] != matches.size() - 1) {
-            return index_trio {hr_t[0], hr_t[1] + 1, 0};
+        else if (i_t[1] != matches.size() - 1) {
+            return index_trio {i_t[0], i_t[1] + 1, 0};
         }
         else {
-            return index_trio {hr_t[0] + 1, 0, 0};
+            return index_trio {i_t[0] + 1, 0, 0};
         }
     };
-    
+
     // Remove all trios from matches that don't exist in the past set.
-    if (past_set.size() > 0) {
+    if (!past_set.empty() && !(std::equal(past_set[0].begin() + 1, past_set[0].end(), past_set[0].begin()))) {
         for (unsigned int i = 0; i < matches.size(); i++) {
             bool match_found = false;
             for (const Trio::stars &past : past_set) {
@@ -82,11 +82,11 @@ Trio::stars BaseTriangle::pivot (const index_trio &hr_b, const std::vector<Trio:
             }
         }
     }
-    
+
     switch (matches.size()) {
         case 1: return matches[0]; // Only 1 trio exists. This must be the matching trio.
-        case 0: return pivot(increment_hr(hr_b)); // No trios exists. Rerun with different trio.
-        default: return pivot(increment_hr(hr_b), matches); // 2+ trios exists. Run with different trio and past search.
+        case 0: return pivot(increment_hr(i_b)); // No trios exists. Rerun with different trio.
+        default: return pivot(increment_hr(i_b), matches); // 2+ trios exists. Run with different trio and past search.
     }
 }
 
@@ -161,7 +161,7 @@ Star::list BaseTriangle::check_assumptions (const Star::list &candidates, const 
 Star::list BaseTriangle::identify_stars (unsigned int &z) {
     Star::list matches;
     z = 0;
-    
+
     // There exists |input| choose 3 possibilities.
     for (int i = 0; i < (signed) input.size() - 2; i++) {
         for (int j = i + 1; j < (signed) input.size() - 1; j++) {
@@ -171,8 +171,14 @@ Star::list BaseTriangle::identify_stars (unsigned int &z) {
                 Star::list candidates;
                 z++;
                 
-                // Find matches of current body trio to catalog. Pivot if necessary.
+                // Find matches of current body trio to catalog.
                 candidate_trios = match_stars({(double) i, (double) j, (double) k});
+                if (candidate_trios[0][0] == Star::zero() && candidate_trios[0][0] == Star::zero()
+                        && candidate_trios[0][2] == Star::zero()) {
+                    break;
+                }
+
+                // Pivot if necessary.
                 candidate_trio = pivot({(double) i, (double) j, (double) k}, candidate_trios);
                 if (candidate_trio[0] == Star::zero() && candidate_trio[1] == Star::zero()
                     && candidate_trio[2] == Star::zero()) {

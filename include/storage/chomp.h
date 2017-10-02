@@ -43,7 +43,7 @@ class Chomp : public Nibble {
     using Nibble::tuple;
     
     int create_k_vector (const std::string &);
-    tuple k_vector_query (const std::string &, const std::string &, const double, const double, const unsigned int);
+    tuple k_vector_query (const std::string &, const std::string &, double, double, unsigned int);
   
   private:
     
@@ -51,7 +51,7 @@ class Chomp : public Nibble {
     const double DOUBLE_EPSILON = std::numeric_limits<double>::epsilon();
   
   private:
-    int build_k_vector_table (const std::string &, const double, const double);
+    int build_k_vector_table (const std::string &, double, double);
 };
 
 #endif /* HOKU_CHOMP_H */

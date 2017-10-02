@@ -31,17 +31,17 @@ int TestBenchmark::test_current_plot_file () {
     std::string d;
     char e[200];
     
-    std::remove(input.CURRENT_PLOT.c_str());
-    std::remove(input.ERROR_PLOT.c_str());
+    std::remove(input.CURRENT_PLOT);
+    std::remove(input.ERROR_PLOT);
     input.record_current_plot();
     
-    std::ifstream current_plot_from_input(input.CURRENT_PLOT.c_str());
+    std::ifstream current_plot_from_input(input.CURRENT_PLOT);
     assert_true(current_plot_from_input.good(), "CurrentPlotFileOpen", input.CURRENT_PLOT);
     
     std::getline(current_plot_from_input, d);
-    assert_equal(15, std::stoi(d.c_str()), "CurrentPlotFOVEquality");
+    assert_equal(15, std::stoi(d), "CurrentPlotFOVEquality");
     std::getline(current_plot_from_input, d);
-    assert_equal(1, std::stod(d.c_str()), "CurrentPlotNormEquality");
+    assert_equal(1, std::stod(d), "CurrentPlotNormEquality");
     
     std::getline(current_plot_from_input, d);
     sprintf(e, "%0.16f %0.16f %0.16f ", c[0], c[1], c[2]);
@@ -60,12 +60,12 @@ int TestBenchmark::test_error_plot_file () {
     std::string a;
     char b[200];
     
-    std::remove(input.CURRENT_PLOT.c_str());
-    std::remove(input.ERROR_PLOT.c_str());
+    std::remove(input.CURRENT_PLOT);
+    std::remove(input.ERROR_PLOT);
     input.add_extra_light(1);
     input.record_current_plot();
     
-    std::ifstream error_plot_from_input(input.ERROR_PLOT.c_str());
+    std::ifstream error_plot_from_input(input.ERROR_PLOT);
     assert_true(error_plot_from_input.good(), "ErrorPlotFileOpen", input.ERROR_PLOT);
     
     // NOTE: Here b truncates a digit, but this is correct otherwise.
@@ -194,7 +194,7 @@ int TestBenchmark::test_nibble_insertion () {
     }
     
     // We were never here...
-    (*nb.db).exec("DELETE FROM " + Benchmark::TABLE_NAME + " WHERE set_n = " + std::to_string(a));
+    (*nb.db).exec("DELETE FROM " + std::string(Benchmark::TABLE_NAME) + " WHERE set_n = " + std::to_string(a));
     return 0;
 }
 
@@ -208,7 +208,7 @@ int TestBenchmark::test_compare_stars() {
     // Erase two stars from set B.
     b.erase(b.begin() + 0);
     b.erase(b.begin() + 1);
-    b.push_back(Star(5, 5, 5));
+    b.emplace_back(Star(5, 5, 5));
     
     assert_not_equal(a.stars.size(), Benchmark::compare_stars(a, b), "ComparePresentsNotCorrectNumber");
     assert_equal(a.stars.size(), Benchmark::compare_stars(a, b) + 2, "ComparePresentsCorrectNumber");

@@ -237,15 +237,17 @@ int TestPlanarTriangle::test_identify_clean_input () {
     for (const Star &s : input.stars) {
         all_input += !(s == input.stars[input.stars.size() - 1]) ? s.str() + "," : s.str();
     }
-    
-    for (unsigned int q = 0; q < c.size() - 1; q++) {
-        auto match = [&c, q] (const Star &b) -> bool {
-            return b.get_hr() == c[q].get_hr();
-        };
-        auto is_found = std::find_if(input.stars.begin(), input.stars.end(), match);
-        
-        std::string test_name = "IdentificationCleanInputStar" + std::to_string(q + 1);
-        assert_true(is_found != input.stars.end(), test_name, c[q].str() + "," + all_input);
+
+    if (!c.empty()) {
+        for (int q = 0; q < c.size() - 1; q++) {
+            auto match = [&c, q](const Star &b) -> bool {
+                return b.get_hr() == c[q].get_hr();
+            };
+            auto is_found = std::find_if(input.stars.begin(), input.stars.end(), match);
+
+            std::string test_name = "IdentificationCleanInputStar" + std::to_string(q + 1);
+            assert_true(is_found != input.stars.end(), test_name, c[q].str() + "," + all_input);
+        }
     }
     
     return 0;
@@ -267,7 +269,7 @@ int TestPlanarTriangle::test_identify_error_input () {
     std::vector<Star> c = Plane::identify(input, a);
     assert_greater_than(c.size(), (input.stars.size() - 1) / 3.0, "IdentificationFoundWithErrorSize");
     
-    if (c.size() != 0) {
+    if (!c.empty()) {
         std::string all_input = "";
         for (const Star &s : input.stars) {
             all_input += !(s == input.stars[input.stars.size() - 1]) ? s.str() + "," : s.str();
@@ -305,15 +307,17 @@ int TestPlanarTriangle::test_tree_built_outside () {
     for (const Star &s : input.stars) {
         all_input += !(s == input.stars[input.stars.size() - 1]) ? s.str() + "," : s.str();
     }
-    
-    for (unsigned int q = 0; q < c.size() - 1; q++) {
-        auto match = [&c, q] (const Star &b) -> bool {
-            return b.get_hr() == c[q].get_hr();
-        };
-        auto is_found = std::find_if(input.stars.begin(), input.stars.end(), match);
-        
-        std::string test_name = "IdentificationCleanQuadTreeBuiltOutside" + std::to_string(q + 1);
-        assert_true(is_found != input.stars.end(), test_name, c[q].str() + "," + all_input);
+
+    if (!c.empty()) {
+        for (unsigned int q = 0; q < c.size() - 1; q++) {
+            auto match = [&c, q](const Star &b) -> bool {
+                return b.get_hr() == c[q].get_hr();
+            };
+            auto is_found = std::find_if(input.stars.begin(), input.stars.end(), match);
+
+            std::string test_name = "IdentificationCleanQuadTreeBuiltOutside" + std::to_string(q + 1);
+            assert_true(is_found != input.stars.end(), test_name, c[q].str() + "," + all_input);
+        }
     }
     
     return 0;

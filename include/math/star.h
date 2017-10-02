@@ -46,37 +46,37 @@ class Star {
     constexpr static double STAR_EQUALITY_PRECISION_DEFAULT = 0.000000000001;
   
   public:
-    Star (const double, const double, const double, const int = 0, const bool = false);
+    Star (double, double, double, int = 0, bool = false);
     Star ();
     
     std::string str () const;
     
-    double operator[] (const unsigned int) const;
+    double operator[] (unsigned int) const;
     int get_hr () const;
     
     Star operator+ (const Star &) const;
     Star operator- (const Star &) const;
     
-    Star operator* (const double) const;
+    Star operator* (double) const;
     
     double norm () const;
     
     Star as_unit () const;
     
-    static bool is_equal (const Star &, const Star &, const double = STAR_EQUALITY_PRECISION_DEFAULT);
+    static bool is_equal (const Star &, const Star &, double = STAR_EQUALITY_PRECISION_DEFAULT);
     bool operator== (const Star &) const;
     
     static Star zero ();
     
     static Star chance ();
-    static Star chance (const int);
+    static Star chance (int);
     
     static double dot (const Star &, const Star &);
     static Star cross (const Star &, const Star &);
     
     static double angle_between (const Star &, const Star &);
-    static bool within_angle (const Star &, const Star &, const double);
-    static bool within_angle (const list &, const double);
+    static bool within_angle (const Star &, const Star &, double);
+    static bool within_angle (const list &, double);
     
     static Star reset_hr (const Star &);
   

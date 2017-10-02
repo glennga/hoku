@@ -5,20 +5,23 @@
 
 #include "benchmark/benchmark.h"
 
-/// Name of the Nibble table all results are saved to.
-const std::string Benchmark::TABLE_NAME = "BENCH";
+
+const char* const Benchmark::TABLE_NAME = (char*) "BENCH";
 
 /// String of the HOKU_PROJECT_PATH environment variable
-const std::string Benchmark::PROJECT_LOCATION = std::string(std::getenv("HOKU_PROJECT_PATH"));
+const char* const Benchmark::PROJECT_LOCATION = std::string(std::getenv("HOKU_PROJECT_PATH")).c_str();
 
 /// Path of the 'clean' star set on disk. One of the temporary files used for plotting.
-const std::string Benchmark::CURRENT_PLOT = Benchmark::PROJECT_LOCATION + "/data/logs/tmp/cuplt.tmp";
+const char* const Benchmark::CURRENT_PLOT = (std::string(Benchmark::PROJECT_LOCATION) +
+        "/data/logs/tmp/cuplt.tmp").c_str();
 
 /// Path of the 'error' star set on disk. One of the temporary files used for plotting.
-const std::string Benchmark::ERROR_PLOT = Benchmark::PROJECT_LOCATION + "/data/logs/tmp/errplt.tmp";
+const char* const Benchmark::ERROR_PLOT = (std::string(Benchmark::PROJECT_LOCATION) +
+        "/data/logs/tmp/errplt.tmp").c_str();
 
 /// Path of the Python script used to plot the current Benchmark instance.
-const std::string Benchmark::PLOT_SCRIPT = "\"" + Benchmark::PROJECT_LOCATION + "/script/python/generate-plot.py\"";
+const char* const Benchmark::PLOT_SCRIPT = ("\"" + std::string(Benchmark::PROJECT_LOCATION) +
+        "/script/python/generate-plot.py\"").c_str();
 
 /// Constructor. Sets the fov, focus, and rotation of the star set. Generate the stars after collecting this
 /// information.
@@ -73,9 +76,9 @@ void Benchmark::generate_stars () {
 Star::list Benchmark::clean_stars () const {
     // Keep the current star set intact.
     Star::list clean = this->stars;
-    
-    for (unsigned int i = 0; i < clean.size(); i++) {
-        clean[i] = Star::reset_hr(clean[i]);
+
+    for (Star &s : clean) {
+        s = Star::reset_hr(s);
     }
     return clean;
 }
@@ -121,7 +124,7 @@ int Benchmark::insert_into_nibble (Nibble &nb, const unsigned int set_n) const {
     nb.select_table(TABLE_NAME);
     
     // If there exists records with set_n, stop here.
-    if (nb.search_table("set_n = " + std::to_string(set_n), "rowid", 1, 1).size() != 0) {
+    if (!nb.search_table("set_n = " + std::to_string(set_n), "rowid", 1, 1).empty()) {
         throw "The set_n [" + std::to_string(set_n) + "] exists.";
     }
     
@@ -143,8 +146,8 @@ int Benchmark::insert_into_nibble (Nibble &nb, const unsigned int set_n) const {
     nb.insert_into_table(fields, {(double) set_n, -1, e, r, s, focus[0], focus[1], focus[2], fov});
     
     // Log every star into this table.
-    for (double i = 0; i < (double) this->stars.size(); i++) {
-        nb.insert_into_table(fields, {(double) set_n, i, e, r, s, stars[i][0], stars[i][1], stars[i][2], fov});
+    for (int i = 0; i < (int) this->stars.size(); i++) {
+        nb.insert_into_table(fields, {(double) set_n, (double) i, e, r, s, stars[i][0], stars[i][1], stars[i][2], fov});
     }
     
     return 0;
@@ -164,7 +167,7 @@ Benchmark Benchmark::parse_from_nibble (Nibble &nb, const unsigned int set_n) {
     nb.select_table(TABLE_NAME, true);
     
     // If there exists no record with that set_n, return an empty benchmark.
-    if (nb.search_table("set_n = " + std::to_string(set_n), "rowid", 1, 1).size() == 0) {
+    if (nb.search_table("set_n = " + std::to_string(set_n), "rowid", 1, 1).empty()) {
         throw "The set_n [" + std::to_string(set_n) + "] does not exist.";
     }
     
@@ -175,7 +178,7 @@ Benchmark Benchmark::parse_from_nibble (Nibble &nb, const unsigned int set_n) {
     // Parse all stars for this benchmark.
     for (int i = 0; i <= nb.search_table(set_n_equal, "MAX(item_n)", 1, 1)[0]; i++) {
         Nibble::tuple r = nb.search_table(set_n_equal + " AND item_n = " + std::to_string(i), "i, j, k", 3, 1);
-        stars.push_back(Star(r[0], r[1], r[2]));
+        stars.emplace_back(Star(r[0], r[1], r[2]));
     }
     
     return Benchmark(stars, Star(focus[0], focus[1], focus[2]), fov);
@@ -228,16 +231,16 @@ int Benchmark::record_current_plot () {
 ///
 /// @return 0 when finished.
 int Benchmark::display_plot () {
-    std::remove(this->CURRENT_PLOT.c_str());
-    std::remove(this->ERROR_PLOT.c_str());
+    std::remove(this->CURRENT_PLOT);
+    std::remove(this->ERROR_PLOT);
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
     std::string cmd = "python " + this->PLOT_SCRIPT;
 #else
-    std::string cmd = "python3 " + this->PLOT_SCRIPT;
+    std::string cmd = "python3 " + std::string(this->PLOT_SCRIPT);
 #endif
 
-    if (std::ifstream(this->CURRENT_PLOT.c_str()) || std::ifstream(this->ERROR_PLOT.c_str())) {
+    if (std::ifstream(this->CURRENT_PLOT) || std::ifstream(this->ERROR_PLOT)) {
         throw "Current and/or error plot files could not deleted.";
     }
     
@@ -255,7 +258,7 @@ int Benchmark::display_plot () {
 int Benchmark::compare_stars (const Benchmark &b, const Star::list &s_l) {
     Star::list s_candidates = s_l;
     unsigned int c = 0;
-    
+
     for (const Star &s_a : b.stars) {
         for (unsigned int i = 0; i < s_candidates.size(); i++) {
             

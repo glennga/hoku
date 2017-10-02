@@ -72,22 +72,22 @@ class Nibble {
   
   public:
     Nibble ();
-    Nibble (const std::string &, const std::string & = "");
+    explicit Nibble (const std::string &, const std::string & = "");
     
-    void select_table (const std::string &, const bool = false);
+    void select_table (const std::string &, bool = false);
     
     int generate_bsc5_table ();
     
     int insert_into_table (const std::string &, const tuple &);
     
     Star::list all_bsc5_stars ();
-    Star::list nearby_stars (const Star &, const double, const unsigned int);
+    Star::list nearby_stars (const Star &, double, unsigned int);
     
-    Star query_bsc5 (const int);
+    Star query_bsc5 (int);
     
-    tuple search_table (const std::string &, const std::string &, const unsigned int, const int = -1);
-    tuple search_table (const std::string &, const unsigned int, const int = -1);
-    tuple table_results_at (const tuple &, const unsigned int, const int);
+    tuple search_table (const std::string &, const std::string &, unsigned int, int = -1);
+    tuple search_table (const std::string &, unsigned int, int = -1);
+    tuple table_results_at (const tuple &, unsigned int, int);
     
     int create_table (const std::string &, const std::string &);
     

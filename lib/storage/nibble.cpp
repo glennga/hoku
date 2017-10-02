@@ -9,7 +9,7 @@
 /// it is created. Set the current table to BSC5, and load all stars to RAM.
 Nibble::Nibble () {
     const int FLAGS = SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE;
-    this->db = std::unique_ptr<SQLite::Database>(new SQLite::Database(DATABASE_LOCATION, FLAGS));
+    this->db = std::make_unique<SQLite::Database>(SQLite::Database(DATABASE_LOCATION, FLAGS));
     
     // Load all stars into instance's 'all_stars'.
     load_all_stars();
@@ -25,7 +25,7 @@ Nibble::Nibble(const std::string &table_name, const std::string &focus) {
     const int FLAGS = SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE;
     
     // We have two connections: one in memory, and one to our Nibble database on disk.
-    this->db = std::unique_ptr<SQLite::Database>(new SQLite::Database(":memory:", FLAGS));
+    this->db = std::make_unique<SQLite::Database>(new SQLite::Database(":memory:", FLAGS));
     Nibble nb;
     
     // Copy the entire table to RAM.
@@ -48,7 +48,7 @@ Nibble::Nibble(const std::string &table_name, const std::string &focus) {
     }
     
     // If desired, then polish the table (index and sort).
-    if (focus != "") {
+    if (!focus.empty()) {
         this->polish_table(focus);
     }
 }
@@ -59,7 +59,7 @@ Nibble::Nibble(const std::string &table_name, const std::string &focus) {
 /// @param check_existence If desired, can check table existence and throw error if not found.
 void Nibble::select_table (const std::string &table, const bool check_existence) {
     if (check_existence) {
-        SQLite::Statement query(*db, "SELECT name FROM sqlite_master WHERE type=\'table\' AND name=\'" + table + "\'");
+        SQLite::Statement query(*db, "SELECT name FROM sqlite_master WHERE type='table' AND name='" + table + "\'");
         while (query.executeStep()) {
             if (query.getColumnCount() == 0) {
                 throw "Table does not exist. 'check_existence' flag raised";
@@ -76,16 +76,16 @@ void Nibble::select_table (const std::string &table, const bool check_existence)
 /// @param entry String containing line from ASCII catalog.
 /// @return Array of components in order {alpha, delta, i, j, k, m}.
 std::array<double, 6> Nibble::components_from_line (const std::string &entry) {
-    std::array<double, 6> components;
+    std::array<double, 6> components = {0, 0, 0, 0, 0, 0};
     
     try {
         // Read right ascension. Convert hr + min + sec -> deg.
-        double alpha = 15 * stoi(entry.substr(75, 2), NULL) + 0.25 * stoi(entry.substr(77, 2), NULL)
-                       + (1 / 240.0) * strtof(entry.substr(79, 4).c_str(), NULL);
+        double alpha = 15 * stoi(entry.substr(75, 2), nullptr) + 0.25 * stoi(entry.substr(77, 2), nullptr)
+                       + (1 / 240.0) * strtof(entry.substr(79, 4).c_str(), nullptr);
         
         // Read declination. No conversion necessary.
-        double delta = stoi(entry.substr(84, 2), NULL) + (1 / 60.0) * stoi(entry.substr(86, 2), NULL)
-                       + (1 / 3600.0) * stoi(entry.substr(88, 2), NULL);
+        double delta = stoi(entry.substr(84, 2), nullptr) + (1 / 60.0) * stoi(entry.substr(86, 2), nullptr)
+                       + (1 / 3600.0) * stoi(entry.substr(88, 2), nullptr);
         delta *= (entry.at(83) == '-') ? -1 : 1;
         
         // Convert to cartesian w/ r = 1. Reduce to unit vector.
@@ -94,7 +94,7 @@ std::array<double, 6> Nibble::components_from_line (const std::string &entry) {
                         1.0 * sin((M_PI / 180.0) * delta), 0, true);
         
         // Parse apparent magnitude.
-        double m = strtof(entry.substr(102, 5).c_str(), NULL);
+        double m = strtof(entry.substr(102, 5).c_str(), nullptr);
         components = {alpha, delta, star_entry[0], star_entry[1], star_entry[2], m};
     }
     catch (std::exception &e) {
@@ -159,7 +159,7 @@ Star Nibble::query_bsc5 (const int hr) {
     
     // Keep our previous table.
     select_table(t_table);
-    return Star(results[0], results[1], results[2], hr);
+    return {results[0], results[1], results[2], hr};
 }
 
 /// Accessor for all_stars.
@@ -296,7 +296,7 @@ int Nibble::insert_into_table (const std::string &fields, const tuple &in_values
 /// @param schema Schema for the table.
 /// @return -1 if a table already exists. 0 otherwise.
 int Nibble::create_table (const std::string &table, const std::string &schema) {
-    SQLite::Statement query(*db, "SELECT name FROM sqlite_master WHERE type=\'table\' AND name=\'" + table + "\'");
+    SQLite::Statement query(*db, "SELECT name FROM sqlite_master WHERE type='table' AND name='" + table + "\'");
     
     select_table(table);
     while (query.executeStep()) {
@@ -383,7 +383,7 @@ void Nibble::load_all_stars () {
     // Select all stars, and load this into RAM.
     SQLite::Statement query(*db, "SELECT i, j, k, hr FROM BSC5");
     while (query.executeStep()) {
-        this->all_stars.push_back(
+        this->all_stars.emplace_back(
             Star(query.getColumn(0).getDouble(), query.getColumn(1).getDouble(), query.getColumn(2).getDouble(),
                  query.getColumn(3).getInt()));
     }

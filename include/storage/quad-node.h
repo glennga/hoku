@@ -29,9 +29,9 @@ class QuadNode : public Mercator {
     friend class BaseTest; // Friend to BaseTest for access to '==' operator.
   
   public:
-    Star::list nearby_stars (const Star &, const double, const unsigned int);
+    Star::list nearby_stars (const Star &, double, unsigned int);
     
-    static QuadNode load_tree (const double);
+    static QuadNode load_tree (double);
   
   private:
     /// Precision default for '==' method.
@@ -44,29 +44,29 @@ class QuadNode : public Mercator {
     using child_edges = std::array<std::shared_ptr<QuadNode>, 4>;
   
   private:
-    QuadNode (const Star &, const double, const double);
-    QuadNode (const double, const double, const double);
-    static QuadNode root (const double);
+    QuadNode (const Star &, double, double);
+    QuadNode (double, double, double);
+    static QuadNode root (double);
     
-    std::string str () const;
+    std::string str () const override;
     
     bool operator== (const QuadNode &) const;
     
     bool is_terminal_branch ();
-    bool is_dead_child (const int) const;
+    bool is_dead_child (int) const;
     static child_edges no_children ();
     
-    double width_given_angle (const double);
+    double width_given_angle (double);
     bool quadrant_intersects_quadrant (const QuadNode &) const;
     
     static QuadNode branch (const QuadNode &, const child_edges & = no_children());
-    QuadNode to_child (const int c) const;
+    QuadNode to_child (int c) const;
     
-    QuadNode::list reduce_to_quadrant (const QuadNode::list &, const double);
+    QuadNode::list reduce_to_quadrant (const QuadNode::list &, double);
     bool within_quadrant (const QuadNode &) const;
     child_edges find_quadrant_centers () const;
     
-    QuadNode find_quad_leaves (const QuadNode &, const double, const QuadNode::list &);
+    QuadNode find_quad_leaves (const QuadNode &, double, const QuadNode::list &);
     Star::list query_quadtree (Nibble &, const QuadNode &, const QuadNode &, Star::list &);
   
   private:

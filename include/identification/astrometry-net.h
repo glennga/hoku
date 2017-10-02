@@ -69,7 +69,7 @@ class AstrometryNet {
     static Star::list identify (const Benchmark &, const Parameters &, const std::shared_ptr<KdNode> & = nullptr,
                                 const std::shared_ptr<KdNode> & = nullptr);
     
-    static int generate_hash_table (const double, const int, const std::string &);
+    static int generate_hash_table (double, int, const std::string &);
     static int generate_center_table (const std::string &, const std::string &);
   
   private:
@@ -92,7 +92,7 @@ class AstrometryNet {
     AstrometryNet (const Benchmark &, const Parameters &, const std::shared_ptr<KdNode> & = nullptr,
                    const std::shared_ptr<KdNode> & = nullptr);
     
-    static int insert_astro_h (Nibble &, std::vector<int> &, const double, const hr_quad &, const double);
+    static int insert_astro_h (Nibble &, std::vector<int> &, double, const hr_quad &, double);
     
     hr_quad query_for_asterism (const hr_quad &);
     

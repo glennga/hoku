@@ -84,7 +84,7 @@ int perform_trial (Nibble &nb, std::ofstream &log, const int choice, const int s
     record_header(choice, log);
     
     // Define boundaries for the benchmarks.
-    const unsigned int BENCH_START = (unsigned) start_bench;
+    const auto BENCH_START = (unsigned) start_bench;
     const unsigned int BENCH_END = (unsigned int) nb.search_table("MAX(set_n)", 1, 1)[0];
     
     // Select the specific trial function.
@@ -144,7 +144,9 @@ int main (int argc, char *argv[]) {
             return -1;
         }
         
-        if (atoi(argv[2]) < 0 || atoi(argv[2]) > nb.search_table("MAX(set_n)", 1, 1)[0]) {
+        
+        if ((int) strtol(argv[2], nullptr, 10) < 0 || (int) strtol(argv[2], nullptr, 10) > 
+                nb.search_table("MAX (set_n)", 1, 1)[0]) {
             // Verify that the second argument is a valid set_n number.
             std::cout << "Usage: RunTrial [0 - 4] [0 - MAX(set_n)]" << std::endl;
             return -1;
@@ -160,5 +162,5 @@ int main (int argc, char *argv[]) {
         throw "Log file cannot be opened.";
     }
 
-    return perform_trial(nb, log, atoi(argv[1]), atoi(argv[2]));
+    return perform_trial(nb, log, (int) strtol(argv[1], nullptr, 10), (int) strtol(argv[2], nullptr, 10));
 }

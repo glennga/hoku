@@ -36,14 +36,14 @@ class Mercator {
     Mercator () = default;
   
   public:
-    Mercator (const Star &, const double);
-    Mercator (const double, const double, const double, const int = 0);
+    Mercator (const Star &, double);
+    Mercator (double, double, double, int = 0);
     
     static Mercator zero ();
     
-    double operator[] (const unsigned int) const;
+    double operator[] (unsigned int) const;
     
-    Mercator::quad find_corners (const double) const;
+    Mercator::quad find_corners (double) const;
     
     static double distance_between (const Mercator &, const Mercator &);
     int get_hr () const;
@@ -67,7 +67,7 @@ class Mercator {
     int hr = 0;
   
   protected:
-    void project_star (const Star &, const double);
+    void project_star (const Star &, double);
 };
 
 #endif /* HOKU_MERCATOR_H */

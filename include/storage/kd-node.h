@@ -31,9 +31,9 @@ class KdNode : private Mercator {
     friend class BaseTest;
   
   public:
-    static KdNode load_tree (const Star::list &, const double);
+    static KdNode load_tree (const Star::list &, double);
     
-    Star::list nearby_stars (const Star &, const double, const unsigned int, const Star::list &);
+    Star::list nearby_stars (const Star &, double, unsigned int, const Star::list &);
   
   private:
     /// Precision default for '==' method.
@@ -56,23 +56,23 @@ class KdNode : private Mercator {
     };
   
   private:
-    KdNode (const unsigned int, const unsigned int, const int,  const bounds_set &, list &);
-    static void sort_by_dimension (const unsigned int, const unsigned int, const int, list &);
+    KdNode (unsigned int, unsigned int, int,  const bounds_set &, list &);
+    static void sort_by_dimension (unsigned int, unsigned int, int, list &);
     
-    double width_given_angle (const double);
+    double width_given_angle (double);
     bool does_intersect_quad (const Mercator::quad &) const;
     static void box_query (const Mercator::quad &, const KdNode &, KdNode::list &);
     
-    std::string str () const;
+    std::string str () const override;
     
     bool operator== (const KdNode &) const;
   
   private:
     /// Minimum values for this node's represented box. Used for box queries.
-    bounds b_min;
+    bounds b_min = {0, 0};
     
     /// Maximum values for this node's represented box. Used for box queries.
-    bounds b_max;
+    bounds b_max = {0, 0};
     
     /// Edge to left child node.
     child_edge left_child;

@@ -39,7 +39,7 @@ class Trio {
     static double planar_moment (const Star &, const Star &, const Star &);
     
     static double spherical_area (const Star &, const Star &, const Star &);
-    static double spherical_moment (const Star &, const Star &, const Star &, const int= 3);
+    static double spherical_moment (const Star &, const Star &, const Star &, int= 3);
   
   private:
     // Alias for the distances between each star.
@@ -51,11 +51,11 @@ class Trio {
     side_lengths planar_lengths () const;
     side_lengths spherical_lengths () const;
     
-    static double semi_perimeter (const double, const double, const double);
+    static double semi_perimeter (double, double, double);
     
     Star planar_centroid () const;
     
-    double recurse_spherical_moment (const Star &, const int, const int);
+    double recurse_spherical_moment (const Star &, int, int);
     static Trio cut_triangle (const Star &, const Star &, const Star &, const Star & = Star());
   
   private:

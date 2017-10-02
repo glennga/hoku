@@ -36,20 +36,20 @@ namespace DCNT {
     static const int A_LIMIT = 1000; ///< Asterism limit for AstrometryNet tables.
     static const int TD_H = 3; ///< Recursion depth maximum (moment calculation) for SphericalTriangle tables.
     
-    static const std::string BSC5_NAME = "BSC5"; ///< Name of table generated from star catalog.
-    static const std::string ANGLE_NAME = "SEP_20"; ///< Name of table generated for Angle method.
-    static const std::string ASTROH_NAME = "ASTRO_H20"; ///< Name of hash table generated for AstrometryNet method.
-    static const std::string ASTROC_NAME = "ASTRO_C20"; ///< Name of centers table generated for AstrometryNet method.
-    static const std::string SPHERE_NAME = "SPHERE_20"; ///< Name of table generated for SphericalTriangle method.
-    static const std::string PLANE_NAME = "PLANE_20"; ///< Name of table generated for PlanarTriangle method.
-    static const std::string PYRAMID_NAME = "PYRA_20"; ///< Name of table generated for Pyramid method.
+    static const char * BSC5_NAME = "BSC5"; ///< Name of table generated from star catalog.
+    static const char * ANGLE_NAME = "SEP_20"; ///< Name of table generated for Angle method.
+    static const char * ASTROH_NAME = "ASTRO_H20"; ///< Name of hash table generated for AstrometryNet method.
+    static const char * ASTROC_NAME = "ASTRO_C20"; ///< Name of centers table generated for AstrometryNet method.
+    static const char * SPHERE_NAME = "SPHERE_20"; ///< Name of table generated for SphericalTriangle method.
+    static const char * PLANE_NAME = "PLANE_20"; ///< Name of table generated for PlanarTriangle method.
+    static const char * PYRAMID_NAME = "PYRA_20"; ///< Name of table generated for Pyramid method.
     
-    static const std::string KVEC_ANGLE_FOCUS = "theta"; ///< Focus attribute for K-Vector Angle table.
-    static const std::string KVEC_ASTROH_FOCUS = "cx"; ///< Focus attribute for K-Vector AstrometryNet hash table.
-    static const std::string KVEC_ASTROC_FOCUS = "i"; ///< Focus attribute for K-Vector AstrometryNet centers table.
-    static const std::string KVEC_SPHERE_FOCUS = "a"; ///< Focus attribute for K-Vector SphericalTriangle table.
-    static const std::string KVEC_PLANE_FOCUS = "a"; ///< Focus attribute for K-Vector PlanarTriangle table.
-    static const std::string KVEC_PYRAMID_FOCUS = "theta"; ///< Focus attribute for K-Vector Pyramid table.
+    static const char * KVEC_ANGLE_FOCUS = "theta"; ///< Focus attribute for K-Vector Angle table.
+    static const char * KVEC_ASTROH_FOCUS = "cx"; ///< Focus attribute for K-Vector AstrometryNet hash table.
+    static const char * KVEC_ASTROC_FOCUS = "i"; ///< Focus attribute for K-Vector AstrometryNet centers table.
+    static const char * KVEC_SPHERE_FOCUS = "a"; ///< Focus attribute for K-Vector SphericalTriangle table.
+    static const char * KVEC_PLANE_FOCUS = "a"; ///< Focus attribute for K-Vector PlanarTriangle table.
+    static const char * KVEC_PYRAMID_FOCUS = "theta"; ///< Focus attribute for K-Vector Pyramid table.
 }
 
 /// Given the table choice, remove the given table and the K-Vector table if they exist.
@@ -163,16 +163,16 @@ int main (int argc, char *argv[]) {
     
     // If desired, delete all tables related to the specified table.
     if (argc == 3 && std::string(argv[2]) == "d") {
-        remove_table(atoi(argv[1]));
+        remove_table((int) strtol(argv[1], nullptr, 10));
         return 0;
     }
     
     // Attempt to generate the specified table.
-    generate_table(atoi(argv[1]));
+    generate_table((int) strtol(argv[1], nullptr, 10));
     
     // If desired, generate the K-Vector for the specified table.
     if (argc == 3 && std::string(argv[2]) == "k") {
-        generate_kvec_table(atoi(argv[1]));
+        generate_kvec_table((int) strtol(argv[1], nullptr, 10));
     }
     
     return 0;

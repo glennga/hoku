@@ -82,7 +82,7 @@ std::vector<Trio::stars> Plane::match_stars (const index_trio &i_b) {
     if (!Star::within_angle({b_stars[0], b_stars[1], b_stars[2]}, this->fov)) {
         return {{Star::zero(), Star::zero(), Star::zero()}};
     }
-    
+
     // Search for the current trio. If this is empty, then break early.
     match_hr = this->query_for_trio(Trio::planar_area(b_stars[0], b_stars[1], b_stars[2]),
                                     Trio::planar_moment(b_stars[0], b_stars[1], b_stars[2]));
