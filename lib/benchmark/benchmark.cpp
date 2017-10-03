@@ -219,7 +219,7 @@ int Benchmark::display_plot () {
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
     std::string cmd = std::string("python ") + PLOT_SCRIPT;
 #else
-    std::string cmd = "python3 " + std::string(BENCHMARK::PLOT_SCRIPT);
+    std::string cmd = "python3 " + std::string(PLOT_SCRIPT);
 #endif
     
     if (std::ifstream(CURRENT_TMP) || std::ifstream(ERROR_TMP)) {
