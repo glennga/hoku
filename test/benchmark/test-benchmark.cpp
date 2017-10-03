@@ -31,12 +31,12 @@ int TestBenchmark::test_current_plot_file () {
     std::string d;
     char e[200];
     
-    std::remove(input.CURRENT_PLOT);
-    std::remove(input.ERROR_PLOT);
+    std::remove(input.CURRENT_TMP.c_str());
+    std::remove(input.ERROR_TMP.c_str());
     input.record_current_plot();
     
-    std::ifstream current_plot_from_input(input.CURRENT_PLOT);
-    assert_true(current_plot_from_input.good(), "CurrentPlotFileOpen", input.CURRENT_PLOT);
+    std::ifstream current_plot_from_input(input.CURRENT_TMP);
+    assert_true(current_plot_from_input.good(), "CurrentPlotFileOpen", input.CURRENT_TMP);
     
     std::getline(current_plot_from_input, d);
     assert_equal(15, std::stoi(d), "CurrentPlotFOVEquality");
@@ -48,7 +48,8 @@ int TestBenchmark::test_current_plot_file () {
     assert_equal(d, std::string(e), "CurrentPlotFocusEquality", 2);
     
     std::getline(current_plot_from_input, d);
-    sprintf(e, "%0.16f %0.16f %0.16f %d", input.stars[0][0], input.stars[0][1], input.stars[0][2], input.stars[0].get_hr());
+    sprintf(e, "%0.16f %0.16f %0.16f %d", input.stars[0][0], input.stars[0][1], input.stars[0][2],
+            input.stars[0].get_hr());
     return 0 * assert_equal(d, std::string(e), "CurrentPlotStar0Equality", 2);
 }
 
@@ -60,13 +61,13 @@ int TestBenchmark::test_error_plot_file () {
     std::string a;
     char b[200];
     
-    std::remove(input.CURRENT_PLOT);
-    std::remove(input.ERROR_PLOT);
+    std::remove(input.CURRENT_TMP.c_str());
+    std::remove(input.ERROR_TMP.c_str());
     input.add_extra_light(1);
     input.record_current_plot();
     
-    std::ifstream error_plot_from_input(input.ERROR_PLOT);
-    assert_true(error_plot_from_input.good(), "ErrorPlotFileOpen", input.ERROR_PLOT);
+    std::ifstream error_plot_from_input(input.ERROR_TMP);
+    assert_true(error_plot_from_input.good(), "ErrorPlotFileOpen", input.ERROR_TMP);
     
     // NOTE: Here b truncates a digit, but this is correct otherwise.
     std::getline(error_plot_from_input, a);
@@ -201,7 +202,7 @@ int TestBenchmark::test_nibble_insertion () {
 /// Check that the correct number of stars are returned from the "compare" function.
 ///
 /// @return 0 when finished.
-int TestBenchmark::test_compare_stars() {
+int TestBenchmark::test_compare_stars () {
     Benchmark a(15, Star::chance(), Rotation::chance());
     Star::list b = a.stars;
     

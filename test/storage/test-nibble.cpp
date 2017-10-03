@@ -179,7 +179,8 @@ int TestNibble::test_bsc5_all_stars_grab () {
     assert_equal(a[1], c, "BSCStarGrab4", a[1].str() + "," + c.str());
     assert_equal(a[2], d, "BSCStarGrab5", a[2].str() + "," + d.str());
     assert_equal(a[5], e, "BSCStarGrab12", a[5].str() + "," + e.str());
-    return 0 * assert_equal(a[5028], f, "BSCStarGrab9110", a[5028].str() + "," + f.str());
+    return 0 * assert_equal(a[Nibble::BSC5_TABLE_LENGTH - 1], f, "BSCStarGrab9110",
+                            a[Nibble::BSC5_TABLE_LENGTH - 1].str() + "," + f.str());
 }
 
 /// Check that the first 10 stars returned are all nearby the focus.
@@ -202,7 +203,7 @@ int TestNibble::test_nearby_star_grab () {
 ///
 /// @return 0 when finished.
 int TestNibble::test_in_memory_instance () {
-    Nibble nb ("BSC5", "hr");
+    Nibble nb("BSC5", "hr");
     Star a = nb.query_bsc5(3);
     
     assert_equal(a[0], 0.994772975556659, "BSC5QueryComponentIInMemory");

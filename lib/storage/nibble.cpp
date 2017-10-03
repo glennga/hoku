@@ -9,7 +9,7 @@
 /// it is created. Set the current table to BSC5, and load all stars to RAM.
 Nibble::Nibble () {
     const int FLAGS = SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE;
-    this->db = std::make_unique<SQLite::Database>(SQLite::Database(DATABASE_LOCATION, FLAGS));
+    this->db = std::make_unique<SQLite::Database>(DATABASE_LOCATION, FLAGS);
     
     // Load all stars into instance's 'all_stars'.
     load_all_stars();
@@ -25,7 +25,7 @@ Nibble::Nibble(const std::string &table_name, const std::string &focus) {
     const int FLAGS = SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE;
     
     // We have two connections: one in memory, and one to our Nibble database on disk.
-    this->db = std::make_unique<SQLite::Database>(new SQLite::Database(":memory:", FLAGS));
+    this->db = std::make_unique<SQLite::Database>(":memory:", FLAGS);
     Nibble nb;
     
     // Copy the entire table to RAM.
@@ -115,7 +115,7 @@ void Nibble::parse_catalog (std::ifstream &catalog) {
         std::array<double, 6> c = components_from_line(entry);
         
         // Only insert if magnitude < 6.0 (visible light).
-        if (c[5] < 6.0) {
+        if (c[5] < 6.0 && !std::equal(c.begin() + 1, c.end(), c.begin())) {
             insert_into_table("alpha, delta, i, j, k, m, hr", {c[0], c[1], c[2], c[3], c[4], c[5], (double) hr});
         }
         hr++;

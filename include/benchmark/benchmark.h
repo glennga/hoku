@@ -77,23 +77,31 @@ class Benchmark {
     static int compare_stars(const Benchmark &, const Star::list &);
     
   public:
-    static const char* const TABLE_NAME;
+    /// Name of the table holding all testing benchmarks in Nibble.
+    static constexpr char* TABLE_NAME = (char*) "BENCH";
   
   private:
     Benchmark (const Star::list &, const Star &, double);
     
     Star::list clean_stars () const;
     void shuffle ();
-  
+    
   private:
+    /// String of the HOKU_PROJECT_PATH environment variable.
+    const std::string PROJECT_LOCATION = std::string(std::getenv("HOKU_PROJECT_PATH"));
+    
+    /// String of the current plot temp file.
+    const std::string CURRENT_TMP = PROJECT_LOCATION + "/data/logs/tmp/cuplt.tmp";
+    
+    /// String of the error plot temp file.
+    const std::string ERROR_TMP = PROJECT_LOCATION + "/data/logs/tmp/errplt.tmp";
+    
+    /// Location of the Python benchmark plotter.
+    const std::string PLOT_SCRIPT = "\"" + PROJECT_LOCATION + "/script/python/generate-plot.py\"";
+    
     /// Alias for the list (stack) of ErrorModels.
     using model_list = std::vector<ErrorModel>;
 
-    static const char* const PROJECT_LOCATION;
-    static const char* const CURRENT_PLOT;
-    static const char* const ERROR_PLOT;
-    static const char* const PLOT_SCRIPT;
-    
     /// Current list of stars. All stars must be near the focus.
     Star::list stars;
     

@@ -62,7 +62,7 @@ class Nibble {
     using tuple = std::vector<double>;
     
     /// Length of the BSC5 table. Necessary if loading all stars into RAM.
-    static const int BSC5_TABLE_LENGTH = 5029;
+    static const int BSC5_TABLE_LENGTH = 5023;
     
     /// Maximum HR value for BSC5 table. Used in sparse representations of BSC5.
     static const int BSC5_MAX_HR = 9110;

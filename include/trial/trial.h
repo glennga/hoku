@@ -30,11 +30,11 @@ namespace Trial {
     /// Attribute header that corresponds to the log file for Astro trials.
     const char* const ASTRO_ATTRIBUTE = "SetNumber,InpputSize,IdentificationSize,MatchesFound,QuerySigma,MatchSigma,"
         "KdTreeW,KAcceptAlignment,UtilityFalseNegative,UtilityFalsePositive,UtilityTrueNegative,UtilityTruePositive,"
-        "ComparisonCount";
+        "ComparisonCount\n";
     
     /// Attribute header that corresponds to the log file for Pyramid trials.
     const char* const PYRAMID_ATTRIBUTE = "SetNumber,InputSize,IdentificationSize,MatchesFound,QuerySigma,MatchSigma,"
-        "ComparisonCount";
+        "ComparisonCount\n";
     
     void record_angle (Nibble &, unsigned int, std::ofstream &);
     

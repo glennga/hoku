@@ -239,7 +239,7 @@ int TestPlanarTriangle::test_identify_clean_input () {
     }
 
     if (!c.empty()) {
-        for (int q = 0; q < c.size() - 1; q++) {
+        for (int q = 0; q < (signed) (c.size() - 1); q++) {
             auto match = [&c, q](const Star &b) -> bool {
                 return b.get_hr() == c[q].get_hr();
             };

@@ -12,6 +12,7 @@ set(LIBNAME Benchmark)
 # User Configuration: Source and Include Files
 ##################################################################
 FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
+FILE(GLOB INCLUDES ${CMAKE_SOURCE_DIR}/include/benchmark/benchmark.h)
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
 ##################################################################

@@ -5,24 +5,6 @@
 
 #include "benchmark/benchmark.h"
 
-
-const char* const Benchmark::TABLE_NAME = (char*) "BENCH";
-
-/// String of the HOKU_PROJECT_PATH environment variable
-const char* const Benchmark::PROJECT_LOCATION = std::string(std::getenv("HOKU_PROJECT_PATH")).c_str();
-
-/// Path of the 'clean' star set on disk. One of the temporary files used for plotting.
-const char* const Benchmark::CURRENT_PLOT = (std::string(Benchmark::PROJECT_LOCATION) +
-        "/data/logs/tmp/cuplt.tmp").c_str();
-
-/// Path of the 'error' star set on disk. One of the temporary files used for plotting.
-const char* const Benchmark::ERROR_PLOT = (std::string(Benchmark::PROJECT_LOCATION) +
-        "/data/logs/tmp/errplt.tmp").c_str();
-
-/// Path of the Python script used to plot the current Benchmark instance.
-const char* const Benchmark::PLOT_SCRIPT = ("\"" + std::string(Benchmark::PROJECT_LOCATION) +
-        "/script/python/generate-plot.py\"").c_str();
-
 /// Constructor. Sets the fov, focus, and rotation of the star set. Generate the stars after collecting this
 /// information.
 ///
@@ -76,7 +58,7 @@ void Benchmark::generate_stars () {
 Star::list Benchmark::clean_stars () const {
     // Keep the current star set intact.
     Star::list clean = this->stars;
-
+    
     for (Star &s : clean) {
         s = Star::reset_hr(s);
     }
@@ -189,7 +171,7 @@ Benchmark Benchmark::parse_from_nibble (Nibble &nb, const unsigned int set_n) {
 ///
 /// @return 0 when finished.
 int Benchmark::record_current_plot () {
-    std::ofstream current(this->CURRENT_PLOT), error(this->ERROR_PLOT);
+    std::ofstream current(Benchmark::CURRENT_TMP), error(Benchmark::ERROR_TMP);
     std::ostringstream current_record, error_record;
     
     // Do not record if files are unable to open.
@@ -231,16 +213,16 @@ int Benchmark::record_current_plot () {
 ///
 /// @return 0 when finished.
 int Benchmark::display_plot () {
-    std::remove(this->CURRENT_PLOT);
-    std::remove(this->ERROR_PLOT);
+    std::remove(Benchmark::CURRENT_TMP.c_str());
+    std::remove(Benchmark::ERROR_TMP.c_str());
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-    std::string cmd = "python " + this->PLOT_SCRIPT;
+    std::string cmd = std::string("python ") + Benchmark::PLOT_SCRIPT;
 #else
-    std::string cmd = "python3 " + std::string(this->PLOT_SCRIPT);
+    std::string cmd = "python3 " + std::string(BENCHMARK::PLOT_SCRIPT);
 #endif
-
-    if (std::ifstream(this->CURRENT_PLOT) || std::ifstream(this->ERROR_PLOT)) {
+    
+    if (std::ifstream(Benchmark::CURRENT_TMP) || std::ifstream(Benchmark::ERROR_TMP)) {
         throw "Current and/or error plot files could not deleted.";
     }
     
@@ -258,7 +240,7 @@ int Benchmark::display_plot () {
 int Benchmark::compare_stars (const Benchmark &b, const Star::list &s_l) {
     Star::list s_candidates = s_l;
     unsigned int c = 0;
-
+    
     for (const Star &s_a : b.stars) {
         for (unsigned int i = 0; i < s_candidates.size(); i++) {
             
@@ -355,10 +337,9 @@ void Benchmark::shift_light (const int n, const double sigma) {
         
         // Check inside if n is met early, break if met.
         for (unsigned int i = 0; i < this->stars.size() && n_condition; i++) {
-            Star candidate = Star(
-                this->stars[i][0] + dist(mersenne_twister),
-                this->stars[i][1] + dist(mersenne_twister),
-                this->stars[i][2] + dist(mersenne_twister), this->stars[i].get_hr()).as_unit();
+            Star candidate = Star(this->stars[i][0] + dist(mersenne_twister),
+                                  this->stars[i][1] + dist(mersenne_twister),
+                                  this->stars[i][2] + dist(mersenne_twister), this->stars[i].get_hr()).as_unit();
             
             // If shifted star is near focus, add the shifted star and remove the old.
             if (Star::within_angle(candidate, this->focus, this->fov / 2.0)) {
