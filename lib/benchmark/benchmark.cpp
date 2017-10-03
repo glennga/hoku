@@ -171,7 +171,7 @@ Benchmark Benchmark::parse_from_nibble (Nibble &nb, const unsigned int set_n) {
 ///
 /// @return 0 when finished.
 int Benchmark::record_current_plot () {
-    std::ofstream current(Benchmark::CURRENT_TMP), error(Benchmark::ERROR_TMP);
+    std::ofstream current(CURRENT_TMP), error(ERROR_TMP);
     std::ostringstream current_record, error_record;
     
     // Do not record if files are unable to open.
@@ -213,16 +213,16 @@ int Benchmark::record_current_plot () {
 ///
 /// @return 0 when finished.
 int Benchmark::display_plot () {
-    std::remove(Benchmark::CURRENT_TMP.c_str());
-    std::remove(Benchmark::ERROR_TMP.c_str());
+    std::remove(CURRENT_TMP.c_str());
+    std::remove(ERROR_TMP.c_str());
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-    std::string cmd = std::string("python ") + Benchmark::PLOT_SCRIPT;
+    std::string cmd = std::string("python ") + PLOT_SCRIPT;
 #else
     std::string cmd = "python3 " + std::string(BENCHMARK::PLOT_SCRIPT);
 #endif
     
-    if (std::ifstream(Benchmark::CURRENT_TMP) || std::ifstream(Benchmark::ERROR_TMP)) {
+    if (std::ifstream(CURRENT_TMP) || std::ifstream(ERROR_TMP)) {
         throw "Current and/or error plot files could not deleted.";
     }
     
