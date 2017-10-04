@@ -35,25 +35,25 @@ namespace Trial {
     /// Attribute header that corresponds to the log file for Pyramid trials.
     const char* const PYRAMID_ATTRIBUTE = "SetNumber,InputSize,IdentificationSize,MatchesFound,QuerySigma,MatchSigma,"
         "ComparisonCount\n";
+
+    void iterate_angle_set_n(Nibble &, std::ofstream &, unsigned int);
+    void iterate_angle_parameters(Nibble &, std::ofstream &, unsigned int);
+
+    void iterate_plane_set_n(Nibble &, std::ofstream &, unsigned int);
+    void iterate_plane_parameters(Nibble &, std::ofstream &, unsigned int);
+    void iterate_plane_helper (Nibble &, std::ofstream &, unsigned int);
+
+    void iterate_sphere_set_n (Nibble &, std::ofstream &, unsigned int);
+    void iterate_sphere_parameters (Nibble &, std::ofstream &, unsigned int);
+    void iterate_sphere_helper (Nibble &, std::ofstream &, unsigned int);
     
-    void record_angle (Nibble &, unsigned int, std::ofstream &);
+    void generate_astro_trees (std::shared_ptr<KdNode> &, std::shared_ptr<KdNode> &, int);
+    void iterate_astro_set_n (Nibble &, std::ofstream &, unsigned int);
+    void iterate_astro_parameters (Nibble &, std::ofstream &, unsigned int);
+    void iterate_astro_helper (Nibble &, std::ofstream &, unsigned int);
     
-    void generate_plane_trees ();
-    void record_plane (Nibble &, unsigned int, std::ofstream &);
-    void record_plane_as_ms_ms (Nibble &, unsigned int, std::ofstream &, std::shared_ptr<QuadNode> &,
-                                Plane::Parameters &);
-    
-    void generate_sphere_trees ();
-    void record_sphere (Nibble &, unsigned int, std::ofstream &);
-    void record_sphere_as_ms_ms (Nibble &, unsigned int, std::ofstream &, std::shared_ptr<QuadNode> &,
-                                 Sphere::Parameters &);
-    
-    void generate_astro_trees ();
-    void record_astro (Nibble &, unsigned int, std::ofstream &);
-    void record_astro_ka_qs_ms (Nibble &, unsigned int, std::ofstream &, std::shared_ptr<KdNode> &,
-                                std::shared_ptr<KdNode> &, Astro::Parameters &);
-    
-    void record_pyramid (Nibble &, unsigned int, std::ofstream &);
+    void iterate_pyramid_set_n (Nibble &, std::ofstream &, unsigned int);
+    void iterate_pyramid_parameters (Nibble &, std::ofstream &, unsigned int);
 }
 
 #endif /* HOKU_RECORD_ANGLE_H */

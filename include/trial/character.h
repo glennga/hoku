@@ -10,7 +10,7 @@
 ///                                 match_sigma exists in [1e-14, 3.000001e-08, 6.000001e-08, 9.000001e-08]
 ///                                 match_minimum exists in [3, 8, 13, 18, 23, 27]
 ///
-/// Current number of permutations: 4 * 4 * 6 = 96 variations of Angle identification for each benchmark.
+/// Current number of permutations: 4 * 4 * 6 = 96 variations of Angle identification.
 /// @endcode
 namespace DCANG {
     static const double QS_MIN = 1e-14; ///< Minimum search sigma.
@@ -37,7 +37,7 @@ namespace DCANG {
 ///                                  match_minimum exists in [3, 18, 33]
 ///                                  bsc5_quadtree_width exists in [500, 1500]
 ///
-/// Current number of permutations: 3 * 3 * 3 * 3 * 2 = 162 variations of Plane identification for each benchmark.
+/// Current number of permutations: 3 * 3 * 3 * 3 * 2 = 162 variations of Plane identification.
 /// @endcode
 namespace DCPLA {
     static const double SA_MIN = 1e-14; ///< Minimum area sigma.
@@ -72,7 +72,7 @@ namespace DCPLA {
 ///                                  match_minimum exists in [3, 18, 33]
 ///                                  bsc5_quadtree_width exists in [500, 1500]
 ///
-/// Current number of permutations: 3 * 3 * 3 * 3 * 2 = 162 variations of Sphere identification for each benchmark.
+/// Current number of permutations: 3 * 3 * 3 * 3 * 2 = 162 variations of Sphere identification.
 /// @endcode
 namespace DCSPH {
     static const double SA_MIN = 1e-14; ///< Minimum area sigma.
@@ -108,7 +108,7 @@ namespace DCSPH {
 ///                                 k_accept_alignment exists in [50, 250]
 ///                                 all utility points exists in [1, 10]
 ///
-/// Current number of permutations: 2^8 = 256 variations of Astro identification for each benchmark.
+/// Current number of permutations: 2^8 = 256 variations of Astro identification.
 /// @endcode
 namespace DCAST {
     static const double QS_MIN = 1e-14; ///< Minimum query sigma.
@@ -141,7 +141,7 @@ namespace DCAST {
 /// Dimension Sets:                 query_sigma exists in [1e-14, 3.0000001e-07, 6.0000001e-07, 9.0000001e-07]
 ///                                 match_sigma exists in [1e-14, 3.0000001e-07, 6.0000001e-07, 9.0000001e-07]
 ///
-/// Current number of permutations: 4 * 4 16 variations of Pyramid identification for each benchmark.
+/// Current number of permutations: 4 * 4 16 variations of Pyramid identification.
 /// @endcode
 namespace DCPYR {
     static const double QS_MIN = 1e-14; ///< Minimum query sigma.

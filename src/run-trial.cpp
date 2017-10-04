@@ -21,10 +21,11 @@
 /// @endcode
 
 #include <chrono>
+#include <set>
 #include "trial/trial.h"
 
 /// Alias for trial function pointers.
-typedef void (*trial_function) (Nibble &, const unsigned int, std::ofstream &);
+typedef void (*trial_function) (Nibble &, std::ofstream &, unsigned int);
 
 /// Record the header given the identification choice.
 ///
@@ -41,32 +42,32 @@ void record_header(const int choice, std::ofstream &log) {
     }
 }
 
-/// Return the appropriate trial function given the identification choice.
+/// Return the appropriate trial function that varies the identification parameters given the identification choice.
 ///
 /// @param choice Identification method choice.
 /// @return Appropriate function pointer to a function in Trial.
-trial_function select_trial_function(const int choice) {
+trial_function select_parameter_trial(const int choice) {
     switch(choice) {
-        case 0: return &Trial::record_angle;
-        case 1: return &Trial::record_astro;
-        case 2: return &Trial::record_sphere;
-        case 3: return &Trial::record_plane;
-        case 4: return &Trial::record_pyramid;
+        case 0: return &Trial::iterate_angle_parameters;
+        case 1: return &Trial::iterate_astro_parameters;
+        case 2: return &Trial::iterate_sphere_parameters;
+        case 3: return &Trial::iterate_plane_parameters;
+        case 4: return &Trial::iterate_pyramid_parameters;
         default: throw "Identification choice is not within space {0, 1, 2, 3, 4}.";
     }
 }
 
-/// If necessary, we generate the appropriate trees for the given identification choice. This only changes state of
-/// trial.cpp for PlanarTriangle, SphericalTriangle, and AstrometryNet methods.
+/// Return the appropriate trial function that varies the set_n given the identification choice.
 ///
 /// @param choice Identification method choice.
-void generate_trees(const int choice) {
+/// @return Appropriate function pointer to a function in Trial.
+trial_function select_set_n_trial(const int choice) {
     switch(choice) {
-        case 0: return (void) 0;
-        case 1: return Trial::generate_astro_trees();
-        case 2: return Trial::generate_sphere_trees();
-        case 3: return Trial::generate_plane_trees();
-        case 4: return (void) 0;
+        case 0: return &Trial::iterate_angle_set_n;
+        case 1: return &Trial::iterate_astro_set_n;
+        case 2: return &Trial::iterate_sphere_set_n;
+        case 3: return &Trial::iterate_plane_set_n;
+        case 4: return &Trial::iterate_pyramid_set_n;
         default: throw "Identification choice is not within space {0, 1, 2, 3, 4}.";
     }
 }
@@ -82,24 +83,19 @@ void generate_trees(const int choice) {
 int perform_trial (Nibble &nb, std::ofstream &log, const int choice, const int start_bench) {
     // Set the attributes of the log.
     record_header(choice, log);
-    
-    // Define boundaries for the benchmarks.
     const auto BENCH_START = (unsigned) start_bench;
-    const unsigned int BENCH_END = (unsigned int) nb.search_table("MAX(set_n)", 1, 1)[0];
-    
-    // Select the specific trial function.
-    trial_function t_f = select_trial_function(choice);
-    
-    // Generate the trees for the given methods (if defined).
-    generate_trees(choice);
-    
-    // Run the trials!
+
+    // Select all clean benchmarks with field-of-view of 20.
     nb.select_table(Benchmark::TABLE_NAME);
-    for (unsigned int set_n = BENCH_START; set_n < BENCH_END; set_n++) {
-        t_f(nb, set_n, log);
-        log << std::flush;
+    Nibble::tuple s = nb.search_table("fov = 17.5", "set_n", 30);
+
+    // Select the specific trial functions, and run those specific trials.
+    trial_function t_p = select_parameter_trial(choice), t_s = select_set_n_trial(choice);
+    t_s(nb, log, BENCH_START);
+    for (const double set_n : std::set<double> (s.begin(), s.end())) {
+        t_p(nb, log, (unsigned int) set_n);
     }
-    
+
     return 0;
 }
 
