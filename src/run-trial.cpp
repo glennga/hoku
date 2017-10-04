@@ -87,15 +87,20 @@ int perform_trial (Nibble &nb, std::ofstream &log, const int choice, const int s
 
     // Select all clean benchmarks with field-of-view of 20.
     nb.select_table(Benchmark::TABLE_NAME);
-    Nibble::tuple s = nb.search_table("fov = 17.5", "set_n", 30);
+    Nibble::tuple s_5 = nb.search_table("fov = 5", "set_n", 30);
+    Nibble::tuple s_10 = nb.search_table("fov = 10", "set_n", 30);
+    Nibble::tuple s_15 = nb.search_table("fov = 15", "set_n", 30);
+    Nibble::tuple s_19 = nb.search_table("fov = 19", "set_n", 30);
 
     // Select the specific trial functions, and run those specific trials.
     trial_function t_p = select_parameter_trial(choice), t_s = select_set_n_trial(choice);
     t_s(nb, log, BENCH_START);
-    for (const double set_n : std::set<double> (s.begin(), s.end())) {
-        t_p(nb, log, (unsigned int) set_n);
+    for (Nibble::tuple s : {s_5, s_10, s_15, s_19}) {
+        for (const double set_n : std::set<double> (s.begin(), s.end())) {
+            t_p(nb, log, (unsigned int) set_n);
+        }
     }
-
+    
     return 0;
 }
 
