@@ -10,21 +10,21 @@
 /// Defining characteristics of the benchmarks generated.
 ///
 /// @code{.cpp}
-/// Dimension Domains:              fov exists in [7.5, 10.0, 12.5, 15.0, 17.5, 20.0]
+/// Dimension Domains:              fov exists in [3, 4, 5, ..., 20]
 ///                                 e exists in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 ///                                 rn exists in [1, 2, 3, 4, 5]
 ///                                 rs exists in [1, 2, 4, 6, 8]
-///                                 sn exists in [1, 2, 3, 4, 5]
-///                                 ss exists in [0.000001, 0.100001, 0.200001, 0.300001, 0.400001]
+///                                 sn exists in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+///                                 ss exists in [epsilon, epsilon + 0.00000003 * 4]
 ///
-/// Current number of permutations: 49250 benchmarks generated.
+/// Current number of permutations: 20 * (20 + 10 + 5*5 + 10*5) 65281 benchmarks generated.
 /// @endcode
 namespace DCBG {
     static const int DUP = 20; ///< Number of tests to store for each type.
 
-    static const double FOV_MIN = 7.5; ///< Minimum FOV to start from.
-    static const double FOV_STEP = 2.5; ///< Amount of FOV to increment for each test.
-    static const int FOV_ITER = 6; ///< Number of FOV iterations.
+    static const double FOV_MIN = 1; ///< Minimum FOV to start from.
+    static const double FOV_STEP = 1; ///< Amount of FOV to increment for each test.
+    static const int FOV_ITER = 20; ///< Number of FOV iterations.
 
     static const int E_MIN = 1; ///< Minimum number of extra stars to add.
     static const int E_MAX = 10; ///< Maximum number of extra stars to add.
@@ -36,9 +36,9 @@ namespace DCBG {
     static const int RS_ITER = 4; ///< Number of dark spot radius iterations.
 
     static const int SN_MIN = 1; ///< Minimum number of stars to shift.
-    static const int SN_MAX = 5; ///< Maximum number of stars to shift.
-    static const double SS_MIN = 0.000001; ///< Minimum sigma to shift stars.
-    static const double SS_STEP = 0.1; ///< Amount of sigma to increment for each test.
+    static const int SN_MAX = 10; ///< Maximum number of stars to shift.
+    static const double SS_MIN = std::numeric_limits<double>::epsilon(); ///< Minimum sigma to shift stars.
+    static const double SS_STEP = 0.00000003; ///< Amount of sigma to increment for each test.
     static const int SS_ITER = 5; ///< Number of shift sigma iterations.
 }
 
