@@ -213,3 +213,56 @@ Star::list Angle::identify (const Benchmark &input, const Parameters &parameters
     return Angle::identify(input, parameters, z);
 }
 
+/// Reproduction of the Angle method's Nibble querying. Unlike the one used in identification, this does not restrict
+/// our results (no LIMIT in query) and does not return the most likely match. Messy, but gets the job done. (:
+///
+/// **Need to select the proper table before calling this method.**
+///
+/// @param nb Open Nibble connection.
+/// @param s_1 Star one to query with.
+/// @param s_2 Star two to query with.
+/// @param query_sigma Theta must be within 3 * query_sigma to appear in results.
+std::vector<Angle::hr_pair> Angle::trial_query (Nibble &nb, const Star &s_1, const Star &s_2,
+                                                const double query_sigma) {
+    double epsilon = 3.0 * query_sigma;
+    std::ostringstream condition;
+    std::vector<Angle::hr_pair> r_bar;
+    
+    // Query using theta with epsilon bounds.
+    condition << "theta BETWEEN " << std::setprecision(16) << std::fixed;
+    condition << Star::angle_between(s_1, s_2) - epsilon << " AND " << Star::angle_between(s_1, s_2) + epsilon;
+    Nibble::tuple r = nb.search_table(condition.str(), "hr_a, hr_b", 50 * 2);
+    
+    // Sort tuple into list of HR pairs.
+    r_bar.reserve(r.size() / 2);
+    for (unsigned int i = 0; i < r.size() / 2; i++) {
+        r_bar.emplace_back(Angle::hr_pair {(int) nb.table_results_at(r, 2, i)[0],
+            (int) nb.table_results_at(r, 2, i)[1]});
+    }
+    
+    return r_bar;
+}
+
+/// Reproduction of the Angle method's check_assumption. Unlike the method used in identification, this does not
+/// return the larger star list, but rather the resulting attitude.
+///
+/// @param candidates All stars found near the inertial pair.
+/// @param r Inertial (frame R) pair of stars that match the body pair.
+/// @param b Body (frame B) pair of stars that match the inertial pair.
+/// @return The quaternion associated with the largest set of matching stars across the body and inertial in both
+/// pairing configurations.
+Rotation Angle::trial_attitude_determine (const Star::list &candidates, const Star::pair &r, const Star::pair &b) {
+    std::array<Star::pair, 2> assumption_list = {r, {r[1], r[0]}};
+    std::array<Star::list, 2> matches;
+    std::array<Rotation, 2> q;
+    
+    // Determine the rotation to take frame B to A, find all matches with this rotation.
+    int current_assumption = 0;
+    for (const Star::pair &assumption : assumption_list) {
+        q[current_assumption] = Rotation::rotation_across_frames(b, assumption);
+        matches[current_assumption++] = this->find_matches(candidates, q);
+    }
+    
+    // Return the rotation associated with the largest set of matches.
+    return matches[0].size() > matches[1].size() ? q[0] : q[1];
+}

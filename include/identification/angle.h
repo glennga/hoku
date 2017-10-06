@@ -37,9 +37,6 @@
 /// }
 /// @endcode
 class Angle {
-  private:
-    friend class TestAngle;
-  
   public:
     /// Defines the query and match operations, user can tweak for custom performance.
     struct Parameters {
@@ -57,8 +54,10 @@ class Angle {
     static Star::list identify (const Benchmark &, const Parameters &, unsigned int &);
     static Star::list identify (const Benchmark &, const Parameters &);
     static int generate_sep_table (double, const std::string &);
-    
+
+#if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
   private:
+#endif
     /// Alias for a pair of Harvard Revised numbers (2-element STL array of doubles).
     using hr_pair = std::array<int, 2>;
     
@@ -73,14 +72,18 @@ class Angle {
     
     /// All stars in 'input' are fov degrees from the focus.
     double fov;
-    
+
+#if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
   private:
+#endif
     Angle (const Benchmark &, const Parameters &);
     
     hr_pair query_for_pair (double);
     Star::list find_matches (const Star::list &, const Rotation &);
     Star::pair find_candidate_pair (const Star &, const Star &);
     Star::list check_assumptions (const Star::list &, const Star::pair &, const Star::pair &);
-};
-
+    
+    static std::vector<hr_pair> trial_query (Nibble &, const Star &, const Star &, double);
+    Rotation trial_attitude_determine (const Star::list &, const Star::pair &, const Star::pair &);
+}
 #endif /* HOKU_ANGLE_H */
