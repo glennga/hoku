@@ -23,6 +23,7 @@ class TestBenchmark : public BaseTest {
     int test_display_plot ();
     int test_nibble_insertion ();
     int test_compare_stars();
+    int test_cap_error();
   
   public:
     int enumerate_tests (int);

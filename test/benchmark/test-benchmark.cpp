@@ -3,6 +3,9 @@
 ///
 /// Source file for the TestBenchmark class, as well as the main function to run the tests.
 
+// Give us access to all private members.
+#define ENABLE_TESTING_ACCESS
+
 #include "benchmark/test-benchmark.h"
 
 /// Check that the stars are not in the same order after shuffling.
@@ -217,6 +220,22 @@ int TestBenchmark::test_compare_stars () {
     return 0;
 }
 
+/// Check that an error star exists at the front of the stars vector when cap_error is raised.
+///
+/// @return 0 when finished.
+int TestBenchmark::test_cap_error () {
+    Benchmark input(15, Star::chance(), Rotation::chance());
+    std::vector<Star> a = input.stars;
+    input.shift_light(1, 0.1, true);
+    
+    for (const Star &original : a) {
+        if (input.stars[0] == original) {
+            return 0 * assert_true(false, "ErrorStarAtFront");
+        }
+    }
+    return 0 * assert_true(true, "ErrorStarAtFront");
+}
+
 /// Enumerate all tests in TestBenchmark.
 ///
 /// @param test_case Number of the test case to run.
@@ -234,6 +253,7 @@ int TestBenchmark::enumerate_tests (int test_case) {
         case 8: return test_display_plot();
         case 9: return test_nibble_insertion();
         case 10: return test_compare_stars();
+        case 11: return test_cap_error();
         default: return -1;
     }
 }

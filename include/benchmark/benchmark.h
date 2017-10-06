@@ -38,14 +38,6 @@
 /// b.display_plot();
 /// @endcode
 class Benchmark {
-  private:
-    friend class TestBenchmark;
-    friend class TestAngle;
-    friend class TestPlanarTriangle;
-    friend class TestSphericalTriangle;
-    friend class TestAstrometryNet;
-    friend class TestPyramid;
-  
   public:
     /// Error model structure. Defines the type of error and the stars affected.
     struct ErrorModel {
@@ -70,23 +62,27 @@ class Benchmark {
     int record_current_plot ();
     int display_plot ();
     
-    void add_extra_light (int);
+    void add_extra_light (int, bool = false);
+    void shift_light (int, double, bool = false);
     void remove_light (int, double);
-    void shift_light (int, double);
     
     static int compare_stars(const Benchmark &, const Star::list &);
     
   public:
     /// Name of the table holding all testing benchmarks in Nibble.
     static constexpr char* TABLE_NAME = (char*) "BENCH";
-  
+
+#if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
   private:
+#endif
     Benchmark (const Star::list &, const Star &, double);
     
     Star::list clean_stars () const;
     void shuffle ();
-    
+
+#if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
   private:
+#endif
     /// String of the HOKU_PROJECT_PATH environment variable.
     const std::string PROJECT_LOCATION = std::string(std::getenv("HOKU_PROJECT_PATH"));
     

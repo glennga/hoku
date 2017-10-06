@@ -259,7 +259,8 @@ int Benchmark::compare_stars (const Benchmark &b, const Star::list &s_l) {
 /// randomly wander into the detector.
 ///
 /// @param n Number of extra stars to add.
-void Benchmark::add_extra_light (const int n) {
+/// @param cap_error Flag to move an error star to the front of the star list.
+void Benchmark::add_extra_light (const int n, bool cap_error) {
     int current_n = 0;
     ErrorModel extra_light = {"Extra Light", "r", {Star::zero()}};
     
@@ -272,8 +273,9 @@ void Benchmark::add_extra_light (const int n) {
         }
     }
     
-    // Shuffle to maintain randomness.
-    this->shuffle();
+    // Shuffle to maintain randomness. If desired, an error star remains at the front.
+    std::iter_swap(this->stars.begin(), this->stars.end() - 1);
+    (!cap_error) ? std::random_shuffle(this->stars.begin() + 1, this->stars.end()) : this->shuffle();
     
     // Remove the first element. Append to error models.
     extra_light.affected.erase(extra_light.affected.begin());
@@ -289,24 +291,30 @@ void Benchmark::remove_light (const int n, const double psi) {
     int current_n = 0;
     std::vector<Star> blobs;
     ErrorModel removed_light = {"Removed Light", "0.5", {Star::zero()}};
+    bool is_affected = false;
     
-    // First, generate the light blocking blobs.
-    while (current_n < n) {
-        Star generated = Star::chance();
-        if (Star::within_angle(generated, this->focus, this->fov / 2.0)) {
-            blobs.emplace_back(generated);
-            current_n++;
-        }
-    }
-    
-    // Second, check if any of the stars fall within psi / 2 of a dark spot.
-    for (unsigned int i = 0; i < blobs.size(); i++) {
-        for (const Star &star : this->stars) {
-            if (Star::within_angle(blobs[i], star, psi / 2.0)) {
-                this->stars.erase(this->stars.begin() + i);
-                removed_light.affected.emplace_back(star);
+    while (!is_affected) {
+        // First, generate the light blocking blobs.
+        while (current_n < n) {
+            Star generated = Star::chance();
+            if (Star::within_angle(generated, this->focus, this->fov / 2.0)) {
+                blobs.emplace_back(generated);
+                current_n++;
             }
         }
+    
+        // Second, check if any of the stars fall within psi / 2 of a dark spot.
+        for (unsigned int i = 0; i < blobs.size(); i++) {
+            for (const Star &star : this->stars) {
+                if (Star::within_angle(blobs[i], star, psi / 2.0)) {
+                    this->stars.erase(this->stars.begin() + i);
+                    removed_light.affected.emplace_back(star);
+                }
+            }
+        }
+        
+        // Only when we have some stars affected, we exit out of this loop.
+        is_affected = !removed_light.affected.empty();
     }
     
     // Shuffle to maintain randomness.
@@ -322,7 +330,8 @@ void Benchmark::remove_light (const int n, const double psi) {
 ///
 /// @param n Number of stars to move.
 /// @param sigma Amount to shift stars by, in terms of XYZ coordinates.
-void Benchmark::shift_light (const int n, const double sigma) {
+/// @param cap_error Flag to move an error star to the front of the star list.
+void Benchmark::shift_light (const int n, const double sigma, bool cap_error) {
     // Need to keep random device static to avoid starting with same seed.
     static std::random_device seed;
     static std::mt19937_64 mersenne_twister(seed());
@@ -354,8 +363,9 @@ void Benchmark::shift_light (const int n, const double sigma) {
         }
     }
     
-    // Shuffle to maintain randomness.
-    this->shuffle();
+    // Shuffle to maintain randomness. If desired, an error star remains at the front.
+    std::iter_swap(this->stars.begin(), this->stars.end() - 1);
+    cap_error ? std::random_shuffle(this->stars.begin() + 1, this->stars.end()) : this->shuffle();
     
     // Remove first element. Append this to the error models.
     shifted_light.affected.erase(shifted_light.affected.begin());
