@@ -256,7 +256,7 @@ int TestSphericalTriangle::test_identify_clean_input () {
 ///
 /// @return 0 when finished.
 int TestSphericalTriangle::test_identify_error_input () {
-    Benchmark input(9, Star::chance(), Rotation::chance());
+    Benchmark input(20, Star::chance(), Rotation::chance());
     Sphere::Parameters a;
     input.add_extra_light(1);
     
@@ -268,19 +268,21 @@ int TestSphericalTriangle::test_identify_error_input () {
     std::vector<Star> c = Sphere::identify(input, a);
     assert_greater_than(c.size(), (input.stars.size() - 1) / 3.0, "IdentificationFoundWithErrorSize");
     
-    std::string all_input = "";
-    for (const Star &s : input.stars) {
-        all_input += !(s == input.stars[input.stars.size() - 1]) ? s.str() + "," : s.str();
-    }
+    if (!c.empty()) {
+        std::string all_input = "";
+        for (const Star &s : input.stars) {
+            all_input += !(s == input.stars[input.stars.size() - 1]) ? s.str() + "," : s.str();
+        }
     
-    for (unsigned int q = 0; q < c.size() - 1; q++) {
-        auto match = [&c, q] (const Star &b) -> bool {
-            return b.get_hr() == c[q].get_hr();
-        };
-        auto is_found = std::find_if(input.stars.begin(), input.stars.end(), match);
+        for (unsigned int q = 0; q < c.size() - 1; q++) {
+            auto match = [&c, q] (const Star &b) -> bool {
+                return b.get_hr() == c[q].get_hr();
+            };
+            auto is_found = std::find_if(input.stars.begin(), input.stars.end(), match);
         
-        std::string test_name = "IdentificationErrorInputStar" + std::to_string(q + 1);
-        assert_true(is_found != input.stars.end(), test_name, c[q].str() + "," + all_input);
+            std::string test_name = "IdentificationErrorInputStar" + std::to_string(q + 1);
+            assert_true(is_found != input.stars.end(), test_name, c[q].str() + "," + all_input);
+        }
     }
     
     return 0;
@@ -310,5 +312,5 @@ int TestSphericalTriangle::enumerate_tests (int test_case) {
 ///
 /// @return -1 if the log file cannot be opened. 0 otherwise.
 int main () {
-    return TestSphericalTriangle().execute_tests();
+    return TestSphericalTriangle().execute_tests(BaseTest::Flavor::FULL_PRINT_LOG_ON);
 }

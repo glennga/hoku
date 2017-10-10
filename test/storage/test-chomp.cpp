@@ -13,7 +13,7 @@ int TestChomp::test_regular_query () {
     std::vector<double> a;
     Nibble nb;
     
-    nb.select_table("SEP_20");
+    nb.select_table("PYRA_20");
     a = nb.search_table("theta BETWEEN 5.004 and 5.005", "theta", 90, 30);
     
     for (unsigned int q = 0; q < a.size(); q++) {
@@ -31,7 +31,7 @@ int TestChomp::test_k_vector_query () {
     Chomp ch;
     std::vector<double> a;
     
-    ch.select_table("SEP_20");
+    ch.select_table("PYRA_20");
     a = ch.k_vector_query("theta", "theta", 5.004, 5.005, 90);
     
     for (unsigned int q = 0; q < a.size(); q++) {

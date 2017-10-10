@@ -3,6 +3,9 @@
 ///
 /// Header file for BaseTest class, which is a base class for all testing classes.
 
+// Give us access to all private members.
+#define ENABLE_TESTING_ACCESS
+
 #ifndef BASE_TEST_H
 #define BASE_TEST_H
 

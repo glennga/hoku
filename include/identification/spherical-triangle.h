@@ -41,9 +41,11 @@
 ///     printf("%s", s.str().c_str());
 /// }
 /// @endcode
-class SphericalTriangle : private BaseTriangle {
-  private:
-    friend class TestSphericalTriangle;
+#if defined ENABLE_IDENTIFICATION_ACCESS || defined ENABLE_TESTING_ACCESS
+class SphericalTriangle : public BaseTriangle {
+#else
+    class SphericalTriangle : private BaseTriangle {
+#endif
   
   public:
     static int generate_triangle_table (double, unsigned int, const std::string &);
@@ -51,8 +53,10 @@ class SphericalTriangle : private BaseTriangle {
                                 const std::shared_ptr<QuadNode> & = nullptr);
     static Star::list identify (const Benchmark &, const Parameters &, const std::shared_ptr<QuadNode> & = nullptr);
     using BaseTriangle::Parameters;
-  
+
+#if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
   private:
+#endif
     SphericalTriangle (const Benchmark &, const Parameters &, const std::shared_ptr<QuadNode> & = nullptr);
     std::vector<Trio::stars> match_stars (const index_trio &);
 };

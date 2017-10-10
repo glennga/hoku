@@ -58,17 +58,17 @@ int Chomp::create_k_vector (const std::string &focus) {
     double focus_0, focus_n, m, q, n;
     std::string sql, fields, schema, original_table = this->table;
     
-    // search for last and first element of sorted table
+    // Search for last and first element of sorted table.
     std::string sql_for_max_id = std::string("(SELECT MAX(rowid) FROM ") + table + ")";
     focus_n = search_table("rowid = " + sql_for_max_id, focus, 1, 1)[0];
     focus_0 = search_table("rowid = 1", focus, 1, 1)[0];
     
-    // determine Z equation, this creates slightly steeper line
+    // Determine Z equation, this creates slightly steeper line.
     n = search_table("MAX(rowid)", 1)[0];
     m = (focus_n - focus_0 + (2.0 * DOUBLE_EPSILON)) / (int) n;
     q = focus_0 - m - DOUBLE_EPSILON;
     
-    // sorted table is s-vector, create k-vector and build the k-vector table
+    // Sorted table is s-vector. Create k-vector and build the k-vector table.
     create_table(table + "_KVEC", "k_value INT");
     transaction.commit();
     

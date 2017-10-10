@@ -41,18 +41,22 @@
 ///     printf("%s", s.str().c_str());
 /// }
 /// @endcode
-class PlanarTriangle : private BaseTriangle {
-  private:
-    friend class TestPlanarTriangle;
-  
+#if defined ENABLE_IDENTIFICATION_ACCESS || defined ENABLE_TESTING_ACCESS
+class PlanarTriangle : public BaseTriangle {
+#else
+    class PlanarTriangle : private BaseTriangle {
+#endif
+
   public:
     static Star::list identify (const Benchmark &, const Parameters &, unsigned int &,
                                 const std::shared_ptr<QuadNode> & = nullptr);
     static Star::list identify (const Benchmark &, const Parameters &, const std::shared_ptr<QuadNode> & = nullptr);
     static int generate_triangle_table (double, const std::string &);
     using BaseTriangle::Parameters;
-  
+
+#if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
   private:
+#endif
     PlanarTriangle (const Benchmark &, const Parameters &, const std::shared_ptr<QuadNode> & = nullptr);
     std::vector<Trio::stars> match_stars (const index_trio &);
 };
