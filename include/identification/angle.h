@@ -40,10 +40,10 @@ class Angle {
   public:
     /// Defines the query and match operations, user can tweak for custom performance.
     struct Parameters {
-        double query_sigma = 0.00000000001; ///< A query must be within 3 * query_sigma of a given search.
-        unsigned int query_limit = 5; ///< While performing a basic bound query, limit results by this number.
+        double query_sigma = std::numeric_limits<double>::epsilon() * 100; ///< Query must be within 3 * query_sigma.
+        unsigned int query_limit = 100; ///< While performing a basic bound query, limit results by this number.
         double match_sigma = 0.00001; ///< Resultant of inertial->body rotation must within 3 * match_sigma of *a* body.
-        unsigned int match_minimum = 10; ///< The minimum number of body-inertial matches.
+        unsigned int match_minimum = 3; ///< The minimum number of body-inertial matches.
         std::string table_name = "SEP_20"; ///< Name of the Nibble database table created with 'generate_sep_table'.
     };
     
@@ -85,5 +85,6 @@ class Angle {
     
     static std::vector<hr_pair> trial_query (Nibble &, const Star &, const Star &, double);
     Rotation trial_attitude_determine (const Star::list &, const Star::pair &, const Star::pair &);
-}
+};
+
 #endif /* HOKU_ANGLE_H */

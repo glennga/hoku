@@ -20,9 +20,6 @@
 /// printf("%s", a.str().c_str());
 /// @endcode
 class Asterism {
-  private:
-    friend class TestAsterism;
-  
   public:
     /// Common alias for an asterism (quad) of stars in 3D.
     using stars = std::array<Star, 4>;
@@ -41,15 +38,19 @@ class Asterism {
     static stars find_abcd (const stars &);
     
     static Star center (const stars &);
-  
+    
+#if !defined ENABLE_TESTING_ACCESS
   private:
+#endif
     explicit Asterism (const stars &);
     
     void verify_ab_stars ();
     Asterism::points_cd compute_cd_prime ();
     bool cd_property_met ();
-  
+
+#if !defined ENABLE_TESTING_ACCESS
   private:
+#endif
     /// Point one of the asterism. Points A and B define the local coordinate system. Defaults to (0, 0).
     Mercator a = Mercator::zero();
     

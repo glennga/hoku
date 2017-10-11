@@ -24,9 +24,6 @@
 /// @endcode
 ///
 class Trio {
-  private:
-    friend class TestTrio;
-  
   public:
     /// Common alias for a trio of stars.
     using stars = std::array<Star, 3>;
@@ -40,12 +37,16 @@ class Trio {
     
     static double spherical_area (const Star &, const Star &, const Star &);
     static double spherical_moment (const Star &, const Star &, const Star &, int= 3);
-  
+
+#if !defined ENABLE_TESTING_ACCESS
   private:
+#endif
     // Alias for the distances between each star.
     using side_lengths = std::array<double, 3>;
-  
+
+#if !defined ENABLE_TESTING_ACCESS
   private:
+#endif
     Trio (const Star &, const Star &, const Star &);
     
     side_lengths planar_lengths () const;
@@ -57,8 +58,10 @@ class Trio {
     
     double recurse_spherical_moment (const Star &, int, int);
     static Trio cut_triangle (const Star &, const Star &, const Star &, const Star & = Star());
-  
+
+#if !defined ENABLE_TESTING_ACCESS
   private:
+#endif
     /// Star one of the trio.
     Star b_1;
     

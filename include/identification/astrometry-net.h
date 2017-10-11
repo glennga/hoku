@@ -40,9 +40,6 @@
 /// }
 /// @endcode
 class AstrometryNet {
-  private:
-    friend class TestAstrometryNet;
-  
   public:
     /// Defines the query, match, and utility operators, user can tweak for custom performance.
     struct Parameters {
@@ -71,8 +68,10 @@ class AstrometryNet {
     
     static int generate_hash_table (double, int, const std::string &);
     static int generate_center_table (const std::string &, const std::string &);
-  
+
+#if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
   private:
+#endif
     /// Alias for a list of Harvard Revised numbers (STL vector of doubles).
     using hr_list = std::vector<int>;
     
@@ -87,8 +86,10 @@ class AstrometryNet {
     
     /// Alias for an 2-element set of models (2-element STL array of Star lists).
     using models = std::array<Star::list, 2>;
-  
+
+#if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
   private:
+#endif
     AstrometryNet (const Benchmark &, const Parameters &, const std::shared_ptr<KdNode> & = nullptr,
                    const std::shared_ptr<KdNode> & = nullptr);
     
@@ -101,8 +102,10 @@ class AstrometryNet {
     
     hr_list_quad nearby_asterisms (const hr_quad &);
     unsigned int compare_alignments (const models &, const models &);
-  
+
+#if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
   private:
+#endif
     /// The star set we are working with. The HR values are all set to 0 here.
     Star::list input;
     

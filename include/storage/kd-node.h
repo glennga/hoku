@@ -26,16 +26,14 @@
 /// }
 /// @endcode
 class KdNode : private Mercator {
-  private:
-    friend class TestKdNode;
-    friend class BaseTest;
-  
   public:
     static KdNode load_tree (const Star::list &, double);
     
     Star::list nearby_stars (const Star &, double, unsigned int, const Star::list &);
-  
+
+#if !defined ENABLE_TESTING_ACCESS
   private:
+#endif
     /// Precision default for '==' method.
     constexpr static double KDNODE_EQUALITY_PRECISION_DEFAULT = 0.000000000001;
     
@@ -54,8 +52,10 @@ class KdNode : private Mercator {
     // Inherit Mercator's star projection constructor.
     KdNode (const Star &s, const double w_n) : Mercator(s, w_n) {
     };
-  
+
+#if !defined ENABLE_TESTING_ACCESS
   private:
+#endif
     KdNode (unsigned int, unsigned int, int,  const bounds_set &, list &);
     static void sort_by_dimension (unsigned int, unsigned int, int, list &);
     
@@ -66,8 +66,10 @@ class KdNode : private Mercator {
     std::string str () const override;
     
     bool operator== (const KdNode &) const;
-  
+
+#if !defined ENABLE_TESTING_ACCESS
   private:
+#endif
     /// Minimum values for this node's represented box. Used for box queries.
     bounds b_min = {0, 0};
     

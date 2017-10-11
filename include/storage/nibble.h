@@ -54,9 +54,6 @@
 /// Star::list b = nb.nearby_stars(nb.query_bsc5(4), 15, 20);
 /// @endcode
 class Nibble {
-  private:
-    friend class TestNibble;
-  
   public:
     /// Alias for a SQL row of results or input. Must be real numbers.
     using tuple = std::vector<double>;
@@ -66,6 +63,9 @@ class Nibble {
     
     /// Maximum HR value for BSC5 table. Used in sparse representations of BSC5.
     static const int BSC5_MAX_HR = 9110;
+    
+    /// Minimum HR value for BSC5 table. Used in sparse representations of BSC5.
+    static const int BSC5_MIN_HR = 3;
     
     /// Open and unique database object. This must be public to work with SQLiteCpp library.
     std::unique_ptr<SQLite::Database> db;
@@ -94,8 +94,10 @@ class Nibble {
     int find_attributes (std::string &, std::string &);
     int sort_table (const std::string &);
     int polish_table (const std::string &);
-  
+
+#if !defined ENABLE_TESTING_ACCESS
   protected:
+#endif
     /// Current table being operated on.
     std::string table;
     
@@ -110,8 +112,10 @@ class Nibble {
     
     // Path of the Nibble database file.
     const std::string DATABASE_LOCATION = PROJECT_LOCATION + "/data/nibble.db";
-    
+
+#if !defined ENABLE_TESTING_ACCESS
   private:
+#endif
     void load_all_stars ();
     
     static std::array<double, 6> components_from_line (const std::string &);

@@ -23,11 +23,6 @@
 /// printf("%s", a.str().c_str());
 /// @endcode
 class Mercator {
-  private:
-    friend class TestMercator;
-    friend class TestQuadNode;
-    friend class TestKdNode;
-  
   public:
     /// Alias for a quartet of Mercator points.
     using quad = std::array<Mercator, 4>;
@@ -49,11 +44,15 @@ class Mercator {
     int get_hr () const;
     
     virtual std::string str () const;
-  
+
+#if !defined ENABLE_TESTING_ACCESS
   protected:
+#endif
     bool is_within_bounds (const quad &) const;
-  
+
+#if !defined ENABLE_TESTING_ACCESS
   protected:
+#endif
     /// X coordinate of the projected point. Default point is (0, 0).
     double x = 0;
     
@@ -65,8 +64,10 @@ class Mercator {
     
     /// Harvard Revised number for the point. Default is 0.
     int hr = 0;
-  
+
+#if !defined ENABLE_TESTING_ACCESS
   protected:
+#endif
     void project_star (const Star &, double);
 };
 

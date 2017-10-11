@@ -31,17 +31,16 @@
 /// printf("%s", (Star::angle_between(Star(2, 3, 5), Star(5, 6, 7)).str());
 /// @endcode
 class Star {
-  private:
-    friend class TestStar;
-  
   public:
     /// List type, defined as a vector of Stars.
     using list = std::vector<Star>;
     
     /// Pair type, defined as a 2-element array of Stars.
     using pair = std::array<Star, 2>;
-  
+
+#if !defined ENABLE_TESTING_ACCESS
   private:
+#endif
     /// Precision default for is_equal and '==' methods.
     constexpr static double STAR_EQUALITY_PRECISION_DEFAULT = 0.000000000001;
   
@@ -79,8 +78,10 @@ class Star {
     static bool within_angle (const list &, double);
     
     static Star reset_hr (const Star &);
-  
+
+#if !defined ENABLE_TESTING_ACCESS
   private:
+#endif
     /// I Component (element 0) of 3D vector.
     double i;
     

@@ -35,22 +35,23 @@
 /// printf("%f, %f", ch.table_results_at(a, 0, 0), ch.table_results_at(a, 1, 1));
 /// @endcode
 class Chomp : public Nibble {
-    friend class TestChomp;
-  
-  public:
+public:
     // Use Nibble's constructor.
     using Nibble::Nibble;
     using Nibble::tuple;
     
     int create_k_vector (const std::string &);
     tuple k_vector_query (const std::string &, const std::string &, double, double, unsigned int);
-  
+
+#if !defined ENABLE_TESTING_ACCESS
   private:
-    
+#endif
     /// Standard machine epsilon for doubles. This represents the smallest possible change in precision.
     const double DOUBLE_EPSILON = std::numeric_limits<double>::epsilon();
-  
+
+#if !defined ENABLE_TESTING_ACCESS
   private:
+#endif
     int build_k_vector_table (const std::string &, double, double);
 };
 

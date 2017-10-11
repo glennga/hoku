@@ -30,9 +30,6 @@
 /// printf("%s : %s", Rotation::rotate(a, e).str(), Rotation::rotate(a, f).str());
 /// @endcode
 class Rotation {
-  private:
-    friend class TestRotation;
-  
   public:
     /// Force default constructor. Default is {1, 0, 0, 0} (identity).
     Rotation () = default;
@@ -46,21 +43,27 @@ class Rotation {
     static Rotation chance ();
     
     static Rotation rotation_across_frames (const Star::pair &, const Star::pair &);
-  
+
+#if !defined ENABLE_TESTING_ACCESS
   private:
+#endif
     /// Precision default for '==' method.
     constexpr static double ROTATION_EQUALITY_PRECISION_DEFAULT = 0.000000000001;
     
     /// Matrix alias, by using a 3-element array of 3D vectors.
     using matrix = std::array<Star, 3>;
-  
+
+#if !defined ENABLE_TESTING_ACCESS
   private:
+#endif
     Rotation (double, const Star &, bool = false);
     
     static Rotation matrix_to_quaternion (const matrix &);
     static matrix matrix_multiply_transpose (const matrix &, const matrix &);
-  
+
+#if !defined ENABLE_TESTING_ACCESS
   private:
+#endif
     /// W component, or the sole real component of a quaternion. Defaults to one (identity quaternion).
     double w = 1;
     

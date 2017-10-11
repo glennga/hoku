@@ -24,16 +24,14 @@
 /// }
 /// @endcode
 class QuadNode : public Mercator {
-  private:
-    friend class TestQuadNode;
-    friend class BaseTest; // Friend to BaseTest for access to '==' operator.
-  
   public:
     Star::list nearby_stars (const Star &, double, unsigned int);
     
     static QuadNode load_tree (double);
-  
+
+#if !defined ENABLE_TESTING_ACCESS
   private:
+#endif
     /// Precision default for '==' method.
     constexpr static double QUADNODE_EQUALITY_PRECISION_DEFAULT = 0.000000000001;
     
@@ -42,8 +40,10 @@ class QuadNode : public Mercator {
     
     /// Alias for edges to QuadNode's children (4-element STL array of shared pointers).
     using child_edges = std::array<std::shared_ptr<QuadNode>, 4>;
-  
+
+#if !defined ENABLE_TESTING_ACCESS
   private:
+#endif
     QuadNode (const Star &, double, double);
     QuadNode (double, double, double);
     static QuadNode root (double);
@@ -68,8 +68,10 @@ class QuadNode : public Mercator {
     
     QuadNode find_quad_leaves (const QuadNode &, double, const QuadNode::list &);
     Star::list query_quadtree (Nibble &, const QuadNode &, const QuadNode &, Star::list &);
-  
+
+#if !defined ENABLE_TESTING_ACCESS
   private:
+#endif
     /// Children of the node itself. Defaults to having no children.
     QuadNode::child_edges children = no_children();
     

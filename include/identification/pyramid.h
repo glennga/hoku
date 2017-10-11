@@ -34,9 +34,6 @@
 /// }
 /// @endcode
 class Pyramid {
-  private:
-    friend class TestPyramid;
-  
   public:
     /// Defines the query and match operations, user can tweak for custom performance.
     struct Parameters {
@@ -53,8 +50,10 @@ class Pyramid {
     static Star::list identify (const Benchmark &, const Parameters &, unsigned int &);
     static Star::list identify (const Benchmark &, const Parameters &);
     static int generate_sep_table (double, const std::string &);
-  
+
+#if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
   private:
+#endif
     /// Alias for a list of Harvard Revised numbers (STL vector of doubles).
     using hr_list = std::vector<int>;
     
@@ -84,8 +83,10 @@ class Pyramid {
     
     /// All stars in 'input' are fov degrees from the focus.
     double fov;
-    
+
+#if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
   private:
+#endif
     Pyramid (const Benchmark &, const Parameters &);
     
     Star find_reference (const hr_list_pair &, const hr_list_pair &, const hr_list_pair &);
