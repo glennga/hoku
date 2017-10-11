@@ -43,5 +43,5 @@ target_link_libraries(TestAstrometryNet BaseTest AstrometryNet
 # Link and Create Executable TestPyramid
 ##################################################################
 add_executable(TestPyramid test-pyramid.cpp)
-target_link_libraries(TestPyramid BaseTest Pyramid Chomp Benchmark
-        Rotation Nibble Star SQLiteCpp Sqlite3)
+target_link_libraries(TestPyramid BaseTest Pyramid Angle Chomp
+        Benchmark Rotation Nibble Star SQLiteCpp Sqlite3)

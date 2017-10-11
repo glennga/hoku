@@ -25,9 +25,9 @@ int Chomp::build_k_vector_table (const std::string &focus_column, const double m
     select_table(table + "_KVEC");
     
     // Load K-Vector into table, K(i) = j where s(j) <= z(i) < s(j + 1).
-    for (int i = 0; i < s_l; i++) {
-        for (int k = k_hat; k < s_l; k++) {
-            if (s_vector[k] >= m * i + q) {
+    for (int i = 1; i <= s_l; i++) {
+        for (int k = k_hat; k <= s_l; k++) {
+            if (s_vector[std::max(0, k - 1)] >= m * i + q) {
                 insert_into_table("k_value", tuple {(double) k});
                 
                 // We remember our previous k, and continue here for i + 1.
@@ -39,6 +39,7 @@ int Chomp::build_k_vector_table (const std::string &focus_column, const double m
         std::cout << "\r" << "Current *I* Entry: " << i;
     }
     table_transaction.commit();
+    std::cout << std::endl;
     
     // Index the K-Vector column.
     SQLite::Transaction index_transaction(*db);
@@ -65,7 +66,7 @@ int Chomp::create_k_vector (const std::string &focus) {
     
     // Determine Z equation, this creates slightly steeper line.
     n = search_table("MAX(rowid)", 1)[0];
-    m = (focus_n - focus_0 + (2.0 * DOUBLE_EPSILON)) / (int) n;
+    m = (focus_n - focus_0 + (2.0 * DOUBLE_EPSILON)) / (int) (n - 1);
     q = focus_0 - m - DOUBLE_EPSILON;
     
     // Sorted table is s-vector. Create k-vector and build the k-vector table.
@@ -100,7 +101,7 @@ Nibble::tuple Chomp::k_vector_query (const std::string &focus, const std::string
     
     // Determine Z equation, this creates slightly steeper line.
     n = search_table("MAX(rowid)", 1)[0];
-    m = (focus_n - focus_0 + (2.0 * DOUBLE_EPSILON)) / (int) n;
+    m = (focus_n - focus_0 + (2.0 * DOUBLE_EPSILON)) / (int) (n - 1);
     q = focus_0 - m - DOUBLE_EPSILON;
     
     // Determine indices of search, and perform search.

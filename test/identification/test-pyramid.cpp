@@ -36,7 +36,7 @@ int TestPyramid::test_candidate_quad_find () {
 ///
 /// @return 0 when finished.
 int TestPyramid::test_identify_clean_input () {
-    Benchmark input(8, Star::chance(), Rotation::chance());
+    Benchmark input(20, Star::chance(), Rotation::chance());
     std::vector<Star> c = Pyramid::identify(input, Pyramid::Parameters());
     assert_equal(c.size(), input.stars.size(), "IdentificationFoundAllSize");
     
