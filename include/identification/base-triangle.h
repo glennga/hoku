@@ -19,8 +19,8 @@ class BaseTriangle {
   public:
     /// Defines the query and match operations, user can tweak for custom performance.
     struct Parameters {
-        double sigma_a = std::numeric_limits<double>::epsilon() * 10000000; ///< Area query must be in 3 * sigma_a.
-        double sigma_i = std::numeric_limits<double>::epsilon() * 5000; ///< Moment query must be in 3 * sigma_i.
+        double sigma_a = std::numeric_limits<double>::epsilon() * 10; ///< Area query must be in 3 * sigma_a.
+        double sigma_i = std::numeric_limits<double>::epsilon() * 10000; ///< Moment query must be in 3 * sigma_i.
         unsigned int query_expected = 100; ///< Expected number of stars to be found with query. Better to overshoot.
         double match_sigma = 0.00001; ///< Resultant of inertial->body rotation must within 3 * match_sigma of *a* body.
         unsigned int match_minimum = 4; ///< The minimum number of body-inertial matches.

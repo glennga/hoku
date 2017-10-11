@@ -38,7 +38,7 @@ Pyramid::hr_list_pair Pyramid::query_for_pairs (const double theta) {
     
     // Query using theta with epsilon bounds.
     ch.select_table(parameters.table_name);
-    results = ch.k_vector_query("theta", "hr_a, hr_b", theta - epsilon, theta + epsilon, 3 * limit);
+    results = ch.k_vector_query("theta", "hr_a, hr_b, theta", theta - epsilon, theta + epsilon, 3 * limit);
     
     // Append the results to our candidate list.
     candidates.reserve(results.size() / 2);
@@ -54,7 +54,7 @@ Pyramid::hr_list_pair Pyramid::query_for_pairs (const double theta) {
 /// @param ei List of HR pairs for potential candidates of stars E and I.
 /// @param ej List of HR pairs for potential candidates of stars E and J.
 /// @param ek List of HR pairs for potential candidates of stars E and K.
-/// @return First common star found in all pair lists.
+/// @return Zero star if no common star is found. Otherwise, the first common star found in all pair lists.
 Star Pyramid::find_reference (const hr_list_pair &ei, const hr_list_pair &ej, const hr_list_pair &ek) {
     auto flatten_pairs = [] (const hr_list_pair &candidates, hr_list &out_list) -> void {
         out_list.reserve(candidates.size() * 2);
@@ -62,11 +62,13 @@ Star Pyramid::find_reference (const hr_list_pair &ei, const hr_list_pair &ej, co
             out_list.push_back(candidate[0]);
             out_list.push_back(candidate[1]);
         }
+        std::sort(out_list.begin(), out_list.end());
     };
-    hr_list ei_list, ej_list, ek_list, eij_common, candidates;
+    hr_list ei_list, ej_list, ek_list;
     
     // Flatten our list of pairs.
     flatten_pairs(ei, ei_list), flatten_pairs(ej, ej_list), flatten_pairs(ek, ek_list);
+    hr_list eij_common(ei_list.size()), candidates(ei_list.size());
     
     // Find the intersection between lists EI and EJ.
     eij_common.reserve((ei_list.size() < ej_list.size()) ? ei_list.size() : ej_list.size());
@@ -74,7 +76,8 @@ Star Pyramid::find_reference (const hr_list_pair &ei, const hr_list_pair &ej, co
     
     // Find the intersection between our previous intersection and EK.
     std::set_intersection(eij_common.begin(), eij_common.end(), ek_list.begin(), ek_list.end(), candidates.begin());
-    return ch.query_bsc5((int) candidates[0]);
+    
+    return (candidates.empty()) ? Star::zero() : ch.query_bsc5((int) candidates[0]);
 }
 
 /// Given a quad of indices from the input set, determine the matching HR values that correspond to each star. We
@@ -88,16 +91,19 @@ Pyramid::hr_quad Pyramid::find_candidate_quad (const index_quad &b_f) {
     };
     hr_list_pair ei_pairs = find_pairs(0), ej_pairs = find_pairs(1), ek_pairs = find_pairs(2);
     
-    // Find a candidate for the star E (reference star).
+    // Find a candidate for the star E (reference star). Break if no reference star exists.
     Star e_candidate = find_reference(ei_pairs, ej_pairs, ek_pairs);
+    if (e_candidate == Star::zero()) {
+        return {-1, -1, -1, -1};
+    }
     
     // Remove all pairs that don't contain our reference star.
-    auto does_contain_e = [&e_candidate] (const hr_pair &pair) -> bool {
-        return pair[0] == e_candidate.get_hr() || pair[1] == e_candidate.get_hr();
+    auto e_nonexistence = [&e_candidate] (const hr_pair &pair) -> bool {
+        return std::find(pair.begin(), pair.end(), e_candidate.get_hr()) == pair.end();
     };
-    std::remove_if(ei_pairs.begin(), ei_pairs.end(), does_contain_e);
-    std::remove_if(ej_pairs.begin(), ej_pairs.end(), does_contain_e);
-    std::remove_if(ek_pairs.begin(), ek_pairs.end(), does_contain_e);
+    ei_pairs.erase(std::remove_if(ei_pairs.begin(), ei_pairs.end(), e_nonexistence), ei_pairs.end());
+    ej_pairs.erase(std::remove_if(ej_pairs.begin(), ej_pairs.end(), e_nonexistence), ej_pairs.end());
+    ek_pairs.erase(std::remove_if(ek_pairs.begin(), ek_pairs.end(), e_nonexistence), ek_pairs.end());
     
     // Return the first match we find that falls within the field-of-view.
     for (const hr_pair &p_i : ei_pairs) {
@@ -156,8 +162,8 @@ Star::list Pyramid::find_matches (const Star::list &candidates, const Rotation &
 /// @return Set of matching stars found in candidates and the body sets.
 Star::list Pyramid::match_remaining (const Star::list &candidates, const index_quad &b, const hr_quad &r) {
     // Find rotation between the stars I and E. Use this to find the matches.
-    return this->find_matches(candidates, Rotation::rotation_across_frames(
-        {input[b[0]], input[b[3]]}, {ch.query_bsc5(r[0]), ch.query_bsc5(r[3])}));
+    return this->find_matches(candidates, Rotation::rotation_across_frames({input[b[0]], input[b[3]]},
+                                                                           {ch.query_bsc5(r[0]), ch.query_bsc5(r[3])}));
 }
 
 /// Match the stars found in the given benchmark to those in the Nibble database.
@@ -175,34 +181,27 @@ Star::list Pyramid::identify (const Benchmark &input, const Parameters &paramete
         return Star::list{};
     }
     
-    // Otherwise, there exists |A_input| choose 4 possibilities. Looping specified in paper.
-    for (int e = 0; e < (signed) p.input.size(); e++) {
-        for (int dj = 0; dj < (signed) p.input.size() - 2; dj++) {
-            for (int dk = 0; dk < (signed) p.input.size() - dj - 1; dk++) {
-                for (int i = 0; i < (signed) p.input.size() - dj - dk; i++) {
-                    int j = i + dj, k = j + dk;
-                    Star::list candidates;
-                    z++;
-                    
-                    // We check for cases where e == i, e == j, ... for duplicates. If so, break early.
-                    std::array<int, 4> indices = {i, j, k, e};
-                    std::sort(indices.begin(), indices.end());
-                    if (std::unique(indices.begin(), indices.end()) != indices.end()) {
-                        break;
-                    }
-                    
-                    // Given four stars in our catalog, find their HR values in the catalog.
-                    hr_quad r_quad = p.find_candidate_quad({i, j, k, e});
-                    if (r_quad[0] == 0 && r_quad[1] == 0 && r_quad[2] == 0 && r_quad[3] == 0) {
-                        break;
-                    }
-                    
-                    // Find candidate stars around the reference star.
-                    candidates = p.ch.nearby_stars(p.ch.query_bsc5(r_quad[3]), p.fov,
-                                                   3 * ((unsigned int) p.input.size()));
-                    
-                    // Return all stars from our input that match the candidates. Append the appropriate HR values.
-                    return p.match_remaining(candidates, {i, j, k, e}, r_quad);
+    // Otherwise, there exists |A_input| choose 4 possibilities. Looping specified in paper. E chosen after K.
+    for (unsigned int dj = 1; dj < p.input.size() - 2; dj++) {
+        for (unsigned int dk = 2; dk < p.input.size() - dj - 2; dk++) {
+            for (unsigned int i = 0; i < p.input.size() - dj - dk; i++) {
+                int j = i + dj, k = j + dk, e = k + 1;
+                Star::list candidates, matches;
+                z++;
+                
+                // Given four stars in our catalog, find their HR values in the catalog.
+                hr_quad r_quad = p.find_candidate_quad({i, j, k, e});
+                if (std::find(r_quad.begin(), r_quad.end(), 0) != r_quad.end()) {
+                    break;
+                }
+                
+                // Find candidate stars around the reference star.
+                candidates = p.ch.nearby_stars(p.ch.query_bsc5(r_quad[3]), p.fov, 3 * ((unsigned int) p.input.size()));
+                
+                // Return all stars from our input that match the candidates. Append the appropriate HR values.
+                matches = p.match_remaining(candidates, {i, j, k, e}, r_quad);
+                if (matches.size() >= p.parameters.match_minimum) {
+                    return matches;
                 }
             }
         }
