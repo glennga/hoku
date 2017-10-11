@@ -10,7 +10,7 @@
 /// Defining characteristics of the benchmarks generated.
 ///
 /// @code{.cpp}
-/// Dimension Domains:              fov exists in [3, 4, 5, ..., 20]
+/// Dimension Domains:              fov exists in [1, 4, 5, ..., 20]
 ///                                 e exists in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 ///                                 rn exists in [1, 2, 3, 4, 5]
 ///                                 rs exists in [1, 2, 4, 6, 8]
