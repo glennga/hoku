@@ -27,7 +27,7 @@ Mercator::Mercator (const double x, const double y, const double w_n, const int 
 /// Return a point with coordinates (0, 0) and w_n = 0.
 ///
 /// @return (0, 0) point with w_n = 0.
-Mercator Mercator::zero() {
+Mercator Mercator::zero () {
     return {0, 0, 0};
 }
 
@@ -55,8 +55,8 @@ std::string Mercator::str () const {
     std::stringstream components;
     
     // Need to use stream here to set precision.
-    components << std::setprecision(16) << std::fixed << "(";
-    components << x << ":" << y << ":" << w_n << ":" << hr << ")";
+    components << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed << "(" << x << ":" << y << ":"
+               << w_n << ":" << hr << ")";
     return components.str();
 }
 

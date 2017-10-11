@@ -40,7 +40,7 @@ std::string QuadNode::str () const {
     std::stringstream components;
     
     // Need to use stream here to set precision.
-    components << std::setprecision(16) << std::fixed << "(";
+    components << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed << "(";
     components << x << ":" << y << ":" << w_n << ":" << w_i << ":" << hr << (is_green ? ":1" : ":0") << ")";
     return components.str();
 }

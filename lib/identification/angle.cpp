@@ -62,7 +62,7 @@ Angle::hr_pair Angle::query_for_pair (const double theta) {
     
     // Query using theta with epsilon bounds. Return [-1][-1] if nothing is found.
     nb.select_table(parameters.table_name);
-    condition << "theta BETWEEN " << std::setprecision(16) << std::fixed;
+    condition << "theta BETWEEN " << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed;
     condition << theta - epsilon << " AND " << theta + epsilon;
     candidates = nb.search_table(condition.str(), "hr_a, hr_b, theta", limit * 3, limit);
     if (candidates.empty()) {
@@ -224,14 +224,14 @@ Star::list Angle::identify (const Benchmark &input, const Parameters &parameters
 /// @param query_sigma Theta must be within 3 * query_sigma to appear in results.
 std::vector<Angle::hr_pair> Angle::trial_query (Nibble &nb, const Star &s_1, const Star &s_2,
                                                 const double query_sigma) {
-    double epsilon = 3.0 * query_sigma;
+    double epsilon = 3.0 * query_sigma, theta = Star::angle_between(s_1, s_2);
     std::ostringstream condition;
     std::vector<Angle::hr_pair> r_bar;
     
     // Query using theta with epsilon bounds.
-    condition << "theta BETWEEN " << std::setprecision(16) << std::fixed;
-    condition << Star::angle_between(s_1, s_2) - epsilon << " AND " << Star::angle_between(s_1, s_2) + epsilon;
-    Nibble::tuple r = nb.search_table(condition.str(), "hr_a, hr_b", 50 * 2);
+    condition << "theta BETWEEN " << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed;
+    condition << theta - epsilon << " AND " << theta + epsilon;
+    Nibble::tuple r = nb.search_table(condition.str(), "hr_a, hr_b", 500);
     
     // Sort tuple into list of HR pairs.
     r_bar.reserve(r.size() / 2);
@@ -257,10 +257,9 @@ Rotation Angle::trial_attitude_determine (const Star::list &candidates, const St
     std::array<Rotation, 2> q;
     
     // Determine the rotation to take frame B to A, find all matches with this rotation.
-    int current_assumption = 0;
-    for (const Star::pair &assumption : assumption_list) {
-        q[current_assumption] = Rotation::rotation_across_frames(b, assumption);
-        matches[current_assumption++] = this->find_matches(candidates, q);
+    for (unsigned int i = 0; i < assumption_list.size(); i++) {
+        q[i] = Rotation::rotation_across_frames(b, assumption_list[i]);
+        matches[i] = this->find_matches(candidates, q[i]);
     }
     
     // Return the rotation associated with the largest set of matches.

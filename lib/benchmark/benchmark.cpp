@@ -180,7 +180,8 @@ int Benchmark::record_current_plot () {
     }
     
     // Record the fov and norm first.
-    current_record << std::setprecision(16) << std::fixed << this->fov << "\n" << this->focus.norm() << "\n";
+    current_record << std::numeric_limits<double>::digits10 << std::fixed << this->fov << "\n" << this->focus.norm()
+                   << '\n';
     
     // Record the focus second.
     for (const double &component : {this->focus[0], this->focus[1], this->focus[2]}) {
@@ -195,7 +196,7 @@ int Benchmark::record_current_plot () {
     current << current_record.str();
     
     // Record each error model, which has it's own set of stars and plot colors.
-    error_record << std::setprecision(16) << std::fixed;
+    error_record << std::numeric_limits<double>::digits10 << std::fixed;
     for (const ErrorModel &model: this->error_models) {
         for (const Star &s: model.affected) {
             error_record << s[0] << " " << s[1] << " " << s[2] << " " << s.get_hr() << " " << model.plot_color << "\n";

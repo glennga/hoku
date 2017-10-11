@@ -37,7 +37,7 @@ int TestMercator::test_is_within_bounds () {
     Mercator::quad a = Mercator(0, 0, 1000).find_corners(100);
     std::stringstream p;
     
-    p << std::setprecision(16) << std::fixed;
+    p << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed;
     p << a[0].x << "," << a[0].y << "," << a[1].x << "," << a[1].y << ",";
     p << a[2].x << "," << a[2].y << "," << a[3].x << "," << a[3].y;
     

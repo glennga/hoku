@@ -62,8 +62,8 @@ std::string KdNode::str () const {
     std::stringstream components;
     
     // Need to use stream here to set precision.
-    components << std::setprecision(16) << std::fixed << "(" << x << ":" << y << ":" << w_n << ":";
-    components << origin_index << ":" << hr << ")";
+    components << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed << "(" << x << ":" << y
+               << ":" << w_n << ":" << origin_index << ":" << hr << ")";
     
     return components.str();
 }

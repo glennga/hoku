@@ -36,8 +36,8 @@ std::string Star::str () const {
     std::stringstream components;
     
     // Need to use stream here to set precision.
-    components << std::setprecision(16) << std::fixed << "(";
-    components << i << ":" << j << ":" << k << ":" << hr << ")";
+    components << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed << "("
+               << i << ":" << j << ":" << k << ":" << hr << ")";
     return components.str();
 }
 
@@ -80,7 +80,7 @@ Star Star::operator* (const double kappa) const {
     return {this->i * kappa, this->j * kappa, this->k * kappa, this->hr};
 }
 
-/// Find the magnitude of the current star.
+/// Find the magnitude of the current star (L2 norm).
 ///
 /// @return Magnitude of the current star.
 double Star::norm () const {
@@ -131,7 +131,6 @@ Star Star::zero () {
 ///
 /// @return Star with random, normalized components and a HR = 0.
 Star Star::chance () {
-    // need to keep seed and engine static to avoid starting w/ same seed
     static std::random_device seed;
     static std::mt19937_64 mersenne_twister(seed());
     std::uniform_real_distribution<double> dist(-1.0, 1.0);

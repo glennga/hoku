@@ -155,7 +155,7 @@ Star Nibble::query_bsc5 (const int hr) {
     tuple results;
     
     select_table("BSC5");
-    results = search_table("hr = " + std::to_string(hr), "i, j, k", 1, 1);
+    results = search_table("hr = " + std::to_string(hr), "i, j, k", 3, 1);
     
     // Keep our previous table.
     select_table(t_table);
