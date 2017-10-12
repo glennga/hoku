@@ -42,17 +42,42 @@ namespace Query {
     
     Star::list generate_n_stars (Nibble &, unsigned int, std::random_device &);
     
+    /// Return true if the given body set exists somewhere in a collection of reference sets.
+    ///
+    /// @tparam T Type of set to compare with (pairs, trios, asterisms, etc...).
+    /// @param r_set Reference to the reference frame sets. An in-sort place will occur for each element.
+    /// @param b Reference to the body frame set. An in-sort place will occur.
+    /// @return True if 'b' exists somewhere in r.
+    template <typename T>
+    bool set_existence(std::vector<T> &r_set, T &b) {
+        for (T &r_bar : r_set) {
+            std::sort(r_bar.begin(), r_bar.end()), std::sort(b.begin(), b.end());
+            if (std::equal(r_bar.begin(), r_bar.end(), b.begin())) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    /// Determine if the first value is equal to the second. Push this assertion to our test stack. If desired, print
+    /// the results.
+    ///
+    /// @tparam T Type of parameters 'a' and 'b' must be (they must be of the same type).
+    /// @param a Datum to compare with 'b'. 'a' must equal 'b'.
+    /// @param b Datum to compare with 'a'. 'a' must equal 'b'.
+    /// @param test_name Name of the current test being performed.
+    /// @param log_data Comma separated data to log onto a file.
+    /// @return True if 'a == b' holds. False otherwise.
+    template <typename T>
+    bool assert_equal (const T &a, const T &b, const std::string &test_name, const std::string &log_data) {
+        log_current(a == b, test_name + ",GenericEqualAssertion", log_data);
+        return push_results(a == b, test_name, "A == B.", "\'A == B\' is not true.");
+    }
+    
     void trial_angle (Nibble &, std::ofstream &);
-    void trial_angle_clean (Nibble &, std::ofstream &, std::random_device &);
-    void trial_angle_shift (Nibble &, std::ofstream &, std::random_device &);
-    
     void trial_plane (Nibble &, std::ofstream &);
-    void trial_plane_clean (Nibble &, std::ofstream &, std::random_device &);
-    void trial_plane_shift (Nibble &, std::ofstream &, std::random_device &);
-    
     void trial_sphere (Nibble &, std::ofstream &);
-    void trial_sphere_clean (Nibble &, std::ofstream &, std::random_device &);
-    void trial_sphere_shift (Nibble &, std::ofstream &, std::random_device &);
 }
 
 #endif /* TRIAL_QUERY_H */
