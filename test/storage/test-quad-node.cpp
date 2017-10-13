@@ -13,7 +13,7 @@ int TestQuadNode::test_star_constructor () {
     
     assert_equal(b.w_i, 1, "LocalWidthDefault");
     assert_equal(b.w_n, 1000, "ProjectedWidth");
-    return 0 * assert_equal(b.hr, 0, "HRValueDefault");
+    return 0 * assert_equal(b.label, 0, "HRValueDefault");
 }
 
 /// Check that the QuadNode root has the expected properties.
@@ -40,7 +40,7 @@ int TestQuadNode::test_branch () {
     assert_equal(c.y, a.y, "BranchSelfY");
     assert_equal(c.w_n, a.w_n, "BranchSelfW_N");
     assert_equal(c.w_i, a.w_i, "BranchSelfW_I");
-    assert_equal(c.hr, a.hr, "BranchSelfHR");
+    assert_equal(c.label, a.label, "BranchSelfHR");
     assert_equal(c.to_child(0).x, -5, "BranchChild1X");
     assert_equal(c.to_child(0).y, 5, "BranchChild1Y");
     return 0 * assert_equal(c.to_child(1).w_n, -1, "BranchChild2IsNull");
@@ -192,7 +192,7 @@ int TestQuadNode::test_nearby_stars () {
     assert_not_equal(q.nearby_stars(a, 10, 90).size(), 0, "NearbyStarsUsingQuadTree");
     
     for (const Star &s : c) {
-        std::string test_name = "NearbyStarIsActuallyNearFocus" + std::to_string(s.get_hr());
+        std::string test_name = "NearbyStarIsActuallyNearFocus" + std::to_string(s.get_label());
         // Adding 3 degrees to fov... B and C are both defined by different definitions of "nearby".
         assert_less_than(Star::angle_between(s, a), 10 + 3, test_name);
     }

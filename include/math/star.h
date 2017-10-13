@@ -51,7 +51,7 @@ class Star {
     std::string str () const;
     
     double operator[] (unsigned int) const;
-    int get_hr () const;
+    int get_label () const;
     
     Star operator+ (const Star &) const;
     Star operator- (const Star &) const;
@@ -77,7 +77,7 @@ class Star {
     static bool within_angle (const Star &, const Star &, double);
     static bool within_angle (const list &, double);
     
-    static Star reset_hr (const Star &);
+    static Star reset_label (const Star &);
 
 #if !defined ENABLE_TESTING_ACCESS
   private:
@@ -91,8 +91,8 @@ class Star {
     /// K component (element 2) of 3D vector.
     double k;
     
-    /// Harvard Revised number for the star.
-    int hr;
+    /// Catalog specific ID for the given star.
+    int label;
 };
 
 #endif /* HOKU_STAR_H */

@@ -97,7 +97,7 @@ Star Rotation::rotate (const Star &s, const Rotation &q) {
               pow(q.w, 2) - pow(q.i, 2) - pow(q.j, 2) + pow(q.k, 2));
     
     // Form the rotation matrix. Dot with given star.
-    return {Star::dot(s, a_1n), Star::dot(s, a_2n), Star::dot(s, a_3n), s.get_hr()};
+    return {Star::dot(s, a_1n), Star::dot(s, a_2n), Star::dot(s, a_3n), s.get_label()};
 }
 
 /// Get a scalar quantity for how 'close' two quaternions are by rotating the vector S and comparing the

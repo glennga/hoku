@@ -41,7 +41,7 @@ std::string QuadNode::str () const {
     
     // Need to use stream here to set precision.
     components << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed << "(";
-    components << x << ":" << y << ":" << w_n << ":" << w_i << ":" << hr << (is_green ? ":1" : ":0") << ")";
+    components << x << ":" << y << ":" << w_n << ":" << w_i << ":" << label << (is_green ? ":1" : ":0") << ")";
     return components.str();
 }
 
@@ -276,7 +276,7 @@ Star::list QuadNode::query_quadtree (Nibble &nb, const QuadNode &focus, const Qu
             for (int j = 0; j < 4; j++) {
                 // Do not append dead children. Search for stars using HR number.
                 if (!working.is_dead_child(j)) {
-                    t.push_back(nb.query_bsc5(working.to_child(j).get_hr()));
+                    t.push_back(nb.query_bsc5(working.to_child(j).get_label()));
                 }
             }
         }

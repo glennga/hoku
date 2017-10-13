@@ -5,12 +5,12 @@
 
 #include "math/star.h"
 
-/// Constructor. Sets the i, j, and k components, as well as the Harvard Revised number of the Star.
+/// Constructor. Sets the i, j, and k components, as well as the catalog ID of the Star.
 ///
 /// @param i The i'th component from the observer to the star.
 /// @param j The j'th component from the observer to the star.
 /// @param k The k'th component from the observer to the star.
-/// @param hr The Harvard Revised number of the star, found in the Yale Bright Star Catalog.
+/// @param hr The catalog ID of the star, found in the Yale Bright Star Catalog.
 /// @param set_unit If true, normalize the star. Otherwise, directly set the i, j, and k.
 Star::Star (const double i, const double j, const double k, const int hr, const bool set_unit) {
     if (!set_unit) {
@@ -21,12 +21,12 @@ Star::Star (const double i, const double j, const double k, const int hr, const 
         this->i = s.i, this->j = s.j, this->k = s.k;
     }
     
-    this->hr = hr;
+    this->label = hr;
 }
 
-/// Overloaded constructor. Sets the i, j, k, and HR of a star to 0.
+/// Overloaded constructor. Sets the i, j, k, and catalog ID of a star to 0.
 Star::Star () {
-    this->i = this->j = this->k = this->hr = 0;
+    this->i = this->j = this->k = this->label = 0;
 }
 
 /// Return all components in the current star as a string object.
@@ -36,8 +36,8 @@ std::string Star::str () const {
     std::stringstream components;
     
     // Need to use stream here to set precision.
-    components << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed << "("
-               << i << ":" << j << ":" << k << ":" << hr << ")";
+    components << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed << "(" << i << ":" << j
+               << ":" << k << ":" << label << ")";
     return components.str();
 }
 
@@ -49,19 +49,19 @@ double Star::operator[] (const unsigned int n) const {
     return n > 2 ? 0 : std::array<double, 3> {i, j, k}[n];
 }
 
-/// Accessor method for Harvard Revised number of the star.
+/// Accessor method for catalog ID of the star.
 ///
-/// @return Harvard Revised number of the current star.
-int Star::get_hr () const {
-    return this->hr;
+/// @return catalog ID of the current star.
+int Star::get_label () const {
+    return this->label;
 }
 
-/// Add star S to the current star. The resultant takes Star S's HR number.
+/// Add star S to the current star. The resultant takes Star S's catalog ID.
 ///
 /// @param s Star to add the current star with.
 /// @return The summation of the current star and star S.
 Star Star::operator+ (const Star &s) const {
-    return {this->i + s.i, this->j + s.j, this->k + s.k, s.hr};
+    return {this->i + s.i, this->j + s.j, this->k + s.k, s.label};
 }
 
 /// Subtract star S from the current star. This subtracts the two vector's components.
@@ -69,7 +69,7 @@ Star Star::operator+ (const Star &s) const {
 /// @param s Star to subtract the current star with.
 /// @return The resultant of subtracting the current star with star S.
 Star Star::operator- (const Star &s) const {
-    return {this->i - s.i, this->j - s.j, this->k - s.k, s.hr};
+    return {this->i - s.i, this->j - s.j, this->k - s.k, s.label};
 }
 
 /// Scale the current star with the constant kappa.
@@ -77,7 +77,7 @@ Star Star::operator- (const Star &s) const {
 /// @param kappa kappa Every component will be multiplied by this.
 /// @return Resultant of the current star scaled by kappa.
 Star Star::operator* (const double kappa) const {
-    return {this->i * kappa, this->j * kappa, this->k * kappa, this->hr};
+    return {this->i * kappa, this->j * kappa, this->k * kappa, this->label};
 }
 
 /// Find the magnitude of the current star (L2 norm).
@@ -98,7 +98,7 @@ Star Star::as_unit () const {
         return *this;
     }
     
-    return {this->i / norm, this->j / norm, this->k / norm, this->hr};
+    return {this->i / norm, this->j / norm, this->k / norm, this->label};
 }
 
 /// Determine if the two values's **components** are within epsilon units of each other.
@@ -129,7 +129,7 @@ Star Star::zero () {
 
 /// Generate a random star with normalized components. Using C++11 random functions.
 ///
-/// @return Star with random, normalized components and a HR = 0.
+/// @return Star with random, normalized components and a catalog ID = 0.
 Star Star::chance () {
     static std::random_device seed;
     static std::mt19937_64 mersenne_twister(seed());
@@ -138,14 +138,14 @@ Star Star::chance () {
     return Star(dist(mersenne_twister), dist(mersenne_twister), dist(mersenne_twister), 0).as_unit();
 }
 
-/// Generate a random star with normalized components. Using C++11 random functions. Instead of assigning a HR number
+/// Generate a random star with normalized components. Using C++11 random functions. Instead of assigning a catalog ID
 /// of 0, the user can assign one of their own.
 ///
-/// @param hr Harvard revised number to use with the randomized star.
-/// @return Star with random, normalized components and a HR = 0.
+/// @param hr Catalog ID to use with the randomized star.
+/// @return Star with random, normalized components and a catalog ID = 0.
 Star Star::chance (const int hr) {
     Star s = chance();
-    s.hr = hr;
+    s.label = hr;
     
     return s;
 }
@@ -159,7 +159,7 @@ double Star::dot (const Star &s_1, const Star &s_2) {
     return s_1.i * s_2.i + s_1.j * s_2.j + s_1.k * s_2.k;
 }
 
-/// Finds the cross product of s_1 and s_2 stars. The resultant HR = 0;
+/// Finds the cross product of s_1 and s_2 stars. The resultant catalog ID = 0;
 ///
 /// @param s_1 Star to cross with s_2.
 /// @param s_2 Star to cross with s_1.
@@ -204,10 +204,10 @@ bool Star::within_angle (const list &s_l, const double theta) {
     return true;
 }
 
-/// Return the given star with a HR number of 0.
+/// Return the given star with a catalog ID of 0.
 ///
-/// @param s Star to remove HR number from.
-/// @return Same star with HR number equal to 0.
-Star Star::reset_hr (const Star &s) {
+/// @param s Star to remove catalog ID from.
+/// @return Same star with catalog ID equal to 0.
+Star Star::reset_label (const Star &s) {
     return {s.i, s.j, s.k, 0};
 }

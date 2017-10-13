@@ -41,7 +41,7 @@ void Alignment::present_candidates (Nibble &nb, Star::list &candidates, Star::li
         // Starting from the front of our list, apply noise. **Assumes that list generated is bigger than shift_n.
         for (int i = 0; i < shift_n; i++) {
             candidates[i] = Star(candidates[i][0] + dist(mersenne_twister), candidates[i][1] + dist(mersenne_twister),
-                                 candidates[i][2] + dist(mersenne_twister), candidates[i].get_hr(), true);
+                                 candidates[i][2] + dist(mersenne_twister), candidates[i].get_label(), true);
         }
     }
 }
@@ -51,11 +51,13 @@ void Alignment::present_candidates (Nibble &nb, Star::list &candidates, Star::li
 /// @param nb Open Nibble connection.
 /// @param log Open stream to log file.
 void Alignment::trial_angle (Nibble &nb, std::ofstream &log) {
-    Angle a(Benchmark(WORKING_FOV, Star::chance(), Rotation::chance()), Angle::Parameters());
-    Star::list inertial;
     Rotation q, qe_optimal, qe_not_optimal;
+    Star::list inertial;
+    Angle::Parameters par;
+    par.table_name = ANGLE_TABLE;
     
     // First run is clean, without shifts. Following are shift trials.
+    Angle a(Benchmark(WORKING_FOV, Star::chance(), Rotation::chance()), Angle::Parameters());
     for (int ss_i = -1; ss_i < SS_ITER; ss_i++) {
         for (int ms_i = 0; ms_i < MS_ITER; ms_i++) {
             for (int i = 0; i < ALIGNMENT_SAMPLES; i++) {
@@ -80,7 +82,6 @@ void Alignment::trial_angle (Nibble &nb, std::ofstream &log) {
 /// @param nb Open Nibble connection.
 /// @param log Open stream to log file.
 void Alignment::trial_plane (Nibble &nb, std::ofstream &log) {
-    Plane p(Benchmark(WORKING_FOV, Star::chance(), Rotation::chance()), Plane::Parameters());
     Rotation q, qe_optimal, qe_not_optimal;
     Star::list inertial;
     Plane::Parameters par;
@@ -88,6 +89,7 @@ void Alignment::trial_plane (Nibble &nb, std::ofstream &log) {
     
     // We load our quad-tree outside. Avoid rebuilding.
     std::shared_ptr<QuadNode> q_root = std::make_shared<QuadNode>(QuadNode::load_tree(Plane::Parameters().quadtree_w));
+    Plane p(Benchmark(WORKING_FOV, Star::chance(), Rotation::chance()), par);
     
     // First run is clean, without shifts. Following are shift trials.
     for (int ss_i = -1; ss_i < SS_ITER; ss_i++) {
@@ -115,7 +117,6 @@ void Alignment::trial_plane (Nibble &nb, std::ofstream &log) {
 /// @param nb Open Nibble connection.
 /// @param log Open stream to log file.
 void Alignment::trial_sphere (Nibble &nb, std::ofstream &log) {
-    Sphere s(Benchmark(WORKING_FOV, Star::chance(), Rotation::chance()), Sphere::Parameters());
     Rotation q, qe_optimal, qe_not_optimal;
     Star::list inertial;
     Sphere::Parameters par;
@@ -123,6 +124,7 @@ void Alignment::trial_sphere (Nibble &nb, std::ofstream &log) {
     
     // We load our quad-tree outside. Avoid rebuilding.
     std::shared_ptr<QuadNode> q_root = std::make_shared<QuadNode>(QuadNode::load_tree(Sphere::Parameters().quadtree_w));
+    Sphere s(Benchmark(WORKING_FOV, Star::chance(), Rotation::chance()), par);
     
     // First run is clean, without shifts. Following are shift trials.
     for (int ss_i = -1; ss_i < SS_ITER; ss_i++) {

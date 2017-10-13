@@ -17,7 +17,7 @@
 /// @example
 /// @code{.cpp}
 /// // Populate a table named "SEP20" in Nibble.db of all distinct pair of stars whose angle of separation is
-/// // less than 20 degrees of each. The entries stored are the HR numbers, and the separation angle.
+/// // less than 20 degrees of each. The entries stored are the catalog IDs, and the separation angle.
 /// Pyramid::generate_sep_table(20, "SEP20");
 ///
 /// /* The snippet above should only be run ONCE. The snippet below is run with every different test. */
@@ -55,25 +55,25 @@ class Pyramid {
 #if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
   private:
 #endif
-    /// Alias for a list of Harvard Revised numbers (STL vector of doubles).
+    /// Alias for a list of catalog IDs (STL vector of doubles).
     using hr_list = std::vector<int>;
     
-    /// Alias for a quad of Harvard Revised numbers (4-element STL array of doubles).
+    /// Alias for a quad of catalog IDs (4-element STL array of doubles).
     using hr_quad = std::array<int, 4>;
     
-    /// Alias for a list of Harvard Revised number quads (STL vector of 3-element arrays of integers).
-    using hr_list_trio = std::vector<hr_quad>;
+    /// Alias for a list of catalog ID quads (STL vector of 3-element arrays of integers).
+    using label_list_trio = std::vector<hr_quad>;
     
-    /// Alias for a pair of Harvard Revised numbers (2-element STL array of doubles).
-    using hr_pair = std::array<int, 2>;
+    /// Alias for a pair of catalog IDs (2-element STL array of doubles).
+    using label_pair = std::array<int, 2>;
     
-    /// Alias for a list of Harvard Revised number pairs (STL vector of 2-element arrays of integers).
-    using hr_list_pair = std::vector<hr_pair>;
+    /// Alias for a list of catalog ID pairs (STL vector of 2-element arrays of integers).
+    using label_list_pair = std::vector<label_pair>;
     
     /// Alias for a quad of index numbers for the input star list (4-element STL array of doubles).
     using index_quad = std::array<int, 4>;
     
-    /// The star set we are working with. The HR values are all set to 0 here.
+    /// The star set we are working with. The catalog IDs are all set to 0 here.
     Star::list input;
     
     /// Current working parameters.
@@ -90,8 +90,8 @@ class Pyramid {
 #endif
     Pyramid (const Benchmark &, const Parameters &);
     
-    Star find_reference (const hr_list_pair &, const hr_list_pair &, const hr_list_pair &);
-    hr_list_pair query_for_pairs (double);
+    Star find_reference (const label_list_pair &, const label_list_pair &, const label_list_pair &);
+    label_list_pair query_for_pairs (double);
     Star::list find_matches (const Star::list &, const Rotation &);
     hr_quad find_candidate_quad (const index_quad &);
     Star::list match_remaining (const Star::list &, const index_quad &, const hr_quad &);

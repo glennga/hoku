@@ -46,7 +46,7 @@ int Sphere::generate_triangle_table (const double fov, const unsigned int td_h, 
     Star::list all_stars = nb.all_bsc5_stars();
     for (unsigned int i = 0; i < all_stars.size() - 2; i++) {
         SQLite::Transaction transaction(*nb.db);
-        std::cout << "\r" << "Current *I* Star: " << all_stars[i].get_hr();
+        std::cout << "\r" << "Current *I* Star: " << all_stars[i].get_label();
         for (unsigned int j = i + 1; j < all_stars.size() - 1; j++) {
             for (unsigned int k = j + 1; k < all_stars.size(); k++) {
                 
@@ -58,8 +58,8 @@ int Sphere::generate_triangle_table (const double fov, const unsigned int td_h, 
                     // Prevent insertion of trios with areas = -1.
                     if (a_t > 0) {
                         nb.insert_into_table("hr_a, hr_b, hr_c, a, i",
-                                             {(double) all_stars[i].get_hr(), (double) all_stars[j].get_hr(),
-                                                 (double) all_stars[k].get_hr(), a_t, i_t});
+                                             {(double) all_stars[i].get_label(), (double) all_stars[j].get_label(),
+                                                 (double) all_stars[k].get_label(), a_t, i_t});
                     }
                 }
             }
@@ -80,7 +80,7 @@ int Sphere::generate_triangle_table (const double fov, const unsigned int td_h, 
 /// Otherwise, vector of trios whose areas and moments are close.
 std::vector<Trio::stars> Sphere::match_stars (const index_trio &hr_b) {
     Trio::stars b_stars{this->input[hr_b[0]], this->input[hr_b[1]], this->input[hr_b[2]]};
-    std::vector<hr_trio> match_hr;
+    std::vector<label_trio> match_hr;
     std::vector<Trio::stars> matched_stars;
     
     // Do not attempt to find matches if all stars are not within fov.
@@ -101,9 +101,9 @@ std::vector<Trio::stars> Sphere::match_stars (const index_trio &hr_b) {
         return {{Star::zero(), Star::zero(), Star::zero()}};
     }
     
-    // Grab stars themselves from HR numbers found in matches. Return these matches.
+    // Grab stars themselves from catalog IDs found in matches. Return these matches.
     matched_stars.reserve(match_hr.size());
-    for (const hr_trio &t : match_hr) {
+    for (const label_trio &t : match_hr) {
         matched_stars.push_back({ch.query_bsc5((int) t[0]), ch.query_bsc5((int) t[1]), ch.query_bsc5((int) t[2])});
     }
     

@@ -52,7 +52,7 @@ int TestBenchmark::test_current_plot_file () {
     
     std::getline(current_plot_from_input, d);
     sprintf(e, "%0.16f %0.16f %0.16f %d", input.stars[0][0], input.stars[0][1], input.stars[0][2],
-            input.stars[0].get_hr());
+            input.stars[0].get_label());
     return 0 * assert_equal(d, std::string(e), "CurrentPlotStar0Equality", 2);
 }
 
@@ -75,7 +75,7 @@ int TestBenchmark::test_error_plot_file () {
     // NOTE: Here b truncates a digit, but this is correct otherwise.
     std::getline(error_plot_from_input, a);
     sprintf(b, "%0.16f %0.16f %0.16f %d %s", input.error_models[0].affected[0][0], input.error_models[0].affected[0][1],
-            input.error_models[0].affected[0][2], input.error_models[0].affected[0].get_hr(),
+            input.error_models[0].affected[0][2], input.error_models[0].affected[0].get_label(),
             input.error_models[0].plot_color.c_str());
     return 0 * assert_equal(a, std::string(b), "ErrorPlotExtraLightEquality", 2);
 }
@@ -153,7 +153,7 @@ int TestBenchmark::test_hr_number_clear () {
     
     for (int q = 0; q < 3; q++) {
         std::string test_name = "HRNumberClearStar" + std::to_string(q + 1);
-        assert_equal(a[q].get_hr(), 0, test_name);
+        assert_equal(a[q].get_label(), 0, test_name);
     }
     
     return 0;

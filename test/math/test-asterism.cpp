@@ -22,9 +22,9 @@ int TestAsterism::test_abcd_star_find () {
     }
     
     assert_equal(Mercator::distance_between(p.a, p.b), d_max, "StarsAandBFoundCorrectly");
-    assert_outside(p.c.get_hr(), {p.a.get_hr(), p.b.get_hr()}, "CIsNotAOrB",
+    assert_outside(p.c.get_label(), {p.a.get_label(), p.b.get_label()}, "CIsNotAOrB",
                    p.c.str() + "," + p.b.str() + "," + p.a.str());
-    return 0 * assert_outside(p.d.get_hr(), {p.a.get_hr(), p.b.get_hr(), p.c.get_hr()}, "DIsNotABOrC",
+    return 0 * assert_outside(p.d.get_label(), {p.a.get_label(), p.b.get_label(), p.c.get_label()}, "DIsNotABOrC",
                               p.d.str() + "," + p.a.str() + "," + p.b.str() + "," + p.d.str());
 }
 

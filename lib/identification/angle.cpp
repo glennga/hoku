@@ -31,14 +31,14 @@ int Angle::generate_sep_table (const double fov, const std::string &table_name) 
     // (i, j) are distinct, where no (i, j) = (j, i).
     Star::list all_stars = nb.all_bsc5_stars();
     for (unsigned int i = 0; i < all_stars.size() - 1; i++) {
-        std::cout << "\r" << "Current *I* Star: " << all_stars[i].get_hr();
+        std::cout << "\r" << "Current *I* Star: " << all_stars[i].get_label();
         for (unsigned int j = i + 1; j < all_stars.size(); j++) {
             double theta = Star::angle_between(all_stars[i], all_stars[j]);
             
             // Only insert if the angle between both stars is less than fov.
             if (theta < fov) {
-                nb.insert_into_table("hr_a, hr_b, theta", {(double) all_stars[i].get_hr(),
-                    (double) all_stars[j].get_hr(), theta});
+                nb.insert_into_table("hr_a, hr_b, theta", {(double) all_stars[i].get_label(),
+                    (double) all_stars[j].get_label(), theta});
             }
         }
     }
@@ -52,8 +52,8 @@ int Angle::generate_sep_table (const double fov, const std::string &table_name) 
 /// 'query_limit'.
 ///
 /// @param theta Separation angle (degrees) to search with.
-/// @return [-1][-1] if no candidates found. Two element array of the matching HR numbers otherwise.
-Angle::hr_pair Angle::query_for_pair (const double theta) {
+/// @return [-1][-1] if no candidates found. Two element array of the matching catalog IDs otherwise.
+Angle::label_pair Angle::query_for_pair (const double theta) {
     // Noise is normally distributed. Angle within 3 sigma of theta.
     double epsilon = 3.0 * this->parameters.query_sigma, current_minimum = this->fov;
     unsigned int minimum_index = 0, limit = this->parameters.query_limit;
@@ -66,7 +66,7 @@ Angle::hr_pair Angle::query_for_pair (const double theta) {
     condition << theta - epsilon << " AND " << theta + epsilon;
     candidates = nb.search_table(condition.str(), "hr_a, hr_b, theta", limit * 3, limit);
     if (candidates.empty()) {
-        return hr_pair {-1, -1};
+        return label_pair {-1, -1};
     }
     
     // Select the candidate pair with the angle closest to theta.
@@ -81,7 +81,7 @@ Angle::hr_pair Angle::query_for_pair (const double theta) {
     }
     
     // Return the set with the angle closest to theta.
-    return hr_pair {(int) nb.table_results_at(candidates, 3, minimum_index)[0],
+    return label_pair {(int) nb.table_results_at(candidates, 3, minimum_index)[0],
         (int) nb.table_results_at(candidates, 3, minimum_index)[1]};
 }
 
@@ -100,7 +100,7 @@ Star::pair Angle::find_candidate_pair (const Star &b_a, const Star &b_b) {
     }
     
     // If no candidate is found, break early.
-    hr_pair candidates = this->query_for_pair(theta);
+    label_pair candidates = this->query_for_pair(theta);
     if (candidates[0] == -1 && candidates[1] == -1) {
         return {Star::zero(), Star::zero()};
     }
@@ -124,8 +124,8 @@ Star::list Angle::find_matches (const Star::list &candidates, const Rotation &q)
         Star r_prime = Rotation::rotate(candidate, q);
         for (unsigned int i = 0; i < non_matched.size(); i++) {
             if (Star::angle_between(r_prime, non_matched[i]) < epsilon) {
-                // Add this match to the list by noting the candidate star's HR number.
-                matches.emplace_back(Star(non_matched[i][0], non_matched[i][1], non_matched[i][2], candidate.get_hr()));
+                // Add this match to the list by noting the candidate star's catalog ID.
+                matches.emplace_back(Star(non_matched[i][0], non_matched[i][1], non_matched[i][2], candidate.get_label()));
                 
                 // Remove the current star from the searching set. End the search for this star.
                 non_matched.erase(non_matched.begin() + i);
@@ -222,21 +222,21 @@ Star::list Angle::identify (const Benchmark &input, const Parameters &parameters
 /// @param s_1 Star one to query with.
 /// @param s_2 Star two to query with.
 /// @param query_sigma Theta must be within 3 * query_sigma to appear in results.
-std::vector<Angle::hr_pair> Angle::trial_query (Nibble &nb, const Star &s_1, const Star &s_2,
+std::vector<Angle::label_pair> Angle::trial_query (Nibble &nb, const Star &s_1, const Star &s_2,
                                                 const double query_sigma) {
     double epsilon = 3.0 * query_sigma, theta = Star::angle_between(s_1, s_2);
     std::ostringstream condition;
-    std::vector<Angle::hr_pair> r_bar;
+    std::vector<Angle::label_pair> r_bar;
     
     // Query using theta with epsilon bounds.
     condition << "theta BETWEEN " << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed;
     condition << theta - epsilon << " AND " << theta + epsilon;
     Nibble::tuple r = nb.search_table(condition.str(), "hr_a, hr_b", 500);
     
-    // Sort tuple into list of HR pairs.
+    // Sort tuple into list of catalog ID pairs.
     r_bar.reserve(r.size() / 2);
     for (unsigned int i = 0; i < r.size() / 2; i++) {
-        r_bar.emplace_back(Angle::hr_pair {(int) nb.table_results_at(r, 2, i)[0],
+        r_bar.emplace_back(Angle::label_pair {(int) nb.table_results_at(r, 2, i)[0],
             (int) nb.table_results_at(r, 2, i)[1]});
     }
     

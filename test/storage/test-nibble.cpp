@@ -14,7 +14,7 @@ int TestNibble::test_components_from_line () {
         3.94};
     std::string b = " 100   Kap PheCD-44  101   2262215092                       002117"
         ".1-441405002612.2-434048318.42-72.68 3.94  +0.17 +0.11 +0.08   A7V+0.109+0.029 +.072+011      219";
-    std::array<double, 6> c = Nibble().components_from_line(b);
+    std::array<double, 6> c = Nibble().bsc5_components_from_line(b);
     
     assert_equal(a[0], c[0], "ComponentFromLineAlpha", 0.000001);
     assert_equal(a[1], c[1], "ComponentFromLineDelta", 0.000001);
@@ -29,9 +29,9 @@ int TestNibble::test_components_from_line () {
 /// @return 0 when finished.
 int TestNibble::test_file_existence () {
     Nibble().generate_bsc5_table();
-    std::ifstream catalog(Nibble().CATALOG_LOCATION), nibble(Nibble().DATABASE_LOCATION);
+    std::ifstream catalog(Nibble().BSC5_CATALOG_LOCATION), nibble(Nibble().DATABASE_LOCATION);
     
-    assert_true(catalog.good(), "CatalogExistence", Nibble().CATALOG_LOCATION);
+    assert_true(catalog.good(), "CatalogExistence", Nibble().BSC5_CATALOG_LOCATION);
     return 0 * assert_true(nibble.good(), "DatabaseExistence", Nibble().DATABASE_LOCATION);
 }
 
@@ -58,8 +58,8 @@ int TestNibble::test_bsc5_query_result () {
 /// @return 0 when finished.
 int TestNibble::test_table_search_result () {
     Nibble nb;
-    std::vector<double> a = nb.search_table("hr = 3", "i, j, k", 3);
-    std::vector<double> b = nb.search_table("hr = 3 or hr = 4", "i, j, k", 6, 2);
+    std::vector<double> a = nb.search_table("label = 3", "i, j, k", 3);
+    std::vector<double> b = nb.search_table("label = 3 or label = 4", "i, j, k", 6, 2);
     
     assert_equal(a[0], 0.994772975556659, "GeneralBSC5QueryComponentI");
     assert_equal(a[1], 0.0231608361523004, "GeneralBSC5QueryComponentJ");
@@ -74,7 +74,7 @@ int TestNibble::test_table_search_result () {
 /// @return 0 when finished.
 int TestNibble::test_table_search_result_index () {
     Nibble nb;
-    std::vector<double> a = nb.search_table("hr = 3 or hr = 4", "i, j, k", 6);
+    std::vector<double> a = nb.search_table("label = 3 or label = 4", "i, j, k", 6);
     std::vector<double> b = nb.table_results_at(a, 3, 0);
     std::vector<double> c = nb.table_results_at(a, 3, 1);
     
@@ -119,7 +119,7 @@ int TestNibble::test_table_polish_index () {
 int TestNibble::test_table_polish_sort () {
     Nibble nb;
     nb.polish_table("alpha");
-    std::vector<double> a = nb.search_table("ROWID = 1", "hr", 1);
+    std::vector<double> a = nb.search_table("ROWID = 1", "label", 1);
     assert_equal(a[0], 9081, "IndexBSC5AlphaSort");
     
     // Delete new table and index. Rerun original BSC5 table generation.
@@ -145,8 +145,8 @@ int TestNibble::test_table_insertion () {
     std::vector<double> a{0, 0, 0, 0, 0, 0, 10000000}, b;
     SQLite::Transaction transaction(*nb.db);
     
-    nb.insert_into_table("alpha, delta, i, j, k, m, hr", a);
-    SQLite::Statement query(*nb.db, "SELECT alpha, delta FROM BSC5 WHERE hr = 10000000");
+    nb.insert_into_table("alpha, delta, i, j, k, m, label", a);
+    SQLite::Statement query(*nb.db, "SELECT alpha, delta FROM BSC5 WHERE label = 10000000");
     while (query.executeStep()) {
         b.push_back(query.getColumn(0).getDouble());
         b.push_back(query.getColumn(1).getDouble());
@@ -156,7 +156,7 @@ int TestNibble::test_table_insertion () {
     assert_equal(b[1], 0, "TableInsertionDelta");
     
     try {
-        SQLite::Statement(*nb.db, "DELETE FROM BSC5 WHERE hr = 10000000").exec();
+        SQLite::Statement(*nb.db, "DELETE FROM BSC5 WHERE label = 10000000").exec();
         transaction.commit();
     }
     catch (std::exception &e) {
@@ -203,7 +203,7 @@ int TestNibble::test_nearby_star_grab () {
 ///
 /// @return 0 when finished.
 int TestNibble::test_in_memory_instance () {
-    Nibble nb("BSC5", "hr");
+    Nibble nb("BSC5", "label");
     Star a = nb.query_bsc5(3);
     
     assert_equal(a[0], 0.994772975556659, "BSC5QueryComponentIInMemory");

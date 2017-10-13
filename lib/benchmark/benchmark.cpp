@@ -51,16 +51,16 @@ void Benchmark::generate_stars () {
     this->shuffle();
 }
 
-/// Return the current star set with all HR numbers set to 0. In practice, the Hr number of a star set is never given
-/// from the image itself.
+/// Return the current star set with all catalog ID s set to 0. In practice, the Hr number of a star set is never
+/// given from the image itself.
 ///
-/// @return Copy of current star set with HR numbers set to 0.
+/// @return Copy of current star set with catalog IDs set to 0.
 Star::list Benchmark::clean_stars () const {
     // Keep the current star set intact.
     Star::list clean = this->stars;
     
     for (Star &s : clean) {
-        s = Star::reset_hr(s);
+        s = Star::reset_label(s);
     }
     return clean;
 }
@@ -76,8 +76,8 @@ void Benchmark::present_image (Star::list &image_s, double &image_fov) const {
 }
 
 /// Insert into Nibble our current benchmark. In doing so, we lose information about the error model specifics
-/// (which stars are errors, the sigma applied to shifts...), the original rotation applied, and the HR values of
-/// each star.
+/// (which stars are errors, the sigma applied to shifts...), the original rotation applied, and the catalog IDs
+/// of each star.
 ///
 /// This function is meant to be used iteratively, with set_n incrementing with every call to this. This is recorded
 /// as such:
@@ -191,7 +191,7 @@ int Benchmark::record_current_plot () {
     
     // Record the rest of the stars.
     for (const Star &s : this->stars) {
-        current_record << s[0] << " " << s[1] << " " << s[2] << " " << s.get_hr() << "\n";
+        current_record << s[0] << " " << s[1] << " " << s[2] << " " << s.get_label() << "\n";
     }
     current << current_record.str();
     
@@ -199,7 +199,7 @@ int Benchmark::record_current_plot () {
     error_record << std::numeric_limits<double>::digits10 << std::fixed;
     for (const ErrorModel &model: this->error_models) {
         for (const Star &s: model.affected) {
-            error_record << s[0] << " " << s[1] << " " << s[2] << " " << s.get_hr() << " " << model.plot_color << "\n";
+            error_record << s[0] << " " << s[1] << " " << s[2] << " " << s.get_label() << " " << model.plot_color << "\n";
         }
     }
     error << error_record.str();
@@ -349,7 +349,7 @@ void Benchmark::shift_light (const int n, const double sigma, bool cap_error) {
         for (unsigned int i = 0; i < this->stars.size() && n_condition; i++) {
             Star candidate = Star(this->stars[i][0] + dist(mersenne_twister),
                                   this->stars[i][1] + dist(mersenne_twister),
-                                  this->stars[i][2] + dist(mersenne_twister), this->stars[i].get_hr()).as_unit();
+                                  this->stars[i][2] + dist(mersenne_twister), this->stars[i].get_label()).as_unit();
             
             // If shifted star is near focus, add the shifted star and remove the old.
             if (Star::within_angle(candidate, this->focus, this->fov / 2.0)) {

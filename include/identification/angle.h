@@ -16,7 +16,7 @@
 /// @example
 /// @code{.cpp}
 /// // Populate a table named "SEP20" in Nibble.db of all distinct pair of stars whose angle of separation is
-/// // less than 20 degrees of each. The entries stored are the HR numbers, and the separation angle.
+/// // less than 20 degrees of each. The entries stored are the catalog ID numbers, and the separation angle.
 /// Angle::generate_sep_table(20, "SEP20");
 ///
 /// /* The snippet above should only be run ONCE. The snippet below is run with every different test. */
@@ -58,10 +58,10 @@ class Angle {
 #if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
   private:
 #endif
-    /// Alias for a pair of Harvard Revised numbers (2-element STL array of doubles).
-    using hr_pair = std::array<int, 2>;
+    /// Alias for a pair of catalog IDs (2-element STL array of doubles).
+    using label_pair = std::array<int, 2>;
     
-    /// The star set we are working with. The HR values are all set to 0 here.
+    /// The star set we are working with. The catalog ID values are all set to 0 here.
     Star::list input;
     
     /// Current working parameters.
@@ -78,12 +78,12 @@ class Angle {
 #endif
     Angle (const Benchmark &, const Parameters &);
     
-    hr_pair query_for_pair (double);
+    label_pair query_for_pair (double);
     Star::list find_matches (const Star::list &, const Rotation &);
     Star::pair find_candidate_pair (const Star &, const Star &);
     Star::list check_assumptions (const Star::list &, const Star::pair &, const Star::pair &);
     
-    static std::vector<hr_pair> trial_query (Nibble &, const Star &, const Star &, double);
+    static std::vector<label_pair> trial_query (Nibble &, const Star &, const Star &, double);
     Rotation trial_attitude_determine (const Star::list &, const Star::pair &, const Star::pair &);
 };
 

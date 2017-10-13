@@ -41,7 +41,7 @@ class Mercator {
     Mercator::quad find_corners (double) const;
     
     static double distance_between (const Mercator &, const Mercator &);
-    int get_hr () const;
+    int get_label () const;
     
     virtual std::string str () const;
 
@@ -62,8 +62,8 @@ class Mercator {
     /// Width of the map the point is projected onto. Default width is 0.
     double w_n = 0;
     
-    /// Harvard Revised number for the point. Default is 0.
-    int hr = 0;
+    /// Catalog ID for the point. Default is 0.
+    int label = 0;
 
 #if !defined ENABLE_TESTING_ACCESS
   protected:

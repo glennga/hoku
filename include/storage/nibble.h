@@ -45,7 +45,7 @@
 /// nb.select_table("BSC5");
 ///
 /// // Search the 'BSC5' table star 3's right ascension and declination. Expecting 2 floats, limit results by 1 row.
-/// Nibble::tuple a = nb.search_table("HR = 3", "alpha, delta", 2, 1);
+/// Nibble::tuple a = nb.search_table("label = 3", "alpha, delta", 2, 1);
 ///
 /// // Print the results of the search. Search for a[0][0] (which is star 3's alpha) and a[0][1] (star 3's delta).
 /// printf("%f, %f", nb.table_results_at(a, 0, 0), nb.table_results_at(a, 0, 1));
@@ -61,11 +61,11 @@ class Nibble {
     /// Length of the BSC5 table. Necessary if loading all stars into RAM.
     static const int BSC5_TABLE_LENGTH = 5023;
     
-    /// Maximum HR value for BSC5 table. Used in sparse representations of BSC5.
-    static const int BSC5_MAX_HR = 9110;
+    /// Maximum ID value for BSC5 table. Used in sparse representations of BSC5.
+    static const int BSC5_MAX_ID = 9110;
     
-    /// Minimum HR value for BSC5 table. Used in sparse representations of BSC5.
-    static const int BSC5_MIN_HR = 3;
+    /// Minimum ID value for BSC5 table. Used in sparse representations of BSC5.
+    static const int BSC5_MIN_ID = 3;
     
     /// Open and unique database object. This must be public to work with SQLiteCpp library.
     std::unique_ptr<SQLite::Database> db;
@@ -77,6 +77,7 @@ class Nibble {
     void select_table (const std::string &, bool = false);
     
     int generate_bsc5_table ();
+    int generate_hippo2_table ();
     
     int insert_into_table (const std::string &, const tuple &);
     
@@ -108,7 +109,10 @@ class Nibble {
     const std::string PROJECT_LOCATION = std::string(std::getenv("HOKU_PROJECT_PATH"));
     
     // Path of the ASCII Yale Bright Star catalog.
-    const std::string CATALOG_LOCATION = PROJECT_LOCATION + "/data/bsc5.dat";
+    const std::string BSC5_CATALOG_LOCATION = PROJECT_LOCATION + "/data/bsc5.dat";
+    
+    // Path of the ASCII Hipparcos Star catalog.
+    const std::string HIPPO2_CATALOG_LOCATION = PROJECT_LOCATION + "/data/hip2.dat";
     
     // Path of the Nibble database file.
     const std::string DATABASE_LOCATION = PROJECT_LOCATION + "/data/nibble.db";
@@ -118,8 +122,8 @@ class Nibble {
 #endif
     void load_all_stars ();
     
-    static std::array<double, 6> components_from_line (const std::string &);
-    void parse_catalog (std::ifstream &);
+    static std::array<double, 6> bsc5_components_from_line (const std::string &);
+    static std::array<double, 6> hippo2_components_from_line (const std::string &);
 };
 
 #endif /* HOKU_NIBBLE_H */

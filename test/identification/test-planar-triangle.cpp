@@ -16,13 +16,13 @@ int TestPlanarTriangle::test_trio_query () {
     
     double a = Trio::planar_area(input.stars[0], input.stars[1], input.stars[2]);
     double b = Trio::planar_moment(input.stars[0], input.stars[1], input.stars[2]);
-    std::vector<Plane::hr_trio> c = p.query_for_trio(a, b);
+    std::vector<Plane::label_trio> c = p.query_for_trio(a, b);
     std::array<bool, 3> matched = {false, false, false};
     
     // Check that original input trio exists in search.
-    for (const Plane::hr_trio &t : c) {
+    for (const Plane::label_trio &t : c) {
         for (int i = 0; i < 3; i++) {
-            if (input.stars[i].get_hr() == t[0] || input.stars[i].get_hr() == t[1] || input.stars[i].get_hr() == t[2]) {
+            if (input.stars[i].get_label() == t[0] || input.stars[i].get_label() == t[1] || input.stars[i].get_label() == t[2]) {
                 matched[i] = true;
             }
         }
@@ -42,9 +42,9 @@ int TestPlanarTriangle::test_match_stars_fov () {
     Chomp ch;
     
     Plane a(Benchmark(10, Star::chance(), Rotation::chance()), par);
-    a.input[0] = Star::reset_hr(ch.query_bsc5(3));
-    a.input[1] = Star::reset_hr(ch.query_bsc5(4));
-    a.input[2] = Star::reset_hr(ch.query_bsc5(5));
+    a.input[0] = Star::reset_label(ch.query_bsc5(3));
+    a.input[1] = Star::reset_label(ch.query_bsc5(4));
+    a.input[2] = Star::reset_label(ch.query_bsc5(5));
     
     std::vector<Trio::stars> b = a.match_stars({0, 1, 2});
     return 0 * assert_true(std::all_of(b[0].begin(), b[0].end(), [] (const Star &s) -> bool {
@@ -141,7 +141,7 @@ int TestPlanarTriangle::test_rotating_match_correct_input () {
     
     for (unsigned int q = 0; q < h.size(); q++) {
         std::string test_name = "RotatingMatchInputStar" + std::to_string(q + 1);
-        assert_equal(h[q].get_hr(), input.stars[q].get_hr(), test_name);
+        assert_equal(h[q].get_label(), input.stars[q].get_label(), test_name);
     }
     
     return 0;
@@ -176,7 +176,7 @@ int TestPlanarTriangle::test_rotating_match_error_input () {
     
     for (unsigned int q = 0; q < h.size(); q++) {
         std::string test_name = "RotatingMatchInputWithStar" + std::to_string(q + 1);
-        assert_equal(h[q].get_hr(), input.stars[q].get_hr(), test_name);
+        assert_equal(h[q].get_label(), input.stars[q].get_label(), test_name);
     }
     
     return 0;
@@ -213,7 +213,7 @@ int TestPlanarTriangle::test_rotating_match_duplicate_input () {
     
     for (unsigned int q = 0; q < h.size(); q++) {
         std::string test_name = "RotatingMatchInputWithDuplicateStar" + std::to_string(q + 1);
-        assert_equal(h[q].get_hr(), input.stars[q].get_hr(), test_name);
+        assert_equal(h[q].get_label(), input.stars[q].get_label(), test_name);
     }
     
     return 0;
@@ -241,7 +241,7 @@ int TestPlanarTriangle::test_identify_clean_input () {
     if (!c.empty()) {
         for (int q = 0; q < (signed) (c.size() - 1); q++) {
             auto match = [&c, q](const Star &b) -> bool {
-                return b.get_hr() == c[q].get_hr();
+                return b.get_label() == c[q].get_label();
             };
             auto is_found = std::find_if(input.stars.begin(), input.stars.end(), match);
 
@@ -277,7 +277,7 @@ int TestPlanarTriangle::test_identify_error_input () {
         
         for (unsigned int q = 0; q < c.size() - 1; q++) {
             auto match = [&c, q] (const Star &b) -> bool {
-                return b.get_hr() == c[q].get_hr();
+                return b.get_label() == c[q].get_label();
             };
             auto is_found = std::find_if(input.stars.begin(), input.stars.end(), match);
             
@@ -311,7 +311,7 @@ int TestPlanarTriangle::test_tree_built_outside () {
     if (!c.empty()) {
         for (unsigned int q = 0; q < c.size() - 1; q++) {
             auto match = [&c, q](const Star &b) -> bool {
-                return b.get_hr() == c[q].get_hr();
+                return b.get_label() == c[q].get_label();
             };
             auto is_found = std::find_if(input.stars.begin(), input.stars.end(), match);
 

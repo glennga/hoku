@@ -13,7 +13,7 @@ int TestKdNode::test_star_constructor () {
     
     assert_equal(b.origin_index, -1, "OriginIndexDefault");
     assert_equal(b.w_n, 1000, "ProjectedWidth");
-    return 0 * assert_equal(b.hr, 0, "HRValueDefault");
+    return 0 * assert_equal(b.label, 0, "HRValueDefault");
 }
 
 /// Check that a list is sorted by the correct dimension.
@@ -119,7 +119,7 @@ int TestKdNode::test_nearby_stars () {
     assert_not_equal(q.nearby_stars(b, 10, 90, a).size(), 0, "NearbyStarsUsingKdTree");
     
     for (const Star &s : d) {
-        std::string test_name = "NearbyStarIsActuallyNearFocus" + std::to_string(s.get_hr());
+        std::string test_name = "NearbyStarIsActuallyNearFocus" + std::to_string(s.get_label());
         // Adding 2 degrees to fov... c and d are both defined by different definitions of "nearby".
         assert_less_than(Star::angle_between(s, b), 10 + 2, test_name);
     }

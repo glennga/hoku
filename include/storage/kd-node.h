@@ -56,7 +56,7 @@ class KdNode : private Mercator {
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
-    KdNode (unsigned int, unsigned int, int,  const bounds_set &, list &);
+    KdNode (unsigned int, unsigned int, int, const bounds_set &, list &);
     static void sort_by_dimension (unsigned int, unsigned int, int, list &);
     
     double width_given_angle (double);
@@ -82,7 +82,7 @@ class KdNode : private Mercator {
     /// Edge to right child node.
     child_edge right_child;
     
-    /// To generalize this tree to other data. This is a general identification number (as opposed to just HR values).
+    /// To generalize this tree to other data. This is a general ID number (as opposed to just catalog IDs).
     int origin_index = -1;
 };
 

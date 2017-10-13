@@ -14,13 +14,13 @@ int TestAngle::test_pair_query () {
     double a = Star::angle_between(input.stars[0], input.stars[1]);
     std::array<int, 2> b = Angle(input, Angle::Parameters()).query_for_pair(a);
     
-    assert_inside(b[0], {input.stars[0].get_hr(), input.stars[1].get_hr()}, "QueryPairInsideInputStar0",
-                  std::to_string(b[0]) + "," + std::to_string(input.stars[0].get_hr()) + ","
-                  + std::to_string(input.stars[1].get_hr()));
+    assert_inside(b[0], {input.stars[0].get_label(), input.stars[1].get_label()}, "QueryPairInsideInputStar0",
+                  std::to_string(b[0]) + "," + std::to_string(input.stars[0].get_label()) + ","
+                  + std::to_string(input.stars[1].get_label()));
     
-    assert_inside(b[1], {input.stars[0].get_hr(), input.stars[1].get_hr()}, "QueryPairInsideInputStar1",
-                  std::to_string(b[1]) + "," + std::to_string(input.stars[0].get_hr()) + ","
-                  + std::to_string(input.stars[1].get_hr()));
+    assert_inside(b[1], {input.stars[0].get_label(), input.stars[1].get_label()}, "QueryPairInsideInputStar1",
+                  std::to_string(b[1]) + "," + std::to_string(input.stars[0].get_label()) + ","
+                  + std::to_string(input.stars[1].get_label()));
     return 0;
 }
 
@@ -70,12 +70,12 @@ int TestAngle::test_candidate_results_query () {
     Angle b(input, Angle::Parameters());
     
     std::array<Star, 2> c = b.find_candidate_pair(input.stars[0], input.stars[1]);
-    assert_inside(c[0].get_hr(), {input.stars[0].get_hr(), input.stars[1].get_hr()}, "CandidateMatchingStar0",
-                  std::to_string(c[0].get_hr()) + "," + std::to_string(input.stars[0].get_hr()) + ","
-                  + std::to_string(input.stars[1].get_hr()));
-    assert_inside(c[1].get_hr(), {input.stars[0].get_hr(), input.stars[1].get_hr()}, "CandidateMatchingStar1",
-                  std::to_string(c[1].get_hr()) + "," + std::to_string(input.stars[0].get_hr()) + ","
-                  + std::to_string(input.stars[1].get_hr()));
+    assert_inside(c[0].get_label(), {input.stars[0].get_label(), input.stars[1].get_label()}, "CandidateMatchingStar0",
+                  std::to_string(c[0].get_label()) + "," + std::to_string(input.stars[0].get_label()) + ","
+                  + std::to_string(input.stars[1].get_label()));
+    assert_inside(c[1].get_label(), {input.stars[0].get_label(), input.stars[1].get_label()}, "CandidateMatchingStar1",
+                  std::to_string(c[1].get_label()) + "," + std::to_string(input.stars[0].get_label()) + ","
+                  + std::to_string(input.stars[1].get_label()));
     return 0;
 }
 
@@ -102,7 +102,7 @@ int TestAngle::test_rotating_match_correct_input () {
     
     for (unsigned int q = 0; q < h.size(); q++) {
         std::string test_name = "RotatingMatchInputStar" + std::to_string(q + 1);
-        assert_equal(h[q].get_hr(), input.stars[q].get_hr(), test_name);
+        assert_equal(h[q].get_label(), input.stars[q].get_label(), test_name);
     }
     
     return 0;
@@ -134,7 +134,7 @@ int TestAngle::test_rotating_match_error_input () {
     
     for (unsigned int q = 0; q < h.size(); q++) {
         std::string test_name = "RotatingMatchInputWithStar" + std::to_string(q + 1);
-        assert_equal(h[q].get_hr(), input.stars[q].get_hr(), test_name);
+        assert_equal(h[q].get_label(), input.stars[q].get_label(), test_name);
     }
     
     return 0;
@@ -168,7 +168,7 @@ int TestAngle::test_rotating_match_duplicate_input () {
     
     for (unsigned int q = 0; q < h.size(); q++) {
         std::string test_name = "RotatingMatchInputWithDuplicateStar" + std::to_string(q + 1);
-        assert_equal(h[q].get_hr(), input.stars[q].get_hr(), test_name);
+        assert_equal(h[q].get_label(), input.stars[q].get_label(), test_name);
     }
     
     return 0;
@@ -194,7 +194,7 @@ int TestAngle::test_identify_clean_input () {
     
     for (unsigned int q = 0; q < c.size() - 1; q++) {
         auto match = [&c, q] (const Star &b) -> bool {
-            return b.get_hr() == c[q].get_hr();
+            return b.get_label() == c[q].get_label();
         };
         auto is_found = std::find_if(input.stars.begin(), input.stars.end(), match);
         
@@ -226,7 +226,7 @@ int TestAngle::test_identify_error_input () {
     
     for (unsigned int q = 0; q < c.size() - 1; q++) {
         auto match = [&c, q] (const Star &b) -> bool {
-            return b.get_hr() == c[q].get_hr();
+            return b.get_label() == c[q].get_label();
         };
         auto is_found = std::find_if(input.stars.begin(), input.stars.end(), match);
         

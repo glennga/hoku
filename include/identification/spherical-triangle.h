@@ -20,7 +20,7 @@
 /// @example
 /// @code{.cpp}
 /// // Populate a table named "SPHERE20" in Nibble.db of all distinct trios of stars whose angle of separation is
-/// // less than 20 degrees of each. The entries stored are the HR numbers, the spherical area between each star, and
+/// // less than 20 degrees of each. The entries stored are the catalog IDs, the spherical area between each star, and
 /// // the spherical polar moment between each star.
 /// SphericalTriangle::generate_triangle_table(20, "SPHERE20");
 ///

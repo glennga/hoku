@@ -32,7 +32,7 @@ class BaseTriangle {
 #if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
   protected:
 #endif
-    /// The star set we are working with. The HR values are all set to 0 here.
+    /// The star set we are working with. The catalog IDs are all set to 0 here.
     Star::list input;
     
     /// All stars in 'input' are fov degrees from the focus.
@@ -47,11 +47,11 @@ class BaseTriangle {
     /// Quadtree root. Used for finding nearby stars.
     std::shared_ptr<QuadNode> q_root;
     
-    /// Alias for a list of Harvard Revised numbers (STL vector of doubles).
+    /// Alias for a list of catalog IDs (STL vector of doubles).
     using hr_list = std::vector<double>;
     
-    /// Alias for a trio of Harvard Revised numbers (3-element STL array of doubles).
-    using hr_trio = std::array<double, 3>;
+    /// Alias for a trio of catalog IDs (3-element STL array of doubles).
+    using label_trio = std::array<double, 3>;
     
     /// Alias for a trio of index numbers for the input star list (3-element STL array of doubles).
     using index_trio = std::array<double, 3>;
@@ -60,7 +60,7 @@ class BaseTriangle {
   protected:
 #endif
     Star::list identify_stars (unsigned int &);
-    std::vector<hr_trio> query_for_trio (double, double);
+    std::vector<label_trio> query_for_trio (double, double);
 
 #if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
   private:

@@ -111,7 +111,7 @@ int TestStar::test_chance_unit () {
 ///
 /// @return 0 when finished.
 int TestStar::test_chance_hr () {
-    return 0 * assert_equal(Star::chance(-100).hr, -100, "ChanceHRNumberEquality");
+    return 0 * assert_equal(Star::chance(-100).label, -100, "ChanceHRNumberEquality");
 }
 
 /// Check if the chance method returns a different star upon the next use.
@@ -199,7 +199,7 @@ int TestStar::test_angle_out_check () {
 ///
 /// @return 0 when finished.
 int TestStar::test_hr_clear () {
-    return 0 * assert_equal(Star::reset_hr(Star(0, 0, 0, 5)).hr, 0, "WithoutBSC0Check");
+    return 0 * assert_equal(Star::reset_label(Star(0, 0, 0, 5)).label, 0, "WithoutBSC0Check");
 }
 
 /// Check that the when calculating the angle between the same stars, NaN is not returned.
@@ -220,7 +220,7 @@ int TestStar::test_get_operators () {
     assert_equal(a[0], a.i, "StarGetI");
     assert_equal(a[1], a.j, "StarGetJ");
     assert_equal(a[2], a.k, "StarGetK");
-    return 0 * assert_equal(a.get_hr(), a.hr, "StarGetBSC");
+    return 0 * assert_equal(a.get_label(), a.label, "StarGetBSC");
 }
 
 /// Check that the correct result is returned with within_angle function.

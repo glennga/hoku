@@ -14,10 +14,10 @@
 /// @param a Area (planar or spherical) to search with.
 /// @param i_t Polar moment (planar or spherical) to search with.
 /// @return [-1][-1][-1] if no candidates found. Otherwise, all elements that met the criteria.
-std::vector<BaseTriangle::hr_trio> BaseTriangle::query_for_trio (const double a, const double i) {
+std::vector<BaseTriangle::label_trio> BaseTriangle::query_for_trio (const double a, const double i) {
     double epsilon_a = 3.0 * this->parameters.sigma_a;
     double epsilon_i = 3.0 * this->parameters.sigma_i;
-    std::vector<hr_trio> area_moment_match = {{-1, -1, -1}};
+    std::vector<label_trio> area_moment_match = {{-1, -1, -1}};
     hr_list area_match;
     
     // First, search for trio of stars matching area condition.
@@ -105,8 +105,8 @@ Star::list BaseTriangle::rotate_stars (const Star::list &candidates, const Rotat
         Star r_prime = Rotation::rotate(candidate, q);
         for (unsigned int i = 0; i < non_matched.size(); i++) {
             if (Star::angle_between(r_prime, non_matched[i]) < epsilon) {
-                // Add this match to the list by noting the candidate star's HR number.
-                matches.push_back(Star(non_matched[i][0], non_matched[i][1], non_matched[i][2], candidate.get_hr()));
+                // Add this match to the list by noting the candidate star's catalog ID number.
+                matches.push_back(Star(non_matched[i][0], non_matched[i][1], non_matched[i][2], candidate.get_label()));
                 
                 // Remove the current star from the searching set. End the search for this star.
                 non_matched.erase(non_matched.begin() + i);
@@ -123,7 +123,7 @@ Star::list BaseTriangle::rotate_stars (const Star::list &candidates, const Rotat
 ///
 /// @param candidates All stars to check against the body star set.
 /// @param r Inertial (frame R) trio of stars to check against the body trio.
-/// @param hr_b Body (frame B) HR numbers for the trio of stars to check against the inertial trio.
+/// @param hr_b Body (frame B) Catalog IDs for the trio of stars to check against the inertial trio.
 /// @return The largest set of matching stars across the body and inertial in all pairing configurations.
 Star::list BaseTriangle::check_assumptions (const Star::list &candidates, const Trio::stars &r,
                                             const index_trio &hr_b) {
@@ -159,7 +159,7 @@ Star::list BaseTriangle::check_assumptions (const Star::list &candidates, const 
 ///
 /// @param candidates All stars to check against the body star set.
 /// @param r Inertial (frame R) trio of stars to check against the body trio.
-/// @param hr_b Body (frame B) HR numbers for the trio of stars to check against the inertial trio.
+/// @param hr_b Body (frame B) Catalog IDs for the trio of stars to check against the inertial trio.
 /// @return The quaternion corresponding to largest set of matching stars across the body and inertial in all pairing
 /// configurations.
 Rotation BaseTriangle::trial_attitude_determine (const Star::list &candidates, const Trio::stars &r,
@@ -178,10 +178,9 @@ Rotation BaseTriangle::trial_attitude_determine (const Star::list &candidates, c
     }
     
     // Determine the rotation to take frame R to B. Only use r_1 and r_2 to get rotation.
-    int current_assumption = 0;
-    for (const Trio::stars &assumption : r_assumption_list) {
-        q[current_assumption] = Rotation::rotation_across_frames({b[0], b[1]}, {assumption[0], assumption[1]});
-        matches[current_assumption++] = rotate_stars(candidates, q[current_assumption]);
+    for (unsigned int i = 0; i < r_assumption_list.size(); i++) {
+        q[i] = Rotation::rotation_across_frames({b[0], b[1]}, {r_assumption_list[i][0], r_assumption_list[i][1]});
+        matches[i] = rotate_stars(candidates, q[i]);
     }
     
     // Return quaternion corresponding to the largest match (messy lambda and iterator stuff below D:).

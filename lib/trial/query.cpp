@@ -16,7 +16,7 @@
 /// @return List of n stars who are within fov degrees from each other.
 Star::list Query::generate_n_stars (Nibble &nb, const unsigned int n, std::random_device &seed) {
     std::mt19937_64 mersenne_twister(seed());
-    std::uniform_int_distribution<int> dist(Nibble::BSC5_MIN_HR, Nibble::BSC5_MAX_HR);
+    std::uniform_int_distribution<int> dist(Nibble::BSC5_MIN_ID, Nibble::BSC5_MAX_ID);
     Star::list s;
     s.reserve(n);
     
@@ -64,10 +64,10 @@ void Query::trial_angle (Nibble &nb, std::ofstream &log) {
                     beta.shift_light(2, SS_MIN + SS_STEP * ss_i), beta.error_models.clear();
                 }
                 
-                // Log our hr values, and get our result set.
+                // Log our label values, and get our result set.
                 nb.select_table(ANGLE_TABLE);
-                Angle::hr_pair b = {beta.stars[0].get_hr(), beta.stars[1].get_hr()};
-                std::vector<Angle::hr_pair> r = Angle::trial_query(nb, beta.stars[0], beta.stars[1],
+                Angle::label_pair b = {beta.stars[0].get_label(), beta.stars[1].get_label()};
+                std::vector<Angle::label_pair> r = Angle::trial_query(nb, beta.stars[0], beta.stars[1],
                                                                    QS_MIN * pow(QS_MULT, qs_i));
                 
                 // Log our results.
@@ -102,12 +102,12 @@ void Query::trial_plane (Nibble &nb, std::ofstream &log) {
                     beta.shift_light(3, SS_MIN + SS_STEP * ss_i), beta.error_models.clear();
                 }
                 
-                // Log our hr values, and get our result set.
-                Plane::hr_trio b = {(double) beta.stars[0].get_hr(), (double) beta.stars[1].get_hr(),
-                    (double) beta.stars[2].get_hr()};
+                // Log our label values, and get our result set.
+                Plane::label_trio b = {(double) beta.stars[0].get_label(), (double) beta.stars[1].get_label(),
+                    (double) beta.stars[2].get_label()};
                 double a_i = Trio::planar_area(beta.stars[0], beta.stars[1], beta.stars[2]);
                 double i_i = Trio::planar_moment(beta.stars[0], beta.stars[1], beta.stars[2]);
-                std::vector<Plane::hr_trio> r = Plane(beta, p, q_root).query_for_trio(a_i, i_i);
+                std::vector<Plane::label_trio> r = Plane(beta, p, q_root).query_for_trio(a_i, i_i);
                 
                 // Log our results.
                 log << "Plane," << QS_MIN * pow(QS_MULT, qs_i) << "," << ((ss_i == -1) ? 0 : SS_MIN + SS_STEP * ss_i)
@@ -141,13 +141,13 @@ void Query::trial_sphere (Nibble &nb, std::ofstream &log) {
                     beta.shift_light(3, SS_MIN + SS_STEP * ss_i), beta.error_models.clear();
                 }
                 
-                // Log our hr values, and get our result set.
-                Sphere::hr_trio b = {(double) beta.stars[0].get_hr(), (double) beta.stars[1].get_hr(),
-                    (double) beta.stars[2].get_hr()};
+                // Log our label values, and get our result set.
+                Sphere::label_trio b = {(double) beta.stars[0].get_label(), (double) beta.stars[1].get_label(),
+                    (double) beta.stars[2].get_label()};
                 double a_i = Trio::spherical_area(beta.stars[0], beta.stars[1], beta.stars[2]);
                 double i_i = Trio::spherical_moment(beta.stars[0], beta.stars[1], beta.stars[2],
                                                     Sphere::Parameters().moment_td_h);
-                std::vector<Sphere::hr_trio> r = Sphere(beta, p, q_root).query_for_trio(a_i, i_i);
+                std::vector<Sphere::label_trio> r = Sphere(beta, p, q_root).query_for_trio(a_i, i_i);
                 
                 // Log our results.
                 log << "Sphere," << QS_MIN * pow(QS_MULT, qs_i) << "," << ((ss_i == -1) ? 0 : SS_MIN + SS_STEP * ss_i)

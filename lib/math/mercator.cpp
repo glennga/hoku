@@ -19,9 +19,9 @@ Mercator::Mercator (const Star &s, const double w_n) {
 /// @param x X coordinate to store.
 /// @param y Y coordinate to store.
 /// @param w_n Width used to project the given X, Y coordinates.
-/// @param hr Harvard revised number to store.
+/// @param hr Catalog ID to store.
 Mercator::Mercator (const double x, const double y, const double w_n, const int hr) {
-    this->x = x, this->y = y, this->w_n = w_n, this->hr = hr;
+    this->x = x, this->y = y, this->w_n = w_n, this->label = hr;
 }
 
 /// Return a point with coordinates (0, 0) and w_n = 0.
@@ -56,7 +56,7 @@ std::string Mercator::str () const {
     
     // Need to use stream here to set precision.
     components << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed << "(" << x << ":" << y << ":"
-               << w_n << ":" << hr << ")";
+               << w_n << ":" << label << ")";
     return components.str();
 }
 
@@ -100,15 +100,15 @@ void Mercator::project_star (const Star &s, const double w_n) {
     this->x = ((phi + 180.0) * w_n / 360.0) - w_n / 2;
     this->y = ((0.5 * w_n) - (w_n * log(tan((M_PI / 4) + ((theta * M_PI / 180.0) / 2.0))) / (2 * M_PI))) - w_n / 2;
     
-    // Save projection width. Use star's HR.
-    this->w_n = w_n, this->hr = s.get_hr();
+    // Save projection width. Use star's catalog ID.
+    this->w_n = w_n, this->label = s.get_label();
 }
 
-/// Access method for the Harvard revised number.
+/// Access method for the catalog ID.
 ///
-/// @return Harvard revised number for this point.
-int Mercator::get_hr () const {
-    return hr;
+/// @return Catalog ID for this point.
+int Mercator::get_label () const {
+    return label;
 }
 
 /// Find the corners of a box using the current point as the center and 'a' as the width.

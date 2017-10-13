@@ -20,8 +20,8 @@
 /// @example
 /// @code{.cpp}
 /// // Populate a table named "PLAN20" in Nibble.db of all distinct trios of stars whose angle of separation is
-/// // less than 20 degrees of each. The entries stored are the HR numbers, the planar area between each star, and the
-/// // planar polar moment between each star.
+/// // less than 20 degrees of each. The entries stored are the BSC5 catalog IDs, the planar area between each star,
+/// // and the planar polar moment between each star.
 /// PlanarTriangle::generate_triangle_table(20, "PLAN20");
 ///
 /// /* The snippet above should only be run ONCE. The snippet below is run with every different test. */

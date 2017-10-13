@@ -9,9 +9,10 @@
 ///
 /// @return 0 when finished.
 int TestPyramid::test_reference_find () {
-    Pyramid::hr_list_pair ei = {Pyramid::hr_pair {3, 100}, Pyramid::hr_pair{3, 413}, Pyramid::hr_pair {7, 87}};
-    Pyramid::hr_list_pair ej = {Pyramid::hr_pair {3, 2}, Pyramid::hr_pair{3, 5}, Pyramid::hr_pair {13, 87}};
-    Pyramid::hr_list_pair ek = {Pyramid::hr_pair {90, 12345}, Pyramid::hr_pair{3, 7352}, Pyramid::hr_pair {9874, 512}};
+    Pyramid::label_list_pair ei = {Pyramid::label_pair {3, 100}, Pyramid::label_pair{3, 413}, Pyramid::label_pair {7, 87}};
+    Pyramid::label_list_pair ej = {Pyramid::label_pair {3, 2}, Pyramid::label_pair{3, 5}, Pyramid::label_pair {13, 87}};
+    Pyramid::label_list_pair ek = {Pyramid::label_pair {90, 12345}, Pyramid::label_pair{3, 7352},
+        Pyramid::label_pair {9874, 512}};
     Pyramid a(Benchmark(20, Star::chance(), Rotation::chance()), Pyramid::Parameters());
     Star b = a.find_reference(ei, ej, ek);
     
@@ -26,10 +27,10 @@ int TestPyramid::test_candidate_quad_find () {
     Pyramid a(input, Pyramid::Parameters());
     Pyramid::hr_quad b = a.find_candidate_quad({0, 1, 2, 3});
     
-    assert_equal(input.stars[0].get_hr(), b[0], "Star0MatchesInputHR");
-    assert_equal(input.stars[1].get_hr(), b[1], "Star1MatchesInputHR");
-    assert_equal(input.stars[2].get_hr(), b[2], "Star2MatchesInputHR");
-    return 0 * assert_equal(input.stars[3].get_hr(), b[3], "Star3MatchesInputHR");
+    assert_equal(input.stars[0].get_label(), b[0], "Star0MatchesInputHR");
+    assert_equal(input.stars[1].get_label(), b[1], "Star1MatchesInputHR");
+    assert_equal(input.stars[2].get_label(), b[2], "Star2MatchesInputHR");
+    return 0 * assert_equal(input.stars[3].get_label(), b[3], "Star3MatchesInputHR");
 }
 
 /// Check that correct result is returned with a clean input.
@@ -47,7 +48,7 @@ int TestPyramid::test_identify_clean_input () {
     
     for (unsigned int q = 0; q < c.size() - 1; q++) {
         auto match = [&c, q] (const Star &b) -> bool {
-            return b.get_hr() == c[q].get_hr();
+            return b.get_label() == c[q].get_label();
         };
         auto is_found = std::find_if(input.stars.begin(), input.stars.end(), match);
         
@@ -75,7 +76,7 @@ int TestPyramid::test_identify_error_input () {
     
     for (unsigned int q = 0; q < c.size() - 1; q++) {
         auto match = [&c, q] (const Star &b) -> bool {
-            return b.get_hr() == c[q].get_hr();
+            return b.get_label() == c[q].get_label();
         };
         auto is_found = std::find_if(input.stars.begin(), input.stars.end(), match);
         

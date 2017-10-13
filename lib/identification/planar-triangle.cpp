@@ -45,7 +45,7 @@ int Plane::generate_triangle_table (const double fov, const std::string &table_n
     Star::list all_stars = nb.all_bsc5_stars();
     for (unsigned int i = 0; i < all_stars.size() - 2; i++) {
         SQLite::Transaction transaction(*nb.db);
-        std::cout << "\r" << "Current *I* Star: " << all_stars[i].get_hr();
+        std::cout << "\r" << "Current *I* Star: " << all_stars[i].get_label();
         for (unsigned int j = i + 1; j < all_stars.size() - 1; j++) {
             for (unsigned int k = j + 1; k < all_stars.size(); k++) {
                 
@@ -54,8 +54,8 @@ int Plane::generate_triangle_table (const double fov, const std::string &table_n
                     double a_t = Trio::planar_area(all_stars[i], all_stars[j], all_stars[k]);
                     double i_t = Trio::planar_moment(all_stars[i], all_stars[j], all_stars[k]);
                     
-                    nb.insert_into_table("hr_a, hr_b, hr_c, a, i", {(double) all_stars[i].get_hr(),
-                        (double) all_stars[j].get_hr(), (double) all_stars[k].get_hr(), a_t, i_t});
+                    nb.insert_into_table("hr_a, hr_b, hr_c, a, i", {(double) all_stars[i].get_label(),
+                        (double) all_stars[j].get_label(), (double) all_stars[k].get_label(), a_t, i_t});
                 }
             }
         }
@@ -74,7 +74,7 @@ int Plane::generate_triangle_table (const double fov, const std::string &table_n
 /// @return 1D vector of a trio of Star(0, 0, 0) if stars are not within the fov or if no matches currently exist.
 /// Otherwise, vector of trios whose areas and moments are close.
 std::vector<Trio::stars> Plane::match_stars (const index_trio &i_b) {
-    std::vector<hr_trio> match_hr;
+    std::vector<label_trio> match_hr;
     std::vector<Trio::stars> matched_stars;
     Trio::stars b_stars{this->input[i_b[0]], this->input[i_b[1]], this->input[i_b[2]]};
     
@@ -90,9 +90,9 @@ std::vector<Trio::stars> Plane::match_stars (const index_trio &i_b) {
         return {{Star::zero(), Star::zero(), Star::zero()}};
     }
     
-    // Grab stars themselves from HR numbers found in matches. Return these matches.
+    // Grab stars themselves from catalog IDs found in matches. Return these matches.
     matched_stars.reserve(match_hr.size());
-    for (const hr_trio &t : match_hr) {
+    for (const label_trio &t : match_hr) {
         matched_stars.push_back({ch.query_bsc5((int) t[0]), ch.query_bsc5((int) t[1]), ch.query_bsc5((int) t[2])});
     }
     

@@ -31,7 +31,7 @@ int TestAstrometryNet::test_astro_h_insertion () {
     Nibble nb;
     
     // All of our asterism counts start at zero. Create the table.
-    a_count.resize(Nibble::BSC5_MAX_HR);
+    a_count.resize(Nibble::BSC5_MAX_ID);
     std::fill(a_count.begin(), a_count.end(), 0);
     nb.create_table("TestTable", "hr_0 INT, hr_1 INT, hr_2 INT, hr_3 INT, cx FLOAT, cy FLOAT, dx FLOAT, dy FLOAT");
     nb.select_table("TestTable");
@@ -88,7 +88,7 @@ int TestAstrometryNet::test_identify_clean_input () {
     
     for (unsigned int q = 0; q < c.size() - 1; q++) {
         auto match = [&c, q] (const Star &b) -> bool {
-            return b.get_hr() == c[q].get_hr();
+            return b.get_label() == c[q].get_label();
         };
         auto is_found = std::find_if(input.stars.begin(), input.stars.end(), match);
         
@@ -117,7 +117,7 @@ int TestAstrometryNet::test_identify_error_input () {
     
     for (unsigned int q = 0; q < c.size() - 1; q++) {
         auto match = [&c, q] (const Star &b) -> bool {
-            return b.get_hr() == c[q].get_hr();
+            return b.get_label() == c[q].get_label();
         };
         auto is_found = std::find_if(input.stars.begin(), input.stars.end(), match);
         
