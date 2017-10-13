@@ -69,6 +69,8 @@ class BaseTriangle {
     Trio::stars pivot (const index_trio &, const std::vector<Trio::stars> & = {});
     Star::list rotate_stars (const Star::list &, const Rotation &);
     Star::list check_assumptions (const Star::list &, const Trio::stars &, const index_trio &);
+    
+    Rotation trial_attitude_determine (const Star::list &, const Trio::stars &, const Trio::stars &);
 };
 
 #endif /* HOKU_BASE_TRIANGLE_H */

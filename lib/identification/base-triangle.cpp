@@ -63,7 +63,7 @@ Trio::stars BaseTriangle::pivot (const index_trio &i_b, const std::vector<Trio::
             return index_trio {i_t[0] + 1, 0, 0};
         }
     };
-
+    
     // Remove all trios from matches that don't exist in the past set.
     if (!past_set.empty() && !(std::equal(past_set[0].begin() + 1, past_set[0].end(), past_set[0].begin()))) {
         for (unsigned int i = 0; i < matches.size(); i++) {
@@ -82,7 +82,7 @@ Trio::stars BaseTriangle::pivot (const index_trio &i_b, const std::vector<Trio::
             }
         }
     }
-
+    
     switch (matches.size()) {
         case 1: return matches[0]; // Only 1 trio exists. This must be the matching trio.
         case 0: return pivot(increment_hr(i_b)); // No trios exists. Rerun with different trio.
@@ -153,6 +153,43 @@ Star::list BaseTriangle::check_assumptions (const Star::list &candidates, const 
     })[0];
 }
 
+/// Check all possible configuration of star trios and return quaternion corresponding to the  set with the largest
+/// number of reference to body matches. Unlike the method used in identification, this does not
+/// return the larger star list, but rather the resulting attitude.
+///
+/// @param candidates All stars to check against the body star set.
+/// @param r Inertial (frame R) trio of stars to check against the body trio.
+/// @param hr_b Body (frame B) HR numbers for the trio of stars to check against the inertial trio.
+/// @return The quaternion corresponding to largest set of matching stars across the body and inertial in all pairing
+/// configurations.
+Rotation BaseTriangle::trial_attitude_determine (const Star::list &candidates, const Trio::stars &r,
+                                                 const Trio::stars &b) {
+    index_trio current_order = {0, 1, 2};
+    std::array<Trio::stars, 6> r_assumption_list;
+    std::array<Star::list, 6> matches;
+    std::array<Rotation, 6> q;
+    
+    // Generate unique permutations using previously generated trio.
+    for (int i = 1; i < 6; i++) {
+        r_assumption_list = {r[current_order[0]], r[current_order[1]], r[current_order[2]]};
+        
+        // Given i, swap elements 2 and 3 if even, or 1 and 3 if odd.
+        current_order = (i % 2) == 0 ? index_trio {0, 2, 1} : index_trio {2, 1, 0};
+    }
+    
+    // Determine the rotation to take frame R to B. Only use r_1 and r_2 to get rotation.
+    int current_assumption = 0;
+    for (const Trio::stars &assumption : r_assumption_list) {
+        q[current_assumption] = Rotation::rotation_across_frames({b[0], b[1]}, {assumption[0], assumption[1]});
+        matches[current_assumption++] = rotate_stars(candidates, q[current_assumption]);
+    }
+    
+    // Return quaternion corresponding to the largest match (messy lambda and iterator stuff below D:).
+    return q[std::max_element(matches.begin(), matches.end(), [] (const Star::list &lhs, const Star::list &rhs) {
+        return lhs.size() < rhs.size();
+    }) - matches.begin()];
+}
+
 /// Match the stars found in the current benchmark to those in the Nibble database. The child class should wrap this
 /// function as 'identify' to mimic the other methods.
 ///
@@ -161,7 +198,7 @@ Star::list BaseTriangle::check_assumptions (const Star::list &candidates, const 
 Star::list BaseTriangle::identify_stars (unsigned int &z) {
     Star::list matches;
     z = 0;
-
+    
     // There exists |input| choose 3 possibilities.
     for (int i = 0; i < (signed) input.size() - 2; i++) {
         for (int j = i + 1; j < (signed) input.size() - 1; j++) {
@@ -174,10 +211,10 @@ Star::list BaseTriangle::identify_stars (unsigned int &z) {
                 // Find matches of current body trio to catalog.
                 candidate_trios = match_stars({(double) i, (double) j, (double) k});
                 if (candidate_trios[0][0] == Star::zero() && candidate_trios[0][0] == Star::zero()
-                        && candidate_trios[0][2] == Star::zero()) {
+                    && candidate_trios[0][2] == Star::zero()) {
                     break;
                 }
-
+                
                 // Pivot if necessary.
                 candidate_trio = pivot({(double) i, (double) j, (double) k}, candidate_trios);
                 if (candidate_trio[0] == Star::zero() && candidate_trio[1] == Star::zero()
@@ -198,7 +235,7 @@ Star::list BaseTriangle::identify_stars (unsigned int &z) {
             }
         }
     }
-
+    
     // Return an empty list if nothing is found.
     return {};
 }

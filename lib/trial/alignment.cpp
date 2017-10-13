@@ -9,293 +9,137 @@
 
 #include "trial/alignment.h"
 
-
-/// Reproduction of the BaseTriangle method check_assumption. Unlike BaseTriangle's method, this does not the largest
-/// star list, but rather the rotation associated with it. This also accepts a trio of stars in lieu of input indices.
+/// Generate a set of stars near a random focus (inertial set), rotate it with some random rotation Q to get our
+/// candidate set. The same stars share indices between the inertial and candidate set.
 ///
-/// @param candidates All stars to check against the body star set.
-/// @param r Inertial (frame R) trio of stars to check against the body trio.
-/// @param b Body (frame B) trio of stars to check against the inertial trio.
-/// @return The quaternion associated with the largest set of matching stars across the body and inertial in all
-/// pairing configurations.
-Star::list Alignment::check_assumptions (const Star::list &candidates, const Trio::stars &r, const Trio::stars &b) {
-    BaseTriangle::index_trio current_order = {0, 1, 2};
-    std::array<Trio::stars, 6> r_assumption_list;
-    std::array<Star::list, 6> matches;
-    std::array<Rotation, 6> q;
-    
-    // Generate unique permutations using previously generated trio.
-    for (int i = 1; i < 6; i++) {
-        r_assumption_list = {r[current_order[0]], r[current_order[1]], r[current_order[2]]};
-        
-        // Given i, swap elements 2 and 3 if even, or 1 and 3 if odd.
-        current_order = (i % 2) == 0 ? index_trio {0, 2, 1} : index_trio {2, 1, 0};
-    }
-    
-    // Determine the rotation to take frame R to B. Only use r_1 and r_2 to get rotation.
-    int current_assumption = 0;
-    for (const Trio::stars &assumption : r_assumption_list) {
-        q[current_assumption] = Rotation::rotation_across_frames({b[0], b[1]}, {assumption[0], assumption[1]});
-        matches[current_assumption++] = rotate_stars(candidates, q);
-    }
-    
-    // Return the larger of the six matches.
-    return std::max_element(matches.begin(), matches.end(), [] (const Star::list &lhs, const Star::list &rhs) {
-        return lhs.size() < rhs.size();
-    })[0];
-}
-
-/// Generate a random benchmark, and return it's list of stars and the rotation Q_RB (R frame to B frame).
-///
+/// @param Open Nibble connection.
 /// @param candidates Reference to the location to store the candidate list.
-/// @param r Reference to the location to store the rotation.
-void Alignment::present_candidates (Star::list &candidates, Rotation &r) {
-    r = Rotation::chance();
-    double fov;
+/// @param inertial Reference to the location to store the inertial set of stars.
+/// @param q Reference to the location to store the rotation.
+/// @param shift_sigma Sigma for gaussian noise to apply. Defaults to 0.
+/// @param shift_n Number of stars to shift. Shifts from the front of the list.
+void Alignment::present_candidates (Nibble &nb, Star::list &candidates, Star::list &inertial, Rotation &q,
+                                    const double shift_sigma, const int shift_n) {
+    // Need to keep random device static to avoid starting with same seed.
+    static std::random_device seed;
+    static std::mt19937_64 mersenne_twister(seed());
+    std::normal_distribution<double> dist(0, shift_sigma);
     
-    Benchmark b(QUERY_FOV, Star::chance(), r);
-    b.present_image(candidates, fov);
+    candidates.clear();
+    q = Rotation::chance();
+    
+    candidates.reserve((unsigned int) WORKING_FOV * 4);
+    for (const Star &s : nb.nearby_stars(Star::chance(), WORKING_FOV / 2.0, (unsigned int) WORKING_FOV * 4)) {
+        // We rotate the candidates (to get our body) and leave the inertial untouched.
+        inertial.emplace_back(s);
+        candidates.emplace_back(Rotation::rotate(s, q));
+    }
+    
+    // If desired, we distribute noise amongst our candidates.
+    if (shift_sigma != 0) {
+        
+        // Starting from the front of our list, apply noise. **Assumes that list generated is bigger than shift_n.
+        for (int i = 0; i < shift_n; i++) {
+            candidates[i] = Star(candidates[i][0] + dist(mersenne_twister), candidates[i][1] + dist(mersenne_twister),
+                                 candidates[i][2] + dist(mersenne_twister), candidates[i].get_hr(), true);
+        }
+    }
 }
 
 /// Record the results of Angle's attitude determination process. No error is introduced here.
 ///
 /// @param nb Open Nibble connection.
 /// @param log Open stream to log file.
-void Alignment::angle_clean(Nibble &nb, std::ofstream &log) {
-    for (int i = 0; i < ALIGNMENT_SAMPLES; i++) {
-        Star::list candidates;
-        Rotation r;
-        present_candidates(candidates, r);
+void Alignment::trial_angle (Nibble &nb, std::ofstream &log) {
+    Angle a(Benchmark(WORKING_FOV, Star::chance(), Rotation::chance()), Angle::Parameters());
+    Star::list inertial;
+    Rotation q, qe_optimal, qe_not_optimal;
     
-        Star::list Alignment::check_assumptions (const Star::list &candidates, const Trio::stars &r, const Trio::stars &b
-    }
-}
-
-/// Record the results of querying Nibble for nearby stars as the Angle method does. No shifting is performed here.
-///
-/// @param nb Open Nibble connection.
-/// @param log Open stream to log file.
-void TrialQuery::angle_clean (Nibble &nb, std::ofstream &log) {
-    for (int qs_i = 0; qs_i < QS_ITER; qs_i++) {
-        for (int i = 0; i < QUERY_SAMPLES; i++) {
-            Star::list s = generate_n_stars(nb, 2, QUERY_FOV);
-            
-            // Log our hr values, and get our result set.
-            Angle::hr_pair b = {s[0].get_hr(), s[1].get_hr()};
-            std::vector<Angle::hr_pair> r = angle_query(nb, s[1], s[2], QS_MIN + qs_i * QS_STEP);
-            
-            // Check for star existence in results returned.
-            bool s_existence = false;
-            for (Angle::hr_pair &r_bar : r) {
-                std::sort(r_bar.begin(), r_bar.end()), std::sort(b.begin(), b.end());
-                if (r_bar[0] == b[0] && r_bar[1] == b[1]) {
-                    s_existence = true;
-                    break;
-                }
-            }
-            
-            // Log our results. Note that our shift sigma is 0.
-            log << "Angle," << QS_MIN + qs_i * QS_STEP << ",0," << r.size() << "," << s_existence << '\n';
-        }
-    }
-}
-
-/// Record the results of querying Nibble for nearby stars as the Angle method does. Shifting is performed here.
-///
-/// @param nb Open Nibble connection.
-/// @param log Open stream to log file.
-void TrialQuery::angle_shift (Nibble &nb, std::ofstream &log) {
-    for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
-        for (int qs_i = 0; qs_i < QS_ITER; qs_i++) {
-            for (int i = 0; i < QUERY_SAMPLES; i++) {
-                Star::list s = generate_n_stars(nb, 2, QUERY_FOV);
+    // First run is clean, without shifts. Following are shift trials.
+    for (int ss_i = -1; ss_i < SS_ITER; ss_i++) {
+        for (int ms_i = 0; ms_i < MS_ITER; ms_i++) {
+            for (int i = 0; i < ALIGNMENT_SAMPLES; i++) {
+                present_candidates(nb, a.input, inertial, q, (ss_i == -1) ? 0 : SS_MIN + ss_i * SS_STEP,
+                                   (ss_i == -1) ? 0 : 2);
                 
-                // Shift stars by shift_sigma.
-                Benchmark beta(s, s[0], QUERY_FOV);
-                beta.shift_light(2, SS_MIN + ss_i * SS_STEP);
-                s[0] = beta.stars[0], s[1] = beta.stars[1];
+                qe_optimal = a.trial_attitude_determine(a.input, {inertial[0], inertial[1]}, {a.input[0], a.input[1]});
+                qe_not_optimal = a.trial_attitude_determine(a.input, {inertial[1], inertial[0]},
+                                                            {a.input[0], a.input[1]});
                 
-                // Log our hr values, and get our result set.
-                Angle::hr_pair b = {s[0].get_hr(), s[1].get_hr()};
-                std::vector<Angle::hr_pair> r = angle_query(nb, s[0], s[1], QS_MIN + qs_i * QS_STEP);
-                
-                // Check for star existence in results returned.
-                bool s_existence = false;
-                for (Angle::hr_pair &r_bar : r) {
-                    std::sort(r_bar.begin(), r_bar.end()), std::sort(b.begin(), b.end());
-                    if (r_bar[0] == b[0] && r_bar[1] == b[1]) {
-                        s_existence = true;
-                        break;
-                    }
-                }
-                
-                // Log our results. Note that our shift sigma is 0.
-                log << "Angle," << QS_MIN + qs_i * QS_STEP << ",0," << r.size() << "," << s_existence << '\n';
+                // Log our results.
+                log << "Angle," << MS_MIN + ms_i * MS_STEP << "," << ((ss_i == -1) ? 0 : SS_MIN + ss_i * SS_STEP) << ","
+                    << abs(Rotation::rotational_difference(q, qe_optimal, a.input[2])) << ","
+                    << abs(Rotation::rotational_difference(q, qe_not_optimal, a.input[2])) << '\n';
             }
         }
     }
 }
 
-/// Record the results of querying Nibble for nearby stars as the Plane method does. No shifting is performed here.
+/// Record the results of Plane's attitude determination process. No error is introduced here.
 ///
 /// @param nb Open Nibble connection.
 /// @param log Open stream to log file.
-void TrialQuery::plane_clean (Nibble &nb, std::ofstream &log) {
-    const int BQT_MAX = DCPLA::BQT_MIN + DCPLA::BQT_STEP * DCPLA::BQT_ITER;
-    std::shared_ptr<QuadNode> default_root = std::make_shared<QuadNode>(QuadNode::load_tree(BQT_MAX));
+void Alignment::trial_plane (Nibble &nb, std::ofstream &log) {
+    Plane p(Benchmark(WORKING_FOV, Star::chance(), Rotation::chance()), Plane::Parameters());
+    Rotation q, qe_optimal, qe_not_optimal;
+    Star::list inertial;
+    Plane::Parameters par;
+    par.table_name = PLANE_TABLE;
     
-    for (int qs_i = 0; qs_i < QS_ITER; qs_i++) {
-        for (int i = 0; i < QUERY_SAMPLES; i++) {
-            Benchmark beta(QUERY_FOV, Star::chance(), Rotation::chance());
-            Star::list s = generate_n_stars(nb, 3, QUERY_FOV);
-            
-            // Vary our area and moment sigma.
-            Plane::Parameters p;
-            p.sigma_a = QS_MIN + qs_i * QS_STEP, p.sigma_i = QS_MIN + qs_i * QS_STEP;
-            
-            // Log our hr values, and get our result set.
-            Plane::hr_trio b = {(double) s[0].get_hr(), (double) s[1].get_hr(), (double) s[2].get_hr()};
-            double a_i = Trio::planar_area(s[0], s[1], s[2]), i_i = Trio::planar_moment(s[0], s[1], s[2]);
-            std::vector<Plane::hr_trio> r = Plane(beta, p, default_root).query_for_trio(a_i, i_i);
-            
-            // Check for star existence in results returned.
-            bool s_existence = false;
-            for (Plane::hr_trio &r_bar : r) {
-                std::sort(r_bar.begin(), r_bar.end()), std::sort(b.begin(), b.end());
-                if (r_bar[0] == b[0] && r_bar[1] == b[1]) {
-                    s_existence = true;
-                    break;
-                }
-            }
-            
-            // Log our results. Note that our shift sigma is 0.
-            log << "Plane," << QS_MIN + qs_i * QS_STEP << ",0," << r.size() << "," << s_existence << '\n';
-        }
-    }
-}
-
-/// Record the results of querying Nibble for nearby stars as the Plane method does. Shifting is performed here.
-///
-/// @param nb Open Nibble connection.
-/// @param log Open stream to log file.
-void TrialQuery::plane_shift (Nibble &nb, std::ofstream &log) {
-    const int BQT_MAX = DCPLA::BQT_MIN + DCPLA::BQT_STEP * DCPLA::BQT_ITER;
-    std::shared_ptr<QuadNode> default_root = std::make_shared<QuadNode>(QuadNode::load_tree(BQT_MAX));
+    // We load our quad-tree outside. Avoid rebuilding.
+    std::shared_ptr<QuadNode> q_root = std::make_shared<QuadNode>(QuadNode::load_tree(Plane::Parameters().quadtree_w));
     
-    for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
-        for (int qs_i = 0; qs_i < QS_ITER; qs_i++) {
-            for (int i = 0; i < QUERY_SAMPLES; i++) {
-                Star::list s = generate_n_stars(nb, 3, QUERY_FOV);
+    // First run is clean, without shifts. Following are shift trials.
+    for (int ss_i = -1; ss_i < SS_ITER; ss_i++) {
+        for (int ms_i = 0; ms_i < MS_ITER; ms_i++) {
+            for (int i = 0; i < ALIGNMENT_SAMPLES; i++) {
+                present_candidates(nb, p.input, inertial, q, (ss_i == -1) ? 0 : SS_MIN + ss_i * SS_STEP,
+                                   (ss_i == -1) ? 0 : 3);
                 
-                // Vary our area and moment sigma.
-                Plane::Parameters p;
-                p.sigma_a = QS_MIN + qs_i * QS_STEP, p.sigma_i = QS_MIN + qs_i * QS_STEP;
+                qe_optimal = p.trial_attitude_determine(p.input, {inertial[0], inertial[1], inertial[2]},
+                                                        {p.input[0], p.input[1], p.input[2]});
+                qe_not_optimal = p.trial_attitude_determine(p.input, {inertial[2], inertial[0], inertial[1]},
+                                                            {p.input[0], p.input[1], p.input[2]});
                 
-                // Shift stars by shift_sigma.
-                Benchmark beta(s, s[0], QUERY_FOV);
-                beta.shift_light(3, SS_MIN + ss_i * SS_STEP);
-                s[0] = beta.stars[0], s[1] = beta.stars[1], s[2] = beta.stars[2];
-                
-                // Log our hr values, and get our result set.
-                Plane::hr_trio b = {(double) s[0].get_hr(), (double) s[1].get_hr(), (double) s[2].get_hr()};
-                double a_i = Trio::planar_area(s[0], s[1], s[2]), i_i = Trio::planar_moment(s[0], s[1], s[2]);
-                std::vector<Plane::hr_trio> r = Plane(beta, p, default_root).query_for_trio(a_i, i_i);
-                
-                // Check for star existence in results returned.
-                bool s_existence = false;
-                for (Plane::hr_trio &r_bar : r) {
-                    std::sort(r_bar.begin(), r_bar.end()), std::sort(b.begin(), b.end());
-                    if (r_bar[0] == b[0] && r_bar[1] == b[1]) {
-                        s_existence = true;
-                        break;
-                    }
-                }
-                
-                // Log our results. Note that our shift sigma is 0.
-                log << "Plane," << QS_MIN + qs_i * QS_STEP << ",0," << r.size() << "," << s_existence << '\n';
+                // Log our results.
+                log << "Plane," << MS_MIN + ms_i * MS_STEP << "," << ((ss_i == -1) ? 0 : SS_MIN + ss_i * SS_STEP) << ","
+                    << abs(Rotation::rotational_difference(q, qe_optimal, p.input[3])) << ","
+                    << abs(Rotation::rotational_difference(q, qe_not_optimal, p.input[3])) << '\n';
             }
         }
     }
 }
 
-/// Record the results of querying Nibble for nearby stars as the Sphere method does. No shifting is performed here.
+/// Record the results of Sphere's attitude determination process. No error is introduced here.
 ///
 /// @param nb Open Nibble connection.
 /// @param log Open stream to log file.
-void TrialQuery::sphere_clean (Nibble &nb, std::ofstream &log) {
-    const int BQT_MAX = DCSPH::BQT_MIN + DCSPH::BQT_STEP * DCSPH::BQT_ITER;
-    std::shared_ptr<QuadNode> default_root = std::make_shared<QuadNode>(QuadNode::load_tree(BQT_MAX));
+void Alignment::trial_sphere (Nibble &nb, std::ofstream &log) {
+    Sphere s(Benchmark(WORKING_FOV, Star::chance(), Rotation::chance()), Sphere::Parameters());
+    Rotation q, qe_optimal, qe_not_optimal;
+    Star::list inertial;
+    Sphere::Parameters par;
+    par.table_name = SPHERE_TABLE;
     
-    for (int qs_i = 0; qs_i < QS_ITER; qs_i++) {
-        for (int i = 0; i < QUERY_SAMPLES; i++) {
-            Benchmark beta(QUERY_FOV, Star::chance(), Rotation::chance());
-            Star::list s = generate_n_stars(nb, 3, QUERY_FOV);
-            
-            // Vary our area and moment sigma.
-            Sphere::Parameters p;
-            p.sigma_a = QS_MIN + qs_i * QS_STEP, p.sigma_i = QS_MIN + qs_i * QS_STEP;
-            
-            // Log our hr values, and get our result set.
-            Sphere::hr_trio b = {(double) s[0].get_hr(), (double) s[1].get_hr(), (double) s[2].get_hr()};
-            double a_i = Trio::spherical_area(s[0], s[1], s[2]);
-            double i_i = Trio::spherical_moment(s[0], s[1], s[2], DCSPH::TD_H_FOR_TABLE);
-            std::vector<Sphere::hr_trio> r = Sphere(beta, p, default_root).query_for_trio(a_i, i_i);
-            
-            // Check for star existence in results returned.
-            bool s_existence = false;
-            for (Sphere::hr_trio &r_bar : r) {
-                std::sort(r_bar.begin(), r_bar.end()), std::sort(b.begin(), b.end());
-                if (r_bar[0] == b[0] && r_bar[1] == b[1]) {
-                    s_existence = true;
-                    break;
-                }
-            }
-            
-            // Log our results. Note that our shift sigma is 0.
-            log << "Sphere," << QS_MIN + qs_i * QS_STEP << ",0," << r.size() << "," << s_existence << '\n';
-        }
-    }
-}
-
-/// Record the results of querying Nibble for nearby stars as the Sphere method does. Shifting is performed here.
-///
-/// @param nb Open Nibble connection.
-/// @param log Open stream to log file.
-void TrialQuery::sphere_shift (Nibble &nb, std::ofstream &log) {
-    const int BQT_MAX = DCSPH::BQT_MIN + DCSPH::BQT_STEP * DCSPH::BQT_ITER;
-    std::shared_ptr<QuadNode> default_root = std::make_shared<QuadNode>(QuadNode::load_tree(BQT_MAX));
+    // We load our quad-tree outside. Avoid rebuilding.
+    std::shared_ptr<QuadNode> q_root = std::make_shared<QuadNode>(QuadNode::load_tree(Sphere::Parameters().quadtree_w));
     
-    for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
-        for (int qs_i = 0; qs_i < QS_ITER; qs_i++) {
-            for (int i = 0; i < QUERY_SAMPLES; i++) {
-                Star::list s = generate_n_stars(nb, 3, QUERY_FOV);
+    // First run is clean, without shifts. Following are shift trials.
+    for (int ss_i = -1; ss_i < SS_ITER; ss_i++) {
+        for (int ms_i = 0; ms_i < MS_ITER; ms_i++) {
+            for (int i = 0; i < ALIGNMENT_SAMPLES; i++) {
+                present_candidates(nb, s.input, inertial, q, (ss_i == -1) ? 0 : SS_MIN + ss_i * SS_STEP,
+                                   (ss_i == -1) ? 0 : 3);
                 
-                // Vary our area and moment sigma.
-                Sphere::Parameters p;
-                p.sigma_a = QS_MIN + qs_i * QS_STEP, p.sigma_i = QS_MIN + qs_i * QS_STEP;
+                qe_optimal = s.trial_attitude_determine(s.input, {inertial[0], inertial[1], inertial[2]},
+                                                        {s.input[0], s.input[1], s.input[2]});
+                qe_not_optimal = s.trial_attitude_determine(s.input, {inertial[2], inertial[0], inertial[1]},
+                                                            {s.input[0], s.input[1], s.input[2]});
                 
-                // Shift stars by shift_sigma.
-                Benchmark beta(s, s[0], QUERY_FOV);
-                beta.shift_light(3, SS_MIN + ss_i * SS_STEP);
-                s[0] = beta.stars[0], s[1] = beta.stars[1], s[2] = beta.stars[2];
-                
-                // Log our hr values, and get our result set.
-                Sphere::hr_trio b = {(double) s[0].get_hr(), (double) s[1].get_hr(), (double) s[2].get_hr()};
-                double a_i = Trio::spherical_area(s[0], s[1], s[2]), i_i = Trio::spherical_moment(s[0], s[1], s[2]);
-                std::vector<Sphere::hr_trio> r = Sphere(beta, p, default_root).query_for_trio(a_i, i_i);
-                
-                // Check for star existence in results returned.
-                bool s_existence = false;
-                for (Sphere::hr_trio &r_bar : r) {
-                    std::sort(r_bar.begin(), r_bar.end()), std::sort(b.begin(), b.end());
-                    if (r_bar[0] == b[0] && r_bar[1] == b[1]) {
-                        s_existence = true;
-                        break;
-                    }
-                }
-                
-                // Log our results. Note that our shift sigma is 0.
-                log << "Sphere," << QS_MIN + qs_i * QS_STEP << ",0," << r.size() << "," << s_existence << '\n';
+                // Log our results.
+                log << "Sphere," << MS_MIN + ms_i * MS_STEP << "," << ((ss_i == -1) ? 0 : SS_MIN + ss_i * SS_STEP)
+                    << "," << abs(Rotation::rotational_difference(q, qe_optimal, s.input[3])) << ","
+                    << abs(Rotation::rotational_difference(q, qe_not_optimal, s.input[3])) << '\n';
             }
         }
     }

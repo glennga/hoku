@@ -56,10 +56,10 @@ trial_function select_trial (const int identification_choice, const int trial_ch
         case 2: return &Query::trial_sphere;
         case 3: return &Query::trial_plane;
             //        case 4: return &Query::trial_pyramid;
-            //        case 5: return &Alignment::trial_angle;
+        case 5: return &Alignment::trial_angle;
             //        case 6: return &Alignment::trial_astro;
-            //        case 7: return &Alignment::trial_sphere;
-            //        case 8: return &Alignment::trial_plane;
+        case 7: return &Alignment::trial_sphere;
+        case 8: return &Alignment::trial_plane;
             //        case 9: return &Alignment::trial_pyramid;
             //        case 10: return &Reduction::trial_angle;
             //        case 11: return &Reduction::trial_astro;

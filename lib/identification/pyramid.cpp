@@ -190,7 +190,7 @@ Star::list Pyramid::identify (const Benchmark &input, const Parameters &paramete
                 z++;
                 
                 // Given four stars in our catalog, find their HR values in the catalog.
-                hr_quad r_quad = p.find_candidate_quad({i, j, k, e});
+                hr_quad r_quad = p.find_candidate_quad({(signed) i, j, k, e});
                 if (std::find(r_quad.begin(), r_quad.end(), 0) != r_quad.end()) {
                     break;
                 }

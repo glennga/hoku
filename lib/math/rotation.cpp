@@ -89,18 +89,30 @@ Rotation Rotation::rotation_across_frames (const Star::pair &r, const Star::pair
 /// @param q Quaternion to use with star S.
 /// @return The star S rotated by q.
 Star Rotation::rotate (const Star &s, const Rotation &q) {
-    Star a_1n(
-        pow(q.w, 2) + pow(q.i, 2) - pow(q.j, 2) - pow(q.k, 2),
-        2.0 * (q.i * q.j - q.w * q.k), 2.0 * (q.i * q.k + q.w * q.j));
-    Star a_2n(
-        2.0 * (q.j * q.i + q.w * q.k),
-        pow(q.w, 2) - pow(q.i, 2) + pow(q.j, 2) - pow(q.k, 2), 2.0 * (q.j * q.k - q.w * q.i));
-    Star a_3n(
-        2.0 * (q.k * q.i - q.w * q.j),
-        2.0 * (q.k * q.j + q.w * q.i), pow(q.w, 2) - pow(q.i, 2) - pow(q.j, 2) + pow(q.k, 2));
+    Star a_1n(pow(q.w, 2) + pow(q.i, 2) - pow(q.j, 2) - pow(q.k, 2), 2.0 * (q.i * q.j - q.w * q.k),
+              2.0 * (q.i * q.k + q.w * q.j));
+    Star a_2n(2.0 * (q.j * q.i + q.w * q.k), pow(q.w, 2) - pow(q.i, 2) + pow(q.j, 2) - pow(q.k, 2),
+              2.0 * (q.j * q.k - q.w * q.i));
+    Star a_3n(2.0 * (q.k * q.i - q.w * q.j), 2.0 * (q.k * q.j + q.w * q.i),
+              pow(q.w, 2) - pow(q.i, 2) - pow(q.j, 2) + pow(q.k, 2));
     
     // Form the rotation matrix. Dot with given star.
     return {Star::dot(s, a_1n), Star::dot(s, a_2n), Star::dot(s, a_3n), s.get_hr()};
+}
+
+/// Get a scalar quantity for how 'close' two quaternions are by rotating the vector S and comparing the
+/// results (norms of the two result's difference).
+///
+/// @param q_1 Rotation one to compare against.
+/// @param q_2 Rotation two to compare against.
+/// @param s Star to rotate with.
+/// @return L2 norm of the difference between the resulting rotated stars.
+double Rotation::rotational_difference (const Rotation &q_1, const Rotation &q_2, const Star &s) {
+    Star s_q1_star = rotate(s, q_1), s_q2_star = rotate(s, q_2);
+    double q1q2_norm = (s_q1_star - s_q2_star).norm(), q2q1_norm = (s_q2_star - s_q1_star).norm();
+    
+    // We take the configuration with the smallest norm.
+    return fabs(q1q2_norm) > fabs(q2q1_norm) ? fabs(q2q1_norm) : fabs(q1q2_norm);
 }
 
 /// Return the identity quaternion, as a Rotation object.
