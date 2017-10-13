@@ -24,7 +24,7 @@
 namespace Query {
     /// Attribute header that corresponds to the log file for all query trials.
     const char *const ATTRIBUTE = "IdentificationMethod,QuerySigma,ShiftSigma,ResultSetSize,SExistence\n";
-
+    
     const double WORKING_FOV = 20; ///< Field of view that all our test stars must be within.
     const int QUERY_SAMPLES = 1; ///< Number of samples to retrieve for each individual trial.
     
@@ -49,7 +49,7 @@ namespace Query {
     /// @param b Reference to the body frame set. An in-sort place will occur.
     /// @return True if 'b' exists somewhere in r.
     template <typename T>
-    bool set_existence(std::vector<T> &r_set, T &b) {
+    bool set_existence (std::vector<T> &r_set, T &b) {
         for (T &r_bar : r_set) {
             std::sort(r_bar.begin(), r_bar.end()), std::sort(b.begin(), b.end());
             if (std::equal(r_bar.begin(), r_bar.end(), b.begin())) {
@@ -58,21 +58,6 @@ namespace Query {
         }
         
         return false;
-    }
-    
-    /// Determine if the first value is equal to the second. Push this assertion to our test stack. If desired, print
-    /// the results.
-    ///
-    /// @tparam T Type of parameters 'a' and 'b' must be (they must be of the same type).
-    /// @param a Datum to compare with 'b'. 'a' must equal 'b'.
-    /// @param b Datum to compare with 'a'. 'a' must equal 'b'.
-    /// @param test_name Name of the current test being performed.
-    /// @param log_data Comma separated data to log onto a file.
-    /// @return True if 'a == b' holds. False otherwise.
-    template <typename T>
-    bool assert_equal (const T &a, const T &b, const std::string &test_name, const std::string &log_data) {
-        log_current(a == b, test_name + ",GenericEqualAssertion", log_data);
-        return push_results(a == b, test_name, "A == B.", "\'A == B\' is not true.");
     }
     
     void trial_angle (Nibble &, std::ofstream &);
