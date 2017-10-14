@@ -11,8 +11,9 @@
 /// @param j The j'th component from the observer to the star.
 /// @param k The k'th component from the observer to the star.
 /// @param hr The catalog ID of the star, found in the Yale Bright Star Catalog.
+/// @param m Apparent magnitude of the given star.
 /// @param set_unit If true, normalize the star. Otherwise, directly set the i, j, and k.
-Star::Star (const double i, const double j, const double k, const int hr, const bool set_unit) {
+Star::Star (const double i, const double j, const double k, const int hr, const double m, const bool set_unit) {
     if (!set_unit) {
         this->i = i, this->j = j, this->k = k;
     }
@@ -22,22 +23,23 @@ Star::Star (const double i, const double j, const double k, const int hr, const 
     }
     
     this->label = hr;
+    this->m = m;
 }
 
-/// Overloaded constructor. Sets the i, j, k, and catalog ID of a star to 0.
+/// Overloaded constructor. Sets the i, j, k, magnitude, and catalog ID of a star to 0.
 Star::Star () {
-    this->i = this->j = this->k = this->label = 0;
+    this->i = this->j = this->k = this->m = this->label = 0;
 }
 
 /// Return all components in the current star as a string object.
 ///
-/// @return String of components in form of (i:j:k:hr).
+/// @return String of components in form of (i:j:k:m:hr).
 std::string Star::str () const {
     std::stringstream components;
     
     // Need to use stream here to set precision.
     components << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed << "(" << i << ":" << j
-               << ":" << k << ":" << label << ")";
+               << ":" << k << ":" << label << ":" << m << ")";
     return components.str();
 }
 
@@ -51,9 +53,16 @@ double Star::operator[] (const unsigned int n) const {
 
 /// Accessor method for catalog ID of the star.
 ///
-/// @return catalog ID of the current star.
+/// @return Catalog ID of the current star.
 int Star::get_label () const {
     return this->label;
+}
+
+/// Accessor method for the apparent magnitude of the star.
+///
+/// @return Apparent magnitude of the current star.
+double Star::get_magnitude () const {
+    return this->m;
 }
 
 /// Add star S to the current star. The resultant takes Star S's catalog ID.
@@ -115,7 +124,7 @@ bool Star::is_equal (const Star &s_1, const Star &s_2, const double epsilon) {
 /// the is_equal function, and uses the default epsilon = STAR_EQUALITY_PRECISION_DEFAULT.
 ///
 /// @param s Star to check current star against.
-/// @return True if all components are the same. False otherwise.
+/// @return True if all components (besides m and hr) are the same. False otherwise.
 bool Star::operator== (const Star &s) const {
     return is_equal(s, *this);
 }
@@ -129,10 +138,10 @@ Star Star::zero () {
 
 /// Generate a random star with normalized components. Using C++11 random functions.
 ///
+/// @param seed Random device to use when generating star.
 /// @return Star with random, normalized components and a catalog ID = 0.
-Star Star::chance () {
-    static std::random_device seed;
-    static std::mt19937_64 mersenne_twister(seed());
+Star Star::chance (std::random_device &seed) {
+    std::mt19937_64 mersenne_twister(seed());
     std::uniform_real_distribution<double> dist(-1.0, 1.0);
     
     return Star(dist(mersenne_twister), dist(mersenne_twister), dist(mersenne_twister), 0).as_unit();
@@ -141,10 +150,11 @@ Star Star::chance () {
 /// Generate a random star with normalized components. Using C++11 random functions. Instead of assigning a catalog ID
 /// of 0, the user can assign one of their own.
 ///
+/// @param seed Random device to use when generating star.
 /// @param hr Catalog ID to use with the randomized star.
 /// @return Star with random, normalized components and a catalog ID = 0.
-Star Star::chance (const int hr) {
-    Star s = chance();
+Star Star::chance (std::random_device &seed, const int hr) {
+    Star s = chance(seed);
     s.label = hr;
     
     return s;

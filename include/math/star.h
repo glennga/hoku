@@ -19,7 +19,7 @@
 /// @example
 /// @code{.cpp}
 /// // Define stars (in order): {0, 0, 0}, {random, random, random}, {0, 0, 0}, {-0.680414, 0.680414, 0.272166}
-/// Star s_1, s_2 = Star::chance(), s_3 = Star::zero(), s_4(-10, 10, 4, 0, true);
+/// Star s_1, s_2 = Star::chance(), s_3 = Star::zero(), s_4(-10, 10, 4, 0, 0, true);
 ///
 /// // Cross stars {-2, -1, 0} and {3, 2, 1} to produce {-1, 2, -1}.
 /// printf("%s", Star::cross(Star(-2, -1, 0), Star(3, 2, 1)).str());
@@ -45,13 +45,14 @@ class Star {
     constexpr static double STAR_EQUALITY_PRECISION_DEFAULT = 0.000000000001;
   
   public:
-    Star (double, double, double, int = 0, bool = false);
+    Star (double, double, double, int = 0, double = -30.0, bool = false);
     Star ();
     
     std::string str () const;
     
     double operator[] (unsigned int) const;
     int get_label () const;
+    double get_magnitude () const;
     
     Star operator+ (const Star &) const;
     Star operator- (const Star &) const;
@@ -67,8 +68,8 @@ class Star {
     
     static Star zero ();
     
-    static Star chance ();
-    static Star chance (int);
+    static Star chance (std::random_device &);
+    static Star chance (std::random_device &, int);
     
     static double dot (const Star &, const Star &);
     static Star cross (const Star &, const Star &);
@@ -93,6 +94,9 @@ class Star {
     
     /// Catalog specific ID for the given star.
     int label;
+    
+    /// Apparent magnitude for the given star.
+    double m;
 };
 
 #endif /* HOKU_STAR_H */
