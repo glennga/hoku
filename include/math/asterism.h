@@ -11,7 +11,7 @@
 #include "math/star.h"
 
 /// The mercator class is meant to reduce a dimension off of a star. This class is used to flatten the points in
-/// the BSC5 table and as the main data in the BSC5 quadtree.
+/// the BSC5 table and as the main data in the bright stars quadtree.
 ///
 /// @example
 /// @code{.cpp}
