@@ -9,7 +9,8 @@
 ///
 /// @return 0 when finished.
 int TestMercator::test_projection_within_bounds () {
-    Star a(3, 4, 5), b = Star::chance();
+    std::random_device seed;
+    Star a(3, 4, 5), b = Star::chance(seed);
     
     assert_within(Mercator(a, 200).x, -100, 100, "XWithinBoundsStar1");
     assert_within(Mercator(a, 200).y, -100, 100, "YWithinBoundsStar1");
@@ -21,7 +22,8 @@ int TestMercator::test_projection_within_bounds () {
 ///
 /// @return 0 when finished.
 int TestMercator::test_corners_form_box () {
-    Mercator a(Star::chance(), 1000);
+    std::random_device seed;
+    Mercator a(Star::chance(seed), 1000);
     Mercator::quad b = a.find_corners(100);
     
     assert_equal(b[0].y, b[1].y, "TopLineSameY");

@@ -55,8 +55,8 @@ std::string Mercator::str () const {
     std::stringstream components;
     
     // Need to use stream here to set precision.
-    components << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed << "(" << x << ":" << y << ":"
-               << w_n << ":" << label << ")";
+    components << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed << "(" << x << ":" << y
+               << ":" << w_n << ":" << label << ")";
     return components.str();
 }
 
