@@ -57,7 +57,7 @@ class Trio {
     Star planar_centroid () const;
     
     double recurse_spherical_moment (const Star &, int, int);
-    static Trio cut_triangle (const Star &, const Star &, const Star &, const Star & = Star());
+    static Trio cut_triangle (const Star &, const Star &, const Star &, const Star & = Star::zero());
 
 #if !defined ENABLE_TESTING_ACCESS
   private:
