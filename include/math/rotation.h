@@ -14,10 +14,11 @@
 /// @example
 /// @code{.cpp}
 /// // Rotate {1, 1, 1} by a random rotation.
-/// printf("%s", Star::rotate(Star(1, 1, 1), Rotation::chance()).str());
+/// std::random_device seed;
+/// printf("%s", Star::rotate(Star(1, 1, 1), Rotation::chance(seed)).str());
 ///
-/// Star a = Star::chance(), b = Star::chance(), c, d;
-/// Rotation e = Rotation::chance(), f;
+/// Star a = Star::chance(seed), b = Star::chance(seed), c, d;
+/// Rotation e = Rotation::chance(seed), f;
 ///
 /// // Star C is Star A rotated by Quaternion E. Star D is Star B rotated by Quaternion E.
 /// c = Rotation::rotate(a, e);
@@ -41,7 +42,7 @@ class Rotation {
     static double rotational_difference (const Rotation &, const Rotation &, const Star &);
     
     static Rotation identity ();
-    static Rotation chance ();
+    static Rotation chance (std::random_device &);
     
     static Rotation rotation_across_frames (const Star::pair &, const Star::pair &);
 

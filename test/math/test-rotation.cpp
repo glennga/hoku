@@ -42,9 +42,10 @@ int TestRotation::test_private_constructor_component_set () {
 ///
 /// @return 0 when finished.
 int TestRotation::test_quaternion_double_cover_property () {
-    Rotation a = Rotation::chance();
+    std::random_device seed;
+    Rotation a = Rotation::chance(seed);
     Rotation b(-a.w, Star(-a.i, -a.j, -a.k));
-    Star c = Star::chance();
+    Star c = Star::chance(seed);
     Star d = Rotation::rotate(c, a), e = Rotation::rotate(c, b);
     
     return 0 * assert_equal(d, e, "QuaternionDoubleCoverProperty", d.str() + "," + e.str());
@@ -54,7 +55,8 @@ int TestRotation::test_quaternion_double_cover_property () {
 ///
 /// @return 0 when finished.
 int TestRotation::test_quaternion_unit_property () {
-    Rotation a = Rotation::chance();
+    std::random_device seed;
+    Rotation a = Rotation::chance(seed);
     double b = sqrt(a.w * a.w + a.i * a.i + a.j * a.j + a.k * a.k);
     
     return 0 * assert_equal(b, 1, "QuaternionUnitProperty");
@@ -76,7 +78,8 @@ int TestRotation::test_matrix_to_quaternion () {
 ///
 /// @return 0 when finished.
 int TestRotation::test_rotation_identity () {
-    Star a = Star::chance();
+    std::random_device seed;
+    Star a = Star::chance(seed);
     Star b = Rotation::rotate(a, Rotation::identity());
     
     return 0 * assert_equal(a, b, "RotationIdentity", a.str() + "," + b.str());
@@ -137,8 +140,9 @@ int TestRotation::test_triad_property_simple () {
 ///
 /// @return 0 when finished.
 int TestRotation::test_triad_property_random () {
-    Rotation a = Rotation::chance();
-    std::array<Star, 2> b = {Star::chance(), Star::chance()};
+    std::random_device seed;
+    Rotation a = Rotation::chance(seed);
+    std::array<Star, 2> b = {Star::chance(seed), Star::chance(seed)};
     std::array<Star, 2> c = {Rotation::rotate(b[0], a), Rotation::rotate(b[1], a)};
     Rotation d = Rotation::rotation_across_frames(b, c);
     Star e = Rotation::rotate(c[0], d), f = Rotation::rotate(c[1], d);
@@ -151,12 +155,13 @@ int TestRotation::test_triad_property_random () {
 ///
 /// @return 0 when finished.
 int TestRotation::test_triad_multiple_stars () {
-    Rotation a = Rotation::chance(), d;
+    std::random_device seed;
+    Rotation a = Rotation::chance(seed), d;
     std::vector<Star> b, c;
     b.reserve(5), c.reserve(5);
     
     for (int q = 0; q < 5; q++) {
-        b.push_back(Star::chance());
+        b.push_back(Star::chance(seed));
         c.push_back(Rotation::rotate(b[q], a));
     }
     d = Rotation::rotation_across_frames({b[0], b[1]}, {c[0], c[1]});

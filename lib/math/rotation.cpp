@@ -125,8 +125,9 @@ Rotation Rotation::identity () {
 /// Return a unit quaternion with random components. Achieved by find the rotation from one random star to another
 /// random star.
 ///
+/// @param seed Random device to use when generating random star.
 /// @return Random quaternion.
-Rotation Rotation::chance () {
-    Star p = Star::chance(), q = Star::chance();
+Rotation Rotation::chance (std::random_device &seed) {
+    Star p = Star::chance(seed), q = Star::chance(seed);
     return {sqrt(1.0 + Star::dot(p, q)), Star::cross(p, q), true};
 }

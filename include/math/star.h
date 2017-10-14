@@ -19,7 +19,8 @@
 /// @example
 /// @code{.cpp}
 /// // Define stars (in order): {0, 0, 0}, {random, random, random}, {0, 0, 0}, {-0.680414, 0.680414, 0.272166}
-/// Star s_1, s_2 = Star::chance(), s_3 = Star::zero(), s_4(-10, 10, 4, 0, 0, true);
+/// std::random_device seed;
+/// Star s_1, s_2 = Star::chance(seed), s_3 = Star::zero(), s_4(-10, 10, 4, 0, 0, true);
 ///
 /// // Cross stars {-2, -1, 0} and {3, 2, 1} to produce {-1, 2, -1}.
 /// printf("%s", Star::cross(Star(-2, -1, 0), Star(3, 2, 1)).str());
