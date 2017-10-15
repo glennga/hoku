@@ -40,10 +40,10 @@
 class Chomp : public Nibble {
   public:
     /// Length of the HIP_BRIGHT table. Necessary if loading all stars into RAM.
-    static const int BRIGHT_TABLE_LENGTH = 4559;
+    static const unsigned int BRIGHT_TABLE_LENGTH = 4559;
     
     /// Length of the HIPPO2 table. Necessary if loading all stars into RAM.
-    static const int HIP_TABLE_LENGTH = 117956;
+    static const unsigned int HIP_TABLE_LENGTH = 117956;
     
   public:
     using Nibble::tuples_d;

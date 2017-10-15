@@ -9,7 +9,8 @@
 ///
 /// @return 0 when finished.
 int TestQuadNode::test_star_constructor () {
-    QuadNode b(Star::chance(), 1000, 1);
+    std::random_device seed;
+    QuadNode b(Star::chance(seed), 1000, 1);
     
     assert_equal(b.w_i, 1, "LocalWidthDefault");
     assert_equal(b.w_n, 1000, "ProjectedWidth");
@@ -32,7 +33,8 @@ int TestQuadNode::test_root_property () {
 ///
 /// @return 0 when finished.
 int TestQuadNode::test_branch () {
-    QuadNode a(Star::chance(), 1000, 1);
+    std::random_device seed;
+    QuadNode a(Star::chance(seed), 1000, 1);
     QuadNode::child_edges b = {std::make_shared<QuadNode>(QuadNode(-5, 5, 1000)), nullptr, nullptr, nullptr};
     QuadNode c = QuadNode::branch(a, b);
     
@@ -184,11 +186,12 @@ int TestQuadNode::test_partition_for_leaves () {
 /// @return 0 when finished.
 int TestQuadNode::test_nearby_stars () {
     QuadNode q = QuadNode::load_tree(1000);
-    Star a = Star::chance();
-    Star::list b = Nibble().nearby_stars(a, 10, 90), c = q.nearby_stars(a, 10, 90);
+    std::random_device seed;
+    Star a = Star::chance(seed);
+    Star::list b = Chomp(true).nearby_bright_stars(a, 10, 90), c = q.nearby_stars(a, 10, 90);
     std::vector<double> d, e;
     
-    assert_not_equal(Nibble().nearby_stars(a, 10, 90).size(), 0, "NearbyStarsNoQuadTree");
+    assert_not_equal(Chomp(true).nearby_bright_stars(a, 10, 90).size(), 0, "NearbyStarsNoQuadTree");
     assert_not_equal(q.nearby_stars(a, 10, 90).size(), 0, "NearbyStarsUsingQuadTree");
     
     for (const Star &s : c) {

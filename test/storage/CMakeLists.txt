@@ -26,13 +26,13 @@ target_link_libraries(TestChomp BaseTest Chomp Nibble Star
 # Link and Create Executable TestKdNode
 ##################################################################
 add_executable(TestKdNode test-kd-node.cpp)
-target_link_libraries(TestKdNode BaseTest KdNode Nibble Mercator
+target_link_libraries(TestKdNode BaseTest KdNode Chomp Nibble Mercator
         Star SQLiteCpp Sqlite3)
 
 ##################################################################
 # Link and Create Executable TestQuadNode
 ##################################################################
 add_executable(TestQuadNode test-quad-node.cpp)
-target_link_libraries(TestQuadNode BaseTest QuadNode Nibble Mercator
-        Star SQLiteCpp Sqlite3)
+target_link_libraries(TestQuadNode BaseTest QuadNode Chomp Nibble
+        Mercator Star SQLiteCpp Sqlite3)
 

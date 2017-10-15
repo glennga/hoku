@@ -7,7 +7,7 @@
 #define HOKU_KD_NODE_H
 
 #include "math/mercator.h"
-#include "storage/nibble.h"
+#include "storage/chomp.h"
 #include <memory>
 #include <algorithm>
 
@@ -25,14 +25,18 @@
 ///     printf("%s", s.str().c_str());
 /// }
 /// @endcode
+#if !defined ENABLE_TESTING_ACCESS
 class KdNode : private Mercator {
+#else
+class KdNode : public Mercator {
+#endif
   public:
     static KdNode load_tree (const Star::list &, double);
     
     Star::list nearby_stars (const Star &, double, unsigned int, const Star::list &);
 
 #if !defined ENABLE_TESTING_ACCESS
-  private:
+    private:
 #endif
     /// Precision default for '==' method.
     constexpr static double KDNODE_EQUALITY_PRECISION_DEFAULT = 0.000000000001;
@@ -54,7 +58,7 @@ class KdNode : private Mercator {
     };
 
 #if !defined ENABLE_TESTING_ACCESS
-  private:
+    private:
 #endif
     KdNode (unsigned int, unsigned int, int, const bounds_set &, list &);
     static void sort_by_dimension (unsigned int, unsigned int, int, list &);
@@ -68,7 +72,7 @@ class KdNode : private Mercator {
     bool operator== (const KdNode &) const;
 
 #if !defined ENABLE_TESTING_ACCESS
-  private:
+    private:
 #endif
     /// Minimum values for this node's represented box. Used for box queries.
     bounds b_min = {0, 0};

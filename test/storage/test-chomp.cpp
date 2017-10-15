@@ -143,11 +143,12 @@ int TestChomp::enumerate_tests (int test_case) {
     switch (test_case) {
         case 0: return test_bright_star_grab();
         case 1: return test_nearby_bright_star_grab();
-        case 2: return test_components_from_line();
-        case 3: return test_star_table_existence();
-        case 4: return test_hip_query_result();
-        case 5: return test_regular_query();
-        case 6: return test_k_vector_query();
+        case 2: return test_nearby_hip_star_grab();
+        case 3: return test_components_from_line();
+        case 4: return test_star_table_existence();
+        case 5: return test_hip_query_result();
+        case 6: return test_regular_query();
+        case 7: return test_k_vector_query();
         default: return -1;
     }
 }

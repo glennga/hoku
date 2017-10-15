@@ -173,7 +173,7 @@ Star::list KdNode::nearby_stars (const Star &q, const double fov, const unsigned
     
     // Operating node MUST be the root, with the properties below. If not, stop here.
     if (!(this->origin_index == -1 && this->label == -1)) {
-        throw "\"nearby_stars\" not operating on root node.";
+        throw "\"nearby_bright_stars\" not operating on root node.";
     }
     
     // Search for nearby nodes in the tree. The fov represents the half width of the search box, so we double it here.

@@ -7,7 +7,7 @@
 #define HOKU_QUAD_NODE_H
 
 #include "math/mercator.h"
-#include "storage/nibble.h"
+#include "storage/chomp.h"
 #include <memory>
 
 /// The QuadNode represents a node for the Mercator quadtree, a structure for spatial indexing. This structure is
@@ -23,7 +23,11 @@
 ///     printf("%s", s.str().c_str());
 /// }
 /// @endcode
-class QuadNode : public Mercator {
+#if !defined ENABLE_TESTING_ACCESS
+class QuadNode : private Mercator {
+#else
+    class QuadNode : public Mercator {
+#endif
   public:
     Star::list nearby_stars (const Star &, double, unsigned int);
     
@@ -67,7 +71,7 @@ class QuadNode : public Mercator {
     child_edges find_quadrant_centers () const;
     
     QuadNode find_quad_leaves (const QuadNode &, double, const QuadNode::list &);
-    Star::list query_quadtree (Nibble &, const QuadNode &, const QuadNode &, Star::list &);
+    Star::list query_quadtree (Chomp &, const QuadNode &, const QuadNode &, Star::list &);
 
 #if !defined ENABLE_TESTING_ACCESS
   private:
