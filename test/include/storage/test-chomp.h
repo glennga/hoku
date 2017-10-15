@@ -14,6 +14,12 @@ class TestChomp : public BaseTest {
   private:
     int test_regular_query ();
     int test_k_vector_query ();
+    int test_bright_star_grab();
+    int test_nearby_bright_star_grab();
+    int test_nearby_hip_star_grab();
+    int test_components_from_line();
+    int test_star_table_existence();
+    int test_hip_query_result();
   
   public:
     int enumerate_tests (int);

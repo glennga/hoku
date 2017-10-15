@@ -18,16 +18,10 @@
 /// attributes. Inside this namespace includes the building blocks to generate entire tables, then search these tables.
 ///
 /// The environment variable HOKU_PROJECT_PATH must point to top level of this project.
-/// The file %HOKU_PROJECT_PATH%/data/bsc5.dat must exist.
 ///
 /// @example
 /// @code{.cpp}
 /// Nibble nb;
-///
-/// // Generate the BSC5 table. If nibble.db does not exist, then create it.
-/// nb.generate_bsc5_table();
-///
-/// /* The snippet above should only be run ONCE to populate Nibble.db and the BSC5 table. */
 ///
 /// // Create the table 'TEST(int U, int B)'.
 /// nb.create_table("TEST", "int U, int B");
@@ -35,37 +29,28 @@
 /// // Table 'TEST' is selected from call above. Insert (10, 11) into table.
 /// nb.insert_into_table("U, B", {10, 11});
 ///
-/// // Insert the I and J components for star 3.
-/// nb.insert_into_table("U, B", {nb.query_bsc5(3)[0], nb.query_bsc5(3)[1]});
-///
 /// // Sort the table by "U" and create an index for "U".
 /// nb.polish_table("U");
 ///
-/// // Change our working table from "TEST" to "BSC5".
-/// nb.select_table("BSC5");
+/// // Change our working table from "TEST" to "BRIGHT".
+/// nb.select_table("BRIGHT");
 ///
-/// // Search the 'BSC5' table star 3's right ascension and declination. Expecting 2 floats, limit results by 1 row.
-/// Nibble::tuple a = nb.search_table("label = 3", "alpha, delta", 2, 1);
+/// // Search the 'BRIGHT' table star 3's right ascension and declination. Expecting 2 floats, limit results by 1 row.
+/// Nibble::tuples_d a = nb.search_table("label = 3", "alpha, delta", 2, 1);
 ///
 /// // Print the results of the search. Search for a[0][0] (which is star 3's alpha) and a[0][1] (star 3's delta).
-/// printf("%f, %f", nb.table_results_at(a, 0, 0), nb.table_results_at(a, 0, 1));
-///
-/// // Find all stars near star 4 that are separated by no more than 7.5 degrees. Expecting 20 results.
-/// Star::list b = nb.nearby_stars(nb.query_bsc5(4), 15, 20);
+/// printf("%f, %f", a[0][0], a[0][1]);
 /// @endcode
 class Nibble {
   public:
-    /// Alias for a SQL row of results or input. Must be real numbers.
-    using tuple = std::vector<double>;
+    /// Alias for a SQL row of results or input, provided the results are floating numbers.
+    using tuple_d = std::vector<double>;
     
-    /// Length of the BSC5 table. Necessary if loading all stars into RAM.
-    static const int BSC5_TABLE_LENGTH = 5023;
+    /// Alias for a set of results (tuples), provided the results are floating numbers.
+    using tuples_d = std::vector<tuple_d>;
     
-    /// Maximum ID value for BSC5 table. Used in sparse representations of BSC5.
-    static const int BSC5_MAX_ID = 9110;
-    
-    /// Minimum ID value for BSC5 table. Used in sparse representations of BSC5.
-    static const int BSC5_MIN_ID = 3;
+    /// Alias for a SQL row of input, provided the results are integers.
+    using tuple_i = std::vector<int>;
     
     /// Open and unique database object. This must be public to work with SQLiteCpp library.
     std::unique_ptr<SQLite::Database> db;
@@ -74,56 +59,55 @@ class Nibble {
     Nibble ();
     explicit Nibble (const std::string &, const std::string & = "");
     
+    tuples_d search_table (const std::string &, const std::string &, unsigned int, int = -1);
+    tuples_d search_table (const std::string &, unsigned int, int = -1);
+    
+    double search_single (const std::string &, const std::string & = "");
+    
     void select_table (const std::string &, bool = false);
-    
-    int generate_bsc5_table ();
-    int generate_hippo2_table ();
-    
-    int insert_into_table (const std::string &, const tuple &);
-    
-    Star::list all_bsc5_stars ();
-    Star::list nearby_stars (const Star &, double, unsigned int);
-    
-    Star query_bsc5 (int);
-    
-    tuple search_table (const std::string &, const std::string &, unsigned int, int = -1);
-    tuple search_table (const std::string &, unsigned int, int = -1);
-    tuple table_results_at (const tuple &, unsigned int, int);
-    
     int create_table (const std::string &, const std::string &);
     
     int find_attributes (std::string &, std::string &);
     int sort_table (const std::string &);
     int polish_table (const std::string &);
+  
+  public:
+    /// Using the currently selected table, insert the set of values in order of the fields given.
+    ///
+    /// @tparam T Type of input vector. Should be tuple_i or tuple_d.
+    /// @param fields The fields corresponding to vector of in_values.
+    /// @param in_values Vector of values to insert to table.
+    /// @return 0 when finished.
+    template <typename T>
+    int insert_into_table (const std::string &fields, const T &in_values) {
+        // Create bind statement with necessary amount of '?'.
+        std::string sql = "INSERT INTO " + table + " (" + fields + ") VALUES (";
+        for (unsigned int a = 0; a < in_values.size() - 1; a++) {
+            sql.append("?, ");
+        }
+        sql.append("?)");
+        
+        // Bind all the fields to the in values.
+        SQLite::Statement query(*db, sql);
+        for (unsigned int i = 0; i < in_values.size(); i++) {
+            query.bind(i + 1, in_values[i]);
+        }
+        query.exec();
+        
+        return 0;
+    }
 
 #if !defined ENABLE_TESTING_ACCESS
-  protected:
+    protected:
 #endif
     /// Current table being operated on.
     std::string table;
     
-    /// All stars in the BSC5 table, from the 'load_all_stars' method.
-    Star::list all_stars;
-    
     /// String of the HOKU_PROJECT_PATH environment variable.
     const std::string PROJECT_LOCATION = std::string(std::getenv("HOKU_PROJECT_PATH"));
     
-    // Path of the ASCII Yale Bright Star catalog.
-    const std::string BSC5_CATALOG_LOCATION = PROJECT_LOCATION + "/data/bsc5.dat";
-    
-    // Path of the ASCII Hipparcos Star catalog.
-    const std::string HIPPO2_CATALOG_LOCATION = PROJECT_LOCATION + "/data/hip2.dat";
-    
     // Path of the Nibble database file.
     const std::string DATABASE_LOCATION = PROJECT_LOCATION + "/data/nibble.db";
-
-#if !defined ENABLE_TESTING_ACCESS
-  private:
-#endif
-    void load_all_stars ();
-    
-    static std::array<double, 6> bsc5_components_from_line (const std::string &);
-    static std::array<double, 6> hippo2_components_from_line (const std::string &);
 };
 
 #endif /* HOKU_NIBBLE_H */

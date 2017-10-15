@@ -12,7 +12,7 @@ include_directories(${CMAKE_SOURCE_DIR}/test/include)
 # Link and Create Executable TestNibble
 ##################################################################
 add_executable(TestNibble test-nibble.cpp)
-target_link_libraries(TestNibble BaseTest Nibble Star SQLiteCpp
+target_link_libraries(TestNibble BaseTest Chomp Nibble Star SQLiteCpp
         Sqlite3)
 
 ##################################################################

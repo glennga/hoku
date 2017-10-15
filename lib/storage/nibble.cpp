@@ -6,13 +6,10 @@
 #include "storage/nibble.h"
 
 /// Constructor. This dynamically allocates a database connection object to nibble.db. If the database does not exist,
-/// it is created. Set the current table to BSC5, and load all stars to RAM.
+/// it is created.
 Nibble::Nibble () {
     const int FLAGS = SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE;
     this->db = std::make_unique<SQLite::Database>(DATABASE_LOCATION, FLAGS);
-    
-    // Load all stars into instance's 'all_stars'.
-    load_all_stars();
 }
 
 /// Overloaded constructor. If a table name is specified, we load this table into memory. Note that ONLY this table
@@ -31,7 +28,7 @@ Nibble::Nibble (const std::string &table_name, const std::string &focus) {
     // Copy the entire table to RAM.
     nb.select_table(table_name, true);
     const unsigned int CARDINALITY = (*nb.db).execAndGet(std::string("SELECT MAX(rowid) FROM ") + table_name).getUInt();
-    tuple table = nb.search_table("*", CARDINALITY);
+    tuples_d table = nb.search_table("*", CARDINALITY);
     
     // Determine the schema and fields for insertion. Create the table.
     std::string schema, fields;
@@ -40,11 +37,10 @@ Nibble::Nibble (const std::string &table_name, const std::string &focus) {
         throw "Unable to create specified table";
     }
     
-    // Copy the table from our search tuple to our in-memory database.
+    // Copy the table from our search table to our in-memory database.
     this->select_table(table_name);
-    const unsigned int DEGREE = (unsigned int) std::count(fields.begin(), fields.end(), ',') + 1;
-    for (unsigned int i = 0; i < CARDINALITY; i++) {
-        this->insert_into_table(fields, table_results_at(table, DEGREE, i));
+    for (const tuple_d &t : table) {
+        this->insert_into_table(fields, t);
     }
     
     // If desired, then polish the table (index and sort).
@@ -53,7 +49,8 @@ Nibble::Nibble (const std::string &table_name, const std::string &focus) {
     }
 }
 
-/// Change the current working table that is being operated on. If desired, can check
+/// Change the current working table that is being operated on. If desired, the existence of the table can be checked
+/// before selecting.
 ///
 /// @param table Table to be selected.
 /// @param check_existence If desired, can check table existence and throw error if not found.
@@ -70,192 +67,16 @@ void Nibble::select_table (const std::string &table, const bool check_existence)
     this->table = table;
 }
 
-/// Helper method for generate_bsc5_table method. Read the star catalog data and compute the {i, j, k} components
-/// given a line from the ASCII catalog.
+/// Search a table for the specified fields given a constraint. Limit results by a certain amount if desired.
 ///
-/// @param entry String containing line from ASCII catalog.
-/// @return Array of components in order {alpha, delta, i, j, k, m}.
-std::array<double, 6> Nibble::bsc5_components_from_line (const std::string &entry) {
-    std::array<double, 6> components = {0, 0, 0, 0, 0, 0};
-    
-    try {
-        // Read right ascension. Convert label + min + sec -> deg.
-        double alpha = 15 * stoi(entry.substr(75, 2), nullptr) + 0.25 * stoi(entry.substr(77, 2), nullptr)
-                       + (1 / 240.0) * strtof(entry.substr(79, 4).c_str(), nullptr);
-        
-        // Read declination. No conversion necessary.
-        double delta = stoi(entry.substr(84, 2), nullptr) + (1 / 60.0) * stoi(entry.substr(86, 2), nullptr)
-                       + (1 / 3600.0) * stoi(entry.substr(88, 2), nullptr);
-        delta *= (entry.at(83) == '-') ? -1 : 1;
-        
-        // Convert to cartesian w/ r = 1. Reduce to unit vector.
-        Star star_entry(1.0 * cos((M_PI / 180.0) * delta) * cos((M_PI / 180.0) * alpha),
-                        1.0 * cos((M_PI / 180.0) * delta) * sin(M_PI / 180.0 * alpha),
-                        1.0 * sin((M_PI / 180.0) * delta), 0, true);
-        
-        // Parse apparent magnitude.
-        double m = strtof(entry.substr(102, 5).c_str(), nullptr);
-        components = {alpha, delta, star_entry[0], star_entry[1], star_entry[2], m};
-    }
-    catch (std::exception &e) {
-        // Ignore entries without recorded alpha or delta.
-    }
-    
-    return components;
-}
-
-/// Helper method for generate_hippo2_table method. Read the star catalog data and compute the {i, j, k} components
-/// given a line from the ASCII catalog.
-///
-/// @param entry String containing line from ASCII catalog.
-/// @return Array of components in order {alpha, delta, i, j, k, m}.
-std::array<double, 6> Nibble::hippo2_components_from_line (const std::string &entry) {
-    std::array<double, 6> components = {0, 0, 0, 0, 0, 0};
-    
-    try {
-        // Read right ascension. Convert to degrees.
-        double alpha = (180.0 / M_PI) * stof(entry.substr(15, 13), nullptr);
-        
-        // Read declination. Convert to degrees.
-        double delta = (180.0 / M_PI) * stof(entry.substr(29, 13), nullptr);
-        
-        // Convert to cartesian w/ r = 1. Reduce to unit vector.
-        Star star_entry(1.0 * cos((M_PI / 180.0) * delta) * cos((M_PI / 180.0) * alpha),
-                        1.0 * cos((M_PI / 180.0) * delta) * sin(M_PI / 180.0 * alpha),
-                        1.0 * sin((M_PI / 180.0) * delta), 0, true);
-        
-        // Parse apparent magnitude.
-        double m = strtof(entry.substr(129, 7).c_str(), nullptr);
-        components = {alpha, delta, star_entry[0], star_entry[1], star_entry[2], m};
-    }
-    catch (std::exception &e) {
-        // Ignore entries without recorded alpha or delta.
-    }
-    
-    return components;
-}
-
-/// Parse the right ascension, declination, visual magnitude, and catalog ID for each star. The i, j, and k components
-/// are converted from the star's alpha, delta, and an assumed parallax = 1. **This should be the first function run to
-/// generate all other tables.**
-///
-/// @return -1 if the BSC5 table already exists. 0 otherwise.
-int Nibble::generate_bsc5_table () {
-    std::ifstream catalog(BSC5_CATALOG_LOCATION);
-    if (!catalog.is_open()) {
-        throw "Catalog file cannot be opened";
-    }
-    
-    SQLite::Transaction transaction(*db);
-    if (create_table("BSC5", "alpha FLOAT, delta FLOAT, i FLOAT, j FLOAT, k FLOAT, m FLOAT, label INT") == -1) {
-        return -1;
-    }
-    
-    // Insert into BSC5 table.
-    int label = 1;
-    for (std::string entry; getline(catalog, entry);) {
-        std::array<double, 6> c = bsc5_components_from_line(entry);
-        
-        // Only insert if magnitude < 6.0 (visible light).
-        if (c[5] < 6.0 && !std::equal(c.begin() + 1, c.end(), c.begin())) {
-            insert_into_table("alpha, delta, i, j, k, m, label", {c[0], c[1], c[2], c[3], c[4], c[5], (double) label});
-        }
-        label++;
-    }
-    transaction.commit();
-    
-    // Polish table. Sort by catalog ID.
-    return polish_table("label");
-}
-
-/// Parse the right ascension, declination, visual magnitude, and catalog ID for each star. The i, j, and k components
-/// are converted from the star's alpha, delta, and an assumed parallax = 1. **This, along with
-/// generate_bsc5_table should be the first function run to generate all other tables.**
-///
-/// @return -1 if the HIPPO2 table already exists. 0 otherwise.
-int Nibble::generate_hippo2_table () {
-    std::ifstream catalog(HIPPO2_CATALOG_LOCATION);
-    if (!catalog.is_open()) {
-        throw "Catalog file cannot be opened";
-    }
-    
-    SQLite::Transaction transaction(*db);
-    if (create_table("HIPPO2", "alpha FLOAT, delta FLOAT, i FLOAT, j FLOAT, k FLOAT, m FLOAT, label INT") == -1) {
-        return -1;
-    }
-    
-    // We skip the header here.
-    for (int i = 0; i < 5; i++) {
-        std::string entry;
-        getline(catalog, entry);
-    }
-    
-    // Insert into HIPPO2 table. There is no magnitude discrimination here.
-    int label = 1;
-    for (std::string entry; getline(catalog, entry);) {
-        std::array<double, 6> c = hippo2_components_from_line(entry);
-        insert_into_table("alpha, delta, i, j, k, m, label", {c[0], c[1], c[2], c[3], c[4], c[5], (double) label++});
-    }
-    transaction.commit();
-    
-    // Polish table. Sort by catalog ID.
-    return polish_table("label");
-}
-
-/// Search the BSC5 table for the star with the matching catalog ID. Return a star with the vector components and
-/// catalog ID of this search.
-///
-/// @param label Catalog ID of the star to return.
-/// @return Star with the components of the matching catalog ID entry.
-Star Nibble::query_bsc5 (const int label) {
-    std::string t_table = this->table;
-    tuple results;
-    
-    select_table("BSC5");
-    results = search_table("label = " + std::to_string(label), "i, j, k", 3, 1);
-    
-    // Keep our previous table.
-    select_table(t_table);
-    return {results[0], results[1], results[2], label};
-}
-
-/// Accessor for all_stars.
-///
-/// @return Array with all stars in BSC5 table.
-Star::list Nibble::all_bsc5_stars () {
-    return this->all_stars;
-}
-
-/// Given a focus star and a field of view limit, find all stars around the focus.
-///
-/// @param focus Star to search around.
-/// @param fov Limit a star must be separated from the focus by.
-/// @param expected Expected number of stars around the focus. Better to overshoot.
-/// @return Array with all nearby stars.
-Star::list Nibble::nearby_stars (const Star &focus, const double fov, const unsigned int expected) {
-    Star::list nearby;
-    nearby.reserve(expected);
-    
-    for (const Star &candidate : all_stars) {
-        if (Star::within_angle(focus, candidate, fov)) {
-            nearby.push_back(candidate);
-        }
-    }
-    
-    return nearby;
-}
-
-/// Search a table for the specified fields given a constraint. Limit results by a certain amount if desired. The
-/// results returned are a 1D array that holds a fixed number of items in succession.
-///
-/// @param constraint The SQL string to be used with the WHERE clause.
 /// @param fields The columns to search for in the current table.
-/// @param expected Expected number of results * columns to be returned. Better to overshoot.
+/// @param constraint The SQL string to be used with the WHERE clause.
+/// @param expected Expected number of results to be returned. Better to overshoot.
 /// @param limit Limit the results searched for with this.
-/// @return 1D list of chained results.
-Nibble::tuple Nibble::search_table (const std::string &constraint, const std::string &fields,
-                                    const unsigned int expected, const int limit) {
-    tuple result;
+/// @return List of results returned from query, ordered by tuple in table.
+Nibble::tuples_d Nibble::search_table (const std::string &fields, const std::string &constraint,
+                                       const unsigned int expected, const int limit) {
+    tuples_d result;
     std::string sql;
     
     result.reserve(expected);
@@ -268,24 +89,26 @@ Nibble::tuple Nibble::search_table (const std::string &constraint, const std::st
     
     SQLite::Statement query(*db, sql);
     while (query.executeStep()) {
+        tuple_d tup;
+        
         for (int i = 0; i < query.getColumnCount(); i++) {
-            result.push_back(query.getColumn(i).getDouble());
+            tup.push_back(query.getColumn(i).getDouble());
         }
+        result.push_back(tup);
     }
     
     return result;
 }
 
-/// Return all specified fields from a table. Limit results by a certain amount if desired. the results returned are
-/// a 1D array that holds a fixed number of items in succession. This function is overloaded to perform a search
-/// without a constraint.
+/// Return all specified fields from a table. Limit results by a certain amount if desired. This function is
+/// overloaded to perform a search without a constraint.
 ///
 /// @param fields The columns to search for in the current table.
-/// @param expected Expected number of results * columns to be returned. Better to overshoot.
+/// @param expected Expected number of results to be returned. Better to overshoot.
 /// @param limit Limit the results searched for with this.
-/// @return 1D list of chained results.
-Nibble::tuple Nibble::search_table (const std::string &fields, const unsigned int expected, const int limit) {
-    tuple result;
+/// @return List of results returned from query, ordered by tuple in table.
+Nibble::tuples_d Nibble::search_table (const std::string &fields, const unsigned int expected, const int limit) {
+    tuples_d result;
     std::string sql;
     
     result.reserve(expected);
@@ -298,54 +121,34 @@ Nibble::tuple Nibble::search_table (const std::string &fields, const unsigned in
     
     SQLite::Statement query(*db, sql);
     while (query.executeStep()) {
+        tuple_d tup;
+    
         for (int i = 0; i < query.getColumnCount(); i++) {
-            result.push_back(query.getColumn(i).getDouble());
+            tup.push_back(query.getColumn(i).getDouble());
         }
+        result.push_back(tup);
     }
     
     return result;
 }
 
-/// Given a vector returned by Nibble::search_table, return a single entry. We determine this knowing the index we want
-/// and the length of a single result.
+/// Query the selected table using the given constraint (if specified) for the given fields. We only return the first
+/// result we find (if any).
 ///
-/// @param searched Result of a Nibble::search_table call.
-/// @param column_length Number of fields queried for in search_result.
-/// @param index Index of result to search for. **zero-based**
-/// @return Vector of size 'result_size' containing the specified result.
-Nibble::tuple Nibble::table_results_at (const tuple &searched, const unsigned int column_length, const int index) {
-    tuple result;
-    result.reserve(column_length);
-    for (unsigned int i = 0; i < column_length; i++) {
-        result.push_back(searched[(column_length * index) + i]);
-    }
+/// @param fields The columns to search for in the current table.
+/// @param constraint The SQL string to be used with the WHERE clause.
+/// @return If there exists nothing returned from query, return 0. Otherwise,the first result returned from query.
+double Nibble::search_single (const std::string &fields, const std::string &constraint) {
+    std::string sql = "SELECT " + fields + " FROM " + table + ((constraint == "") ? "" : " WHERE " + constraint);
     
-    return result;
-}
-
-/// Given a table, insert the set of values in order of the fields given. Requires an open database so we don't keep
-/// changing connection. This function is overloaded to accept a vector of doubles instead of strings.
-///
-/// @param fields The fields corresponding to vector of in_values.
-/// @param in_values Vector of values to insert to table.
-/// @return 0 when finished.
-int Nibble::insert_into_table (const std::string &fields, const tuple &in_values) {
-    // Create bind statement with necessary amount of '?'.
-    std::string sql = "INSERT INTO " + table + " (" + fields + ") VALUES (";
-    for (unsigned int a = 0; a < in_values.size() - 1; a++) {
-        sql.append("?, ");
-    }
-    sql.append("?)");
-    
-    // Bind all the fields to the in values.
     SQLite::Statement query(*db, sql);
-    for (unsigned int i = 0; i < in_values.size(); i++) {
-        query.bind(i + 1, in_values[i]);
+    while (query.executeStep()) {
+        // This should only execute once.
+        return query.getColumn(0).getDouble();
     }
-    query.exec();
-    
     return 0;
 }
+
 
 /// Create a table in the Nibble database with the given schema.
 ///
@@ -428,20 +231,4 @@ int Nibble::polish_table (const std::string &focus_column) {
     transaction.commit();
     
     return 0;
-}
-
-/// Load all of the stars in BSC5 to star_list.
-void Nibble::load_all_stars () {
-    this->generate_bsc5_table();
-    
-    // Reserve space for the list.
-    this->all_stars.reserve(BSC5_TABLE_LENGTH);
-    
-    // Select all stars, and load this into RAM.
-    SQLite::Statement query(*db, "SELECT i, j, k, label FROM BSC5");
-    while (query.executeStep()) {
-        this->all_stars.emplace_back(
-            Star(query.getColumn(0).getDouble(), query.getColumn(1).getDouble(), query.getColumn(2).getDouble(),
-                 query.getColumn(3).getInt()));
-    }
 }
