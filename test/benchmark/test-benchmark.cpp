@@ -12,7 +12,9 @@
 ///
 /// @return 0 when finished.
 int TestBenchmark::test_star_shuffle () {
-    Benchmark input(15, Star::chance(), Rotation::chance());
+    std::random_device seed;
+    Chomp ch(true);
+    Benchmark input(ch, seed, 15);
     Star a = input.stars[0], b(0, 0, 0);
     
     input.shuffle();
@@ -27,9 +29,11 @@ int TestBenchmark::test_star_shuffle () {
 ///
 /// @return 0 when finished.
 int TestBenchmark::test_current_plot_file () {
-    Star a = Star::chance();
-    Rotation b = Rotation::chance();
-    Benchmark input(15, a, b);
+    std::random_device seed;
+    Chomp ch(true);
+    Star a = Star::chance(seed);
+    Rotation b = Rotation::chance(seed);
+    Benchmark input(ch, seed, a, b, 15);
     Star c = Rotation::rotate(a, b);
     std::string d;
     char e[200];
@@ -60,7 +64,9 @@ int TestBenchmark::test_current_plot_file () {
 ///
 /// @return 0 when finished.
 int TestBenchmark::test_error_plot_file () {
-    Benchmark input(15, Star::chance(), Rotation::chance());
+    std::random_device seed;
+    Chomp ch(true);
+    Benchmark input(ch, seed, 15);
     std::string a;
     char b[200];
     
@@ -84,7 +90,9 @@ int TestBenchmark::test_error_plot_file () {
 ///
 /// @return 0 when finished.
 int TestBenchmark::test_error_near_focus () {
-    Benchmark input(15, Star::chance(), Rotation::chance());
+    std::random_device seed;
+    Chomp ch(true);
+    Benchmark input(ch, seed, 15);
     input.add_extra_light(3);
     input.remove_light(3, 4);
     input.shift_light(3, 1);
@@ -102,7 +110,9 @@ int TestBenchmark::test_error_near_focus () {
 ///
 /// @return 0 when finished.
 int TestBenchmark::test_extra_light_added () {
-    Benchmark input(15, Star::chance(), Rotation::chance());
+    std::random_device seed;
+    Chomp ch(true);
+    Benchmark input(ch, seed, 15);
     unsigned long long a = input.stars.size();
     input.add_extra_light(3);
     
@@ -113,7 +123,9 @@ int TestBenchmark::test_extra_light_added () {
 ///
 /// @return 0 when finished.
 int TestBenchmark::test_removed_light_removed () {
-    Benchmark input(15, Star::chance(), Rotation::chance());
+    std::random_device seed;
+    Chomp ch(true);
+    Benchmark input(ch, seed, 15);
     unsigned long long a = input.stars.size();
     input.remove_light(3, 15);
     
@@ -127,7 +139,9 @@ int TestBenchmark::test_removed_light_removed () {
 ///
 /// @return 0 when finished.
 int TestBenchmark::test_shifted_light_shifted () {
-    Benchmark input(15, Star::chance(), Rotation::chance());
+    std::random_device seed;
+    Chomp ch(true);
+    Benchmark input(ch, seed, 15);
     std::vector<Star> a = input.stars;
     input.shift_light(3, 0.1);
     int b = 0;
@@ -144,15 +158,17 @@ int TestBenchmark::test_shifted_light_shifted () {
     return 0 * assert_equal(a.size() * input.stars.size(), b + a.size() - 3, "ShiftLightShiftedStars");
 }
 
-/// Check that the HR numbers of all stars are equal to 0.
+/// Check that the catalog ID numbers of all stars are equal to 0.
 ///
 /// @return 0 when finished.
-int TestBenchmark::test_hr_number_clear () {
-    Benchmark input(15, Star::chance(), Rotation::chance());
+int TestBenchmark::test_label_clear () {
+    std::random_device seed;
+    Chomp ch(true);
+    Benchmark input(ch, seed, 15);
     std::vector<Star> a = input.clean_stars();
     
     for (int q = 0; q < 3; q++) {
-        std::string test_name = "HRNumberClearStar" + std::to_string(q + 1);
+        std::string test_name = "CatalogIDClearStar" + std::to_string(q + 1);
         assert_equal(a[q].get_label(), 0, test_name);
     }
     
@@ -164,7 +180,9 @@ int TestBenchmark::test_hr_number_clear () {
 ///
 /// @return 0 when finished.
 int TestBenchmark::test_display_plot () {
-    Benchmark input(15, Star::chance(), Rotation::chance());
+    std::random_device seed;
+    Chomp ch(true);
+    Benchmark input(ch, seed, 15);
     input.add_extra_light(2);
     input.shift_light(2, 0.1);
     
@@ -172,41 +190,13 @@ int TestBenchmark::test_display_plot () {
     return 0;
 }
 
-/// Check that the a given benchmark is inserted and can be parsed correctly.
-/// 
-/// @return 
-int TestBenchmark::test_nibble_insertion () {
-    std::string schema = "set_n INT, item_n INT, e INT, r INT, s INT, i FLOAT, j FLOAT, k FLOAT, fov FLOAT";
-    Benchmark input(15, Star::chance(), Rotation::chance());
-    Nibble nb;
-    
-    // We insert our benchmark with the next available set_n.
-    nb.select_table(Benchmark::TABLE_NAME);
-    nb.create_table(Benchmark::TABLE_NAME, schema);
-    unsigned int a = (unsigned int) nb.search_table("MAX(set_n)", 1, 1)[0] + 1;
-    input.insert_into_nibble(nb, a);
-    
-    Benchmark b = Benchmark::parse_from_nibble(nb, a);
-    
-    assert_equal(input.focus, b.focus, "ParsedStarIsEqual", input.focus.str() + "," + b.focus.str());
-    assert_equal(input.fov, b.fov, "ParsedFovIsEqual");
-    
-    if (assert_equal(input.stars.size(), b.stars.size(), "ParsedSizeSameAsOriginal")) {
-        int d = (int) input.stars.size() - 1;
-        assert_equal(input.stars[0], b.stars[0], "FirstStarIsEqual", input.stars[0].str() + "," + b.stars[0].str());
-        assert_equal(input.stars[d], b.stars[d], "LastStarIsEqual", input.stars[d].str() + "," + b.stars[d].str());
-    }
-    
-    // We were never here...
-    (*nb.db).exec("DELETE FROM " + std::string(Benchmark::TABLE_NAME) + " WHERE set_n = " + std::to_string(a));
-    return 0;
-}
-
 /// Check that the correct number of stars are returned from the "compare" function.
 ///
 /// @return 0 when finished.
 int TestBenchmark::test_compare_stars () {
-    Benchmark a(15, Star::chance(), Rotation::chance());
+    std::random_device seed;
+    Chomp ch(true);
+    Benchmark a(ch, seed, 15);
     Star::list b = a.stars;
     
     // Erase two stars from set B.
@@ -224,7 +214,9 @@ int TestBenchmark::test_compare_stars () {
 ///
 /// @return 0 when finished.
 int TestBenchmark::test_cap_error () {
-    Benchmark input(15, Star::chance(), Rotation::chance());
+    std::random_device seed;
+    Chomp ch(true);
+    Benchmark input(ch, seed, 15);
     std::vector<Star> a = input.stars;
     input.shift_light(1, 0.1, true);
     
@@ -249,11 +241,10 @@ int TestBenchmark::enumerate_tests (int test_case) {
         case 4: return test_extra_light_added();
         case 5: return test_removed_light_removed();
         case 6: return test_shifted_light_shifted();
-        case 7: return test_hr_number_clear();
+        case 7: return test_label_clear();
         case 8: return test_display_plot();
-        case 9: return test_nibble_insertion();
-        case 10: return test_compare_stars();
-        case 11: return test_cap_error();
+        case 9: return test_compare_stars();
+        case 10: return test_cap_error();
         default: return -1;
     }
 }

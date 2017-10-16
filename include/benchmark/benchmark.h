@@ -12,7 +12,7 @@
 #include <iomanip>
 #include "math/star.h"
 #include "math/rotation.h"
-#include "storage/nibble.h"
+#include "storage/chomp.h"
 
 /// The benchmark class is used for all star identification implementation testing. To imitate real data from a star
 /// detector, we search for all stars in a section of the sky and apply various error models to this set.
@@ -22,7 +22,7 @@
 ///
 /// @example
 /// @code{.cpp}
-/// // Find all stars around a random star within 7.5 degrees of it. Rotate all stars by same random rotation.
+/// // Find all bright stars around a random star within 7.5 degrees of it. Rotate all stars by same random rotation.
 /// Benchmark b(15, Star::chance(), Rotation::chance());
 ///
 /// // Generate 1 random blob of size 2 degrees in diameter. Remove any stars in set above that fall in this blob.
@@ -50,14 +50,12 @@ class Benchmark {
     Benchmark () = delete;
   
   public:
-    Benchmark (double, const Star &, const Rotation & = Rotation::identity());
+    Benchmark (Chomp &, std::random_device &, double, double = 6.0);
+    Benchmark (Chomp &, std::random_device &, const Star &, const Rotation &, double, double = 6.0);
     
-    void generate_stars ();
+    void generate_stars (Chomp &, double = 6.0);
     
     void present_image (Star::list &, double &) const;
-    
-    int insert_into_nibble (Nibble &, const unsigned int) const;
-    static Benchmark parse_from_nibble (Nibble &, const unsigned int);
     
     int record_current_plot ();
     int display_plot ();
@@ -66,22 +64,22 @@ class Benchmark {
     void shift_light (int, double, bool = false);
     void remove_light (int, double);
     
-    static int compare_stars(const Benchmark &, const Star::list &);
-    
+    static int compare_stars (const Benchmark &, const Star::list &);
+  
   public:
     /// Name of the table holding all testing benchmarks in Nibble.
-    static constexpr char* TABLE_NAME = (char*) "BENCH";
+    static constexpr char *TABLE_NAME = (char *) "BENCH";
 
 #if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
-  private:
+    private:
 #endif
-    Benchmark (const Star::list &, const Star &, double);
+    Benchmark (std::random_device &, const Star::list &, const Star &, double);
     
     Star::list clean_stars () const;
     void shuffle ();
 
 #if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
-  private:
+    private:
 #endif
     /// String of the HOKU_PROJECT_PATH environment variable.
     const std::string PROJECT_LOCATION = std::string(std::getenv("HOKU_PROJECT_PATH"));
@@ -97,7 +95,10 @@ class Benchmark {
     
     /// Alias for the list (stack) of ErrorModels.
     using model_list = std::vector<ErrorModel>;
-
+    
+    /// Random device pointer, used as source of randomness.
+    std::random_device* seed;
+    
     /// Current list of stars. All stars must be near the focus.
     Star::list stars;
     

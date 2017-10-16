@@ -19,9 +19,8 @@ class TestBenchmark : public BaseTest {
     int test_extra_light_added ();
     int test_removed_light_removed ();
     int test_shifted_light_shifted ();
-    int test_hr_number_clear ();
+    int test_label_clear ();
     int test_display_plot ();
-    int test_nibble_insertion ();
     int test_compare_stars();
     int test_cap_error();
   
