@@ -48,7 +48,7 @@ class Chomp : public Nibble {
   public:
     using Nibble::tuples_d;
     
-    Chomp(bool = false);
+    Chomp();
     
     int generate_bright_table ();
     int generate_hip_table ();

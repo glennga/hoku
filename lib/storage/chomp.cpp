@@ -8,15 +8,13 @@
 
 /// Constructor. This dynamically allocates a database connection object to nibble.db. If the database does not exist,
 /// it is created. We then proceed to load all stars into RAM from both tables.
-///
-/// @param load_stars Flag to load all stars. Defaults to false.
-Chomp::Chomp (const bool load_stars) {
+Chomp::Chomp () {
     const int FLAGS = SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE;
     this->db = std::make_unique<SQLite::Database>(DATABASE_LOCATION, FLAGS);
     
-    if (load_stars) {
-        load_all_stars();
-    }
+    generate_hip_table();
+    generate_bright_table();
+    load_all_stars();
 }
 
 /// Helper method for catalog table generation methods. Read the star catalog data and compute the {i, j, k} components

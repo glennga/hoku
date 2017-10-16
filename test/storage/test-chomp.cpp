@@ -9,7 +9,7 @@
 ///
 /// @return 0 when finished.
 int TestChomp::test_bright_star_grab () {
-    Chomp ch(true);
+    Chomp ch;
     Star::list a = ch.bright_as_list();
     
     Star b = ch.query_hip(88), c = ch.query_hip(107), d = ch.query_hip(122);
@@ -28,7 +28,7 @@ int TestChomp::test_bright_star_grab () {
 /// @return 0 when finished.
 int TestChomp::test_nearby_bright_star_grab () {
     std::random_device seed;
-    Chomp ch(true);
+    Chomp ch;
     Star focus = Star::chance(seed);
     std::vector<Star> nearby = ch.nearby_bright_stars(focus, 7.5, 30);
     
@@ -45,7 +45,7 @@ int TestChomp::test_nearby_bright_star_grab () {
 /// @return 0 when finished.
 int TestChomp::test_nearby_hip_star_grab() {
     std::random_device seed;
-    Chomp ch(true);
+    Chomp ch;
     Star focus = Star::chance(seed);
     std::vector<Star> nearby = ch.nearby_hip_stars(focus, 5, 100);
     

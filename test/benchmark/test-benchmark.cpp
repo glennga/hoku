@@ -13,7 +13,8 @@
 /// @return 0 when finished.
 int TestBenchmark::test_star_shuffle () {
     std::random_device seed;
-    Chomp ch(true);
+    Chomp ch;
+    
     Benchmark input(ch, seed, 15);
     Star a = input.stars[0], b(0, 0, 0);
     
@@ -30,7 +31,8 @@ int TestBenchmark::test_star_shuffle () {
 /// @return 0 when finished.
 int TestBenchmark::test_current_plot_file () {
     std::random_device seed;
-    Chomp ch(true);
+    Chomp ch;
+    
     Star a = Star::chance(seed);
     Rotation b = Rotation::chance(seed);
     Benchmark input(ch, seed, a, b, 15);
@@ -65,7 +67,8 @@ int TestBenchmark::test_current_plot_file () {
 /// @return 0 when finished.
 int TestBenchmark::test_error_plot_file () {
     std::random_device seed;
-    Chomp ch(true);
+    Chomp ch;
+    
     Benchmark input(ch, seed, 15);
     std::string a;
     char b[200];
@@ -91,7 +94,8 @@ int TestBenchmark::test_error_plot_file () {
 /// @return 0 when finished.
 int TestBenchmark::test_error_near_focus () {
     std::random_device seed;
-    Chomp ch(true);
+    Chomp ch;
+    
     Benchmark input(ch, seed, 15);
     input.add_extra_light(3);
     input.remove_light(3, 4);
@@ -111,7 +115,8 @@ int TestBenchmark::test_error_near_focus () {
 /// @return 0 when finished.
 int TestBenchmark::test_extra_light_added () {
     std::random_device seed;
-    Chomp ch(true);
+    Chomp ch;
+    
     Benchmark input(ch, seed, 15);
     unsigned long long a = input.stars.size();
     input.add_extra_light(3);
@@ -124,7 +129,8 @@ int TestBenchmark::test_extra_light_added () {
 /// @return 0 when finished.
 int TestBenchmark::test_removed_light_removed () {
     std::random_device seed;
-    Chomp ch(true);
+    Chomp ch;
+    
     Benchmark input(ch, seed, 15);
     unsigned long long a = input.stars.size();
     input.remove_light(3, 15);
@@ -140,7 +146,8 @@ int TestBenchmark::test_removed_light_removed () {
 /// @return 0 when finished.
 int TestBenchmark::test_shifted_light_shifted () {
     std::random_device seed;
-    Chomp ch(true);
+    Chomp ch;
+    
     Benchmark input(ch, seed, 15);
     std::vector<Star> a = input.stars;
     input.shift_light(3, 0.1);
@@ -163,7 +170,7 @@ int TestBenchmark::test_shifted_light_shifted () {
 /// @return 0 when finished.
 int TestBenchmark::test_label_clear () {
     std::random_device seed;
-    Chomp ch(true);
+    Chomp ch;
     Benchmark input(ch, seed, 15);
     std::vector<Star> a = input.clean_stars();
     
@@ -181,7 +188,8 @@ int TestBenchmark::test_label_clear () {
 /// @return 0 when finished.
 int TestBenchmark::test_display_plot () {
     std::random_device seed;
-    Chomp ch(true);
+    Chomp ch;
+    
     Benchmark input(ch, seed, 15);
     input.add_extra_light(2);
     input.shift_light(2, 0.1);
@@ -195,7 +203,8 @@ int TestBenchmark::test_display_plot () {
 /// @return 0 when finished.
 int TestBenchmark::test_compare_stars () {
     std::random_device seed;
-    Chomp ch(true);
+    Chomp ch;
+    
     Benchmark a(ch, seed, 15);
     Star::list b = a.stars;
     
@@ -215,7 +224,8 @@ int TestBenchmark::test_compare_stars () {
 /// @return 0 when finished.
 int TestBenchmark::test_cap_error () {
     std::random_device seed;
-    Chomp ch(true);
+    Chomp ch;
+    
     Benchmark input(ch, seed, 15);
     std::vector<Star> a = input.stars;
     input.shift_light(1, 0.1, true);

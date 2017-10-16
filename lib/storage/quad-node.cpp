@@ -238,7 +238,7 @@ QuadNode QuadNode::find_quad_leaves (const QuadNode &c, const double w_i, const 
 QuadNode QuadNode::load_tree (const double w_n) {
     QuadNode r = QuadNode::root(w_n);
     QuadNode::list projected;
-    Chomp ch(true);
+    Chomp ch;
     
     // Find the Mercator projection for all bright stars.
     projected.reserve(ch.BRIGHT_TABLE_LENGTH);
