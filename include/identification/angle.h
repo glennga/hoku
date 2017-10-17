@@ -67,8 +67,8 @@ class Angle {
     /// Current working parameters.
     Parameters parameters;
     
-    /// Nibble instance. This is where multi-threading 'might' fail, with repeated access to database.
-    Nibble nb;
+    /// Chomp instance, gives us access to the Nibble database.
+    Chomp ch;
     
     /// All stars in 'input' are fov degrees from the focus.
     double fov;
@@ -83,7 +83,7 @@ class Angle {
     Star::pair find_candidate_pair (const Star &, const Star &);
     Star::list check_assumptions (const Star::list &, const Star::pair &, const Star::pair &);
     
-    static std::vector<label_pair> trial_query (Nibble &, const Star &, const Star &, double);
+    static std::vector<label_pair> trial_query (Chomp &, const Star &, const Star &, double);
     Rotation trial_attitude_determine (const Star::list &, const Star::pair &, const Star::pair &);
 };
 

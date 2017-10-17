@@ -34,17 +34,17 @@ PlanarTriangle::PlanarTriangle (const Benchmark &input, const Parameters &parame
 /// @param table_name Name of the table to generate.
 /// @return 0 when finished.
 int Plane::generate_triangle_table (const double fov, const std::string &table_name) {
-    Nibble nb;
-    SQLite::Transaction initial_transaction(*nb.db);
+    Chomp ch;
+    SQLite::Transaction initial_transaction(*ch.db);
     
-    nb.create_table(table_name, "hr_a INT, hr_b INT, hr_c INT, a FLOAT, i FLOAT");
+    ch.create_table(table_name, "hr_a INT, hr_b INT, hr_c INT, a FLOAT, i FLOAT");
     initial_transaction.commit();
-    nb.select_table(table_name);
+    ch.select_table(table_name);
     
     // (i, j, k) are distinct, where no (i, j, k) = (j, k, i), (j, i, k), ....
-    Star::list all_stars = nb.all_bsc5_stars();
+    Star::list all_stars = ch.bright_as_list();
     for (unsigned int i = 0; i < all_stars.size() - 2; i++) {
-        SQLite::Transaction transaction(*nb.db);
+        SQLite::Transaction transaction(*ch.db);
         std::cout << "\r" << "Current *I* Star: " << all_stars[i].get_label();
         for (unsigned int j = i + 1; j < all_stars.size() - 1; j++) {
             for (unsigned int k = j + 1; k < all_stars.size(); k++) {
@@ -54,7 +54,7 @@ int Plane::generate_triangle_table (const double fov, const std::string &table_n
                     double a_t = Trio::planar_area(all_stars[i], all_stars[j], all_stars[k]);
                     double i_t = Trio::planar_moment(all_stars[i], all_stars[j], all_stars[k]);
                     
-                    nb.insert_into_table("hr_a, hr_b, hr_c, a, i", {(double) all_stars[i].get_label(),
+                    ch.insert_into_table("hr_a, hr_b, hr_c, a, i", Nibble::tuple_d {(double) all_stars[i].get_label(),
                         (double) all_stars[j].get_label(), (double) all_stars[k].get_label(), a_t, i_t});
                 }
             }
@@ -64,7 +64,7 @@ int Plane::generate_triangle_table (const double fov, const std::string &table_n
     }
     
     // Create an index for area searches. We aren't searching for polar moments.
-    return nb.polish_table("a");
+    return ch.polish_table("a");
 }
 
 /// Given a trio of body stars, find matching trios of inertial stars using their respective planar areas and polar
@@ -82,7 +82,7 @@ std::vector<Trio::stars> Plane::match_stars (const index_trio &i_b) {
     if (!Star::within_angle({b_stars[0], b_stars[1], b_stars[2]}, this->fov)) {
         return {{Star::zero(), Star::zero(), Star::zero()}};
     }
-
+    
     // Search for the current trio. If this is empty, then break early.
     match_hr = this->query_for_trio(Trio::planar_area(b_stars[0], b_stars[1], b_stars[2]),
                                     Trio::planar_moment(b_stars[0], b_stars[1], b_stars[2]));
@@ -93,7 +93,7 @@ std::vector<Trio::stars> Plane::match_stars (const index_trio &i_b) {
     // Grab stars themselves from catalog IDs found in matches. Return these matches.
     matched_stars.reserve(match_hr.size());
     for (const label_trio &t : match_hr) {
-        matched_stars.push_back({ch.query_bsc5((int) t[0]), ch.query_bsc5((int) t[1]), ch.query_bsc5((int) t[2])});
+        matched_stars.push_back({ch.query_hip((int) t[0]), ch.query_hip((int) t[1]), ch.query_hip((int) t[2])});
     }
     
     return matched_stars;

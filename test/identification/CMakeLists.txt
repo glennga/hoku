@@ -13,7 +13,7 @@ include_directories(${CMAKE_SOURCE_DIR}/test/include)
 ##################################################################
 add_executable(TestAngle test-angle.cpp)
 target_link_libraries(TestAngle BaseTest Angle Benchmark Rotation
-        Nibble Star SQLiteCpp Sqlite3)
+        Chomp Nibble Star SQLiteCpp Sqlite3)
 
 ##################################################################
 # Link and Create Executable TestPlanarTriangle

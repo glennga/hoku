@@ -18,7 +18,7 @@ std::vector<BaseTriangle::label_trio> BaseTriangle::query_for_trio (const double
     double epsilon_a = 3.0 * this->parameters.sigma_a;
     double epsilon_i = 3.0 * this->parameters.sigma_i;
     std::vector<label_trio> area_moment_match = {{-1, -1, -1}};
-    hr_list area_match;
+    Nibble::tuples_d area_match;
     
     // First, search for trio of stars matching area condition.
     ch.select_table(this->parameters.table_name);
@@ -27,11 +27,9 @@ std::vector<BaseTriangle::label_trio> BaseTriangle::query_for_trio (const double
     
     // Next, search this trio for stars matching the moment condition.
     area_moment_match.reserve(area_match.size() / 4);
-    for (unsigned int m = 0; m < area_match.size() / 4; m++) {
-        Chomp::tuple t = ch.table_results_at(area_match, 4, m);
-        
+    for (Chomp::tuple_d t : area_match) {
         if (t[3] >= i - epsilon_i && t[3] < i + epsilon_i) {
-            area_moment_match.push_back({t[0], t[1], t[2]});
+            area_moment_match.push_back(label_trio {t[0], t[1], t[2]});
         }
     }
     

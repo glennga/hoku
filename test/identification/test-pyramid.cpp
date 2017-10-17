@@ -16,7 +16,7 @@ int TestPyramid::test_reference_find () {
     Pyramid a(Benchmark(20, Star::chance(), Rotation::chance()), Pyramid::Parameters());
     Star b = a.find_reference(ei, ej, ek);
     
-    return 0 * assert_equal(b, a.ch.query_bsc5(3), "ReferenceStarCorrectlyFound", b.str());
+    return 0 * assert_equal(b, a.ch.query_hip(3), "ReferenceStarCorrectlyFound", b.str());
 }
 
 /// Check that find_candidate_quad method returns the correct quad.

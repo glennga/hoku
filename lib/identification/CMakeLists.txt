@@ -45,15 +45,6 @@ install(TARGETS SphericalTriangle DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include)
 
 ##################################################################
-# Build Library AstrometryNet
-##################################################################
-FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/astrometry-net.cpp)
-FILE(GLOB INCLUDES ${CMAKE_SOURCE_DIR}/include/identification/astrometry-net.h)
-add_library(AstrometryNet STATIC ${SOURCES} ${INCLUDES})
-install(TARGETS AstrometryNet DESTINATION lib)
-install(FILES ${INCLUDES} DESTINATION include)
-
-##################################################################
 # Build Library Pyramid
 ##################################################################
 FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/pyramid.cpp)

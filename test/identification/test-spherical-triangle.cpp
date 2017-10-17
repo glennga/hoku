@@ -43,9 +43,9 @@ int TestSphericalTriangle::test_match_stars_fov () {
     Chomp ch;
     
     Sphere a(Benchmark(10, Star::chance(), Rotation::chance()), par);
-    a.input[0] = Star::reset_label(ch.query_bsc5(3));
-    a.input[1] = Star::reset_label(ch.query_bsc5(4));
-    a.input[2] = Star::reset_label(ch.query_bsc5(5));
+    a.input[0] = Star::reset_label(ch.query_hip(3));
+    a.input[1] = Star::reset_label(ch.query_hip(4));
+    a.input[2] = Star::reset_label(ch.query_hip(5));
     
     std::vector<Trio::stars> b = a.match_stars({0, 1, 2});
     return 0 * assert_true(std::all_of(b[0].begin(), b[0].end(), [] (const Star &s) -> bool {
@@ -79,7 +79,7 @@ int TestSphericalTriangle::test_match_stars_results () {
     Sphere::Parameters par;
     par.table_name = "SPHERE_20";
     Sphere a(Benchmark(20, Star::chance(), Rotation::chance()), par);
-    a.input[0] = a.ch.query_bsc5(475), a.input[1] = a.ch.query_bsc5(530), a.input[2] = a.ch.query_bsc5(660);
+    a.input[0] = a.ch.query_hip(475), a.input[1] = a.ch.query_hip(530), a.input[2] = a.ch.query_hip(660);
     
     std::vector<Trio::stars> b = a.match_stars({0, 1, 2});
     std::array<bool, 3> matched = {false, false, false};
@@ -105,7 +105,7 @@ int TestSphericalTriangle::test_pivot_query_results () {
     Sphere::Parameters par;
     par.table_name = "SPHERE_20";
     Sphere a(Benchmark(20, Star::chance(), Rotation::chance()), par);
-    a.input[0] = a.ch.query_bsc5(475), a.input[1] = a.ch.query_bsc5(530), a.input[2] = a.ch.query_bsc5(660);
+    a.input[0] = a.ch.query_hip(475), a.input[1] = a.ch.query_hip(530), a.input[2] = a.ch.query_hip(660);
     
     std::vector<Trio::stars> b = a.match_stars({0, 1, 2});
     Trio::stars c = a.pivot({0, 1, 2}, b);

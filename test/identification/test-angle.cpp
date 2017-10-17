@@ -9,7 +9,9 @@
 ///
 /// @return 0 when finished.
 int TestAngle::test_pair_query () {
-    Benchmark input(15, Star::chance(), Rotation::chance());
+    Chomp ch;
+    std::random_device seed;
+    Benchmark input(ch, seed, 15);
     
     double a = Star::angle_between(input.stars[0], input.stars[1]);
     std::array<int, 2> b = Angle(input, Angle::Parameters()).query_for_pair(a);
@@ -28,7 +30,9 @@ int TestAngle::test_pair_query () {
 ///
 /// @return 0 when finished.
 int TestAngle::test_pair_multiple_choice_query () {
-    Angle a(Benchmark(15, Star::chance(), Rotation::chance()), Angle::Parameters());
+    Chomp ch;
+    std::random_device seed;
+    Angle a(Benchmark(ch, seed, 15), Angle::Parameters());
     Star b(0.203647924328259, 0.559277619691848, 0.803577044861669, 1466);
     Star c(0.205670146125506, 0.564397142318217, 0.799472111293286, 1467);
     a.parameters.query_sigma = 0.000139;
@@ -42,7 +46,9 @@ int TestAngle::test_pair_multiple_choice_query () {
 ///
 /// @return 0 when finished.
 int TestAngle::test_candidate_fov_query () {
-    Angle a(Benchmark(10, Star::chance(), Rotation::chance()), Angle::Parameters());
+    Chomp ch;
+    std::random_device seed;
+    Angle a(Benchmark(ch, seed, 10), Angle::Parameters());
     Star b(0.928454687492219, 0.132930961972911, 0.346844709665121);
     Star c(0.998078771188383, -0.0350062881876723, 0.0511207031486225);
     
@@ -55,7 +61,9 @@ int TestAngle::test_candidate_fov_query () {
 ///
 /// @return 0 when finished.
 int TestAngle::test_candidate_none_query () {
-    Angle a(Benchmark(10, Star::chance(), Rotation::chance()), Angle::Parameters());
+    Chomp ch;
+    std::random_device seed;
+    Angle a(Benchmark(ch, seed, 10), Angle::Parameters());
     
     std::array<Star, 2> b = a.find_candidate_pair(Star(1, 1, 1), Star(1.1, 1, 1));
     assert_equal(b[0], Star(0, 0, 0), "Candidate0NoMatchingPair", b[0].str() + "," + Star(0, 0, 0).str());
@@ -66,7 +74,9 @@ int TestAngle::test_candidate_none_query () {
 ///
 /// @return 0 when finished.
 int TestAngle::test_candidate_results_query () {
-    Benchmark input(15, Star::chance(), Rotation::chance());
+    Chomp ch;
+    std::random_device seed;
+    Benchmark input(ch, seed, 15);
     Angle b(input, Angle::Parameters());
     
     std::array<Star, 2> c = b.find_candidate_pair(input.stars[0], input.stars[1]);
@@ -83,11 +93,13 @@ int TestAngle::test_candidate_results_query () {
 ///
 /// @return 0 when finished.
 int TestAngle::test_rotating_match_correct_input () {
-    Star a = Star::chance(), b = Star::chance();
-    Rotation c = Rotation::chance();
+    Chomp ch;
+    std::random_device seed;
+    Star a = Star::chance(seed), b = Star::chance(seed);
+    Rotation c = Rotation::chance(seed);
     Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
     Rotation f = Rotation::rotation_across_frames({a, b}, {d, e});
-    Benchmark input(8, Star::chance(), c);
+    Benchmark input(ch, seed, Star::chance(seed), c, 8);
     std::vector<Star> rev_input;
     Angle g(input, Angle::Parameters());
     
@@ -112,11 +124,13 @@ int TestAngle::test_rotating_match_correct_input () {
 ///
 /// @return 0 when finished.
 int TestAngle::test_rotating_match_error_input () {
-    Star a = Star::chance(), b = Star::chance();
-    Rotation c = Rotation::chance();
+    Chomp ch;
+    std::random_device seed;
+    Star a = Star::chance(seed), b = Star::chance(seed);
+    Rotation c = Rotation::chance(seed);
     Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
     Rotation f = Rotation::rotation_across_frames({a, b}, {d, e});
-    Benchmark input(8, Star::chance(), c);
+    Benchmark input(ch, seed, Star::chance(seed), c, 8);
     std::vector<Star> rev_input;
     Angle g(input, Angle::Parameters());
     
@@ -144,11 +158,13 @@ int TestAngle::test_rotating_match_error_input () {
 ///
 /// @return 0 when finished.
 int TestAngle::test_rotating_match_duplicate_input () {
-    Star a = Star::chance(), b = Star::chance();
-    Rotation c = Rotation::chance();
+    Chomp ch;
+    std::random_device seed;
+    Star a = Star::chance(seed), b = Star::chance(seed);
+    Rotation c = Rotation::chance(seed);
     Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
     Rotation f = Rotation::rotation_across_frames({a, b}, {d, e});
-    Benchmark input(8, Star::chance(), c);
+    Benchmark input(ch, seed, Star::chance(seed), c, 8);
     std::vector<Star> rev_input;
     Angle g(input, Angle::Parameters());
     
@@ -178,7 +194,9 @@ int TestAngle::test_rotating_match_duplicate_input () {
 ///
 /// @return 0 when finished.
 int TestAngle::test_identify_clean_input () {
-    Benchmark input(8, Star::chance(), Rotation::chance());
+    Chomp ch;
+    std::random_device seed;
+    Benchmark input(ch, seed, 8);
     Angle::Parameters a;
     
     // We define a match as 66% here.
@@ -209,7 +227,9 @@ int TestAngle::test_identify_clean_input () {
 ///
 /// @return 0 when finished.
 int TestAngle::test_identify_error_input () {
-    Benchmark input(9, Star::chance(), Rotation::chance());
+    Chomp ch;
+    std::random_device seed;
+    Benchmark input(ch, seed, 9);
     Angle::Parameters a;
     input.add_extra_light(1);
     
@@ -241,7 +261,9 @@ int TestAngle::test_identify_error_input () {
 /// 
 /// @return 0 when finished. 
 int TestAngle::test_saturation_match () {
-    Benchmark input(15, Star::chance(), Rotation::chance());
+    Chomp ch;
+    std::random_device seed;
+    Benchmark input(ch, seed, 15);
     Angle::Parameters p;
     
     // Some ridiculous number...

@@ -33,7 +33,7 @@ Pyramid::label_list_pair Pyramid::query_for_pairs (const double theta) {
     // Noise is normally distributed. Angle within 3 sigma of theta.
     double epsilon = 3.0 * this->parameters.query_sigma;
     unsigned int limit = this->parameters.query_limit;
-    Chomp::tuple results;
+    Chomp::tuples_d results;
     label_list_pair candidates;
     
     // Query using theta with epsilon bounds.
@@ -42,10 +42,10 @@ Pyramid::label_list_pair Pyramid::query_for_pairs (const double theta) {
     
     // Append the results to our candidate list.
     candidates.reserve(results.size() / 2);
-    for (unsigned int i = 0; i < results.size(); i += 2) {
-        candidates.push_back(label_pair {(int) results[i], (int) results[i + 1]});
+    for (const Nibble::tuple_d &result: results) {
+        candidates.push_back(label_pair {(int) result[0], (int) result[1]});
     }
-    
+
     return candidates;
 }
 
@@ -77,7 +77,7 @@ Star Pyramid::find_reference (const label_list_pair &ei, const label_list_pair &
     // Find the intersection between our previous intersection and EK.
     std::set_intersection(eij_common.begin(), eij_common.end(), ek_list.begin(), ek_list.end(), candidates.begin());
     
-    return (candidates.empty()) ? Star::zero() : ch.query_bsc5((int) candidates[0]);
+    return (candidates.empty()) ? Star::zero() : ch.query_hip((int) candidates[0]);
 }
 
 /// Given a quad of indices from the input set, determine the matching catalog IDs that correspond to each star. We
@@ -96,6 +96,9 @@ Pyramid::hr_quad Pyramid::find_candidate_quad (const index_quad &b_f) {
     if (e_candidate == Star::zero()) {
         return {-1, -1, -1, -1};
     }
+    auto choose_not_e = [&e_candidate] (const label_pair &pair) -> int {
+        return (pair[0] == e_candidate.get_label()) ? pair[1] : pair[0];
+    };
     
     // Remove all pairs that don't contain our reference star.
     auto e_nonexistence = [&e_candidate] (const label_pair &pair) -> bool {
@@ -109,12 +112,9 @@ Pyramid::hr_quad Pyramid::find_candidate_quad (const index_quad &b_f) {
     for (const label_pair &p_i : ei_pairs) {
         for (const label_pair &p_j : ej_pairs) {
             for (const label_pair &p_k : ek_pairs) {
-                auto choose_not_e = [&e_candidate] (const label_pair &pair) -> int {
-                    return (pair[0] == e_candidate.get_label()) ? pair[1] : pair[0];
-                };
                 int i = choose_not_e(p_i), j = choose_not_e(p_j), k = choose_not_e(p_k);
                 
-                if (Star::within_angle({ch.query_bsc5(i), ch.query_bsc5(j), ch.query_bsc5(k)}, fov)) {
+                if (Star::within_angle({ch.query_hip(i), ch.query_hip(j), ch.query_hip(k)}, fov)) {
                     return {i, j, k, e_candidate.get_label()};
                 }
             }
@@ -141,7 +141,8 @@ Star::list Pyramid::find_matches (const Star::list &candidates, const Rotation &
         for (unsigned int i = 0; i < non_matched.size(); i++) {
             if (Star::angle_between(r_prime, non_matched[i]) < epsilon) {
                 // Add this match to the list by noting the candidate star's catalog ID number.
-                matches.emplace_back(Star(non_matched[i][0], non_matched[i][1], non_matched[i][2], candidate.get_label()));
+                matches.emplace_back(
+                    Star(non_matched[i][0], non_matched[i][1], non_matched[i][2], candidate.get_label()));
                 
                 // Remove the current star from the searching set. End the search for this star.
                 non_matched.erase(non_matched.begin() + i);
@@ -163,7 +164,7 @@ Star::list Pyramid::find_matches (const Star::list &candidates, const Rotation &
 Star::list Pyramid::match_remaining (const Star::list &candidates, const index_quad &b, const hr_quad &r) {
     // Find rotation between the stars I and E. Use this to find the matches.
     return this->find_matches(candidates, Rotation::rotation_across_frames({input[b[0]], input[b[3]]},
-                                                                           {ch.query_bsc5(r[0]), ch.query_bsc5(r[3])}));
+                                                                           {ch.query_hip(r[0]), ch.query_hip(r[3])}));
 }
 
 /// Match the stars found in the given benchmark to those in the Nibble database.
@@ -196,7 +197,8 @@ Star::list Pyramid::identify (const Benchmark &input, const Parameters &paramete
                 }
                 
                 // Find candidate stars around the reference star.
-                candidates = p.ch.nearby_stars(p.ch.query_bsc5(r_quad[3]), p.fov, 3 * ((unsigned int) p.input.size()));
+                candidates = p.ch.nearby_bright_stars(p.ch.query_hip(r_quad[3]), p.fov,
+                                                      3 * ((unsigned int) p.input.size()));
                 
                 // Return all stars from our input that match the candidates. Append the appropriate catalog IDs.
                 matches = p.match_remaining(candidates, {i, j, k, e}, r_quad);
