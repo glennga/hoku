@@ -66,10 +66,6 @@ class Benchmark {
     
     static int compare_stars (const Benchmark &, const Star::list &);
   
-  public:
-    /// Name of the table holding all testing benchmarks in Nibble.
-    static constexpr char *TABLE_NAME = (char *) "BENCH";
-
 #if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
     private:
 #endif

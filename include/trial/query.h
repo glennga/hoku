@@ -8,7 +8,6 @@
 #define TRIAL_QUERY_H
 
 #include "identification/angle.h"
-#include "identification/astrometry-net.h"
 #include "identification/spherical-triangle.h"
 #include "identification/planar-triangle.h"
 #include "identification/pyramid.h"
@@ -23,10 +22,10 @@
 /// @endcode
 namespace Query {
     /// Attribute header that corresponds to the log file for all query trials.
-    const char *const ATTRIBUTE = "IdentificationMethod,QuerySigma,ShiftSigma,ResultSetSize,SExistence\n";
+    const char *const ATTRIBUTE = "IdentificationMethod,QuerySigma,ShiftSigma,CandidateSetSize,SExistence\n";
     
     const double WORKING_FOV = 20; ///< Field of view that all our test stars must be within.
-    const int QUERY_SAMPLES = 1; ///< Number of samples to retrieve for each individual trial.
+    const int QUERY_SAMPLES = 100; ///< Number of samples to retrieve for each individual trial.
     
     const double QS_MIN = std::numeric_limits<double>::epsilon(); ///< Minimum query sigma (machine epsilon).
     const double QS_MULT = 3; ///< Query sigma multiplier for each variation.
@@ -40,7 +39,7 @@ namespace Query {
     const std::string PLANE_TABLE = "PLANE_20"; ///< Name of table generated for Plane method.
     const std::string SPHERE_TABLE = "SPHERE_20"; ///< Name of table generated for Sphere method.
     
-    Star::list generate_n_stars (Nibble &, unsigned int, std::random_device &);
+    Star::list generate_n_stars (Chomp &, unsigned int, std::random_device &);
     
     /// Return true if the given body set exists somewhere in a collection of reference sets.
     ///
@@ -60,9 +59,10 @@ namespace Query {
         return false;
     }
     
-    void trial_angle (Nibble &, std::ofstream &);
-    void trial_plane (Nibble &, std::ofstream &);
-    void trial_sphere (Nibble &, std::ofstream &);
+    void trial_angle (Chomp &, std::ofstream &);
+    void trial_plane (Chomp &, std::ofstream &);
+    void trial_sphere (Chomp &, std::ofstream &);
+    void trial_pyramid (Chomp &, std::ofstream &);
 }
 
 #endif /* TRIAL_QUERY_H */

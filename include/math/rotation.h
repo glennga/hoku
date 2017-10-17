@@ -39,7 +39,7 @@ class Rotation {
     bool operator== (const Rotation &) const;
     
     static Star rotate (const Star &, const Rotation &);
-    static double rotational_difference (const Rotation &, const Rotation &, const Star &);
+    static double rotational_difference (const Rotation &, const Rotation &);
     
     static Rotation identity ();
     static Rotation chance (std::random_device &);
@@ -60,6 +60,7 @@ class Rotation {
 #endif
     Rotation (double, const Star &, bool = false);
     
+    static Rotation multiply (const Rotation &, const Rotation &);
     static Rotation matrix_to_quaternion (const matrix &);
     static matrix matrix_multiply_transpose (const matrix &, const matrix &);
 

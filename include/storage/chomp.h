@@ -39,11 +39,17 @@
 /// @endcode
 class Chomp : public Nibble {
   public:
-    /// Length of the HIP_BRIGHT table. Necessary if loading all stars into RAM.
+    /// Length of the bright stars table. Necessary if loading all stars into RAM.
     static const unsigned int BRIGHT_TABLE_LENGTH = 4559;
     
-    /// Length of the HIPPO2 table. Necessary if loading all stars into RAM.
+    /// Length of the general stars table. Necessary if loading all stars into RAM.
     static const unsigned int HIP_TABLE_LENGTH = 117956;
+    
+    /// Largest catalog ID in the bright stars table.
+    static const unsigned int BRIGHT_TABLE_MAX_LABEL = 117930;
+    
+    /// Smallest catalog ID in the bright stars table.
+    static const unsigned int BRIGHT_TABLE_MIN_LABEL = 88;
     
   public:
     using Nibble::tuples_d;
