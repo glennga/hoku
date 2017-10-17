@@ -32,14 +32,6 @@ target_link_libraries(TestSphericalTriangle BaseTest SphericalTriangle
         Star SQLiteCpp Sqlite3)
 
 ##################################################################
-# Link and Create Executable TestAstrometryNet
-##################################################################
-add_executable(TestAstrometryNet test-astrometry-net.cpp)
-target_link_libraries(TestAstrometryNet BaseTest AstrometryNet
-        Benchmark Rotation KdNode Chomp Nibble Asterism Mercator
-        Star SQLiteCpp Sqlite3)
-
-##################################################################
 # Link and Create Executable TestPyramid
 ##################################################################
 add_executable(TestPyramid test-pyramid.cpp)

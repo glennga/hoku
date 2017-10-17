@@ -40,7 +40,7 @@ class Angle {
   public:
     /// Defines the query and match operations, user can tweak for custom performance.
     struct Parameters {
-        double query_sigma = std::numeric_limits<double>::epsilon() * 100; ///< Query must be within 3 * query_sigma.
+        double query_sigma = std::numeric_limits<double>::epsilon() * 1000; ///< Query must be within 3 * query_sigma.
         unsigned int query_limit = 100; ///< While performing a basic bound query, limit results by this number.
         double match_sigma = 0.00001; ///< Resultant of inertial->body rotation must within 3 * match_sigma of *a* body.
         unsigned int match_minimum = 3; ///< The minimum number of body-inertial matches.

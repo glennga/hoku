@@ -38,14 +38,14 @@ Pyramid::label_list_pair Pyramid::query_for_pairs (const double theta) {
     
     // Query using theta with epsilon bounds.
     ch.select_table(parameters.table_name);
-    results = ch.k_vector_query("theta", "hr_a, hr_b, theta", theta - epsilon, theta + epsilon, 3 * limit);
+    results = ch.k_vector_query("theta", "label_a, label_b, theta", theta - epsilon, theta + epsilon, 3 * limit);
     
     // Append the results to our candidate list.
     candidates.reserve(results.size() / 2);
     for (const Nibble::tuple_d &result: results) {
         candidates.push_back(label_pair {(int) result[0], (int) result[1]});
     }
-
+    
     return candidates;
 }
 
@@ -201,7 +201,7 @@ Star::list Pyramid::identify (const Benchmark &input, const Parameters &paramete
                                                       3 * ((unsigned int) p.input.size()));
                 
                 // Return all stars from our input that match the candidates. Append the appropriate catalog IDs.
-                matches = p.match_remaining(candidates, {i, j, k, e}, r_quad);
+                matches = p.match_remaining(candidates, {(signed) i, j, k, e}, r_quad);
                 if (matches.size() >= p.parameters.match_minimum) {
                     return matches;
                 }

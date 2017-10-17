@@ -25,7 +25,7 @@ Angle::Angle (const Benchmark &input, const Parameters &p) {
 int Angle::generate_sep_table (const double fov, const std::string &table_name) {
     Chomp ch;
     SQLite::Transaction transaction(*ch.db);
-    ch.create_table(table_name, "hr_a INT, hr_b INT, theta FLOAT");
+    ch.create_table(table_name, "label_a INT, label_b INT, theta FLOAT");
     ch.select_table(table_name);
     
     // (i, j) are distinct, where no (i, j) = (j, i).
@@ -37,7 +37,7 @@ int Angle::generate_sep_table (const double fov, const std::string &table_name) 
             
             // Only insert if the angle between both stars is less than fov.
             if (theta < fov) {
-                ch.insert_into_table("hr_a, hr_b, theta", Nibble::tuple_d {(double) all_stars[i].get_label(),
+                ch.insert_into_table("label_a, label_b, theta", Nibble::tuple_d {(double) all_stars[i].get_label(),
                     (double) all_stars[j].get_label(), theta});
             }
         }
@@ -64,13 +64,13 @@ Angle::label_pair Angle::query_for_pair (const double theta) {
     ch.select_table(parameters.table_name);
     condition << "theta BETWEEN " << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed;
     condition << theta - epsilon << " AND " << theta + epsilon;
-    candidates = ch.search_table("hr_a, hr_b, theta", condition.str(), limit * 3, limit);
+    candidates = ch.search_table("label_a, label_b, theta", condition.str(), limit * 3, limit);
     if (candidates.empty()) {
         return label_pair {-1, -1};
     }
     
     // Select the candidate pair with the angle closest to theta.
-    Nibble::tuple_d minimum_tuple;
+    Nibble::tuple_d minimum_tuple = {0, 0, this->fov};
     for (const Nibble::tuple_d &inertial : candidates) {
         
         // Update with the correct minimum.
@@ -230,7 +230,7 @@ std::vector<Angle::label_pair> Angle::trial_query (Chomp &ch, const Star &s_1, c
     // Query using theta with epsilon bounds.
     condition << "theta BETWEEN " << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed;
     condition << theta - epsilon << " AND " << theta + epsilon;
-    Nibble::tuples_d r = ch.search_table("hr_a, hr_b", condition.str(), 500);
+    Nibble::tuples_d r = ch.search_table("label_a, label_b", condition.str(), 500);
     
     // Sort tuple_d into list of catalog ID pairs.
     r_bar.reserve(r.size() / 2);

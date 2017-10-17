@@ -5,7 +5,7 @@
 
 #include "identification/test-angle.h"
 
-/// Check that query_for_pair method returns the BSC ID of the correct stars.
+/// Check that query_for_pair method returns the catalog ID of the correct stars.
 ///
 /// @return 0 when finished.
 int TestAngle::test_pair_query () {
@@ -26,20 +26,20 @@ int TestAngle::test_pair_query () {
     return 0;
 }
 
-/// Check that a theta and epsilon with three choices returns the BSC ID of the correct stars.
+/// Check that a theta and epsilon with three choices returns the catalog ID of the correct stars.
 ///
 /// @return 0 when finished.
 int TestAngle::test_pair_multiple_choice_query () {
     Chomp ch;
     std::random_device seed;
     Angle a(Benchmark(ch, seed, 15), Angle::Parameters());
-    Star b(0.203647924328259, 0.559277619691848, 0.803577044861669, 1466);
-    Star c(0.205670146125506, 0.564397142318217, 0.799472111293286, 1467);
-    a.parameters.query_sigma = 0.000139;
+    Star b = ch.query_hip(103215), c = ch.query_hip(103217);
+    a.parameters.query_sigma = 10e-7;
     
     std::array<int, 2> d = a.query_for_pair(Star::angle_between(b, c));
-    assert_inside(d[0], {1466, 1467}, "QueryPairMultipleChoicesStar0", std::to_string(d[0]) + ",1466, 1467");
-    return 0 * assert_inside(d[1], {1466, 1467}, "QueryPairMultipleChoicesStar1", std::to_string(d[1]) + ",1466, 1467");
+    assert_inside(d[0], {103215, 103217}, "QueryPairMultipleChoicesStar0", std::to_string(d[0]) + ",103215, 103217");
+    return 0 * assert_inside(d[1], {103215, 103217}, "QueryPairMultipleChoicesStar1",
+                             std::to_string(d[1]) + ",103215, 103217");
 }
 
 /// Check that the zero-length stars are returned wgn theta is greater than the current fov.
@@ -200,7 +200,7 @@ int TestAngle::test_identify_clean_input () {
     Angle::Parameters a;
     
     // We define a match as 66% here.
-    a.match_minimum = (unsigned int) (input.stars.size() *(2.0 / 3.0));
+    a.match_minimum = (unsigned int) (input.stars.size() * (2.0 / 3.0));
     
     std::vector<Star> c = Angle::identify(input, a);
     assert_greater_than(c.size(), input.stars.size() * (2.0 / 3.0), "IdentificationFoundAllSize");
@@ -288,7 +288,7 @@ int TestAngle::enumerate_tests (int test_case) {
         case 6: return test_rotating_match_error_input();
         case 7: return test_rotating_match_duplicate_input();
         case 8: return test_identify_clean_input();
-        case 9: return test_identify_error_input();  
+        case 9: return test_identify_error_input();
         case 10: return test_saturation_match();
         default: return -1;
     }

@@ -37,7 +37,7 @@ int Plane::generate_triangle_table (const double fov, const std::string &table_n
     Chomp ch;
     SQLite::Transaction initial_transaction(*ch.db);
     
-    ch.create_table(table_name, "hr_a INT, hr_b INT, hr_c INT, a FLOAT, i FLOAT");
+    ch.create_table(table_name, "label_a INT, label_b INT, label_c INT, a FLOAT, i FLOAT");
     initial_transaction.commit();
     ch.select_table(table_name);
     
@@ -54,8 +54,10 @@ int Plane::generate_triangle_table (const double fov, const std::string &table_n
                     double a_t = Trio::planar_area(all_stars[i], all_stars[j], all_stars[k]);
                     double i_t = Trio::planar_moment(all_stars[i], all_stars[j], all_stars[k]);
                     
-                    ch.insert_into_table("hr_a, hr_b, hr_c, a, i", Nibble::tuple_d {(double) all_stars[i].get_label(),
-                        (double) all_stars[j].get_label(), (double) all_stars[k].get_label(), a_t, i_t});
+                    ch.insert_into_table("label_a, label_b, label_c, a, i",
+                                         Nibble::tuple_d {(double) all_stars[i].get_label(),
+                                             (double) all_stars[j].get_label(), (double) all_stars[k].get_label(), a_t,
+                                             i_t});
                 }
             }
         }

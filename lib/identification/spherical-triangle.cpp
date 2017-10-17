@@ -38,7 +38,7 @@ int Sphere::generate_triangle_table (const double fov, const unsigned int td_h, 
     Chomp ch;
     SQLite::Transaction initial_transaction(*ch.db);
     
-    ch.create_table(table_name, "hr_a INT, hr_b INT, hr_c INT, a FLOAT, i FLOAT");
+    ch.create_table(table_name, "label_a INT, label_b INT, label_c INT, a FLOAT, i FLOAT");
     initial_transaction.commit();
     ch.select_table(table_name);
     
@@ -57,7 +57,7 @@ int Sphere::generate_triangle_table (const double fov, const unsigned int td_h, 
                     
                     // Prevent insertion of trios with areas = -1.
                     if (a_t > 0) {
-                        ch.insert_into_table("hr_a, hr_b, hr_c, a, i",
+                        ch.insert_into_table("label_a, label_b, label_c, a, i",
                                              Nibble::tuple_d {(double) all_stars[i].get_label(),
                                                  (double) all_stars[j].get_label(), (double) all_stars[k].get_label(),
                                                  a_t, i_t});
@@ -76,11 +76,11 @@ int Sphere::generate_triangle_table (const double fov, const unsigned int td_h, 
 /// Given a trio of body stars, find matching trios of inertial stars using their respective spherical areas and polar
 /// moments.
 ///
-/// @param hr_b Index trio of stars in body (B) frame.
+/// @param label_b Index trio of stars in body (B) frame.
 /// @return 1D vector of a trio of Star(0, 0, 0) if stars are not within the fov or if no matches currently exist.
 /// Otherwise, vector of trios whose areas and moments are close.
-std::vector<Trio::stars> Sphere::match_stars (const index_trio &hr_b) {
-    Trio::stars b_stars{this->input[hr_b[0]], this->input[hr_b[1]], this->input[hr_b[2]]};
+std::vector<Trio::stars> Sphere::match_stars (const index_trio &label_b) {
+    Trio::stars b_stars{this->input[label_b[0]], this->input[label_b[1]], this->input[label_b[2]]};
     std::vector<label_trio> match_hr;
     std::vector<Trio::stars> matched_stars;
     
