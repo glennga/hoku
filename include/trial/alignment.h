@@ -27,7 +27,7 @@ namespace Alignment {
         "NonOptimalConfigRotation,OptimalError,NonOptimalComponentError\n";
     
     const double WORKING_FOV = 20; ///< Field of view that all our test stars must be within.
-    const int ALIGNMENT_SAMPLES = 10; ///< Number of samples to retrieve for each individual trial.
+    const int ALIGNMENT_SAMPLES = 100; ///< Number of samples to retrieve for each individual trial.
     
     const double MS_MIN = std::numeric_limits<double>::epsilon(); ///< Minimum query sigma (machine epsilon).
     const double MS_MULT = 3; ///< Query sigma multiplier for each variation.
@@ -41,7 +41,7 @@ namespace Alignment {
     
     const double MB_MIN = 5.5; ///< Minimum magnitude bound.
     const double MB_STEP = 0.5; ///< Step to increment magnitude bound with for each variation.
-    const int MB_ITER = 1; ///< Number of magniude bound variations.
+    const int MB_ITER = 5; ///< Number of magniude bound variations.
     
     const std::string ANGLE_TABLE = "SEP_20"; ///< Name of table generated for Angle method.
     const std::string PLANE_TABLE = "PLANE_20"; ///< Name of table generated for Plane method.

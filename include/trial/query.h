@@ -34,7 +34,7 @@ namespace Query {
     const double SS_MIN = std::numeric_limits<double>::epsilon(); ///< Minimum shift sigma (using machine epsilon).
     const double SS_MULT = 3; ///< Shift sigma multiplier for each variation.
 //    const double SS_STEP = std::numeric_limits<double>::epsilon() * 5; ///< Shift sigma step for each variation.
-    const int SS_ITER = 10; ///< Number of shift sigma variations.
+    const int SS_ITER = 20; ///< Number of shift sigma variations.
     
     const std::string ANGLE_TABLE = "SEP_20"; ///< Name of table generated for Angle method.
     const std::string PLANE_TABLE = "PLANE_20"; ///< Name of table generated for Plane method.
