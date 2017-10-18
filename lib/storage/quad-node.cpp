@@ -1,7 +1,8 @@
 /// @file quad-node.cpp
 /// @author Glenn Galvizo
 ///
-/// Source file for QuadNode class, which represents a node and associated functions for the Mercator quadtree.
+/// Source file for QuadNode class, which represents a node and associated functions for the Mercator quadtree. This 
+/// **cannot** handle the entire Hipparcos catalog.
 
 #include "storage/quad-node.h"
 
@@ -233,18 +234,21 @@ QuadNode QuadNode::find_quad_leaves (const QuadNode &c, const double w_i, const 
 
 /// Public wrapper method for find_quad_leaves. Return the root node and keep the tree in RAM.
 ///
-/// @param w_n Projection width to use for all stars in bright table.
+/// @param w_n Projection width to use for all stars in hip table.
+/// @param m_bar Maximum apparent magnitude to load.
 /// @return The root node of the quadtree.
-QuadNode QuadNode::load_tree (const double w_n) {
+QuadNode QuadNode::load_tree (const double w_n, const double m_bar) {
     QuadNode r = QuadNode::root(w_n);
     QuadNode::list projected;
     Chomp ch;
     
     // Find the Mercator projection for all bright stars.
-    projected.reserve(ch.BRIGHT_TABLE_LENGTH);
-    for (const Star &s : ch.bright_as_list()) {
+    projected.reserve(ch.HIP_TABLE_LENGTH);
+    for (const Star &s : ch.hip_as_list()) {
         // From full start to finish: (ra, dec) -> <i, j, k> -> (r, lat, lon) -> (x, y).
-        projected.push_back(QuadNode(s, w_n, 1));
+        if (s.get_magnitude() < m_bar) {
+            projected.push_back(QuadNode(s, w_n, 1));
+        }
     }
     
     // Populate the tree. The root is the center of projection.
@@ -304,7 +308,7 @@ Star::list QuadNode::nearby_stars (const Star &q, const double fov, const unsign
     
     // Operating node MUST be the root, with coordinates at (0, 0).
     if (this->x != 0 || this->y != 0) {
-        throw "\"nearby_bright_stars\" not operating on root node.";
+        throw "\"nearby_stars\" not operating on root node.";
     }
     
     nearby.reserve(expected);

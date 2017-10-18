@@ -1,7 +1,8 @@
 /// @file quad-node.cpp
 /// @author Glenn Galvizo
 ///
-/// Header file for QuadNode class, which represents a node and associated functions for the Mercator quadtree.
+/// Header file for QuadNode class, which represents a node and associated functions for the Mercator quadtree. This 
+/// **cannot** handle the entire Hipparcos catalog.
 
 #ifndef HOKU_QUAD_NODE_H
 #define HOKU_QUAD_NODE_H
@@ -10,12 +11,11 @@
 #include "storage/chomp.h"
 #include <memory>
 
-/// The QuadNode represents a node for the Mercator quadtree, a structure for spatial indexing. This structure is
-/// currently being used by the Planar and Spherical Triangle identification methods.
+/// The QuadNode represents a node for the Mercator quadtree, a structure for spatial indexing. 
 ///
 /// @example
 /// @code{.cpp}
-/// // Construct the quadtree. Project every star in BSC5 to a square of 1000x1000 size.
+/// // Construct the quadtree. Project every star in the  bright stars table to a square of 1000x1000 size.
 /// QuadNode q_root = QuadNode::load_tree(1000);
 ///
 /// // Find all nearby stars that are within 15 degrees of a random star (Star::chance()). Expecting 90 stars.
@@ -31,7 +31,7 @@ class QuadNode : private Mercator {
   public:
     Star::list nearby_stars (const Star &, double, unsigned int);
     
-    static QuadNode load_tree (double);
+    static QuadNode load_tree (double, double = 6.0);
 
 #if !defined ENABLE_TESTING_ACCESS
   private:

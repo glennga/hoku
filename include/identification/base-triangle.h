@@ -9,7 +9,6 @@
 
 #include "benchmark/benchmark.h"
 #include "storage/chomp.h"
-#include "storage/quad-node.h"
 #include "math/trio.h"
 #include <iostream>
 
@@ -24,7 +23,6 @@ class BaseTriangle {
         unsigned int query_expected = 100; ///< Expected number of stars to be found with query. Better to overshoot.
         double match_sigma = 0.00001; ///< Resultant of inertial->body rotation must within 3 * match_sigma of *a* body.
         unsigned int match_minimum = 4; ///< The minimum number of body-inertial matches.
-        unsigned int quadtree_w = 5000; ///< The size of the square to project all BSC5 stars onto (for quadtree).
         int moment_td_h = 3; ///< Maximum level of recursion to generate polar moment (spherical only).
         std::string table_name; ///< Name of the Nibble table created with 'generate_triangle_table'.
     };
@@ -43,9 +41,6 @@ class BaseTriangle {
     
     /// Chomp instance. This is where multi-threading 'might' fail, with repeated access to database.
     Chomp ch;
-    
-    /// Quadtree root. Used for finding nearby stars.
-    std::shared_ptr<QuadNode> q_root;
     
     /// Alias for a list of catalog IDs (STL vector of doubles).
     using hr_list = std::vector<double>;
@@ -66,6 +61,7 @@ class BaseTriangle {
   private:
 #endif
     virtual std::vector<Trio::stars> match_stars (const index_trio &) = 0;
+    index_trio permutate_index (const index_trio &);
     Trio::stars pivot (const index_trio &, const std::vector<Trio::stars> & = {});
     Star::list rotate_stars (const Star::list &, const Rotation &);
     Star::list check_assumptions (const Star::list &, const Trio::stars &, const index_trio &);

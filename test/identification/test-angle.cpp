@@ -196,7 +196,7 @@ int TestAngle::test_rotating_match_duplicate_input () {
 int TestAngle::test_identify_clean_input () {
     Chomp ch;
     std::random_device seed;
-    Benchmark input(ch, seed, 8);
+    Benchmark input(ch, seed, 10, 6.5);
     Angle::Parameters a;
     
     // We define a match as 66% here.

@@ -112,14 +112,14 @@ int TestKdNode::test_simple_tree () {
 ///
 /// @return 0 when finished.
 int TestKdNode::test_nearby_stars () {
-    Star::list a = Chomp(true).bright_as_list();
+    Star::list a = Chomp().bright_as_list();
     KdNode q = KdNode::load_tree(a, 1000);
     std::random_device seed;
     Star b = Star::chance(seed);
-    Star::list c = Chomp(true).nearby_bright_stars(b, 10, 90), d = q.nearby_stars(b, 10, 90, a);
+    Star::list c = Chomp().nearby_bright_stars(b, 10, 90), d = q.nearby_stars(b, 10, 90, a);
     std::vector<double> e, f;
     
-    assert_not_equal(Chomp(true).nearby_bright_stars(b, 10, 90).size(), 0, "NearbyStarsNoKdTree");
+    assert_not_equal(Chomp().nearby_bright_stars(b, 10, 90).size(), 0, "NearbyStarsNoKdTree");
     assert_not_equal(q.nearby_stars(b, 10, 90, a).size(), 0, "NearbyStarsUsingKdTree");
     
     for (const Star &s : d) {

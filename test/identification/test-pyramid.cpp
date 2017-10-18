@@ -9,11 +9,15 @@
 ///
 /// @return 0 when finished.
 int TestPyramid::test_reference_find () {
-    Pyramid::label_list_pair ei = {Pyramid::label_pair {3, 100}, Pyramid::label_pair{3, 413}, Pyramid::label_pair {7, 87}};
+    std::random_device seed;
+    Chomp ch;
+    
+    Pyramid::label_list_pair ei = {Pyramid::label_pair {3, 100}, Pyramid::label_pair{3, 413},
+        Pyramid::label_pair {7, 87}};
     Pyramid::label_list_pair ej = {Pyramid::label_pair {3, 2}, Pyramid::label_pair{3, 5}, Pyramid::label_pair {13, 87}};
     Pyramid::label_list_pair ek = {Pyramid::label_pair {90, 12345}, Pyramid::label_pair{3, 7352},
         Pyramid::label_pair {9874, 512}};
-    Pyramid a(Benchmark(20, Star::chance(), Rotation::chance()), Pyramid::Parameters());
+    Pyramid a(Benchmark(ch, seed, 20), Pyramid::Parameters());
     Star b = a.find_reference(ei, ej, ek);
     
     return 0 * assert_equal(b, a.ch.query_hip(3), "ReferenceStarCorrectlyFound", b.str());
@@ -23,7 +27,10 @@ int TestPyramid::test_reference_find () {
 ///
 /// @return 0 when finished.
 int TestPyramid::test_candidate_quad_find () {
-    Benchmark input(20, Star::chance(), Rotation::chance());
+    std::random_device seed;
+    Chomp ch;
+    
+    Benchmark input(ch, seed, 20);
     Pyramid a(input, Pyramid::Parameters());
     Pyramid::hr_quad b = a.find_candidate_quad({0, 1, 2, 3});
     
@@ -37,7 +44,10 @@ int TestPyramid::test_candidate_quad_find () {
 ///
 /// @return 0 when finished.
 int TestPyramid::test_identify_clean_input () {
-    Benchmark input(20, Star::chance(), Rotation::chance());
+    std::random_device seed;
+    Chomp ch;
+    
+    Benchmark input(ch, seed, 20, 6.5);
     std::vector<Star> c = Pyramid::identify(input, Pyramid::Parameters());
     assert_equal(c.size(), input.stars.size(), "IdentificationFoundAllSize");
     
@@ -63,7 +73,10 @@ int TestPyramid::test_identify_clean_input () {
 ///
 /// @return 0 when finished.
 int TestPyramid::test_identify_error_input () {
-    Benchmark input(9, Star::chance(), Rotation::chance());
+    std::random_device seed;
+    Chomp ch;
+    
+    Benchmark input(ch, seed, 9);
     input.add_extra_light(1);
     
     std::vector<Star> c = Pyramid::identify(input, Pyramid::Parameters());
@@ -105,6 +118,5 @@ int TestPyramid::enumerate_tests (int test_case) {
 ///
 /// @return -1 if the log file cannot be opened. 0 otherwise.
 int main () {
-    //    Pyramid::generate_sep_table(20, "SEP20");
     return TestPyramid().execute_tests(BaseTest::FULL_PRINT_LOG_ON);
 }

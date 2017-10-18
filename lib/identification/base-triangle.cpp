@@ -22,7 +22,7 @@ std::vector<BaseTriangle::label_trio> BaseTriangle::query_for_trio (const double
     
     // First, search for trio of stars matching area condition.
     ch.select_table(this->parameters.table_name);
-    area_match = ch.k_vector_query("a", "hr_a, hr_b, hr_c, i", a - epsilon_a, a + epsilon_a,
+    area_match = ch.k_vector_query("a", "label_a, label_b, label_c, i", a - epsilon_a, a + epsilon_a,
                                    this->parameters.query_expected);
     
     // Next, search this trio for stars matching the moment condition.
@@ -40,6 +40,34 @@ std::vector<BaseTriangle::label_trio> BaseTriangle::query_for_trio (const double
     return area_moment_match;
 }
 
+/// Generate a unique permutation [A,B,C] given the current index trio. A, B, and C exist in the space [0, 1, ...,
+/// |input|], and the condition A != B, B != C, A != C must hold.
+///
+/// @param i_t Current index trio, generates new permutation based off this.
+/// @return A new, unique 3-element permutation of input indices.
+BaseTriangle::index_trio BaseTriangle::permutate_index (const index_trio &i_t) {
+    index_trio t = i_t;
+    
+    // Increment in order of index 2, 1, and 0.
+    do {
+        if (t[2] < input.size() - 2) {
+            t = {t[0], t[1], t[2] + 1};
+        }
+        else if (t[1] < input.size() - 1) {
+            t = {t[0], t[1] + 1, 0};
+        }
+        else if (t[0] < input.size()) {
+            t = {t[0] + 1, 0, 0};
+        }
+        else {
+            return t;
+        }
+    }
+    while (t[0] == t[1] || t[0] == t[2] || t[1] == t[2]);
+    
+    return t;
+}
+
 /// Match the stars in the given set {B_1, B_2, B_3} to a trio in the database. If a past_set is given, then remove
 /// all stars found matching the B trio that aren't found in the past set. Recurse until one definitive trio exists.
 ///
@@ -48,19 +76,9 @@ std::vector<BaseTriangle::label_trio> BaseTriangle::query_for_trio (const double
 /// @return A trio of stars that match the given B stars to R stars.
 Trio::stars BaseTriangle::pivot (const index_trio &i_b, const std::vector<Trio::stars> &past_set) {
     std::vector<Trio::stars> matches = this->match_stars(i_b);
-    
-    // Function to increment hr_b3 first, then hr_b2, then hr_b1 last. This is the "pivoting".
-    auto increment_hr = [&matches] (const index_trio &i_t) {
-        if (i_t[2] != matches.size() - 1) {
-            return index_trio {i_t[0], i_t[1], i_t[2] + 1};
-        }
-        else if (i_t[1] != matches.size() - 1) {
-            return index_trio {i_t[0], i_t[1] + 1, 0};
-        }
-        else {
-            return index_trio {i_t[0] + 1, 0, 0};
-        }
-    };
+    if (matches[0][0] == Star::zero()) {
+        matches.clear();
+    }
     
     // Remove all trios from matches that don't exist in the past set.
     if (!past_set.empty() && !(std::equal(past_set[0].begin() + 1, past_set[0].end(), past_set[0].begin()))) {
@@ -83,8 +101,8 @@ Trio::stars BaseTriangle::pivot (const index_trio &i_b, const std::vector<Trio::
     
     switch (matches.size()) {
         case 1: return matches[0]; // Only 1 trio exists. This must be the matching trio.
-        case 0: return pivot(increment_hr(i_b)); // No trios exists. Rerun with different trio.
-        default: return pivot(increment_hr(i_b), matches); // 2+ trios exists. Run with different trio and past search.
+        case 0: return {Star::zero(), Star::zero(), Star::zero()}; // No trios exist. Exit early.
+        default: return pivot(permutate_index(i_b), matches); // 2+ trios exists. Run with different trio and history.
     }
 }
 
@@ -121,26 +139,26 @@ Star::list BaseTriangle::rotate_stars (const Star::list &candidates, const Rotat
 ///
 /// @param candidates All stars to check against the body star set.
 /// @param r Inertial (frame R) trio of stars to check against the body trio.
-/// @param hr_b Body (frame B) Catalog IDs for the trio of stars to check against the inertial trio.
+/// @param b_labels Body (frame B) Catalog IDs for the trio of stars to check against the inertial trio.
 /// @return The largest set of matching stars across the body and inertial in all pairing configurations.
 Star::list BaseTriangle::check_assumptions (const Star::list &candidates, const Trio::stars &r,
-                                            const index_trio &hr_b) {
+                                            const index_trio &b_labels) {
     index_trio current_order = {0, 1, 2};
     std::array<Trio::stars, 6> r_assumption_list;
     std::array<Star::list, 6> matches;
     int current_assumption = 0;
     
     // Generate unique permutations using previously generated trio.
+    r_assumption_list[0] = {r[current_order[0]], r[current_order[1]], r[current_order[2]]};
     for (int i = 1; i < 6; i++) {
-        r_assumption_list = {r[current_order[0]], r[current_order[1]], r[current_order[2]]};
-        
         // Given i, swap elements 2 and 3 if even, or 1 and 3 if odd.
         current_order = (i % 2) == 0 ? index_trio {0, 2, 1} : index_trio {2, 1, 0};
+        r_assumption_list[i] = {r[current_order[0]], r[current_order[1]], r[current_order[2]]};
     }
     
     // Determine the rotation to take frame R to B. Only use r_1 and r_2 to get rotation.
     for (const Trio::stars &assumption : r_assumption_list) {
-        Rotation q = Rotation::rotation_across_frames({this->input[hr_b[0]], this->input[hr_b[1]]},
+        Rotation q = Rotation::rotation_across_frames({this->input[b_labels[0]], this->input[b_labels[1]]},
                                                       {assumption[0], assumption[1]});
         matches[current_assumption++] = rotate_stars(candidates, q);
     }
@@ -157,7 +175,7 @@ Star::list BaseTriangle::check_assumptions (const Star::list &candidates, const 
 ///
 /// @param candidates All stars to check against the body star set.
 /// @param r Inertial (frame R) trio of stars to check against the body trio.
-/// @param hr_b Body (frame B) Catalog IDs for the trio of stars to check against the inertial trio.
+/// @param b Body (frame B) Trio of stars to check against the inertial trio.
 /// @return The quaternion corresponding to largest set of matching stars across the body and inertial in all pairing
 /// configurations.
 Rotation BaseTriangle::trial_attitude_determine (const Star::list &candidates, const Trio::stars &r,
@@ -205,22 +223,15 @@ Star::list BaseTriangle::identify_stars (unsigned int &z) {
                 Star::list candidates;
                 z++;
                 
-                // Find matches of current body trio to catalog.
-                candidate_trios = match_stars({(double) i, (double) j, (double) k});
-                if (candidate_trios[0][0] == Star::zero() && candidate_trios[0][0] == Star::zero()
-                    && candidate_trios[0][2] == Star::zero()) {
-                    break;
-                }
-                
-                // Pivot if necessary.
-                candidate_trio = pivot({(double) i, (double) j, (double) k}, candidate_trios);
+                // Find matches of current body trio to catalog. Pivot if necessary.
+                candidate_trio = pivot({(double) i, (double) j, (double) k});
                 if (candidate_trio[0] == Star::zero() && candidate_trio[1] == Star::zero()
                     && candidate_trio[2] == Star::zero()) {
                     break;
                 }
                 
                 // Find candidate stars around the candidate trio.
-                candidates = (*q_root).nearby_stars(candidate_trio[0], fov, (unsigned int) (3.0 * input.size()));
+                candidates = ch.nearby_hip_stars(candidate_trio[0], fov, (unsigned int) (3.0 * input.size()));
                 
                 // Check all possible configurations. Return the most likely.
                 matches = check_assumptions(candidates, candidate_trio, {(double) i, (double) j, (double) k});

@@ -158,5 +158,8 @@ double Trio::spherical_moment (const Star &b_1, const Star &b_2, const Star &b_3
     Trio t(b_1, b_2, b_3);
     
     // We star at the root, where the current tree depth td_i = 0.
-    return t.recurse_spherical_moment(t.planar_centroid(), td_h, 0);
+    double t_i = t.recurse_spherical_moment(t.planar_centroid(), td_h, 0);
+    
+    // Don't return NaN values.
+    return (std::isnan(t_i)) ? 0 : t_i;
 }

@@ -138,9 +138,16 @@ Star Chomp::query_hip (int label) {
 
 /// Accessor for all_bright_stars list.
 ///
-/// @return Array with all stars in the Nibble table with a magnitude less than 6.0.
+/// @return List with all stars in the Nibble table with a magnitude less than 6.0.
 Star::list Chomp::bright_as_list () {
     return this->all_bright_stars;
+}
+
+/// Accessor for all_hip_stars list.
+///
+/// @return List with all stars in the Nibble table.
+Star::list Chomp::hip_as_list () {
+    return this->all_hip_stars;
 }
 
 /// Given a focus star and a field of view limit, find all bright stars around the focus.

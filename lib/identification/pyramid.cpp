@@ -197,7 +197,7 @@ Star::list Pyramid::identify (const Benchmark &input, const Parameters &paramete
                 }
                 
                 // Find candidate stars around the reference star.
-                candidates = p.ch.nearby_bright_stars(p.ch.query_hip(r_quad[3]), p.fov,
+                candidates = p.ch.nearby_hip_stars(p.ch.query_hip(r_quad[3]), p.fov,
                                                       3 * ((unsigned int) p.input.size()));
                 
                 // Return all stars from our input that match the candidates. Append the appropriate catalog IDs.

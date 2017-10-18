@@ -185,14 +185,14 @@ int TestQuadNode::test_partition_for_leaves () {
 ///
 /// @return 0 when finished.
 int TestQuadNode::test_nearby_stars () {
-    QuadNode q = QuadNode::load_tree(1000);
+    QuadNode q = QuadNode::load_tree(10000, 6.0);
     std::random_device seed;
     Star a = Star::chance(seed);
-    Star::list b = Chomp(true).nearby_bright_stars(a, 10, 90), c = q.nearby_stars(a, 10, 90);
+    Star::list b = Chomp().nearby_hip_stars(a, 10, 90), c = q.nearby_stars(a, 10, 90);
     std::vector<double> d, e;
     
-    assert_not_equal(Chomp(true).nearby_bright_stars(a, 10, 90).size(), 0, "NearbyStarsNoQuadTree");
-    assert_not_equal(q.nearby_stars(a, 10, 90).size(), 0, "NearbyStarsUsingQuadTree");
+    assert_not_equal(b.size(), 0, "NearbyStarsNoQuadTree");
+    assert_not_equal(c.size(), 0, "NearbyStarsUsingQuadTree");
     
     for (const Star &s : c) {
         std::string test_name = "NearbyStarIsActuallyNearFocus" + std::to_string(s.get_label());

@@ -20,7 +20,7 @@ target_link_libraries(TestAngle BaseTest Angle Benchmark Rotation
 ##################################################################
 add_executable(TestPlanarTriangle test-planar-triangle.cpp)
 target_link_libraries(TestPlanarTriangle BaseTest PlanarTriangle
-        BaseTriangle Benchmark Rotation QuadNode Chomp Nibble Mercator Trio
+        BaseTriangle Benchmark Rotation Chomp Nibble Trio
         Star SQLiteCpp Sqlite3)
 
 ##################################################################
@@ -28,7 +28,7 @@ target_link_libraries(TestPlanarTriangle BaseTest PlanarTriangle
 ##################################################################
 add_executable(TestSphericalTriangle test-spherical-triangle.cpp)
 target_link_libraries(TestSphericalTriangle BaseTest SphericalTriangle
-        BaseTriangle Benchmark Rotation QuadNode Chomp Nibble Mercator Trio
+        BaseTriangle Benchmark Rotation Chomp Nibble Trio
         Star SQLiteCpp Sqlite3)
 
 ##################################################################

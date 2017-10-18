@@ -11,19 +11,11 @@
 ///
 /// @param input Working Benchmark instance. We are **only** copying the star set and the fov.
 /// @param parameters Parameters to use for identification.
-/// @param q_root Working quad-tree root node. If none is specified, build the quad-tree here.
-PlanarTriangle::PlanarTriangle (const Benchmark &input, const Parameters &parameters,
-                                const std::shared_ptr<QuadNode> &q_root) {
+PlanarTriangle::PlanarTriangle (const Benchmark &input, const Parameters &parameters) {
     input.present_image(this->input, this->fov);
     this->parameters = parameters;
     
     ch.select_table(this->parameters.table_name);
-    if (q_root == nullptr) {
-        this->q_root = std::make_shared<QuadNode>(QuadNode::load_tree(this->parameters.quadtree_w));
-    }
-    else {
-        this->q_root = q_root;
-    }
 }
 
 /// Generate the triangle table given the specified FOV and table name. This find the planar area and polar moment
@@ -107,11 +99,9 @@ std::vector<Trio::stars> Plane::match_stars (const index_trio &i_b) {
 /// @param input The set of benchmark data to work with.
 /// @param parameters Adjustments to the identification process.
 /// @param z Reference to variable that will hold the input comparison count.
-/// @param q_root Working quad-tree root node. If none is specified, we build the quad-tree here.
 /// @return Vector of body stars with their inertial BSC IDs that qualify as matches.
-Star::list Plane::identify (const Benchmark &input, const Parameters &p, unsigned int &z,
-                            const std::shared_ptr<QuadNode> &q_root) {
-    return Plane(input, p, q_root).identify_stars(z);
+Star::list Plane::identify (const Benchmark &input, const Parameters &p, unsigned int &z) {
+    return Plane(input, p).identify_stars(z);
 }
 
 /// Overloaded wrapper for BaseTriangle's identify_stars method. Match the stars found in the given benchmark to those
@@ -119,9 +109,8 @@ Star::list Plane::identify (const Benchmark &input, const Parameters &p, unsigne
 ///
 /// @param input The set of benchmark data to work with.
 /// @param parameters Adjustments to the identification process.
-/// @param q_root Working quad-tree root node. If none is specified, we build the quad-tree here.
 /// @return Vector of body stars with their inertial BSC IDs that qualify as matches.
-Star::list Plane::identify (const Benchmark &input, const Parameters &p, const std::shared_ptr<QuadNode> &q_root) {
+Star::list Plane::identify (const Benchmark &input, const Parameters &p) {
     unsigned int z;
-    return Plane(input, p, q_root).identify_stars(z);
+    return Plane(input, p).identify_stars(z);
 }

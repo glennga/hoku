@@ -66,6 +66,7 @@ class Chomp : public Nibble {
     Star::list nearby_hip_stars (const Star &, const double, const unsigned int);
     
     Star::list bright_as_list ();
+    Star::list hip_as_list ();
     Star query_hip (int);
 #if !defined ENABLE_TESTING_ACCESS
   private:

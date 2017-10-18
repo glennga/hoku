@@ -48,16 +48,15 @@ class PlanarTriangle : public BaseTriangle {
 #endif
 
   public:
-    static Star::list identify (const Benchmark &, const Parameters &, unsigned int &,
-                                const std::shared_ptr<QuadNode> & = nullptr);
-    static Star::list identify (const Benchmark &, const Parameters &, const std::shared_ptr<QuadNode> & = nullptr);
+    static Star::list identify (const Benchmark &, const Parameters &, unsigned int &);
+    static Star::list identify (const Benchmark &, const Parameters &);
     static int generate_triangle_table (double, const std::string &);
     using BaseTriangle::Parameters;
 
 #if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
   private:
 #endif
-    PlanarTriangle (const Benchmark &, const Parameters &, const std::shared_ptr<QuadNode> & = nullptr);
+    PlanarTriangle (const Benchmark &, const Parameters &);
     std::vector<Trio::stars> match_stars (const index_trio &);
 };
 
