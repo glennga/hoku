@@ -39,7 +39,8 @@ class Rotation {
     bool operator== (const Rotation &) const;
     
     static Star rotate (const Star &, const Rotation &);
-    static double rotational_difference (const Rotation &, const Rotation &);
+    static double angle_between (const Rotation &, const Rotation &);
+    static Star rotation_difference (const Rotation &, const Rotation &, const Star &);
     
     static Rotation identity ();
     static Rotation chance (std::random_device &);

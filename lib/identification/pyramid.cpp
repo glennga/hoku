@@ -167,6 +167,16 @@ Star::list Pyramid::match_remaining (const Star::list &candidates, const index_q
                                                                            {ch.query_hip(r[0]), ch.query_hip(r[3])}));
 }
 
+/// Return the rotation between the reference star and the first triangle star in both the body and inertial frames.
+/// Unlike the method used in identification, this does not return the the matches associated with the rotation.
+///
+/// @param r Inertial (frame R) quad of stars to check against the body quad.
+/// @param b Body (frame B) quad of stars to check against the inertial quad.
+/// @return Quaternion between body and inertial sets.
+Rotation Pyramid::trial_attitude_determine (const std::array<Star, 4> &b, const std::array<Star, 4> &r) {
+    return Rotation::rotation_across_frames({b[0], b[3]}, {r[0], r[3]});
+}
+
 /// Match the stars found in the given benchmark to those in the Nibble database.
 ///
 /// @param input The set of benchmark data to work with.
@@ -198,7 +208,7 @@ Star::list Pyramid::identify (const Benchmark &input, const Parameters &paramete
                 
                 // Find candidate stars around the reference star.
                 candidates = p.ch.nearby_hip_stars(p.ch.query_hip(r_quad[3]), p.fov,
-                                                      3 * ((unsigned int) p.input.size()));
+                                                   3 * ((unsigned int) p.input.size()));
                 
                 // Return all stars from our input that match the candidates. Append the appropriate catalog IDs.
                 matches = p.match_remaining(candidates, {(signed) i, j, k, e}, r_quad);

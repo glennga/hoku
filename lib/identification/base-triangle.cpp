@@ -186,11 +186,11 @@ Rotation BaseTriangle::trial_attitude_determine (const Star::list &candidates, c
     std::array<Rotation, 6> q;
     
     // Generate unique permutations using previously generated trio.
+    r_assumption_list[0] = {r[current_order[0]], r[current_order[1]], r[current_order[2]]};
     for (int i = 1; i < 6; i++) {
-        r_assumption_list = {r[current_order[0]], r[current_order[1]], r[current_order[2]]};
-        
         // Given i, swap elements 2 and 3 if even, or 1 and 3 if odd.
         current_order = (i % 2) == 0 ? index_trio {0, 2, 1} : index_trio {2, 1, 0};
+        r_assumption_list[i] = {r[current_order[0]], r[current_order[1]], r[current_order[2]]};
     }
     
     // Determine the rotation to take frame R to B. Only use r_1 and r_2 to get rotation.

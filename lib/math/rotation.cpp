@@ -120,8 +120,8 @@ Star Rotation::rotate (const Star &s, const Rotation &q) {
 ///
 /// @param q_1 Rotation one to compare against.
 /// @param q_2 Rotation two to compare against.
-/// @return Axis angle of quaternion to take q_1 to q_2.
-double Rotation::rotational_difference (const Rotation &q_1, const Rotation &q_2) {
+/// @return Axis angle of quaternion to take q_1 to q_2 in degrees.
+double Rotation::angle_between (const Rotation &q_1, const Rotation &q_2) {
     // Compute the inverse of q_1.
     double q_1_norm = pow(q_1.w, 2) + pow(q_1.i, 2) + pow(q_1.j, 2) + pow(q_1.k, 2);
     Rotation q_1_inv(q_1.w / q_1_norm, Star(-q_1.i / q_1_norm, -q_1.j / q_1_norm, -q_1.k / q_1_norm));
@@ -129,8 +129,19 @@ double Rotation::rotational_difference (const Rotation &q_1, const Rotation &q_2
     // Find q_3 such that q_1 rotates to q_2.
     Rotation q_3 = multiply(q_1_inv, q_2);
     
-    // Find and return the axis angle.
-    return 2 * acos(q_3.w);
+    // Find and return the axis angle in degrees.
+    return (std::isnan(acos(q_3.w))) ? 0 : 2 * acos(q_3.w) * (180.0 / M_PI);
+}
+
+/// Get another quantity for how 'close' two quaternions are. We rotate the given star using both quaternions, and
+/// return the difference vector.
+///
+/// @param q_1 Rotation one to compare against.
+/// @param q_2 Rotation two to compare against.
+/// @param s Star to rotate with.
+/// @return Difference between q_1 and q_2's rotation of s.
+Star Rotation::rotation_difference(const Rotation &q_1, const Rotation &q_2, const Star &s) {
+    return rotate(s, q_1) - rotate(s, q_2);
 }
 
 /// Return the identity quaternion, as a Rotation object.
