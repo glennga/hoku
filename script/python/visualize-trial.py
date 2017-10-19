@@ -1,118 +1,208 @@
 """"
-This file is used to produce plots to show the relationship between various parameters, and the comparison count & 
-number of matches found.
+This file is used to produce plots to show the relationship between various parameters in the Query, Alignment, 
+and Crown trials. We assume the Query, Alignment, and Crown trials use the following attributes:
 
-We assume the following for each log file passed:
-- Attributes are as follows: SetNumber,InputSize,IdentificationSize,MatchesFound,...,ComparisonCount
-- The attributes in '...' are the areas of interest. We will plot these.
-- The SetNumbers here correspond to the current BENCH table in Nibble.
+Query:     IdentificationMethod,QuerySigma,ShiftSigma,CandidateSetSize,SExistence
+Alignment: IdentificationMethod,MatchSigma,ShiftSigma,MBar,OptimalConfigRotation,
+           NonOptimalConfigRotation,OptimalComponentError,NonOptimalComponentError
+Crown:     ..................................
 
-The first argument is the log file to interpret. The second argument is the location to store the images produced.
+The first argument is the location of the log file. We can infer the type of trial from the length of the header.
 
-Usage: visualize-trial [log-file] [location-of-images]
+Usage: visualize-trial [log-file-1] [log-file-2] [log-file-3] [log-file-4] 
 """""
 
 import matplotlib.pyplot as plt
-import sqlite3 as sql
 import numpy as np
 import os, csv, sys
 
+# I know, I know, bad practice, blah... Global constants and iterables defined for the current working plot.
+POINTS_PER_VARIATION = 1000
 
-def plot_att_cc_mf(attributes, focus):
-    """ For every attribute given, record a scatter plot of the attribute vs. the comparison count, and the
-    attribute vs. the matches found.
+LABEL_LIST = iter([])
 
-    :param attributes: The header of the given log file.
-    :param focus: All tuples from log file to derive plot from.
+LEGEND_LIST = iter([])
+
+TITLE_LIST = iter([])
+
+BOUNDS_LIST = iter([])
+
+
+def query_trial_plot(log_sets):
+    """ For every log in log_sets (which hold sets of tuples), display a plot comparing each.
+
+    The following plots are displayed: QuerySigma vs. P(SExistence)
+                                       QuerySigma vs. CandidateSetSize
+                                       ShiftSigma vs. P(SExistence) w/ Optimal QuerySigma (Before Saturation)
+
+    :param log_sets: List of lists representing the contents of the log file.
     :return: None.
     """
-    for i in range(4, len(attributes) - 1):
-        att, cc, mf = list(zip(*focus))[i], list(zip(*focus))[len(attributes) - 1], list(zip(*focus))[3]
 
-        # Convert each list into floats. Zip the attributes with comparison count and matches found.
-        att, cc, mf = list(map(lambda ell: list(map(float, ell)), [att, cc, mf]))
-        att_cc, att_mf = list(zip(att, cc)), list(zip(att, mf))
+    # Plot #1: Query Sigma vs. P(SExistence).
+    plt.figure()
+    for log in log_sets:
+        # Visualize trials w/o noise here. Sort the
+        d = [tuple for tuple in log if tuple[2] == '0']
+        sorted(d, key=lambda x: x[1])
+        q_count = list(set([float(x[1]) for x in d]))
+        s_list = [[] for _ in q_count]
+        for i in range(0, len(q_count)):
+            for j in range(0, POINTS_PER_VARIATION):
+                s_list[i].append(int(d[i * POINTS_PER_VARIATION + j][4]))
+        plt.bar(np.arange(len(q_count)), [np.average(x) for x in s_list],
+                yerr=[np.std(s) for s in s_list], align='center')
 
-        # Sort the given attribute into bins.
-        cc_bins, mf_bins = [[[] for k in set(att)] for _ in range(2)]
-        for k, a in enumerate(set(att)):
-            cc_bins[k] = [j[1] for j in att_cc if j[0] == a]
-            mf_bins[k] = [j[1] for j in att_mf if j[0] == a]
+    # Plot #1: QuerySigma vs. SExistence. Ignore the shift_sigma trials.
+    d = [x for x in log_sets if x[2] == '0']
+    sorted(d, key=lambda x: x[1])
+    q_count, q_plot_count = list(set([float(x[1]) for x in d])), []
+    s_count, s_list = [0 for _ in q_count], [[] for _ in q_count]
+    for i in range(0, len(q_count)):
+        for j in range(0, POINTS_PER_VARIATION):
+            s_count[i] += int(d[i * POINTS_PER_VARIATION + j][4])
+            s_list[i].append(int(d[i * POINTS_PER_VARIATION + j][4]))
+    q_plot_count = q_count
 
-        # Determine sigma for error bars.
-        cc_sigma = [np.std(cc_bins[k]) for k in range(len(set(att)))]
-        mf_sigma = [np.std(mf_bins[k]) for k in range(len(set(att)))]
+    # Figure is a bar chart. Plot the error bars and set the axis.
+    plt.figure()
+    plt.bar(np.arange(len(q_count)), [float(i) / POINTS_PER_VARIATION for i in s_count],
+            yerr=[np.std(s) for s in s_list], align='center')
+    ax = plt.gca()
+    ax.set_ylim([0, 1])
+    for i in range(1, len(q_count) - 1, 2):
+        q_plot_count[i] = ''
+    q_plot_count[len(q_count) - 1] = ''
+    plt.xticks(np.arange(len(q_plot_count)), q_plot_count)
+    plt.xlabel('Query Sigma'), plt.ylabel('P(Correct Star Set in Candidate Set)')
+    plt.title(next(titles)), plt.tight_layout(), plt.show()
 
-        # Determine mu to plot, as well as our attribute as a float.
-        cc_mu = [np.mean(cc_bins[k]) for k in range(len(set(att)))]
-        mf_mu = [np.mean(mf_bins[k]) for k in range(len(set(att)))]
-        att_to_plot = [x for x in set(att)]
+    # Plot #2: ShiftSigma vs. SExistence. Restrict QuerySigma to the smallest recorded and largest recorded.
+    d_s = [x for x in log_sets if x[1] == log_sets[0][1]]
+    d_m = [x for x in log_sets if x[1] == log_sets[-1][1]]
+    sorted(d_s, key=lambda x: x[2]), sorted(d_m, key=lambda x: x[2])
 
-        # Plot the bins as a function of comparison count and matches found.
-        plt.clf()
-        for k, mu_sigma in enumerate([[cc_mu, cc_sigma, cc], [mf_mu, mf_sigma, mf]]):
-            plt.subplot(1, 2, k + 1)
-            plt.scatter(att_to_plot, mu_sigma[0])
-            plt.errorbar(att_to_plot, mu_sigma[0], yerr=mu_sigma[1], linestyle='None', capsize=10)
-            plt.axis([min(att) * 0.8, max(att) * 1.1, -max(mu_sigma[2]) * 1.1, max(mu_sigma[2]) * 1.1])
-            plt.xlabel(attributes[i]), plt.ylabel(attributes[len(attributes) - 1 if k == 0 else 3])
-            plt.title(attributes[i] + ' vs. ' + attributes[len(attributes) - 1 if k == 0 else 3])
-        plt.show(block=True)
+    # Figure is a 2-graph bar chart. Plot the error bars and set the axis.
+    plt.figure()
+    for k, d in enumerate([d_s, d_m]):
+        s_count, s_plot_count = list(set([float(x[2]) for x in log_sets])), []
+        se_count, se_list = [0 for _ in s_count], [[] for _ in s_count]
+        for i in range(0, len(s_count)):
+            for j in range(0, POINTS_PER_VARIATION):
+                se_count[i] += int(d[i * POINTS_PER_VARIATION + j][4])
+                se_list[i].append(int(d[i * POINTS_PER_VARIATION + j][4]))
+        s_plot_count = s_count
+
+        plt.subplot(1, 2, k + 1)
+        plt.bar(np.arange(len(s_count)), [float(i) / POINTS_PER_VARIATION for i in se_count],
+                yerr=[np.std(s) for s in se_list])
+        ax = plt.gca()
+        ax.set_ylim([0, 1])
+        for i in range(len(s_count) - 1):
+            if not i % 3 == 0:
+                s_plot_count[i] = ''
+        s_plot_count[len(s_count) - 1] = ''
+        plt.xticks(np.arange(len(s_plot_count)), s_plot_count)
+        plt.xlabel('Shift Sigma'), plt.ylabel('P(Correct Star Set in Candidate Set)'), plt.title(next(titles))
+    plt.tight_layout(), plt.show()
 
 
-def grab_focus(cur, log_file, type):
-    """ This function is meant to be run in order of: clean -> extra -> remove -> shift.
+def alignment_trial_plot(log_tuples, titles):
+    """ Plots displayed: MatchSigma vs. ||R_q - R_qe|| for min and max MBar, ShiftSigma vs. ||R_q - R_qe|| for min
+    and max MatchSigma. The titles are not entered so this has to be performed manually.
 
-    :param cur: Connection to Nibble database with BENCH table.
-    :param log_file: CSV reader that holds tuples to parse. Is an iterator, so requires the above order.
-    :param type: Type of tuple to pull. Domain is ['clean', 'extra', 'remove', 'shift'].
-    :return: List of tuples representing the current data.
+    :param log_tuples: List of lists representing the contents of the log file.
+    :param titles: Iterator of strings representing each plot's title (in order).
+    :return: None.
     """
-    focus = []
+    POINTS_PER_VARIATION = 100  # Constant defined in alignment.h.
 
-    if type == 'clean':
-        [focus.append(next(log_file)) for _ in range(0, cur.execute('SELECT MAX(set_n) '
-                                                                    'FROM BENCH '
-                                                                    'WHERE e=0 AND r=0 AND s=0').fetchone()[0])]
-    elif type == 'extra':
-        [focus.append(next(log_file)) for _ in range(0, cur.execute('SELECT COUNT(*) '
-                                                                    'FROM BENCH '
-                                                                    'WHERE e!=0').fetchone()[0])]
-    elif type == 'remove':
-        [focus.append(next(log_file)) for _ in range(0, cur.execute('SELECT COUNT(*) '
-                                                                    'FROM BENCH '
-                                                                    'WHERE r!=0').fetchone()[0])]
-    elif type == 'shift':
-        [focus.append(next(log_file)) for _ in range(0, cur.execute('SELECT COUNT(*) '
-                                                                    'FROM BENCH '
-                                                                    'WHERE s!=0').fetchone()[0])]
-    else:
-        assert False
+    # Plot #1: MatchSigma vs. ||R_q - R_qe||. Ignore the shift_sigma trials. Take the highest and lowest magnitude.
+    d_s = [x for x in log_tuples if x[3] == log_tuples[0][3] and x[2] == '0']
+    d_m = [x for x in log_tuples if x[3] == log_tuples[-1][3] and x[2] == '0']
+    sorted(d_s, key=lambda x: x[1]), sorted(d_m, key=lambda x: x[1])
 
-    return focus
+    # Figure is a 2-graph bar chart. Plot the error bars and set the axis.
+    plt.figure()
+    for k, d in enumerate([d_s, d_m]):
+        m_count, m_plot_count = list(set([float(x[1]) for x in log_tuples])), []
+        r_list = [[] for _ in m_count]
+        for i in range(0, len(m_count)):
+            for j in range(0, POINTS_PER_VARIATION):
+                r_list[i].append(np.abs(float(d[i * POINTS_PER_VARIATION + j][6])))
+        m_plot_count = m_count
+
+        plt.subplot(1, 2, k + 1)
+        plt.bar(np.arange(len(m_count)), [np.average(r) for r in r_list], yerr=[np.std(r) for r in r_list])
+        ax = plt.gca()
+        ax.set_ylim([0, max([np.average(r) for r in r_list])])
+        for i in range(len(m_count) - 1):
+            if not i % 3 == 0:
+                m_plot_count[i] = ''
+        m_plot_count[len(m_count) - 1] = ''
+        plt.xticks(np.arange(len(m_plot_count)), m_plot_count)
+        plt.xlabel('Match Sigma'), plt.ylabel('||Original Vector - Estimated Vector||'), plt.title(next(titles))
+    plt.tight_layout(), plt.show()
+
+    # Plot #2: ShiftSigma vs. ||R_q - R_qe||. Hold m_bar constant (=6). Take the highest and lowest match sigma.
+    d_s = [x for x in log_tuples if x[1] == log_tuples[0][1] and x[3] == '6']
+    d_m = [x for x in log_tuples if x[1] == log_tuples[-1][1] and x[3] == '6']
+    sorted(d_s, key=lambda x: x[1]), sorted(d_m, key=lambda x: x[1])
+
+    # Figure is a 2-graph bar chart. Plot the error bars and set the axis.
+    plt.figure()
+    for k, d in enumerate([d_s, d_m]):
+        s_count, s_plot_count = list(set([float(x[2]) for x in log_tuples])), []
+        r_list = [[] for _ in s_count]
+        for i in range(0, len(s_count)):
+            for j in range(0, POINTS_PER_VARIATION):
+                r_list[i].append(np.abs(float(d[i * POINTS_PER_VARIATION + j][6])))
+        s_plot_count = s_count
+
+        plt.subplot(1, 2, k + 1)
+        plt.bar(np.arange(len(s_count)), [np.average(r) for r in r_list], yerr=[np.std(r) for r in r_list])
+        ax = plt.gca()
+        ax.set_ylim([0, max([np.average(r) for r in r_list])])
+        for i in range(len(s_count) - 1):
+            if not i % 3 == 0:
+                s_plot_count[i] = ''
+        s_plot_count[len(s_count) - 1] = ''
+        plt.xticks(np.arange(len(s_plot_count)), s_plot_count)
+        plt.xlabel('Shift Sigma'), plt.ylabel('||Original Vector - Estimated Vector||'), plt.title(next(titles))
+    plt.tight_layout(), plt.show()
 
 
-# Open our file, and our connection to Nibble.
-with open(sys.argv[1], 'r') as f:
-    log_file = csv.reader(f, delimiter=',')
-    con = sql.connect(os.environ['HOKU_PROJECT_PATH'] + '/data/nibble.db')
-    cur = con.cursor()
+def visualize_trial(log_1, log_2, log_3, log_4):
+    """ Source function, used to display a plot of the given exactly four log files.
 
-    # Parse our header. Note that the first argument to count is indexed at 4.
-    attributes = next(log_file)
+    :param log_1 Location of the first log file to use.
+    :param log_2 Location of the second log file to use.
+    :param log_3 Location of the third log file to use.
+    :param log_4 Location of the fourth log file to use.
+    :return: None.
+    """
+    with open(log_1, 'r') as f_1, open(log_2, 'r') as f_2, open(log_3, 'r') as f_3, open(log_4, 'r') as f_4:
+        csv_1, csv_2, csv_3, csv_4 = list(map(lambda f: csv.reader(f, delimeter=','), [f_1, f_2, f_3, f_4]))
 
-    # Record our clean data-set. Generate plots for these.
-    focus_clean = grab_focus(cur, log_file, 'clean')
-    # plot_att_cc_mf(attributes, focus_clean)
+        # Parse our header, and the rest of the logs.
+        attributes = list(map(lambda c: next(c), [csv_1, csv_2, csv_3, csv_4]))
+        logs = list(map(lambda c: np.array(np.array([tuple for tuple in c]))))
 
-    # Record our extra error data-set. Generate plots for these.
-    focus_extra = grab_focus(cur, log_file, 'extra')
-    # plot_att_es(attributes, focus_extra)
+        # This is a log file for the query trials.
+        if len(attributes) == 5:
+            query_trial_plot(logs)
 
-    # Record our remove error data-set. Generate plots for these.
-    focus_remove = grab_focus(cur, log_file, 'remove')
-    # plot_att_rs_rs(attributes, focus_remove)
+        # This is a log file for the alignment trials.
+        elif len(attributes) == 8:
+            alignment_trial_plot(logs)
 
-    # Record our shift error data-set. Generate plots for these.
-    focus_shift = grab_focus(cur, log_file, 'shift')
-    # plot_att_ss_ss(attributes, focus_shift)
+        # This is a log file for the crown trials.
+        else:
+            crown_trial_plot(logs)
+
+
+# Perform the trials!
+if len(sys.argv) is not 5:
+    print('Usage: visualize-trial [log-file-1] [log-file-2] [log-file-3] [log-file-4]')
+else:
+    visualize_trial(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
