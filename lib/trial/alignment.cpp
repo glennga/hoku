@@ -36,7 +36,7 @@ void Alignment::present_stars (Chomp &ch, std::random_device &seed, Star::list &
             }
         }
     }
-    while(body.size() > 5);
+    while(body.size() < 5);
 }
 
 /// Generate gaussian noise for the first n body stars. Noise is distributed given shift_sigma.

@@ -18,7 +18,7 @@ namespace Query {
     const char *const ATTRIBUTE = "IdentificationMethod,QuerySigma,ShiftSigma,CandidateSetSize,SExistence\n";
     
     const double WORKING_FOV = 20; ///< Field of view that all our test stars must be within.
-    const int QUERY_SAMPLES = 100; ///< Number of samples to retrieve for each individual trial.
+    const int QUERY_SAMPLES = 1000; ///< Number of samples to retrieve for each individual trial.
     
     const double QS_MIN = std::numeric_limits<double>::epsilon(); ///< Minimum query sigma (machine epsilon).
     const double QS_MULT = 3; ///< Query sigma multiplier for each variation.
@@ -32,6 +32,7 @@ namespace Query {
     const std::string ANGLE_TABLE = "SEP_20"; ///< Name of table generated for Angle method.
     const std::string PLANE_TABLE = "PLANE_20"; ///< Name of table generated for Plane method.
     const std::string SPHERE_TABLE = "SPHERE_20"; ///< Name of table generated for Sphere method.
+    const std::string PYRAMID_TABLE = "PYRA_20"; ///< Name of table generated for Pyramid method.
     
     Star::list generate_n_stars (Chomp &, unsigned int, std::random_device &);
     
