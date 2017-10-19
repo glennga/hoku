@@ -20,17 +20,23 @@
 /// @param m_bar Minimum magnitude that all stars must be under.
 void Alignment::present_stars (Chomp &ch, std::random_device &seed, Star::list &body, Star::list &inertial, Rotation &q,
                                const double m_bar) {
-    body.clear(), inertial.clear();
-    q = Rotation::chance(seed);
     
-    body.reserve((unsigned int) WORKING_FOV * 4), inertial.reserve((unsigned int) WORKING_FOV * 4);
-    for (const Star &s : ch.nearby_hip_stars(Star::chance(seed), WORKING_FOV / 2.0, (unsigned int) WORKING_FOV * 4)) {
-        if (s.get_magnitude() < m_bar) {
-            // We rotate the body (to get our body) and leave the inertial untouched.
-            inertial.emplace_back(s);
-            body.emplace_back(Rotation::rotate(s, q));
+    // We require at-least five stars to exist here.
+    do {
+        body.clear(), inertial.clear();
+        q = Rotation::chance(seed);
+
+        body.reserve((unsigned int) WORKING_FOV * 4), inertial.reserve((unsigned int) WORKING_FOV * 4);
+        for (const Star &s : ch.nearby_hip_stars(Star::chance(seed), WORKING_FOV / 2.0,
+                                                 (unsigned int) WORKING_FOV * 4)) {
+            if (s.get_magnitude() < m_bar) {
+                // We rotate the body (to get our body) and leave the inertial untouched.
+                inertial.emplace_back(s);
+                body.emplace_back(Rotation::rotate(s, q));
+            }
         }
     }
+    while(body.size() > 5);
 }
 
 /// Generate gaussian noise for the first n body stars. Noise is distributed given shift_sigma.
@@ -126,8 +132,8 @@ void Alignment::trial_plane (Chomp &ch, std::ofstream &log) {
                     // Log our results.
                     log << "Plane," << MS_MIN * pow(MS_MULT, ms_i) << ","
                         << ((ss_i == -1) ? 0 : SS_MIN * pow(SS_MULT, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << ","
-                        << abs(Rotation::angle_between(q, qe_optimal)) << ","
-                        << abs(Rotation::angle_between(q, qe_not_optimal)) << ","
+                        << Rotation::angle_between(q, qe_optimal) << ","
+                        << Rotation::angle_between(q, qe_not_optimal) << ","
                         << Rotation::rotation_difference(q, qe_optimal, inertial[3]).norm() << ","
                         << Rotation::rotation_difference(q, qe_not_optimal, inertial[3]).norm() << '\n';
                 }
@@ -167,8 +173,8 @@ void Alignment::trial_sphere (Chomp &ch, std::ofstream &log) {
                     // Log our results.
                     log << "Sphere," << MS_MIN * pow(MS_MULT, ms_i) << ","
                         << ((ss_i == -1) ? 0 : SS_MIN * pow(SS_MULT, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << ","
-                        << abs(Rotation::angle_between(q, qe_optimal)) << ","
-                        << abs(Rotation::angle_between(q, qe_not_optimal)) << ","
+                        << Rotation::angle_between(q, qe_optimal) << ","
+                        << Rotation::angle_between(q, qe_not_optimal) << ","
                         << Rotation::rotation_difference(q, qe_optimal, inertial[3]).norm() << ","
                         << Rotation::rotation_difference(q, qe_not_optimal, inertial[3]).norm() << '\n';
                 }
@@ -197,7 +203,7 @@ void Alignment::trial_pyramid (Chomp &ch, std::ofstream &log) {
                 for (int i = 0; i < ALIGNMENT_SAMPLES; i++) {
                     present_stars(ch, seed, p.input, inertial, q, (MB_MIN + mb_i * MB_STEP));
                     if (ss_i != -1) {
-                        shift_body(seed, p.input, SS_MIN * pow(SS_MULT, ss_i), 3);
+                        shift_body(seed, p.input, SS_MIN * pow(SS_MULT, ss_i), (signed) p.input.size());
                     }
                     
                     // A correct star configuration is assumed to be found prior to determining the attitude.

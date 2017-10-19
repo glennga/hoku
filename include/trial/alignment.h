@@ -13,18 +13,10 @@
 #include "identification/pyramid.h"
 
 /// Contains constants and functions to test various attitude determination functions.
-///
-/// @code{.cpp}
-/// Testing Spaces:                     match_sigma exists in [epsilon, ..., epsilon + 3e-10 * 20]
-///                                     shift_sigma exists in [epsilon, ..., epsilon + 3e-16 * 20]
-///                                     magnitude_bound exists in [4.0, 4.5, ..., 8.0]
-///
-/// Current number of alignment trials: 100 * 9 * (20 + 20*20) = 378,000
-/// @endcode
 namespace Alignment {
     /// Attribute header that corresponds to the log file for all alignment trials.
     const char *const ATTRIBUTE = "IdentificationMethod,MatchSigma,ShiftSigma,MBar,OptimalConfigRotation,"
-        "NonOptimalConfigRotation,OptimalError,NonOptimalComponentError\n";
+        "NonOptimalConfigRotation,OptimalComponentError,NonOptimalComponentError\n";
     
     const double WORKING_FOV = 20; ///< Field of view that all our test stars must be within.
     const int ALIGNMENT_SAMPLES = 100; ///< Number of samples to retrieve for each individual trial.

@@ -139,7 +139,7 @@ Nibble::tuples_d Nibble::search_table (const std::string &fields, const unsigned
 /// @param constraint The SQL string to be used with the WHERE clause.
 /// @return If there exists nothing returned from query, return 0. Otherwise,the first result returned from query.
 double Nibble::search_single (const std::string &fields, const std::string &constraint) {
-    std::string sql = "SELECT " + fields + " FROM " + table + ((constraint == "") ? "" : " WHERE " + constraint);
+    std::string sql = "SELECT " + fields + " FROM " + table + (constraint.empty() ? "" : " WHERE " + constraint);
     
     SQLite::Statement query(*db, sql);
     while (query.executeStep()) {

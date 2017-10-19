@@ -13,13 +13,6 @@
 #include "identification/pyramid.h"
 
 /// Contains constants and functions to test various hashing methods.
-///
-/// @code{.cpp}
-/// Testing Spaces:                 query_sigma exists in [epsilon, ..., epsilon * 3^20]
-///                                 shift_sigma exists in [epsilon, ..., epsilon * 1.01^20]
-///
-/// Current number of query trials: 100 * (20 + 20*20) = 42000
-/// @endcode
 namespace Query {
     /// Attribute header that corresponds to the log file for all query trials.
     const char *const ATTRIBUTE = "IdentificationMethod,QuerySigma,ShiftSigma,CandidateSetSize,SExistence\n";

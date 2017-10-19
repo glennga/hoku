@@ -168,7 +168,7 @@ void Query::trial_pyramid (Chomp &ch, std::ofstream &log) {
     for (int ss_i = -1; ss_i < SS_ITER; ss_i++) {
         for (int qs_i = 0; qs_i < QS_ITER; qs_i++) {
             for (int i = 0; i < QUERY_SAMPLES; i++) {
-                beta.stars = generate_n_stars(ch, 4, seed);
+                beta.stars = generate_n_stars(ch, 2, seed);
                 beta.focus = beta.stars[0];
                 
                 // If shift trials, shift stars by shift_sigma.
@@ -183,7 +183,7 @@ void Query::trial_pyramid (Chomp &ch, std::ofstream &log) {
                                                                       QS_MIN * pow(QS_MULT, qs_i));
                 
                 // Log our results.
-                log << "Angle," << QS_MIN * pow(QS_MULT, qs_i) << ","
+                log << "Pyramid," << QS_MIN * pow(QS_MULT, qs_i) << ","
                     << ((ss_i == -1) ? 0 : SS_MIN * pow(SS_MULT, ss_i)) << "," << r.size() << "," << set_existence(r, b)
                     << '\n';
             }
