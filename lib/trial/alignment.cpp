@@ -20,23 +20,27 @@
 /// @param m_bar Minimum magnitude that all stars must be under.
 void Alignment::present_stars (Chomp &ch, std::random_device &seed, Star::list &body, Star::list &inertial, Rotation &q,
                                const double m_bar) {
+    std::mt19937_64 mersenne_twister(seed());
+    q = Rotation::chance(seed);
     
     // We require at-least five stars to exist here.
     do {
-        body.clear(), inertial.clear();
-        q = Rotation::chance(seed);
-
-        body.reserve((unsigned int) WORKING_FOV * 4), inertial.reserve((unsigned int) WORKING_FOV * 4);
+        inertial.clear(), inertial.reserve((unsigned int) WORKING_FOV * 4);
         for (const Star &s : ch.nearby_hip_stars(Star::chance(seed), WORKING_FOV / 2.0,
                                                  (unsigned int) WORKING_FOV * 4)) {
             if (s.get_magnitude() < m_bar) {
-                // We rotate the body (to get our body) and leave the inertial untouched.
                 inertial.emplace_back(s);
-                body.emplace_back(Rotation::rotate(s, q));
             }
         }
     }
-    while(body.size() < 5);
+    while(inertial.size() < 5);
+    
+    // Shuffle our inertial, then rotate our inertial set to get our body set.
+    std::shuffle(inertial.begin(), inertial.end(), mersenne_twister);
+    body.clear(), body.reserve(inertial.size());
+    for (const Star &s : inertial) {
+        body.emplace_back(Rotation::rotate(s, q));
+    }
 }
 
 /// Generate gaussian noise for the first n body stars. Noise is distributed given shift_sigma.

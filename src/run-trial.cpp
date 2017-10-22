@@ -2,7 +2,7 @@
 /// @author Glenn Galvizo
 ///
 /// Source file for the trial runner. Based on the arguments, run the specific trial for the given identification
-/// method and log the data to a CSV file. There exists four trial types, and five identification methods.
+/// method and log the data to a CSV file. There exists three trial types, and four identification methods.
 ///
 /// @code{.cpp}
 /// - 0 a -> Run trial A with the Angle method.
@@ -23,6 +23,7 @@
 #include <chrono>
 #include "trial/query.h"
 #include "trial/alignment.h"
+#include "trial/crown.h"
 
 /// Alias for trial function pointers.
 typedef void (*trial_function) (Chomp &, std::ofstream &);
@@ -35,7 +36,7 @@ void record_header (const int choice, std::ofstream &log) {
     switch (choice) {
         case 0: return (void) (log << Query::ATTRIBUTE);
         case 1: return (void) (log << Alignment::ATTRIBUTE);
-            //        case 2: return (void) (log << Crown::ATTRIBUTE);
+        case 2: return (void) (log << Crown::ATTRIBUTE);
         default: throw "Trial choice is not within space {0, 1, 2}.";
     }
 }
@@ -55,10 +56,10 @@ trial_function select_trial (const int identification_choice, const int trial_ch
         case 5: return &Alignment::trial_sphere;
         case 6: return &Alignment::trial_plane;
         case 7: return &Alignment::trial_pyramid;
-            //        case 8: return &Crown::trial_angle;
-            //        case 9: return &Crown::trial_sphere;
-            //        case 10: return &Crown::trial_plane;
-            //        case 11: return &Crown::trial_pyramid;
+        case 8: return &Crown::trial_angle;
+        case 9: return &Crown::trial_sphere;
+        case 10: return &Crown::trial_plane;
+        case 11: return &Crown::trial_pyramid;
         default: throw "Choices not in appropriate spaces or test does not exist.";
     }
 }

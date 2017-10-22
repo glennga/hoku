@@ -26,3 +26,12 @@ add_library(Alignment STATIC ${SOURCES} ${INCLUDES})
 install(TARGETS Alignment DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include)
 
+##################################################################
+# Build Library Crown
+##################################################################
+FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/crown.cpp)
+FILE(GLOB INCLUDES ${CMAKE_SOURCE_DIR}/include/trial/crown.h)
+add_library(Crown STATIC ${SOURCES} ${INCLUDES})
+install(TARGETS Crown DESTINATION lib)
+install(FILES ${INCLUDES} DESTINATION include)
+

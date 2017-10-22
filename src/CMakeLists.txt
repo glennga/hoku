@@ -21,7 +21,7 @@ target_link_libraries(GenerateN Pyramid PlanarTriangle
 # Link and Create Executable RunTrial
 ##################################################################
 add_executable(RunTrial run-trial.cpp)
-target_link_libraries(RunTrial Alignment Query Pyramid
+target_link_libraries(RunTrial Alignment Query Crown Pyramid
         PlanarTriangle SphericalTriangle Angle BaseTriangle Benchmark Rotation
         QuadNode KdNode Chomp Nibble Asterism Mercator Trio Star SQLiteCpp
         Sqlite3)

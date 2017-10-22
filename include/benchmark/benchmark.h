@@ -65,9 +65,9 @@ class Benchmark {
     void remove_light (int, double);
     
     static int compare_stars (const Benchmark &, const Star::list &);
-  
+
 #if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
-    private:
+  private:
 #endif
     Benchmark (std::random_device &, const Star::list &, const Star &, double);
     
@@ -75,7 +75,7 @@ class Benchmark {
     void shuffle ();
 
 #if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
-    private:
+  private:
 #endif
     /// String of the HOKU_PROJECT_PATH environment variable.
     const std::string PROJECT_LOCATION = std::string(std::getenv("HOKU_PROJECT_PATH"));
@@ -93,7 +93,7 @@ class Benchmark {
     using model_list = std::vector<ErrorModel>;
     
     /// Random device pointer, used as source of randomness.
-    std::random_device* seed;
+    std::random_device *seed;
     
     /// Current list of stars. All stars must be near the focus.
     Star::list stars;
