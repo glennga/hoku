@@ -67,7 +67,7 @@ void Crown::trial_angle (Chomp &ch, std::ofstream &log) {
                         input.shift_light((int) input.stars.size(), SS_MIN * pow(SS_MULT, ss_i));
                     }
                     double p = ES_MIN + ES_STEP * es_i;
-                    input.add_extra_light((int) ((p / (1 - p)) * input.stars.size()));
+                    input.add_extra_light((int) ((p / (1 - p)) * input.stars.size()), true);
                     
                     // Find our result set. Run the identification.
                     z = 0;
@@ -113,7 +113,7 @@ void Crown::trial_plane (Chomp &ch, std::ofstream &log) {
                         input.shift_light((int) input.stars.size(), SS_MIN * pow(SS_MULT, ss_i));
                     }
                     double p = ES_MIN + ES_STEP * es_i;
-                    input.add_extra_light((int) ((p / (1 - p)) * input.stars.size()));
+                    input.add_extra_light((int) ((p / (1 - p)) * input.stars.size()), true);
                     
                     // Find our result set. Run the identification.
                     z = 0;
@@ -159,7 +159,7 @@ void Crown::trial_sphere (Chomp &ch, std::ofstream &log) {
                         input.shift_light((int) input.stars.size(), SS_MIN * pow(SS_MULT, ss_i));
                     }
                     double p = ES_MIN + ES_STEP * es_i;
-                    input.add_extra_light((int) ((p / (1 - p)) * input.stars.size()));
+                    input.add_extra_light((int) ((p / (1 - p)) * input.stars.size()), true);
                     
                     // Find our result set. Run the identification.
                     z = 0;
@@ -204,7 +204,7 @@ void Crown::trial_pyramid (Chomp &ch, std::ofstream &log) {
                         input.shift_light((int) input.stars.size(), SS_MIN * pow(SS_MULT, ss_i));
                     }
                     double p = ES_MIN + ES_STEP * es_i;
-                    input.add_extra_light((int) ((p / (1 - p)) * input.stars.size()));
+                    input.add_extra_light((int) ((p / (1 - p)) * input.stars.size()), true);
                     
                     // Find our result set. Run the identification.
                     z = 0;

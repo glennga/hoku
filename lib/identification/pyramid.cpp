@@ -90,7 +90,7 @@ Pyramid::hr_quad Pyramid::find_candidate_quad (const index_quad &b_f) {
         return this->query_for_pairs(Star::angle_between(this->input[b_f[triangle_index]], this->input[b_f[3]]));
     };
     label_list_pair ei_pairs = find_pairs(0), ej_pairs = find_pairs(1), ek_pairs = find_pairs(2);
-    
+
     // Find a candidate for the star E (reference star). Break if no reference star exists.
     Star e_candidate = find_reference(ei_pairs, ej_pairs, ek_pairs);
     if (e_candidate == Star::zero()) {
@@ -193,9 +193,9 @@ Star::list Pyramid::identify (const Benchmark &input, const Parameters &paramete
     }
     
     // Otherwise, there exists |A_input| choose 4 possibilities. Looping specified in paper. E chosen after K.
-    for (unsigned int dj = 1; dj < p.input.size() - 2; dj++) {
-        for (unsigned int dk = 2; dk < p.input.size() - dj - 2; dk++) {
-            for (unsigned int i = 0; i < p.input.size() - dj - dk; i++) {
+    for (unsigned int dj = 1; dj < p.input.size() - 1; dj++) {
+        for (unsigned int dk = 1; dk < p.input.size() - dj - 1; dk++) {
+            for (unsigned int i = 0; i < p.input.size() - dj - dk - 1; i++) {
                 int j = i + dj, k = j + dk, e = k + 1;
                 Star::list candidates, matches;
                 z++;

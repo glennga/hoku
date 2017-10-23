@@ -284,7 +284,7 @@ int Chomp::create_k_vector (const std::string &focus) {
 }
 
 /// Search a table for the specified fields given a focus column using the K-Vector method. Searches for all results
-/// between y_a and y_b. The results are a 1D array that holds a fixed number of items in succession.
+/// between y_a and y_b.
 ///
 /// *REQUIRES Chomp::create_k_vector TO HAVE BEEN RUN BEFOREHAND**
 ///
@@ -293,7 +293,8 @@ int Chomp::create_k_vector (const std::string &focus) {
 /// @param y_a Lower bound of the focus to search for.
 /// @param y_b Upper bound of the focus to search for.
 /// @param expected Expected number of results to be returned. Better to overshoot.
-/// @return List of results (in form of tuples), in order of that queried from Nibble.
+/// @return Empty list if k_value does not exist. Otheriwse, an empty list of results (in form of tuples), in order of
+/// that queried from Nibble.
 Nibble::tuples_d Chomp::k_vector_query (const std::string &focus, const std::string &fields, const double y_a,
                                         const double y_b, const unsigned int expected) {
     tuples_d s_endpoints;
@@ -319,6 +320,13 @@ Nibble::tuples_d Chomp::k_vector_query (const std::string &focus, const std::str
     s_endpoints = search_table("k_value", sql, expected / 2);
     
     select_table(s_table);
-    sql = "rowid BETWEEN " + std::to_string(s_endpoints.front()[0]) + " AND " + std::to_string(s_endpoints.back()[0]);
-    return search_table(fields, sql, expected);
+
+    if (!s_endpoints.empty()) {
+        sql = "rowid BETWEEN " + std::to_string(s_endpoints.front()[0]) + " AND " + std::to_string(
+                s_endpoints.back()[0]);
+        return search_table(fields, sql, expected);
+    }
+    else {
+        return {};
+    }
 }
