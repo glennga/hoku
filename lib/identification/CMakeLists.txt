@@ -52,3 +52,12 @@ FILE(GLOB INCLUDES ${CMAKE_SOURCE_DIR}/include/identification/pyramid.h)
 add_library(Pyramid STATIC ${SOURCES} ${INCLUDES})
 install(TARGETS Pyramid DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include)
+
+##################################################################
+# Build Library Hoku
+##################################################################
+FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/hoku.cpp)
+FILE(GLOB INCLUDES ${CMAKE_SOURCE_DIR}/include/identification/hoku.h)
+add_library(Hoku STATIC ${SOURCES} ${INCLUDES})
+install(TARGETS Hoku DESTINATION lib)
+install(FILES ${INCLUDES} DESTINATION include)
