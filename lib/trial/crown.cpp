@@ -74,9 +74,10 @@ void Crown::trial_angle (Chomp &ch, std::ofstream &log) {
                     result = Angle::identify(input, par, z);
 
                     // Log our results. Note that our match and query sigma are fixed.
-                    log << "Angle," << par.match_sigma << "," << par.query_sigma << "," << SS_MIN * pow(SS_MULT, ss_i)
-                        << "," << MB_MIN + mb_i * MB_STEP << "," << p << "," << z << "," << input.stars.size() << ","
-                        << result.size() << "," << Benchmark::compare_stars(input, result) << '\n';
+                    log << "Angle," << par.match_sigma << "," << par.query_sigma << "," <<
+                        ((ss_i == -1) ? 0 : SS_MIN * pow(SS_MULT, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << ","
+                        << p << "," << z << "," << input.stars.size() << "," << result.size() << ","
+                        << Benchmark::compare_stars(input, result) << '\n';
                 }
             }
         }
@@ -120,9 +121,10 @@ void Crown::trial_plane (Chomp &ch, std::ofstream &log) {
                     result = Plane::identify(input, par, z);
 
                     // Log our results. Note that our match and query sigma are fixed.
-                    log << "Plane," << par.match_sigma << "," << par.sigma_a << "," << SS_MIN * pow(SS_MULT, ss_i)
-                        << "," << MB_MIN + mb_i * MB_STEP << "," << p << "," << z << "," << input.stars.size() << ","
-                        << result.size() << "," << Benchmark::compare_stars(input, result) << '\n';
+                    log << "Plane," << par.match_sigma << "," << par.sigma_a << "," <<
+                        ((ss_i == -1) ? 0 : SS_MIN * pow(SS_MULT, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << ","
+                        << p << "," << z << "," << input.stars.size() << "," << result.size() << ","
+                        << Benchmark::compare_stars(input, result) << '\n';
                 }
             }
         }
@@ -166,9 +168,10 @@ void Crown::trial_sphere (Chomp &ch, std::ofstream &log) {
                     result = Sphere::identify(input, par, z);
 
                     // Log our results. Note that our match and query sigma are fixed.
-                    log << "Sphere," << par.match_sigma << "," << par.sigma_a << "," << SS_MIN * pow(SS_MULT, ss_i)
-                        << "," << MB_MIN + mb_i * MB_STEP << "," << p << "," << z << "," << input.stars.size() << ","
-                        << result.size() << "," << Benchmark::compare_stars(input, result) << '\n';
+                    log << "Sphere," << par.match_sigma << "," << par.sigma_a << "," <<
+                        ((ss_i == -1) ? 0 : SS_MIN * pow(SS_MULT, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << ","
+                        << p << "," << z << "," << input.stars.size() << "," << result.size() << ","
+                        << Benchmark::compare_stars(input, result) << '\n';
                 }
             }
         }
@@ -211,9 +214,10 @@ void Crown::trial_pyramid (Chomp &ch, std::ofstream &log) {
                     result = Pyramid::identify(input, par, z);
 
                     // Log our results. Note that our match and query sigma are fixed.
-                    log << "Pyramid," << par.match_sigma << "," << par.query_sigma << "," << SS_MIN * pow(SS_MULT, ss_i)
-                        << "," << MB_MIN + mb_i * MB_STEP << "," << p << "," << z << "," << input.stars.size() << ","
-                        << result.size() << "," << Benchmark::compare_stars(input, result) << '\n';
+                    log << "Pyramid," << par.match_sigma << "," << par.query_sigma << "," <<
+                        ((ss_i == -1) ? 0 : SS_MIN * pow(SS_MULT, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << ","
+                        << p << "," << z << "," << input.stars.size() << "," << result.size() << ","
+                        << Benchmark::compare_stars(input, result) << '\n';
                 }
             }
         }
