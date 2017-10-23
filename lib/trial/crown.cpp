@@ -32,8 +32,10 @@ void Crown::present_benchmark (Chomp &ch, std::random_device &seed, Star::list &
         }
     }
     while (body.size() < 5);
-    
+
+    // Shuffle and rotate the focus.
     std::shuffle(body.begin(), body.end(), mersenne_twister);
+    focus = Rotation::rotate(focus, q);
 }
 
 /// Record the results of Angle's identification process.
@@ -209,9 +211,9 @@ void Crown::trial_pyramid (Chomp &ch, std::ofstream &log) {
                     result = Pyramid::identify(input, par, z);
                     
                     // Log our results. Note that our match and query sigma are fixed.
-                    log << "Sphere," << par.match_sigma << "," << par.query_sigma << "," << SS_MIN * pow(SS_MULT, ss_i)
+                    log << "Pyramid," << par.match_sigma << "," << par.query_sigma << "," << SS_MIN * pow(SS_MULT, ss_i)
                         << "," << MB_MIN + mb_i * MB_STEP << "," << p << "," << z << "," << input.stars.size() << ","
-                        << result.size() << "," << Benchmark::compare_stars(input, result) << '\n';
+                        << result.size() << "," << Benchmark::compare_stars(input, result) << std::endl;
                 }
             }
         }

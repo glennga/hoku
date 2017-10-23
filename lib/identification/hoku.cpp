@@ -33,26 +33,26 @@ int Hoku::generate_asterism_table (const double fov, const std::string &table_na
     // (i, j, k, m) are distinct, where no (i, j, k, m) = (j, k, m, i), (k, j, m, i), ...
     Star::list all_stars = ch.bright_as_list();
     for (unsigned int i = 0; i < all_stars.size() - 3; i++) {
-        SQLite::Transaction transaction(*ch.db);
-        std::cout << "\r" << "Current *I* Star: " << all_stars[i].get_label();
         for (unsigned int j = i + 1; j < all_stars.size() - 2; j++) {
+            SQLite::Transaction transaction(*ch.db);
+            std::cout << "\r" << "Current *J* Star: " << all_stars[i].get_label();
             for (unsigned int k = j + 1; k < all_stars.size() - 1; k++) {
                 for (unsigned int m = k + 1; m < all_stars.size(); m++) {
                     Asterism::points_cd h_t = Asterism::hash({all_stars[i], all_stars[j], all_stars[k], all_stars[m]});
-                    
+
                     // Check if the hash returned is valid, and if all stars are within FOV degrees.
                     if (Star::within_angle({all_stars[i], all_stars[j], all_stars[k], all_stars[m]}, fov)
-                        && h_t[0] + h_t[1] + h_t[2] + h_t[3] != 0) {
+                            && h_t[0] + h_t[1] + h_t[2] + h_t[3] != 0) {
                         ch.insert_into_table("label_a, label_b, label_c, label_d, cx, cy, dx, dy",
                                              Nibble::tuple_d {(double) i, (double) j, (double) k, (double) m, h_t[0],
-                                                 h_t[1], h_t[2], h_t[3]});
+                                                     h_t[1], h_t[2], h_t[3]});
                     }
                 }
             }
+
+            // Commit every star J change.
+            transaction.commit();
         }
-        
-        // Commit every star I change.
-        transaction.commit();
     }
     
     return ch.polish_table("cx");
