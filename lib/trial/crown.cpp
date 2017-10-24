@@ -53,6 +53,7 @@ void Crown::trial_angle (Chomp &ch, std::ofstream &log) {
     par.table_name = ANGLE_TABLE;
     par.match_sigma = 10e-10;
     par.query_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5);
+    par.z_max = 1500;
 
     // First run is clean, without shifts. Following are the shift trials.
     for (int ss_i = -1; ss_i < SS_ITER; ss_i++) {
@@ -98,8 +99,9 @@ void Crown::trial_plane (Chomp &ch, std::ofstream &log) {
     Plane::Parameters par;
     par.table_name = PLANE_TABLE;
     par.match_sigma = 10e-10;
-    par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 5);;
-    par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 5);;
+    par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 5);
+    par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 5);
+    par.z_max = 1500;
 
     // First run is clean, without shifts. Following are the shift trials.
     for (int ss_i = -1; ss_i < SS_ITER; ss_i++) {
@@ -145,8 +147,9 @@ void Crown::trial_sphere (Chomp &ch, std::ofstream &log) {
     Sphere::Parameters par;
     par.table_name = SPHERE_TABLE;
     par.match_sigma = 10e-10;
-    par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 7);;
-    par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 7);;
+    par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 7);
+    par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 7);
+    par.z_max = 1500;
 
     // First run is clean, without shifts. Following are the shift trials.
     for (int ss_i = -1; ss_i < SS_ITER; ss_i++) {
@@ -193,6 +196,7 @@ void Crown::trial_pyramid (Chomp &ch, std::ofstream &log) {
     par.table_name = PYRAMID_TABLE;
     par.match_sigma = 10e-10;
     par.query_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5);
+    par.z_max = 1500;
 
     // First run is clean, without shifts. Following are the shift trials.
     for (int ss_i = -1; ss_i < SS_ITER; ss_i++) {

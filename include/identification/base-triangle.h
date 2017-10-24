@@ -23,6 +23,7 @@ class BaseTriangle {
         unsigned int query_expected = 100; ///< Expected number of stars to be found with query. Better to overshoot.
         double match_sigma = 0.00001; ///< Resultant of inertial->body rotation must within 3 * match_sigma of *a* body.
         unsigned int match_minimum = 4; ///< The minimum number of body-inertial matches.
+        unsigned int z_max = 1000; ///< Maximum number of comparisons before returning an empty list.
         int moment_td_h = 3; ///< Maximum level of recursion to generate polar moment (spherical only).
         std::string table_name; ///< Name of the Nibble table created with 'generate_triangle_table'.
     };

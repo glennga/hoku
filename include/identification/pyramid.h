@@ -41,6 +41,7 @@ class Pyramid {
         unsigned int query_limit = 100; ///< While performing k-vector query, limit results by this number.
         double match_sigma = 0.00001; ///< Resultant of inertial->body rotation must within 3 * match_sigma of *a* body.
         unsigned int match_minimum = 4; ///< The minimum number of body-inertial matches.
+        unsigned int z_max = 1000; ///< Maximum number of comparisons before returning an empty list.
         std::string table_name = "PYRA_20"; ///< Name of the pyramid table created with 'generate_pyramid_table'.
     };
     

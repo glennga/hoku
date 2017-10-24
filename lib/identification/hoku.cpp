@@ -42,9 +42,7 @@ int Hoku::generate_asterism_table(const double fov, const std::string &table_nam
 
                     // Check if the hash returned is valid, and if all stars are within FOV degrees.
                     if (Star::within_angle({all_stars[i], all_stars[j], all_stars[k], all_stars[m]}, fov) &&
-                            std::all_of(h_t.begin(), h_t.end(), [](int p) {
-                                return p == 0;
-                            })) {
+                            h_t[0] + h_t[1] + h_t[2] + h_t[3] != 0) {
                         ch.insert_into_table("label_a, label_b, label_c, label_d, cx, cy, dx, dy",
                                              Nibble::tuple_d {(double) all_stars[i].get_label(),
                                                      (double) all_stars[j].get_label(),

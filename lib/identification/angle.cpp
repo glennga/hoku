@@ -166,7 +166,8 @@ Star::list Angle::check_assumptions (const Star::list &candidates, const Star::p
 /// @param input The set of benchmark data to work with.
 /// @param parameters Adjustments to the identification process.
 /// @param z Reference to variable that will hold the input comparison count.
-/// @return Vector of body stars with their inertial BSC IDs that qualify as matches.
+/// @return Empty list if an image match cannot be found in "time". Otherwise, a vector of body stars with their
+/// inertial catalog IDs that qualify as matches.
 Star::list Angle::identify (const Benchmark &input, const Parameters &parameters, unsigned int &z) {
     Star::list matches;
     Angle a(input, parameters);
@@ -189,7 +190,12 @@ Star::list Angle::identify (const Benchmark &input, const Parameters &parameters
             
             // Check both possible configurations. Return the most likely of the two.
             matches = a.check_assumptions(candidates, candidate_pair, {a.input[i], a.input[j]});
-            
+
+            // Practical limit: exit early if we have iterated through too many comparisons without match.
+            if (z > a.parameters.z_max) {
+                return {};
+            }
+
             // Definition of image match: |match| > match minimum OR |match| == |input|.
             if (matches.size() > a.parameters.match_minimum || matches.size() == a.input.size()) {
                 return matches;

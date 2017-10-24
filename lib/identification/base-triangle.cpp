@@ -6,7 +6,7 @@
 
 #include "identification/base-triangle.h"
 
-/// Find the best matching pair using the appropriate PLAN table and by comparing areas and polar moments. Assumes
+/// Find the best matching pair using the appropriate triangle table and by comparing areas and polar moments. Assumes
 /// noise is normally distributed, searches using epsilon (3 * sigma_a) and K-Vector query.
 ///
 /// **REQUIRES create_k_vector TO HAVE BEEN RUN PRIOR TO THIS METHOD**
@@ -209,7 +209,8 @@ Rotation BaseTriangle::trial_attitude_determine (const Star::list &candidates, c
 /// function as 'identify' to mimic the other methods.
 ///
 /// @param z Reference to variable that will hold the input comparison count.
-/// @return Vector of body stars with their inertial BSC IDs that qualify as matches.
+/// @return Empty list if an image match cannot be found in "time". Otherwise, a vector of body stars with their
+/// inertial catalog IDs that qualify as matches.
 Star::list BaseTriangle::identify_stars (unsigned int &z) {
     Star::list matches;
     z = 0;
@@ -235,7 +236,12 @@ Star::list BaseTriangle::identify_stars (unsigned int &z) {
                 
                 // Check all possible configurations. Return the most likely.
                 matches = check_assumptions(candidates, candidate_trio, {(double) i, (double) j, (double) k});
-                
+
+                // Practical limit: exit early if we have iterated through too many comparisons without match.
+                if (z > parameters.z_max) {
+                    return {};
+                }
+
                 // Definition of image match: |match| > match minimum. Break early.
                 if (matches.size() > parameters.match_minimum) {
                     return matches;
