@@ -66,8 +66,8 @@ void Crown::trial_angle (Chomp &ch, std::ofstream &log) {
                     if (ss_i != -1) {
                         input.shift_light((int) input.stars.size(), SS_MIN * pow(SS_MULT, ss_i));
                     }
-                    double p = ES_MIN + ES_STEP * es_i;
-                    input.add_extra_light((int) ((p / (1 - p)) * input.stars.size()), true);
+                    double p = ES_MIN + ES_STEP * es_i, clean_size = input.stars.size();
+                    input.add_extra_light((int) ((p / (1 - p)) * clean_size));
 
                     // Find our result set. Run the identification.
                     z = 0;
@@ -77,7 +77,7 @@ void Crown::trial_angle (Chomp &ch, std::ofstream &log) {
                     log << "Angle," << par.match_sigma << "," << par.query_sigma << "," <<
                         ((ss_i == -1) ? 0 : SS_MIN * pow(SS_MULT, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << ","
                         << p << "," << z << "," << input.stars.size() << "," << result.size() << ","
-                        << Benchmark::compare_stars(input, result) << '\n';
+                        << Benchmark::compare_stars(input, result) / clean_size << '\n';
                 }
             }
         }
@@ -113,8 +113,8 @@ void Crown::trial_plane (Chomp &ch, std::ofstream &log) {
                     if (ss_i != -1) {
                         input.shift_light((int) input.stars.size(), SS_MIN * pow(SS_MULT, ss_i));
                     }
-                    double p = ES_MIN + ES_STEP * es_i;
-                    input.add_extra_light((int) ((p / (1 - p)) * input.stars.size()), true);
+                    double p = ES_MIN + ES_STEP * es_i, clean_size = input.stars.size();
+                    input.add_extra_light((int) ((p / (1 - p)) * clean_size));
 
                     // Find our result set. Run the identification.
                     z = 0;
@@ -124,7 +124,7 @@ void Crown::trial_plane (Chomp &ch, std::ofstream &log) {
                     log << "Plane," << par.match_sigma << "," << par.sigma_a << "," <<
                         ((ss_i == -1) ? 0 : SS_MIN * pow(SS_MULT, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << ","
                         << p << "," << z << "," << input.stars.size() << "," << result.size() << ","
-                        << Benchmark::compare_stars(input, result) << '\n';
+                        << Benchmark::compare_stars(input, result) / clean_size << '\n';
                 }
             }
         }
@@ -160,8 +160,8 @@ void Crown::trial_sphere (Chomp &ch, std::ofstream &log) {
                     if (ss_i != -1) {
                         input.shift_light((int) input.stars.size(), SS_MIN * pow(SS_MULT, ss_i));
                     }
-                    double p = ES_MIN + ES_STEP * es_i;
-                    input.add_extra_light((int) ((p / (1 - p)) * input.stars.size()), true);
+                    double p = ES_MIN + ES_STEP * es_i, clean_size = input.stars.size();
+                    input.add_extra_light((int) ((p / (1 - p)) * clean_size));
 
                     // Find our result set. Run the identification.
                     z = 0;
@@ -171,7 +171,7 @@ void Crown::trial_sphere (Chomp &ch, std::ofstream &log) {
                     log << "Sphere," << par.match_sigma << "," << par.sigma_a << "," <<
                         ((ss_i == -1) ? 0 : SS_MIN * pow(SS_MULT, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << ","
                         << p << "," << z << "," << input.stars.size() << "," << result.size() << ","
-                        << Benchmark::compare_stars(input, result) << '\n';
+                        << Benchmark::compare_stars(input, result) / clean_size << '\n';
                 }
             }
         }
@@ -206,8 +206,8 @@ void Crown::trial_pyramid (Chomp &ch, std::ofstream &log) {
                     if (ss_i != -1) {
                         input.shift_light((int) input.stars.size(), SS_MIN * pow(SS_MULT, ss_i));
                     }
-                    double p = ES_MIN + ES_STEP * es_i;
-                    input.add_extra_light((int) ((p / (1 - p)) * input.stars.size()), true);
+                    double p = ES_MIN + ES_STEP * es_i, clean_size = input.stars.size();
+                    input.add_extra_light((int) ((p / (1 - p)) * clean_size));
 
                     // Find our result set. Run the identification.
                     z = 0;
@@ -217,7 +217,7 @@ void Crown::trial_pyramid (Chomp &ch, std::ofstream &log) {
                     log << "Pyramid," << par.match_sigma << "," << par.query_sigma << "," <<
                         ((ss_i == -1) ? 0 : SS_MIN * pow(SS_MULT, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << ","
                         << p << "," << z << "," << input.stars.size() << "," << result.size() << ","
-                        << Benchmark::compare_stars(input, result) << '\n';
+                        << Benchmark::compare_stars(input, result) / clean_size << '\n';
                 }
             }
         }

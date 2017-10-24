@@ -16,7 +16,7 @@
 namespace Crown {
     /// Attribute header that corresponds to the log file for all query trials.
     const char *const ATTRIBUTE = "IdentificationMethod,MatchSigma,QuerySigma,ShiftSigma,MBar,FalsePercentage,"
-        "ComparisonCount,BenchmarkSetSize,ResultSetSize,NumberCorrectInResultSet\n";
+        "ComparisonCount,BenchmarkSetSize,ResultSetSize,PercentageCorrectInCleanResultSet\n";
     
     const double WORKING_FOV = 20; ///< Field of view that all our test stars must be within.
     const int CROWN_SAMPLES = 100; ///< Number of samples to retrieve for each individual trial.
