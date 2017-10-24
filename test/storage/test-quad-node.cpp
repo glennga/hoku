@@ -9,11 +9,12 @@
 ///
 /// @return 0 when finished.
 int TestQuadNode::test_star_constructor () {
-    QuadNode b(Star::chance(), 1000, 1);
+    std::random_device seed;
+    QuadNode b(Star::chance(seed), 1000, 1);
     
     assert_equal(b.w_i, 1, "LocalWidthDefault");
     assert_equal(b.w_n, 1000, "ProjectedWidth");
-    return 0 * assert_equal(b.hr, 0, "HRValueDefault");
+    return 0 * assert_equal(b.label, 0, "HRValueDefault");
 }
 
 /// Check that the QuadNode root has the expected properties.
@@ -32,7 +33,8 @@ int TestQuadNode::test_root_property () {
 ///
 /// @return 0 when finished.
 int TestQuadNode::test_branch () {
-    QuadNode a(Star::chance(), 1000, 1);
+    std::random_device seed;
+    QuadNode a(Star::chance(seed), 1000, 1);
     QuadNode::child_edges b = {std::make_shared<QuadNode>(QuadNode(-5, 5, 1000)), nullptr, nullptr, nullptr};
     QuadNode c = QuadNode::branch(a, b);
     
@@ -40,7 +42,7 @@ int TestQuadNode::test_branch () {
     assert_equal(c.y, a.y, "BranchSelfY");
     assert_equal(c.w_n, a.w_n, "BranchSelfW_N");
     assert_equal(c.w_i, a.w_i, "BranchSelfW_I");
-    assert_equal(c.hr, a.hr, "BranchSelfHR");
+    assert_equal(c.label, a.label, "BranchSelfHR");
     assert_equal(c.to_child(0).x, -5, "BranchChild1X");
     assert_equal(c.to_child(0).y, 5, "BranchChild1Y");
     return 0 * assert_equal(c.to_child(1).w_n, -1, "BranchChild2IsNull");
@@ -183,16 +185,17 @@ int TestQuadNode::test_partition_for_leaves () {
 ///
 /// @return 0 when finished.
 int TestQuadNode::test_nearby_stars () {
-    QuadNode q = QuadNode::load_tree(1000);
-    Star a = Star::chance();
-    Star::list b = Nibble().nearby_stars(a, 10, 90), c = q.nearby_stars(a, 10, 90);
+    QuadNode q = QuadNode::load_tree(10000, 6.0);
+    std::random_device seed;
+    Star a = Star::chance(seed);
+    Star::list b = Chomp().nearby_hip_stars(a, 10, 90), c = q.nearby_stars(a, 10, 90);
     std::vector<double> d, e;
     
-    assert_not_equal(Nibble().nearby_stars(a, 10, 90).size(), 0, "NearbyStarsNoQuadTree");
-    assert_not_equal(q.nearby_stars(a, 10, 90).size(), 0, "NearbyStarsUsingQuadTree");
+    assert_not_equal(b.size(), 0, "NearbyStarsNoQuadTree");
+    assert_not_equal(c.size(), 0, "NearbyStarsUsingQuadTree");
     
     for (const Star &s : c) {
-        std::string test_name = "NearbyStarIsActuallyNearFocus" + std::to_string(s.get_hr());
+        std::string test_name = "NearbyStarIsActuallyNearFocus" + std::to_string(s.get_label());
         // Adding 3 degrees to fov... B and C are both defined by different definitions of "nearby".
         assert_less_than(Star::angle_between(s, a), 10 + 3, test_name);
     }

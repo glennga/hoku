@@ -20,7 +20,7 @@ int TestStar::test_constructor_no_unit () {
 ///
 /// @return 0 when finished.
 int TestStar::test_constructor_unit () {
-    Star a(1, 1, 1, 0, true);
+    Star a(1, 1, 1, 0, 1.0, true);
     
     return 0 * assert_equal(a.norm(), 1.0, "ConstructorUnit");
 }
@@ -68,7 +68,8 @@ int TestStar::test_norm_computation () {
 ///
 /// @return 0 when finished.
 int TestStar::test_unit_norm () {
-    Star a = Star::chance() * 85.0, b = a.as_unit();
+    std::random_device seed;
+    Star a = Star::chance(seed) * 85.0, b = a.as_unit();
     
     return 0 * assert_equal(b.norm(), 1.0, "UnitNorm");
 }
@@ -104,21 +105,24 @@ int TestStar::test_equality_precision () {
 ///
 /// @return 0 when finished.
 int TestStar::test_chance_unit () {
-    return 0 * assert_equal(Star::chance().norm(), 1.0, "ChanceUnit");
+    std::random_device seed;
+    return 0 * assert_equal(Star::chance(seed).norm(), 1.0, "ChanceUnit");
 }
 
 /// Check if the HR number assigned is correct from overloaded chance method.
 ///
 /// @return 0 when finished.
 int TestStar::test_chance_hr () {
-    return 0 * assert_equal(Star::chance(-100).hr, -100, "ChanceHRNumberEquality");
+    std::random_device seed;
+    return 0 * assert_equal(Star::chance(seed, -100).label, -100, "ChanceHRNumberEquality");
 }
 
 /// Check if the chance method returns a different star upon the next use.
 ///
 /// @return 0 when finished.
 int TestStar::test_chance_duplicate () {
-    Star a = Star::chance(), b = Star::chance();
+    std::random_device seed;
+    Star a = Star::chance(seed), b = Star::chance(seed);
     
     return 0 * assert_not_equal(a, b, "ChanceDuplicate", a.str() + "," + b.str());
 }
@@ -199,7 +203,7 @@ int TestStar::test_angle_out_check () {
 ///
 /// @return 0 when finished.
 int TestStar::test_hr_clear () {
-    return 0 * assert_equal(Star::reset_hr(Star(0, 0, 0, 5)).hr, 0, "WithoutBSC0Check");
+    return 0 * assert_equal(Star::reset_label(Star(0, 0, 0, 5)).label, 0, "WithoutBSC0Check");
 }
 
 /// Check that the when calculating the angle between the same stars, NaN is not returned.
@@ -220,7 +224,7 @@ int TestStar::test_get_operators () {
     assert_equal(a[0], a.i, "StarGetI");
     assert_equal(a[1], a.j, "StarGetJ");
     assert_equal(a[2], a.k, "StarGetK");
-    return 0 * assert_equal(a.get_hr(), a.hr, "StarGetBSC");
+    return 0 * assert_equal(a.get_label(), a.label, "StarGetBSC");
 }
 
 /// Check that the correct result is returned with within_angle function.

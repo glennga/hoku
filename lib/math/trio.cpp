@@ -101,9 +101,9 @@ double Trio::spherical_area (const Star &b_1, const Star &b_2, const Star &b_3) 
 ///
 /// @return Star with the components of {B_1, B_2, B_3} centroid.
 Star Trio::planar_centroid () const {
-    return Star((1 / 3.0) * (this->b_1[0] + this->b_2[0] + this->b_3[0]),
+    return {(1 / 3.0) * (this->b_1[0] + this->b_2[0] + this->b_3[0]),
                 (1 / 3.0) * (this->b_1[1] + this->b_2[1] + this->b_3[1]),
-                (1 / 3.0) * (this->b_1[2] + this->b_2[2] + this->b_3[2]));
+                (1 / 3.0) * (this->b_1[2] + this->b_2[2] + this->b_3[2])};
 }
 
 /// Cut the current triangle into one smaller, retaining the focus coordinate and half the distance from star C_1 &
@@ -116,8 +116,8 @@ Star Trio::planar_centroid () const {
 /// @return Cut trio of stars {c_12, c_23, c_31}.
 Trio Trio::cut_triangle (const Star &c_1, const Star &c_2, const Star &c_3, const Star &keep) {
     // Keep desired stars. Only include those who are directly related to the midpoint.
-    return Trio((keep == c_3) ? c_3 : (c_1 + c_2).as_unit(), (keep == c_2) ? c_2 : (c_1 + c_3).as_unit(),
-                (keep == c_1) ? c_1 : (c_2 + c_3).as_unit());
+    return {(keep == c_3) ? c_3 : (c_1 + c_2).as_unit(), (keep == c_2) ? c_2 : (c_1 + c_3).as_unit(),
+                (keep == c_1) ? c_1 : (c_2 + c_3).as_unit()};
 }
 
 /// Recursively determine the spherical moment of a trio. This is a divide-and-conquer approach, creating four
@@ -158,5 +158,8 @@ double Trio::spherical_moment (const Star &b_1, const Star &b_2, const Star &b_3
     Trio t(b_1, b_2, b_3);
     
     // We star at the root, where the current tree depth td_i = 0.
-    return t.recurse_spherical_moment(t.planar_centroid(), td_h, 0);
+    double t_i = t.recurse_spherical_moment(t.planar_centroid(), td_h, 0);
+    
+    // Don't return NaN values.
+    return (std::isnan(t_i)) ? 0 : t_i;
 }

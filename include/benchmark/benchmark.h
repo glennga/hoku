@@ -12,7 +12,7 @@
 #include <iomanip>
 #include "math/star.h"
 #include "math/rotation.h"
-#include "storage/nibble.h"
+#include "storage/chomp.h"
 
 /// The benchmark class is used for all star identification implementation testing. To imitate real data from a star
 /// detector, we search for all stars in a section of the sky and apply various error models to this set.
@@ -22,7 +22,7 @@
 ///
 /// @example
 /// @code{.cpp}
-/// // Find all stars around a random star within 7.5 degrees of it. Rotate all stars by same random rotation.
+/// // Find all bright stars around a random star within 7.5 degrees of it. Rotate all stars by same random rotation.
 /// Benchmark b(15, Star::chance(), Rotation::chance());
 ///
 /// // Generate 1 random blob of size 2 degrees in diameter. Remove any stars in set above that fall in this blob.
@@ -38,14 +38,6 @@
 /// b.display_plot();
 /// @endcode
 class Benchmark {
-  private:
-    friend class TestBenchmark;
-    friend class TestAngle;
-    friend class TestPlanarTriangle;
-    friend class TestSphericalTriangle;
-    friend class TestAstrometryNet;
-    friend class TestPyramid;
-  
   public:
     /// Error model structure. Defines the type of error and the stars affected.
     struct ErrorModel {
@@ -58,41 +50,50 @@ class Benchmark {
     Benchmark () = delete;
   
   public:
-    Benchmark (const double, const Star &, const Rotation & = Rotation::identity());
+    Benchmark (Chomp &, std::random_device &, double, double = 6.0);
+    Benchmark (Chomp &, std::random_device &, const Star &, const Rotation &, double, double = 6.0);
     
-    void generate_stars ();
+    void generate_stars (Chomp &, double = 6.0);
     
     void present_image (Star::list &, double &) const;
-    
-    int insert_into_nibble (Nibble &, const unsigned int) const;
-    static Benchmark parse_from_nibble (Nibble &, const unsigned int);
     
     int record_current_plot ();
     int display_plot ();
     
-    void add_extra_light (const int);
-    void remove_light (const int, const double);
-    void shift_light (const int, const double);
+    void add_extra_light (int, bool = false);
+    void shift_light (int, double, bool = false);
+    void remove_light (int, double);
     
-    static int compare_stars(const Benchmark &, const Star::list &);
-    
-  public:
-    static const std::string TABLE_NAME;
-  
+    static int compare_stars (const Benchmark &, const Star::list &);
+
+#if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
   private:
-    Benchmark (const Star::list &, const Star &, const double);
+#endif
+    Benchmark (std::random_device &, const Star::list &, const Star &, double);
     
     Star::list clean_stars () const;
     void shuffle ();
-  
+
+#if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
   private:
+#endif
+    /// String of the HOKU_PROJECT_PATH environment variable.
+    const std::string PROJECT_LOCATION = std::string(std::getenv("HOKU_PROJECT_PATH"));
+    
+    /// String of the current plot temp file.
+    const std::string CURRENT_TMP = PROJECT_LOCATION + "/data/logs/tmp/cuplt.tmp";
+    
+    /// String of the error plot temp file.
+    const std::string ERROR_TMP = PROJECT_LOCATION + "/data/logs/tmp/errplt.tmp";
+    
+    /// Location of the Python benchmark plotter.
+    const std::string PLOT_SCRIPT = "\"" + PROJECT_LOCATION + "/script/python/generate-plot.py\"";
+    
     /// Alias for the list (stack) of ErrorModels.
     using model_list = std::vector<ErrorModel>;
     
-    static const std::string PROJECT_LOCATION;
-    static const std::string CURRENT_PLOT;
-    static const std::string ERROR_PLOT;
-    static const std::string PLOT_SCRIPT;
+    /// Random device pointer, used as source of randomness.
+    std::random_device *seed;
     
     /// Current list of stars. All stars must be near the focus.
     Star::list stars;

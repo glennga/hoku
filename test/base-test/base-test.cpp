@@ -84,7 +84,7 @@ bool BaseTest::assert_greater_than (const double x, const double a, const std::s
 /// @return True if a and b are within delta units of each other. False otherwise.
 bool BaseTest::assert_equal (double a, double b, const std::string &test_name, double delta) {
     std::ostringstream minimum;
-    minimum << std::setprecision(16) << std::fixed << delta;
+    minimum << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed << delta;
     std::string finding_delta = "|" + std::to_string(a) + " - " + std::to_string(b) + "|";
     
     log_current(fabs(a - b) < delta, test_name + ",FloatEqualAssertion",
@@ -104,7 +104,7 @@ bool BaseTest::assert_equal (double a, double b, const std::string &test_name, d
 /// @return True if a and b are not within delta units of each other. False otherwise.
 bool BaseTest::assert_not_equal (double a, double b, const std::string &test_name, double delta) {
     std::ostringstream minimum;
-    minimum << std::setprecision(16) << std::fixed << delta;
+    minimum << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed << delta;
     std::string finding_delta = "|" + std::to_string(a) + " - " + std::to_string(b) + "|";
     
     log_current(fabs(a - b) >= delta, test_name + ",FloatNotEqualAssertion",

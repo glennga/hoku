@@ -5,44 +5,50 @@
 
 #include "identification/test-angle.h"
 
-/// Check that query_for_pair method returns the BSC ID of the correct stars.
+/// Check that query_for_pair method returns the catalog ID of the correct stars.
 ///
 /// @return 0 when finished.
 int TestAngle::test_pair_query () {
-    Benchmark input(15, Star::chance(), Rotation::chance());
+    Chomp ch;
+    std::random_device seed;
+    Benchmark input(ch, seed, 15);
     
     double a = Star::angle_between(input.stars[0], input.stars[1]);
     std::array<int, 2> b = Angle(input, Angle::Parameters()).query_for_pair(a);
     
-    assert_inside(b[0], {input.stars[0].get_hr(), input.stars[1].get_hr()}, "QueryPairInsideInputStar0",
-                  std::to_string(b[0]) + "," + std::to_string(input.stars[0].get_hr()) + ","
-                  + std::to_string(input.stars[1].get_hr()));
+    assert_inside(b[0], {input.stars[0].get_label(), input.stars[1].get_label()}, "QueryPairInsideInputStar0",
+                  std::to_string(b[0]) + "," + std::to_string(input.stars[0].get_label()) + ","
+                  + std::to_string(input.stars[1].get_label()));
     
-    assert_inside(b[1], {input.stars[0].get_hr(), input.stars[1].get_hr()}, "QueryPairInsideInputStar1",
-                  std::to_string(b[1]) + "," + std::to_string(input.stars[0].get_hr()) + ","
-                  + std::to_string(input.stars[1].get_hr()));
+    assert_inside(b[1], {input.stars[0].get_label(), input.stars[1].get_label()}, "QueryPairInsideInputStar1",
+                  std::to_string(b[1]) + "," + std::to_string(input.stars[0].get_label()) + ","
+                  + std::to_string(input.stars[1].get_label()));
     return 0;
 }
 
-/// Check that a theta and epsilon with three choices returns the BSC ID of the correct stars.
+/// Check that a theta and epsilon with three choices returns the catalog ID of the correct stars.
 ///
 /// @return 0 when finished.
 int TestAngle::test_pair_multiple_choice_query () {
-    Angle a(Benchmark(15, Star::chance(), Rotation::chance()), Angle::Parameters());
-    Star b(0.203647924328259, 0.559277619691848, 0.803577044861669, 1466);
-    Star c(0.205670146125506, 0.564397142318217, 0.799472111293286, 1467);
-    a.parameters.query_sigma = 0.000139;
+    Chomp ch;
+    std::random_device seed;
+    Angle a(Benchmark(ch, seed, 15), Angle::Parameters());
+    Star b = ch.query_hip(103215), c = ch.query_hip(103217);
+    a.parameters.query_sigma = 10e-7;
     
     std::array<int, 2> d = a.query_for_pair(Star::angle_between(b, c));
-    assert_inside(d[0], {1466, 1467}, "QueryPairMultipleChoicesStar0", std::to_string(d[0]) + ",1466, 1467");
-    return 0 * assert_inside(d[1], {1466, 1467}, "QueryPairMultipleChoicesStar1", std::to_string(d[1]) + ",1466, 1467");
+    assert_inside(d[0], {103215, 103217}, "QueryPairMultipleChoicesStar0", std::to_string(d[0]) + ",103215, 103217");
+    return 0 * assert_inside(d[1], {103215, 103217}, "QueryPairMultipleChoicesStar1",
+                             std::to_string(d[1]) + ",103215, 103217");
 }
 
 /// Check that the zero-length stars are returned wgn theta is greater than the current fov.
 ///
 /// @return 0 when finished.
 int TestAngle::test_candidate_fov_query () {
-    Angle a(Benchmark(10, Star::chance(), Rotation::chance()), Angle::Parameters());
+    Chomp ch;
+    std::random_device seed;
+    Angle a(Benchmark(ch, seed, 10), Angle::Parameters());
     Star b(0.928454687492219, 0.132930961972911, 0.346844709665121);
     Star c(0.998078771188383, -0.0350062881876723, 0.0511207031486225);
     
@@ -55,7 +61,9 @@ int TestAngle::test_candidate_fov_query () {
 ///
 /// @return 0 when finished.
 int TestAngle::test_candidate_none_query () {
-    Angle a(Benchmark(10, Star::chance(), Rotation::chance()), Angle::Parameters());
+    Chomp ch;
+    std::random_device seed;
+    Angle a(Benchmark(ch, seed, 10), Angle::Parameters());
     
     std::array<Star, 2> b = a.find_candidate_pair(Star(1, 1, 1), Star(1.1, 1, 1));
     assert_equal(b[0], Star(0, 0, 0), "Candidate0NoMatchingPair", b[0].str() + "," + Star(0, 0, 0).str());
@@ -66,16 +74,18 @@ int TestAngle::test_candidate_none_query () {
 ///
 /// @return 0 when finished.
 int TestAngle::test_candidate_results_query () {
-    Benchmark input(15, Star::chance(), Rotation::chance());
+    Chomp ch;
+    std::random_device seed;
+    Benchmark input(ch, seed, 15);
     Angle b(input, Angle::Parameters());
     
     std::array<Star, 2> c = b.find_candidate_pair(input.stars[0], input.stars[1]);
-    assert_inside(c[0].get_hr(), {input.stars[0].get_hr(), input.stars[1].get_hr()}, "CandidateMatchingStar0",
-                  std::to_string(c[0].get_hr()) + "," + std::to_string(input.stars[0].get_hr()) + ","
-                  + std::to_string(input.stars[1].get_hr()));
-    assert_inside(c[1].get_hr(), {input.stars[0].get_hr(), input.stars[1].get_hr()}, "CandidateMatchingStar1",
-                  std::to_string(c[1].get_hr()) + "," + std::to_string(input.stars[0].get_hr()) + ","
-                  + std::to_string(input.stars[1].get_hr()));
+    assert_inside(c[0].get_label(), {input.stars[0].get_label(), input.stars[1].get_label()}, "CandidateMatchingStar0",
+                  std::to_string(c[0].get_label()) + "," + std::to_string(input.stars[0].get_label()) + ","
+                  + std::to_string(input.stars[1].get_label()));
+    assert_inside(c[1].get_label(), {input.stars[0].get_label(), input.stars[1].get_label()}, "CandidateMatchingStar1",
+                  std::to_string(c[1].get_label()) + "," + std::to_string(input.stars[0].get_label()) + ","
+                  + std::to_string(input.stars[1].get_label()));
     return 0;
 }
 
@@ -83,11 +93,13 @@ int TestAngle::test_candidate_results_query () {
 ///
 /// @return 0 when finished.
 int TestAngle::test_rotating_match_correct_input () {
-    Star a = Star::chance(), b = Star::chance();
-    Rotation c = Rotation::chance();
+    Chomp ch;
+    std::random_device seed;
+    Star a = Star::chance(seed), b = Star::chance(seed);
+    Rotation c = Rotation::chance(seed);
     Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
     Rotation f = Rotation::rotation_across_frames({a, b}, {d, e});
-    Benchmark input(8, Star::chance(), c);
+    Benchmark input(ch, seed, Star::chance(seed), c, 8);
     std::vector<Star> rev_input;
     Angle g(input, Angle::Parameters());
     
@@ -102,7 +114,7 @@ int TestAngle::test_rotating_match_correct_input () {
     
     for (unsigned int q = 0; q < h.size(); q++) {
         std::string test_name = "RotatingMatchInputStar" + std::to_string(q + 1);
-        assert_equal(h[q].get_hr(), input.stars[q].get_hr(), test_name);
+        assert_equal(h[q].get_label(), input.stars[q].get_label(), test_name);
     }
     
     return 0;
@@ -112,11 +124,13 @@ int TestAngle::test_rotating_match_correct_input () {
 ///
 /// @return 0 when finished.
 int TestAngle::test_rotating_match_error_input () {
-    Star a = Star::chance(), b = Star::chance();
-    Rotation c = Rotation::chance();
+    Chomp ch;
+    std::random_device seed;
+    Star a = Star::chance(seed), b = Star::chance(seed);
+    Rotation c = Rotation::chance(seed);
     Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
     Rotation f = Rotation::rotation_across_frames({a, b}, {d, e});
-    Benchmark input(8, Star::chance(), c);
+    Benchmark input(ch, seed, Star::chance(seed), c, 8);
     std::vector<Star> rev_input;
     Angle g(input, Angle::Parameters());
     
@@ -134,7 +148,7 @@ int TestAngle::test_rotating_match_error_input () {
     
     for (unsigned int q = 0; q < h.size(); q++) {
         std::string test_name = "RotatingMatchInputWithStar" + std::to_string(q + 1);
-        assert_equal(h[q].get_hr(), input.stars[q].get_hr(), test_name);
+        assert_equal(h[q].get_label(), input.stars[q].get_label(), test_name);
     }
     
     return 0;
@@ -144,11 +158,13 @@ int TestAngle::test_rotating_match_error_input () {
 ///
 /// @return 0 when finished.
 int TestAngle::test_rotating_match_duplicate_input () {
-    Star a = Star::chance(), b = Star::chance();
-    Rotation c = Rotation::chance();
+    Chomp ch;
+    std::random_device seed;
+    Star a = Star::chance(seed), b = Star::chance(seed);
+    Rotation c = Rotation::chance(seed);
     Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
     Rotation f = Rotation::rotation_across_frames({a, b}, {d, e});
-    Benchmark input(8, Star::chance(), c);
+    Benchmark input(ch, seed, Star::chance(seed), c, 8);
     std::vector<Star> rev_input;
     Angle g(input, Angle::Parameters());
     
@@ -168,7 +184,7 @@ int TestAngle::test_rotating_match_duplicate_input () {
     
     for (unsigned int q = 0; q < h.size(); q++) {
         std::string test_name = "RotatingMatchInputWithDuplicateStar" + std::to_string(q + 1);
-        assert_equal(h[q].get_hr(), input.stars[q].get_hr(), test_name);
+        assert_equal(h[q].get_label(), input.stars[q].get_label(), test_name);
     }
     
     return 0;
@@ -178,11 +194,13 @@ int TestAngle::test_rotating_match_duplicate_input () {
 ///
 /// @return 0 when finished.
 int TestAngle::test_identify_clean_input () {
-    Benchmark input(8, Star::chance(), Rotation::chance());
+    Chomp ch;
+    std::random_device seed;
+    Benchmark input(ch, seed, 10, 6.5);
     Angle::Parameters a;
     
     // We define a match as 66% here.
-    a.match_minimum = (unsigned int) (input.stars.size() *(2.0 / 3.0));
+    a.match_minimum = (unsigned int) (input.stars.size() * (2.0 / 3.0));
     
     std::vector<Star> c = Angle::identify(input, a);
     assert_greater_than(c.size(), input.stars.size() * (2.0 / 3.0), "IdentificationFoundAllSize");
@@ -194,7 +212,7 @@ int TestAngle::test_identify_clean_input () {
     
     for (unsigned int q = 0; q < c.size() - 1; q++) {
         auto match = [&c, q] (const Star &b) -> bool {
-            return b.get_hr() == c[q].get_hr();
+            return b.get_label() == c[q].get_label();
         };
         auto is_found = std::find_if(input.stars.begin(), input.stars.end(), match);
         
@@ -209,7 +227,9 @@ int TestAngle::test_identify_clean_input () {
 ///
 /// @return 0 when finished.
 int TestAngle::test_identify_error_input () {
-    Benchmark input(9, Star::chance(), Rotation::chance());
+    Chomp ch;
+    std::random_device seed;
+    Benchmark input(ch, seed, 9);
     Angle::Parameters a;
     input.add_extra_light(1);
     
@@ -226,7 +246,7 @@ int TestAngle::test_identify_error_input () {
     
     for (unsigned int q = 0; q < c.size() - 1; q++) {
         auto match = [&c, q] (const Star &b) -> bool {
-            return b.get_hr() == c[q].get_hr();
+            return b.get_label() == c[q].get_label();
         };
         auto is_found = std::find_if(input.stars.begin(), input.stars.end(), match);
         
@@ -241,7 +261,9 @@ int TestAngle::test_identify_error_input () {
 /// 
 /// @return 0 when finished. 
 int TestAngle::test_saturation_match () {
-    Benchmark input(15, Star::chance(), Rotation::chance());
+    Chomp ch;
+    std::random_device seed;
+    Benchmark input(ch, seed, 15);
     Angle::Parameters p;
     
     // Some ridiculous number...
@@ -266,7 +288,7 @@ int TestAngle::enumerate_tests (int test_case) {
         case 6: return test_rotating_match_error_input();
         case 7: return test_rotating_match_duplicate_input();
         case 8: return test_identify_clean_input();
-        case 9: return test_identify_error_input();  
+        case 9: return test_identify_error_input();
         case 10: return test_saturation_match();
         default: return -1;
     }

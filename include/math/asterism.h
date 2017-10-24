@@ -11,7 +11,7 @@
 #include "math/star.h"
 
 /// The mercator class is meant to reduce a dimension off of a star. This class is used to flatten the points in
-/// the BSC5 table and as the main data in the BSC5 quadtree.
+/// the BSC5 table and as the main data in the bright stars quadtree.
 ///
 /// @example
 /// @code{.cpp}
@@ -20,9 +20,6 @@
 /// printf("%s", a.str().c_str());
 /// @endcode
 class Asterism {
-  private:
-    friend class TestAsterism;
-  
   public:
     /// Common alias for an asterism (quad) of stars in 3D.
     using stars = std::array<Star, 4>;
@@ -41,15 +38,19 @@ class Asterism {
     static stars find_abcd (const stars &);
     
     static Star center (const stars &);
-  
+    
+#if !defined ENABLE_TESTING_ACCESS
   private:
-    Asterism (const stars &);
+#endif
+    explicit Asterism (const stars &);
     
     void verify_ab_stars ();
     Asterism::points_cd compute_cd_prime ();
     bool cd_property_met ();
-  
+
+#if !defined ENABLE_TESTING_ACCESS
   private:
+#endif
     /// Point one of the asterism. Points A and B define the local coordinate system. Defaults to (0, 0).
     Mercator a = Mercator::zero();
     

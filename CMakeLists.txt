@@ -12,10 +12,10 @@ Option(BUILD_GPROF "Build for Profiling" OFF)
 if (BUILD_GPROF)
     message("Building for GPrOF Profiler")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -pg -g3 -Wall -pedantic \
-	-std=c++11 -U__STRICT_ANSI__ -fno-omit-frame-pointer -gdwarf-2")
+	-std=c++14 -U__STRICT_ANSI__ -fno-omit-frame-pointer -gdwarf-2 -Wextra ")
 else ()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic \
-	-std=c++11 -U__STRICT_ANSI__")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wall -Wextra -pedantic \
+	-std=c++14 -U__STRICT_ANSI__")
 endif ()
 
 ##################################################################

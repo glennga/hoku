@@ -9,21 +9,23 @@
 ///
 /// @return 0 when finished.
 int TestKdNode::test_star_constructor () {
-    KdNode b(Star::chance(), 1000);
+    std::random_device seed;
+    KdNode b(Star::chance(seed), 1000);
     
     assert_equal(b.origin_index, -1, "OriginIndexDefault");
     assert_equal(b.w_n, 1000, "ProjectedWidth");
-    return 0 * assert_equal(b.hr, 0, "HRValueDefault");
+    return 0 * assert_equal(b.label, 0, "HRValueDefault");
 }
 
 /// Check that a list is sorted by the correct dimension.
 ///
 /// @return 0 when finished.
 int TestKdNode::test_dimension_sort () {
+    std::random_device seed;
     KdNode::list a;
     
     for (int i = 0; i < 20; i++) {
-        a.push_back(KdNode(Star::chance(), 1000));
+        a.push_back(KdNode(Star::chance(seed), 1000));
     }
     KdNode::list b = a;
     
@@ -43,7 +45,8 @@ int TestKdNode::test_dimension_sort () {
 ///
 /// @return 0 when finished.
 int TestKdNode::test_equal_operator () {
-    Star a = Star::chance();
+    std::random_device seed;
+    Star a = Star::chance(seed);
     KdNode b = KdNode(a, 1000);
     
     return 0 * assert_true(b == KdNode(a, 1000), "EqualOperator", a.str());
@@ -109,17 +112,18 @@ int TestKdNode::test_simple_tree () {
 ///
 /// @return 0 when finished.
 int TestKdNode::test_nearby_stars () {
-    Star::list a = Nibble().all_bsc5_stars();
+    Star::list a = Chomp().bright_as_list();
     KdNode q = KdNode::load_tree(a, 1000);
-    Star b = Star::chance();
-    Star::list c = Nibble().nearby_stars(b, 10, 90), d = q.nearby_stars(b, 10, 90, a);
+    std::random_device seed;
+    Star b = Star::chance(seed);
+    Star::list c = Chomp().nearby_bright_stars(b, 10, 90), d = q.nearby_stars(b, 10, 90, a);
     std::vector<double> e, f;
     
-    assert_not_equal(Nibble().nearby_stars(b, 10, 90).size(), 0, "NearbyStarsNoKdTree");
+    assert_not_equal(Chomp().nearby_bright_stars(b, 10, 90).size(), 0, "NearbyStarsNoKdTree");
     assert_not_equal(q.nearby_stars(b, 10, 90, a).size(), 0, "NearbyStarsUsingKdTree");
     
     for (const Star &s : d) {
-        std::string test_name = "NearbyStarIsActuallyNearFocus" + std::to_string(s.get_hr());
+        std::string test_name = "NearbyStarIsActuallyNearFocus" + std::to_string(s.get_label());
         // Adding 2 degrees to fov... c and d are both defined by different definitions of "nearby".
         assert_less_than(Star::angle_between(s, b), 10 + 2, test_name);
     }

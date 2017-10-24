@@ -72,8 +72,10 @@ int TestTrio::test_planar_moment_computation () {
 ///
 /// @return 0 when finished.
 int TestTrio::test_spherical_area_computation () {
+    std::random_device seed;
+    
     for (int i = 0; i < 10; i++) {
-        std::array<Star, 3> t = {Star::chance(), Star::chance(), Star::chance()};
+        std::array<Star, 3> t = {Star::chance(seed), Star::chance(seed), Star::chance(seed)};
         
         assert_equal(Trio::spherical_area(t[0], t[1], t[2]), Trio::spherical_area(t[1], t[2], t[0]),
                      "Shift1EqualSphericalArea" + std::to_string(i));
@@ -106,8 +108,10 @@ int TestTrio::test_planar_centroid_computation () {
 ///
 /// @return 0 when finished.
 int TestTrio::test_spherical_moment_computation () {
+    std::random_device seed;
+    
     for (int i = 0; i < 10; i++) {
-        std::array<Star, 3> t = {Star::chance(), Star::chance(), Star::chance()};
+        std::array<Star, 3> t = {Star::chance(seed), Star::chance(seed), Star::chance(seed)};
         
         assert_equal(Trio::spherical_moment(t[0], t[1], t[2], 3), Trio::spherical_moment(t[1], t[2], t[0], 3),
                      "Shift1EqualSphericalMoment" + std::to_string(i));

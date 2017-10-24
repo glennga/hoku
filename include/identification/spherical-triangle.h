@@ -10,7 +10,6 @@
 #include "base-triangle.h"
 #include "benchmark/benchmark.h"
 #include "storage/chomp.h"
-#include "storage/quad-node.h"
 #include "math/trio.h"
 #include <iostream>
 
@@ -20,7 +19,7 @@
 /// @example
 /// @code{.cpp}
 /// // Populate a table named "SPHERE20" in Nibble.db of all distinct trios of stars whose angle of separation is
-/// // less than 20 degrees of each. The entries stored are the HR numbers, the spherical area between each star, and
+/// // less than 20 degrees of each. The entries stored are the catalog IDs, the spherical area between each star, and
 /// // the spherical polar moment between each star.
 /// SphericalTriangle::generate_triangle_table(20, "SPHERE20");
 ///
@@ -41,19 +40,22 @@
 ///     printf("%s", s.str().c_str());
 /// }
 /// @endcode
+#if defined ENABLE_IDENTIFICATION_ACCESS || defined ENABLE_TESTING_ACCESS
+class SphericalTriangle : public BaseTriangle {
+#else
 class SphericalTriangle : private BaseTriangle {
-  private:
-    friend class TestSphericalTriangle;
+#endif
   
   public:
-    static int generate_triangle_table (const double, const unsigned int, const std::string &);
-    static Star::list identify (const Benchmark &, const Parameters &, unsigned int &,
-                                const std::shared_ptr<QuadNode> & = nullptr);
-    static Star::list identify (const Benchmark &, const Parameters &, const std::shared_ptr<QuadNode> & = nullptr);
+    static int generate_triangle_table (double, unsigned int, const std::string &);
+    static Star::list identify (const Benchmark &, const Parameters &, unsigned int &);
+    static Star::list identify (const Benchmark &, const Parameters &);
     using BaseTriangle::Parameters;
-  
+
+#if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
   private:
-    SphericalTriangle (const Benchmark &, const Parameters &, const std::shared_ptr<QuadNode> & = nullptr);
+#endif
+    SphericalTriangle (const Benchmark &, const Parameters &);
     std::vector<Trio::stars> match_stars (const index_trio &);
 };
 

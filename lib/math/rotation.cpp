@@ -42,11 +42,11 @@ Rotation Rotation::matrix_to_quaternion (const matrix &r) {
     double c = (r[1][0] - r[0][1]) / (4 * w);
     
     // Result returned is normalized. 
-    return Rotation(w, Star(a, b, c), true);
+    return {w, Star(a, b, c), true};
 }
 
-/// Given two 3x3 matrices A and B, determine the A * B^T (the transpose of B). This is mathematically equivalent
-/// to the matrix C, where an element ij = A[i] dot B[j].
+/// Given two 3x3 matrices A and B, determine the A * B^T (the transpose of B). This is equivalent to the matrix C,
+/// where an element ij = A[i] dot B[j].
 ///
 /// @param a 3x3 matrix to multiply with matrix B^T.
 /// @param b 3x3 matrix to transpose and multiply with matrix A.
@@ -57,7 +57,22 @@ Rotation::matrix Rotation::matrix_multiply_transpose (const matrix &a, const mat
         Star(Star::dot(a[2], b[0]), Star::dot(a[2], b[1]), Star::dot(a[2], b[2]))};
 }
 
-/// Find the quaternion across two different frames given pairs of vectors in each frame. Solution found here: 
+/// Find the quaternion product between q_1 and q_2. Solution found here:
+/// https://www.mathworks.com/help/aerotbx/ug/quatmultiply.html
+///
+/// @param q_1 Quaternion to multiply with q_2.
+/// @param q_2 Quaternion to multiply with q_1.
+/// @return Quaternion product of q_1 and q_2.
+Rotation Rotation::multiply (const Rotation &q_1, const Rotation &q_2) {
+    double n_0 = (q_1.w * q_2.w) - (q_1.i * q_2.i) - (q_1.j * q_2.j) - (q_1.k * q_2.k);
+    double n_1 = (q_1.w * q_2.i) + (q_1.i * q_2.w) - (q_1.j * q_2.k) + (q_1.k * q_2.j);
+    double n_2 = (q_1.w * q_2.j) + (q_1.i * q_2.k) + (q_1.j * q_2.w) - (q_1.k * q_2.i);
+    double n_3 = (q_1.w * q_2.k) - (q_1.i * q_2.j) + (q_1.j * q_2.i) + (q_1.k * q_2.w);
+    
+    return Rotation(n_0, Star(n_1, n_2, n_3));
+}
+
+/// Find the quaternion across two different frames given pairs of vectors in each frame. Solution found here:
 /// https://en.wikipedia.org/wiki/Triad_method
 ///
 /// @param r Pair of stars in frame V.
@@ -89,32 +104,59 @@ Rotation Rotation::rotation_across_frames (const Star::pair &r, const Star::pair
 /// @param q Quaternion to use with star S.
 /// @return The star S rotated by q.
 Star Rotation::rotate (const Star &s, const Rotation &q) {
-    Star a_1n(
-        pow(q.w, 2) + pow(q.i, 2) - pow(q.j, 2) - pow(q.k, 2),
-        2.0 * (q.i * q.j - q.w * q.k), 2.0 * (q.i * q.k + q.w * q.j));
-    Star a_2n(
-        2.0 * (q.j * q.i + q.w * q.k),
-        pow(q.w, 2) - pow(q.i, 2) + pow(q.j, 2) - pow(q.k, 2), 2.0 * (q.j * q.k - q.w * q.i));
-    Star a_3n(
-        2.0 * (q.k * q.i - q.w * q.j),
-        2.0 * (q.k * q.j + q.w * q.i), pow(q.w, 2) - pow(q.i, 2) - pow(q.j, 2) + pow(q.k, 2));
+    Star a_1n(pow(q.w, 2) + pow(q.i, 2) - pow(q.j, 2) - pow(q.k, 2), 2.0 * (q.i * q.j - q.w * q.k),
+              2.0 * (q.i * q.k + q.w * q.j));
+    Star a_2n(2.0 * (q.j * q.i + q.w * q.k), pow(q.w, 2) - pow(q.i, 2) + pow(q.j, 2) - pow(q.k, 2),
+              2.0 * (q.j * q.k - q.w * q.i));
+    Star a_3n(2.0 * (q.k * q.i - q.w * q.j), 2.0 * (q.k * q.j + q.w * q.i),
+              pow(q.w, 2) - pow(q.i, 2) - pow(q.j, 2) + pow(q.k, 2));
     
     // Form the rotation matrix. Dot with given star.
-    return Star(Star::dot(s, a_1n), Star::dot(s, a_2n), Star::dot(s, a_3n), s.get_hr());
+    return {Star::dot(s, a_1n), Star::dot(s, a_2n), Star::dot(s, a_3n), s.get_label(), s.get_magnitude()};
+}
+
+/// Get a scalar quantity for how 'close' two quaternions are. We find the quaternion from q_1 to q_2, and return the
+/// axis angle from this.
+///
+/// @param q_1 Rotation one to compare against.
+/// @param q_2 Rotation two to compare against.
+/// @return Axis angle of quaternion to take q_1 to q_2 in degrees.
+double Rotation::angle_between (const Rotation &q_1, const Rotation &q_2) {
+    // Compute the inverse of q_1.
+    double q_1_norm = pow(q_1.w, 2) + pow(q_1.i, 2) + pow(q_1.j, 2) + pow(q_1.k, 2);
+    Rotation q_1_inv(q_1.w / q_1_norm, Star(-q_1.i / q_1_norm, -q_1.j / q_1_norm, -q_1.k / q_1_norm));
+    
+    // Find q_3 such that q_1 rotates to q_2.
+    Rotation q_3 = multiply(q_1_inv, q_2);
+    
+    // Find and return the axis angle in degrees.
+    return (std::isnan(acos(q_3.w))) ? 0 : 2 * acos(q_3.w) * (180.0 / M_PI);
+}
+
+/// Get another quantity for how 'close' two quaternions are. We rotate the given star using both quaternions, and
+/// return the difference vector.
+///
+/// @param q_1 Rotation one to compare against.
+/// @param q_2 Rotation two to compare against.
+/// @param s Star to rotate with.
+/// @return Difference between q_1 and q_2's rotation of s.
+Star Rotation::rotation_difference(const Rotation &q_1, const Rotation &q_2, const Star &s) {
+    return rotate(s, q_1) - rotate(s, q_2);
 }
 
 /// Return the identity quaternion, as a Rotation object.
 /// 
 /// @return Identity quaternion: <1, 0, 0, 0>.
 Rotation Rotation::identity () {
-    return Rotation(1, Star::zero());
+    return {1, Star::zero()};
 }
 
 /// Return a unit quaternion with random components. Achieved by find the rotation from one random star to another
 /// random star.
 ///
+/// @param seed Random device to use when generating random star.
 /// @return Random quaternion.
-Rotation Rotation::chance () {
-    Star p = Star::chance(), q = Star::chance();
-    return Rotation(sqrt(1.0 + Star::dot(p, q)), Star::cross(p, q), true);
+Rotation Rotation::chance (std::random_device &seed) {
+    Star p = Star::chance(seed), q = Star::chance(seed);
+    return {sqrt(1.0 + Star::dot(p, q)), Star::cross(p, q), true};
 }

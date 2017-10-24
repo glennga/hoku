@@ -62,8 +62,8 @@ std::string KdNode::str () const {
     std::stringstream components;
     
     // Need to use stream here to set precision.
-    components << std::setprecision(16) << std::fixed << "(" << x << ":" << y << ":" << w_n << ":";
-    components << origin_index << ":" << hr << ")";
+    components << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed << "(" << x << ":" << y
+               << ":" << w_n << ":" << origin_index << ":" << label << ")";
     
     return components.str();
 }
@@ -73,7 +73,7 @@ std::string KdNode::str () const {
 /// @param theta Angle to determine width of box from.
 /// @return The width the given angle roughly translates to if this is the root node.
 double KdNode::width_given_angle (const double theta) {
-    if (!(this->origin_index == -1 && this->hr == -1)) {
+    if (!(this->origin_index == -1 && this->label == -1)) {
         throw "\"width_given_angle\" not operating on the root node.";
     }
     
@@ -142,7 +142,7 @@ KdNode KdNode::load_tree (const Star::list &v, const double w_n) {
         // From full start to finish: (ra, dec) -> <i, j, k> -> (r, lat, lon) -> (x, y).
         KdNode m = KdNode(v[i], w_n);
         
-        // We store the index as opposed to the HR value, for general use of the tree.
+        // We store the index as opposed to the catalog ID, for general use of the tree.
         m.origin_index = i;
         projected.push_back(m);
     }
@@ -150,8 +150,8 @@ KdNode KdNode::load_tree (const Star::list &v, const double w_n) {
     // Populate the tree. The root is the center of projection.
     KdNode root = KdNode(0, (unsigned) projected.size() - 1, 0, b, projected);
     
-    // The root has the following properties: w_n = w_n, origin_index = -1, hr = -1.
-    root.origin_index = -1, root.w_n = w_n, root.hr = -1;
+    // The root has the following properties: w_n = w_n, origin_index = -1, label = -1.
+    root.origin_index = -1, root.w_n = w_n, root.label = -1;
     
     return root;
 }
@@ -172,8 +172,8 @@ Star::list KdNode::nearby_stars (const Star &q, const double fov, const unsigned
     KdNode::list nearby;
     
     // Operating node MUST be the root, with the properties below. If not, stop here.
-    if (!(this->origin_index == -1 && this->hr == -1)) {
-        throw "\"nearby_stars\" not operating on root node.";
+    if (!(this->origin_index == -1 && this->label == -1)) {
+        throw "\"nearby_bright_stars\" not operating on root node.";
     }
     
     // Search for nearby nodes in the tree. The fov represents the half width of the search box, so we double it here.

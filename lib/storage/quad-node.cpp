@@ -1,7 +1,8 @@
 /// @file quad-node.cpp
 /// @author Glenn Galvizo
 ///
-/// Source file for QuadNode class, which represents a node and associated functions for the Mercator quadtree.
+/// Source file for QuadNode class, which represents a node and associated functions for the Mercator quadtree. This 
+/// **cannot** handle the entire Hipparcos catalog.
 
 #include "storage/quad-node.h"
 
@@ -40,8 +41,8 @@ std::string QuadNode::str () const {
     std::stringstream components;
     
     // Need to use stream here to set precision.
-    components << std::setprecision(16) << std::fixed << "(";
-    components << x << ":" << y << ":" << w_n << ":" << w_i << ":" << hr << (is_green ? ":1" : ":0") << ")";
+    components << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed << "(";
+    components << x << ":" << y << ":" << w_n << ":" << w_i << ":" << label << (is_green ? ":1" : ":0") << ")";
     return components.str();
 }
 
@@ -233,18 +234,21 @@ QuadNode QuadNode::find_quad_leaves (const QuadNode &c, const double w_i, const 
 
 /// Public wrapper method for find_quad_leaves. Return the root node and keep the tree in RAM.
 ///
-/// @param w_n Projection width to use for all stars in BSC5.
+/// @param w_n Projection width to use for all stars in hip table.
+/// @param m_bar Maximum apparent magnitude to load.
 /// @return The root node of the quadtree.
-QuadNode QuadNode::load_tree (const double w_n) {
+QuadNode QuadNode::load_tree (const double w_n, const double m_bar) {
     QuadNode r = QuadNode::root(w_n);
     QuadNode::list projected;
-    Nibble nb;
+    Chomp ch;
     
-    // Find the Mercator projection for all BSC5 stars.
-    projected.reserve(Nibble::BSC5_TABLE_LENGTH);
-    for (const Star &s : nb.all_bsc5_stars()) {
+    // Find the Mercator projection for all bright stars.
+    projected.reserve(ch.HIP_TABLE_LENGTH);
+    for (const Star &s : ch.hip_as_list()) {
         // From full start to finish: (ra, dec) -> <i, j, k> -> (r, lat, lon) -> (x, y).
-        projected.push_back(QuadNode(s, w_n, 1));
+        if (s.get_magnitude() < m_bar) {
+            projected.push_back(QuadNode(s, w_n, 1));
+        }
     }
     
     // Populate the tree. The root is the center of projection.
@@ -253,12 +257,12 @@ QuadNode QuadNode::load_tree (const double w_n) {
 
 /// Given a parent node, explore every child for leaf nodes that are within the boundary box.
 ///
-/// @param nb Nibble object. Gives us access to the Nibble database.
+/// @param ch Chomp object. Gives us access to the Nibble database.
 /// @param focus The star we are searching for.
 /// @param parent Parent node of the current search.
 /// @param t Current stars that are within the search box.
 /// @return List of stars that fit inside the given search box.
-Star::list QuadNode::query_quadtree (Nibble &nb, const QuadNode &focus, const QuadNode &parent, Star::list &t) {
+Star::list QuadNode::query_quadtree (Chomp &ch, const QuadNode &focus, const QuadNode &parent, Star::list &t) {
     for (int i = 0; i < 4; i++) {
         QuadNode working = parent.to_child(i);
         
@@ -269,14 +273,14 @@ Star::list QuadNode::query_quadtree (Nibble &nb, const QuadNode &focus, const Qu
         
         // Current child is within the boundary box and is not terminal. Traverse down.
         if (focus.quadrant_intersects_quadrant(working) && !working.is_terminal_branch()) {
-            query_quadtree(nb, focus, working, t);
+            query_quadtree(ch, focus, working, t);
         }
         else if (working.is_terminal_branch()) {
             // Child is within the boundary box and holds leaf nodes. Append the leaves.
             for (int j = 0; j < 4; j++) {
                 // Do not append dead children. Search for stars using HR number.
                 if (!working.is_dead_child(j)) {
-                    t.push_back(nb.query_bsc5(working.to_child(j).get_hr()));
+                    t.push_back(ch.query_hip(working.to_child(j).get_label()));
                 }
             }
         }
@@ -300,7 +304,7 @@ Star::list QuadNode::query_quadtree (Nibble &nb, const QuadNode &focus, const Qu
 Star::list QuadNode::nearby_stars (const Star &q, const double fov, const unsigned int expected) {
     double search_width = width_given_angle(fov);
     Star::list nearby;
-    Nibble nb;
+    Chomp ch;
     
     // Operating node MUST be the root, with coordinates at (0, 0).
     if (this->x != 0 || this->y != 0) {
@@ -308,5 +312,5 @@ Star::list QuadNode::nearby_stars (const Star &q, const double fov, const unsign
     }
     
     nearby.reserve(expected);
-    return query_quadtree(nb, QuadNode(q, this->w_n, search_width), *this, nearby);
+    return query_quadtree(ch, QuadNode(q, this->w_n, search_width), *this, nearby);
 }

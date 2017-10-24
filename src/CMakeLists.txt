@@ -13,21 +13,15 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 ##################################################################
 add_executable(GenerateN generate-n.cpp)
 
-target_link_libraries(GenerateN Pyramid AstrometryNet PlanarTriangle
+target_link_libraries(GenerateN Hoku Pyramid PlanarTriangle
         SphericalTriangle Angle BaseTriangle Benchmark Rotation QuadNode
         KdNode Chomp Nibble Asterism Mercator Trio Star SQLiteCpp Sqlite3)
-
-##################################################################
-# Link and Create Executable GenerateB
-##################################################################
-add_executable(GenerateB generate-b.cpp)
-target_link_libraries(GenerateB Benchmark Rotation Nibble Star
-        SQLiteCpp Sqlite3)
 
 ##################################################################
 # Link and Create Executable RunTrial
 ##################################################################
 add_executable(RunTrial run-trial.cpp)
-target_link_libraries(RunTrial Trial Pyramid AstrometryNet PlanarTriangle
-        SphericalTriangle Angle BaseTriangle Benchmark Rotation QuadNode
-        KdNode Chomp Nibble Asterism Mercator Trio Star SQLiteCpp Sqlite3)
+target_link_libraries(RunTrial Alignment Query Crown Pyramid Hoku
+        PlanarTriangle SphericalTriangle Angle BaseTriangle Benchmark Rotation
+        QuadNode KdNode Chomp Nibble Asterism Mercator Trio Star SQLiteCpp
+        Sqlite3)

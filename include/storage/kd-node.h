@@ -7,7 +7,7 @@
 #define HOKU_KD_NODE_H
 
 #include "math/mercator.h"
-#include "storage/nibble.h"
+#include "storage/chomp.h"
 #include <memory>
 #include <algorithm>
 
@@ -25,17 +25,19 @@
 ///     printf("%s", s.str().c_str());
 /// }
 /// @endcode
+#if !defined ENABLE_TESTING_ACCESS
 class KdNode : private Mercator {
-  private:
-    friend class TestKdNode;
-    friend class BaseTest;
-  
+#else
+class KdNode : public Mercator {
+#endif
   public:
-    static KdNode load_tree (const Star::list &, const double);
+    static KdNode load_tree (const Star::list &, double);
     
-    Star::list nearby_stars (const Star &, const double, const unsigned int, const Star::list &);
-  
-  private:
+    Star::list nearby_stars (const Star &, double, unsigned int, const Star::list &);
+
+#if !defined ENABLE_TESTING_ACCESS
+    private:
+#endif
     /// Precision default for '==' method.
     constexpr static double KDNODE_EQUALITY_PRECISION_DEFAULT = 0.000000000001;
     
@@ -54,25 +56,29 @@ class KdNode : private Mercator {
     // Inherit Mercator's star projection constructor.
     KdNode (const Star &s, const double w_n) : Mercator(s, w_n) {
     };
-  
-  private:
-    KdNode (const unsigned int, const unsigned int, const int,  const bounds_set &, list &);
-    static void sort_by_dimension (const unsigned int, const unsigned int, const int, list &);
+
+#if !defined ENABLE_TESTING_ACCESS
+    private:
+#endif
+    KdNode (unsigned int, unsigned int, int, const bounds_set &, list &);
+    static void sort_by_dimension (unsigned int, unsigned int, int, list &);
     
-    double width_given_angle (const double);
+    double width_given_angle (double);
     bool does_intersect_quad (const Mercator::quad &) const;
     static void box_query (const Mercator::quad &, const KdNode &, KdNode::list &);
     
-    std::string str () const;
+    std::string str () const override;
     
     bool operator== (const KdNode &) const;
-  
-  private:
+
+#if !defined ENABLE_TESTING_ACCESS
+    private:
+#endif
     /// Minimum values for this node's represented box. Used for box queries.
-    bounds b_min;
+    bounds b_min = {0, 0};
     
     /// Maximum values for this node's represented box. Used for box queries.
-    bounds b_max;
+    bounds b_max = {0, 0};
     
     /// Edge to left child node.
     child_edge left_child;
@@ -80,7 +86,7 @@ class KdNode : private Mercator {
     /// Edge to right child node.
     child_edge right_child;
     
-    /// To generalize this tree to other data. This is a general identification number (as opposed to just HR values).
+    /// To generalize this tree to other data. This is a general ID number (as opposed to just catalog IDs).
     int origin_index = -1;
 };
 

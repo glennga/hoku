@@ -14,10 +14,11 @@
 /// @example
 /// @code{.cpp}
 /// // Rotate {1, 1, 1} by a random rotation.
-/// printf("%s", Star::rotate(Star(1, 1, 1), Rotation::chance()).str());
+/// std::random_device seed;
+/// printf("%s", Star::rotate(Star(1, 1, 1), Rotation::chance(seed)).str());
 ///
-/// Star a = Star::chance(), b = Star::chance(), c, d;
-/// Rotation e = Rotation::chance(), f;
+/// Star a = Star::chance(seed), b = Star::chance(seed), c, d;
+/// Rotation e = Rotation::chance(seed), f;
 ///
 /// // Star C is Star A rotated by Quaternion E. Star D is Star B rotated by Quaternion E.
 /// c = Rotation::rotate(a, e);
@@ -30,9 +31,6 @@
 /// printf("%s : %s", Rotation::rotate(a, e).str(), Rotation::rotate(a, f).str());
 /// @endcode
 class Rotation {
-  private:
-    friend class TestRotation;
-  
   public:
     /// Force default constructor. Default is {1, 0, 0, 0} (identity).
     Rotation () = default;
@@ -41,26 +39,35 @@ class Rotation {
     bool operator== (const Rotation &) const;
     
     static Star rotate (const Star &, const Rotation &);
+    static double angle_between (const Rotation &, const Rotation &);
+    static Star rotation_difference (const Rotation &, const Rotation &, const Star &);
     
     static Rotation identity ();
-    static Rotation chance ();
+    static Rotation chance (std::random_device &);
     
     static Rotation rotation_across_frames (const Star::pair &, const Star::pair &);
-  
+
+#if !defined ENABLE_TESTING_ACCESS
   private:
+#endif
     /// Precision default for '==' method.
     constexpr static double ROTATION_EQUALITY_PRECISION_DEFAULT = 0.000000000001;
     
     /// Matrix alias, by using a 3-element array of 3D vectors.
     using matrix = std::array<Star, 3>;
-  
+
+#if !defined ENABLE_TESTING_ACCESS
   private:
-    Rotation (const double, const Star &, const bool = false);
+#endif
+    Rotation (double, const Star &, bool = false);
     
+    static Rotation multiply (const Rotation &, const Rotation &);
     static Rotation matrix_to_quaternion (const matrix &);
     static matrix matrix_multiply_transpose (const matrix &, const matrix &);
-  
+
+#if !defined ENABLE_TESTING_ACCESS
   private:
+#endif
     /// W component, or the sole real component of a quaternion. Defaults to one (identity quaternion).
     double w = 1;
     

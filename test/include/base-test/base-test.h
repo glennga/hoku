@@ -3,6 +3,9 @@
 ///
 /// Header file for BaseTest class, which is a base class for all testing classes.
 
+// Give us access to all private members.
+#define ENABLE_TESTING_ACCESS
+
 #ifndef BASE_TEST_H
 #define BASE_TEST_H
 
@@ -64,19 +67,19 @@ class BaseTest {
     bool assert_true (bool, const std::string &, const std::string & = "");
     bool assert_false (bool, const std::string &, const std::string & = "");
     
-    bool assert_equal (const double, const double, const std::string &, const double= BaseTest::PRECISION_DEFAULT);
-    bool assert_not_equal (const double, const double, const std::string &, const double= BaseTest::PRECISION_DEFAULT);
+    bool assert_equal (double, double, const std::string &, double= BaseTest::PRECISION_DEFAULT);
+    bool assert_not_equal (double, double, const std::string &, double= BaseTest::PRECISION_DEFAULT);
     
-    bool assert_less_than (const double, const double, const std::string &);
-    bool assert_greater_than (const double, const double, const std::string &);
+    bool assert_less_than (double, double, const std::string &);
+    bool assert_greater_than (double, double, const std::string &);
     
-    bool assert_equal (const std::string &, const std::string &, const std::string &, const int = 0);
-    bool assert_not_equal (const std::string &, const std::string &, const std::string &, const int = 0);
+    bool assert_equal (const std::string &, const std::string &, const std::string &, int = 0);
+    bool assert_not_equal (const std::string &, const std::string &, const std::string &, int = 0);
     
-    bool assert_within (const double, const double, const double, const std::string &);
-    bool assert_not_within (const double, const double, const double, const std::string &);
+    bool assert_within (double, double, double, const std::string &);
+    bool assert_not_within (double, double, double, const std::string &);
     
-    virtual int enumerate_tests (const int) = 0;
+    virtual int enumerate_tests (int) = 0;
   
   protected:
     /// Determine if the first value is equal to the second. Push this assertion to our test stack. If desired, print

@@ -19,7 +19,8 @@
 /// @example
 /// @code{.cpp}
 /// // Define stars (in order): {0, 0, 0}, {random, random, random}, {0, 0, 0}, {-0.680414, 0.680414, 0.272166}
-/// Star s_1, s_2 = Star::chance(), s_3 = Star::zero(), s_4(-10, 10, 4, 0, true);
+/// std::random_device seed;
+/// Star s_1, s_2 = Star::chance(seed), s_3 = Star::zero(), s_4(-10, 10, 4, 0, 0, true);
 ///
 /// // Cross stars {-2, -1, 0} and {3, 2, 1} to produce {-1, 2, -1}.
 /// printf("%s", Star::cross(Star(-2, -1, 0), Star(3, 2, 1)).str());
@@ -31,56 +32,58 @@
 /// printf("%s", (Star::angle_between(Star(2, 3, 5), Star(5, 6, 7)).str());
 /// @endcode
 class Star {
-  private:
-    friend class TestStar;
-  
   public:
     /// List type, defined as a vector of Stars.
     using list = std::vector<Star>;
     
     /// Pair type, defined as a 2-element array of Stars.
     using pair = std::array<Star, 2>;
-  
+
+#if !defined ENABLE_TESTING_ACCESS
   private:
+#endif
     /// Precision default for is_equal and '==' methods.
     constexpr static double STAR_EQUALITY_PRECISION_DEFAULT = 0.000000000001;
   
   public:
-    Star (const double, const double, const double, const int = 0, const bool = false);
+    Star (double, double, double, int = 0, double = -30.0, bool = false);
     Star ();
     
     std::string str () const;
     
-    double operator[] (const unsigned int) const;
-    int get_hr () const;
+    double operator[] (unsigned int) const;
+    int get_label () const;
+    double get_magnitude () const;
     
     Star operator+ (const Star &) const;
     Star operator- (const Star &) const;
     
-    Star operator* (const double) const;
+    Star operator* (double) const;
     
     double norm () const;
     
     Star as_unit () const;
     
-    static bool is_equal (const Star &, const Star &, const double = STAR_EQUALITY_PRECISION_DEFAULT);
+    static bool is_equal (const Star &, const Star &, double = STAR_EQUALITY_PRECISION_DEFAULT);
     bool operator== (const Star &) const;
     
     static Star zero ();
     
-    static Star chance ();
-    static Star chance (const int);
+    static Star chance (std::random_device &);
+    static Star chance (std::random_device &, int);
     
     static double dot (const Star &, const Star &);
     static Star cross (const Star &, const Star &);
     
     static double angle_between (const Star &, const Star &);
-    static bool within_angle (const Star &, const Star &, const double);
-    static bool within_angle (const list &, const double);
+    static bool within_angle (const Star &, const Star &, double);
+    static bool within_angle (const list &, double);
     
-    static Star reset_hr (const Star &);
-  
+    static Star reset_label (const Star &);
+
+#if !defined ENABLE_TESTING_ACCESS
   private:
+#endif
     /// I Component (element 0) of 3D vector.
     double i;
     
@@ -90,8 +93,11 @@ class Star {
     /// K component (element 2) of 3D vector.
     double k;
     
-    /// Harvard Revised number for the star.
-    int hr;
+    /// Catalog specific ID for the given star.
+    int label;
+    
+    /// Apparent magnitude for the given star.
+    double m;
 };
 
 #endif /* HOKU_STAR_H */

@@ -20,8 +20,8 @@
 /// @example
 /// @code{.cpp}
 /// // Populate a table named "PLAN20" in Nibble.db of all distinct trios of stars whose angle of separation is
-/// // less than 20 degrees of each. The entries stored are the HR numbers, the planar area between each star, and the
-/// // planar polar moment between each star.
+/// // less than 20 degrees of each. The entries stored are the BSC5 catalog IDs, the planar area between each star,
+/// // and the planar polar moment between each star.
 /// PlanarTriangle::generate_triangle_table(20, "PLAN20");
 ///
 /// /* The snippet above should only be run ONCE. The snippet below is run with every different test. */
@@ -41,19 +41,22 @@
 ///     printf("%s", s.str().c_str());
 /// }
 /// @endcode
-class PlanarTriangle : private BaseTriangle {
-  private:
-    friend class TestPlanarTriangle;
-  
+#if defined ENABLE_IDENTIFICATION_ACCESS || defined ENABLE_TESTING_ACCESS
+class PlanarTriangle : public BaseTriangle {
+#else
+    class PlanarTriangle : private BaseTriangle {
+#endif
+
   public:
-    static Star::list identify (const Benchmark &, const Parameters &, unsigned int &,
-                                const std::shared_ptr<QuadNode> & = nullptr);
-    static Star::list identify (const Benchmark &, const Parameters &, const std::shared_ptr<QuadNode> & = nullptr);
-    static int generate_triangle_table (const double, const std::string &);
+    static Star::list identify (const Benchmark &, const Parameters &, unsigned int &);
+    static Star::list identify (const Benchmark &, const Parameters &);
+    static int generate_triangle_table (double, const std::string &);
     using BaseTriangle::Parameters;
-  
+
+#if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
   private:
-    PlanarTriangle (const Benchmark &, const Parameters &, const std::shared_ptr<QuadNode> & = nullptr);
+#endif
+    PlanarTriangle (const Benchmark &, const Parameters &);
     std::vector<Trio::stars> match_stars (const index_trio &);
 };
 

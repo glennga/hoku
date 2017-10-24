@@ -1,164 +1,137 @@
 /// @file run-trial.cpp
 /// @author Glenn Galvizo
 ///
-/// Source file for the trial runner. This parses the benchmarks in Nibble, and logs the results of various
-/// identification methods into a CSV file. There exists two arguments (last optional), where the user decides which
-/// identification method to run for the trial, and which benchmark to start from.
+/// Source file for the trial runner. Based on the arguments, run the specific trial for the given identification
+/// method and log the data to a CSV file. There exists three trial types, and four identification methods.
 ///
 /// @code{.cpp}
-/// - 0 -> Run the trials with the Angle method.
-/// - 1 -> Run the trials with the AstrometryNet method.
-/// - 2 -> Run the trials with the SphericalTriangle method.
-/// - 3 -> Run the trials with the PlanarTriangle method.
-/// - 4 -> Run the trials with the Pyramid method.
+/// - 0 a -> Run trial A with the Angle method.
+/// - 1 a -> Run trial A with the SphericalTriangle method.
+/// - 2 a -> Run trial A with the PlanarTriangle method.
+/// - 3 a -> Run trial A with the Pyramid method.
 ///
-/// - x [0->MAX(set_n)] -> Start the trial with the given set_n (Benchmark) number.
-/// @endcode
+/// - b 0 -> Run the query trials with the B method.
+/// - b 1 -> Run the alignment trials with the B method.
+/// - b 2 -> Run the crown trials with the B method.
+/// @endcode{.cpp}
 /// @example
 /// @code{.cpp}
-/// # Run the trials using the Angle method. Start at benchmark 100.
-/// RunTrial 0 100
+/// # Run the alignment trials using the Angle method.
+/// RunTrial 0 1
 /// @endcode
 
 #include <chrono>
-#include "trial/trial.h"
+#include "trial/query.h"
+#include "trial/alignment.h"
+#include "trial/crown.h"
 
 /// Alias for trial function pointers.
-typedef void (*trial_function) (Nibble &, const unsigned int, std::ofstream &);
+typedef void (*trial_function) (Chomp &, std::ofstream &);
 
-/// Record the header given the identification choice.
+/// Record the header given the trial choice.
 ///
-/// @param choice Identification method choice.
+/// @param choice Choice corresponding to the trial. Must exist in space [0, 1, 2].
 /// @param log Open file-stream to log. This is the same stream that will be used to record results.
-void record_header(const int choice, std::ofstream &log) {
-    switch(choice) {
-        case 0: return (void) (log << Trial::ANGLE_ATTRIBUTE);
-        case 1: return (void) (log << Trial::ASTRO_ATTRIBUTE);
-        case 2: return (void) (log << Trial::SPHERE_ATTRIBUTE);
-        case 3: return (void) (log << Trial::PLANE_ATTRIBUTE);
-        case 4: return (void) (log << Trial::PYRAMID_ATTRIBUTE);
-        default: throw "Identification choice is not within space {0, 1, 2, 3, 4}.";
+void record_header (const int choice, std::ofstream &log) {
+    switch (choice) {
+        case 0: return (void) (log << Query::ATTRIBUTE);
+        case 1: return (void) (log << Alignment::ATTRIBUTE);
+        case 2: return (void) (log << Crown::ATTRIBUTE);
+        default: throw "Trial choice is not within space {0, 1, 2}.";
     }
 }
 
-/// Return the appropriate trial function given the identification choice.
+/// Return the appropriate trial function given the identification and trial choices.
 ///
-/// @param choice Identification method choice.
-/// @return Appropriate function pointer to a function in Trial.
-trial_function select_trial_function(const int choice) {
-    switch(choice) {
-        case 0: return &Trial::record_angle;
-        case 1: return &Trial::record_astro;
-        case 2: return &Trial::record_sphere;
-        case 3: return &Trial::record_plane;
-        case 4: return &Trial::record_pyramid;
-        default: throw "Identification choice is not within space {0, 1, 2, 3, 4}.";
+/// @param identification_choice Choice corresponding to the identification method. Must exist in space [0, 1, 2, 3].
+/// @param trial_choice Choice corresponding to the trial. Must exist in space [0, 1, 2].
+/// @return
+trial_function select_trial (const int identification_choice, const int trial_choice) {
+    switch (trial_choice * 4 + identification_choice) {
+        case 0: return &Query::trial_angle;
+        case 1: return &Query::trial_sphere;
+        case 2: return &Query::trial_plane;
+        case 3: return &Query::trial_pyramid;
+        case 4: return &Alignment::trial_angle;
+        case 5: return &Alignment::trial_sphere;
+        case 6: return &Alignment::trial_plane;
+        case 7: return &Alignment::trial_pyramid;
+        case 8: return &Crown::trial_angle;
+        case 9: return &Crown::trial_sphere;
+        case 10: return &Crown::trial_plane;
+        case 11: return &Crown::trial_pyramid;
+        default: throw "Choices not in appropriate spaces or test does not exist.";
     }
 }
 
-/// If necessary, we generate the appropriate trees for the given identification choice. This only changes state of
-/// trial.cpp for PlanarTriangle, SphericalTriangle, and AstrometryNet methods.
+/// Run the specified trial! Select the appropriate header and trial function given the identification choice.
 ///
-/// @param choice Identification method choice.
-void generate_trees(const int choice) {
-    switch(choice) {
-        case 0: return (void) 0;
-        case 1: return Trial::generate_astro_trees();
-        case 2: return Trial::generate_sphere_trees();
-        case 3: return Trial::generate_plane_trees();
-        case 4: return (void) 0;
-        default: throw "Identification choice is not within space {0, 1, 2, 3, 4}.";
-    }
-}
-
-/// Run the trials! Select the appropriate header and trial function given the identification choice, and iterate
-/// this for the defined benchmark bounds.
-///
-/// @param nb Open Nibble connection.
+/// @param ch Open Nibble connection using Chomp methods.
 /// @param log Open file-stream to log to.
-/// @param choice Identification choice.
-/// @param start_bench Starting benchmark set_n.
+/// @param id_choice Identification choice, in space [0, 1, 2, 3].
+/// @param trial_choice Trial choice, in space [0, 1, 2].
 /// @return 0 when finished.
-int perform_trial (Nibble &nb, std::ofstream &log, const int choice, const int start_bench) {
+int perform_trial (Chomp &ch, std::ofstream &log, const int id_choice, const int trial_choice) {
     // Set the attributes of the log.
-    record_header(choice, log);
+    record_header(trial_choice, log);
     
-    // Define boundaries for the benchmarks.
-    const unsigned int BENCH_START = (unsigned) start_bench;
-    const unsigned int BENCH_END = (unsigned int) nb.search_table("MAX(set_n)", 1, 1)[0];
-    
-    // Select the specific trial function.
-    trial_function t_f = select_trial_function(choice);
-    
-    // Generate the trees for the given methods (if defined).
-    generate_trees(choice);
-    
-    // Run the trials!
-    nb.select_table(Benchmark::TABLE_NAME);
-    for (unsigned int set_n = BENCH_START; set_n < BENCH_END; set_n++) {
-        t_f(nb, set_n, log);
-        log << std::flush;
-    }
+    // Select the specific trial functions, and run those specific trials.
+    select_trial(id_choice, trial_choice)(ch, log);
     
     return 0;
 }
 
-/// Select the desired identification method given the first argument. In the second argument, indicate a starting
-/// benchmark to run the trials from.
+/// Select the desired identification method given the first argument. In the second argument, indicate the type of
+/// trial desired.
 ///
-/// /// @code{.cpp}
-/// - 0 x -> Run the trials with the Angle method.
-/// - 1 x -> Run the trials with the AstrometryNet method.
-/// - 2 x -> Run the trials with the SphericalTriangle method.
-/// - 3 x -> Run the trials with the PlanarTriangle method.
-/// - 4 x -> Run the trials with the Pyramid method.
+/// @code{.cpp}
+/// - 0 a -> Run trial A with the Angle method.
+/// - 1 a -> Run trial A with the SphericalTriangle method.
+/// - 2 a -> Run trial A with the PlanarTriangle method.
+/// - 3 a -> Run trial A with the Pyramid method.
 ///
-/// - x [0->MAX(set_n)] -> Start the trial with the given set_n (Benchmark) number.
-/// @endcode
+/// - b 0 -> Run the query trials with the B method.
+/// - b 1 -> Run the alignment trials with the B method.
+/// - b 2 -> Run the crown trials with the B method.
+/// @endcode{.cpp}
 ///
 /// @param argc Argument count. This must be equal to 3.
-/// @param argv Argument vector. Determines which identification method to use, and which Benchmark to start from.
+/// @param argv Argument vector. Determines which trial to run, and which identification method to test.
 /// @return -1 if the arguments are incorrect. 0 otherwise.
 int main (int argc, char *argv[]) {
+    std::ios::sync_with_stdio(false);
     std::ostringstream l;
     std::ofstream log;
-    Nibble nb(Benchmark::TABLE_NAME, "set_n");
-    std::ios::sync_with_stdio(false);
+    Chomp ch;
     
     /// Alias for the clock in the Chrono library.
     using clock = std::chrono::high_resolution_clock;
     
     // Verify the arguments.
     if (argc != 3) {
-        std::cout << "Usage: RunTrial [IdentificationChoice] [StartingBenchmark]" << std::endl;
+        std::cout << "Usage: RunTrial [IdentificationChoice] [TrialChoice]" << std::endl;
         return -1;
     }
     else {
-        // Verify that the first argument is within [0, 1, 2, 3, 4].
+        // Verify that the arguments are within their appropriate spaces.
         auto is_valid_arg = [] (const char *arg, const std::vector<std::string> &input_space) -> bool {
             std::string a = std::string(arg);
             return std::find(input_space.begin(), input_space.end(), a) != input_space.end();
         };
-        if (!is_valid_arg(argv[1], {"0", "1", "2", "3", "4"})) {
-            std::cout << "Usage: RunTrial [0 - 4] [0 - MAX(set_n)]" << std::endl;
-            return -1;
-        }
-        
-        if (atoi(argv[2]) < 0 || atoi(argv[2]) > nb.search_table("MAX(set_n)", 1, 1)[0]) {
-            // Verify that the second argument is a valid set_n number.
-            std::cout << "Usage: RunTrial [0 - 4] [0 - MAX(set_n)]" << std::endl;
+        if (!is_valid_arg(argv[1], {"0", "1", "2", "3", "4"}) || !is_valid_arg(argv[2], {"0", "1", "2", "3"})) {
+            std::cout << "Usage: RunTrial [0 - 4] [0 - 3]" << std::endl;
             return -1;
         }
     }
     
     // Construct the log file based on the HOKU_PROJECT_PATH environment variable.
-    l << "/data/logs/trial/" << argv[1] << "-"  << clock::to_time_t(clock::now() - std::chrono::hours(24)) << ".csv";
+    l << "/data/logs/trial/" << argv[1] << "-" << clock::to_time_t(clock::now() - std::chrono::hours(24)) << ".csv";
     log.open(std::string(std::getenv("HOKU_PROJECT_PATH")) + l.str());
     
     // Make sure the log file is open before proceeding.
     if (!log.is_open()) {
         throw "Log file cannot be opened.";
     }
-
-    return perform_trial(nb, log, atoi(argv[1]), atoi(argv[2]));
+    
+    return perform_trial(ch, log, (int) strtol(argv[1], nullptr, 10), (int) strtol(argv[2], nullptr, 10));
 }
