@@ -6,7 +6,7 @@ Query:     IdentificationMethod,QuerySigma,ShiftSigma,CandidateSetSize,SExistenc
 Alignment: IdentificationMethod,MatchSigma,ShiftSigma,MBar,OptimalConfigRotation,
            NonOptimalConfigRotation,OptimalComponentError,NonOptimalComponentError
 Crown:     IdentificationMethod,MatchSigma,QuerySigma,ShiftSigma,MBar,FalsePercentage,
-           ComparisonCount,BenchmarkSetSize,ResultSetSize,NumberCorrectInResultSet
+           ComparisonCount,BenchmarkSetSize,ResultSetSize,PercentageCorrectInCleanResultSet
 
 The first argument is the location of the log file. We can infer the type of trial from the length of the header.
 
@@ -18,11 +18,12 @@ import numpy as np
 import os, csv, sys
 
 # Points per variation, defined in each trial's header file (query.h, alignment.h, and crown.h).
-POINTS_PER_VARIATION = 1000
+POINTS_PER_VARIATION = 100
 
 # Y axis limits for each plot, wrapped in an iterator.
 qu_yll = iter([[0, 1], [0, 100], [0, 1]])
 al_yll = iter([[0, 3.0e-015], [0, 1.0e-11]])
+cr_yll = iter([[0, 1], [0, 100], [0, 1], [0, 100]])
 
 # X axis tick labels, wrapped in an iterator.
 qu_xtl = iter([[r'$\epsilon \times 3^{0}$'] + [r'$\epsilon \times 3^{4}$'] + [r'$\epsilon \times 3^{9}$'] +
@@ -34,6 +35,11 @@ qu_xtl = iter([[r'$\epsilon \times 3^{0}$'] + [r'$\epsilon \times 3^{4}$'] + [r'
 al_xtl = iter([['5.5', '6.0', '6.5', '7.0', '7.5']] +
               [[r'$\epsilon \times 3^{0}$', r'$\epsilon \times 3^{3}$', r'$\epsilon \times 3^{5}$',
                 r'$\epsilon \times 3^{7}$', r'$\epsilon \times 3^{9}$']])
+cr_xtl = iter([['0', '0.1', '0.2', '0.3', '0.4']] + [['0', '0.1', '0.2', '0.3', '0.4']] +
+              [[r'$\epsilon \times 3^{0}$', r'$\epsilon \times 3^{3}$', r'$\epsilon \times 3^{5}$',
+                r'$\epsilon \times 3^{7}$', r'$\epsilon \times 3^{9}$']] +
+              [[r'$\epsilon \times 3^{0}$', r'$\epsilon \times 3^{3}$', r'$\epsilon \times 3^{5}$',
+                r'$\epsilon \times 3^{7}$', r'$\epsilon \times 3^{9}$']])
 
 # Titles for each plot, wrapped in an iterator.
 qu_tl = iter([r'$Query \ \sigma$ vs. $P(Correct \ Star \ Set \ in \ Candidate \ Set), '
@@ -42,22 +48,33 @@ qu_tl = iter([r'$Query \ \sigma$ vs. $P(Correct \ Star \ Set \ in \ Candidate \ 
               r'$Shift \ \sigma$ (Noise) vs. $P(Correct \ Star \ Set \ in \ Candidate \ Set)$'])
 al_tl = iter([r'$Camera \ Sensitivity \ (m)$ vs. $|| Catalog \ Vector - Estimated \ Vector ||$',
               r'$Shift \ \sigma$ (Noise) vs. $|| Catalog \ Vector - Estimated \ Vector ||$'])
+cr_tl = iter([r'$Percentage \ of \ False \ Stars$ vs. $|Correct \ Stars| / |Total \ Number \ of \ True \ Stars|$',
+              r'$Percentage \ of \ False \ Stars$ vs. $Number \ of \ Star \ Sets \ Exhausted$',
+              r'$Shift \ \sigma$ (Noise) vs. $|Correct \ Stars| / |Total \ Number \ of \ True \ Stars|$',
+              r'$Shift \ \sigma$ (Noise) vs. $Number \ of \ Star \ Sets \ Exhausted$'])
 
 # Legends for each plot, wrapped in an iterator.
 qu_ll = iter([['Angle', 'Spherical Triangle', 'Planar Triangle', 'Pyramid'] for _ in range(3)])
 al_ll = iter([['Angle', 'Spherical Triangle', 'Planar Triangle', 'Pyramid'] for _ in range(2)])
+cr_ll = iter([['Angle', 'Spherical Triangle', 'Planar Triangle', 'Pyramid'] for _ in range(4)])
 
 # X axis label (not ticks) for each plot, wrapped in an iterator.
 qu_xal = iter([r'$Query \ \sigma$', r'$Query \ \sigma$', r'$Shift \ \sigma$ (Noise)'])
 al_xal = iter([r'$Camera \ Sensitivity \ (m)$', r'$Shift \ \sigma$'])
+cr_xal = iter([r'$Percentage \ of \ False \ Stars$', r'$Percentage \ of \ False \ Stars$',
+               r'$Shift \ \sigma$ (Noise)', r'$Shift \ \sigma$ (Noise)'])
 
 # Y axis label (not ticks) for each plot, wrapped in an iterator.
 qu_yal = iter([r'$P(Correct \ Star \ Set \ in \ Candidate \ Set)$', r'$|Candidate \ Set \ Outliers|$',
                r'$P(Correct \ Star \ Set \ in \ Candidate \ Set)$'])
 al_yal = iter([r'$|| Catalog \ Vector - Estimated \ Vector ||$' for _ in range(2)])
+cr_yal = iter([r'$|Correct \ Stars| / |Total \ Number \ of \ True \ Stars|$',
+               r'$Number \ of \ Star \ Sets \ Exhausted$',
+               r'$|Correct \ Stars| / |Total \ Number \ of \ True \ Stars|$',
+               r'$Number \ of \ Star \ Sets \ Exhausted$'])
 
 
-def bar_plot(log, k, x_index, y_index, restriction=None, limit_y=lambda h: h):
+def bar_plot(log, k, x_index, y_index, restrict_d=None, restrict_y=lambda h: h, y_divisor=None):
     """ Generic bar plot function, given the indices of the X and Y data (with respect the the log), as well as a
     restriction function.
 
@@ -65,25 +82,32 @@ def bar_plot(log, k, x_index, y_index, restriction=None, limit_y=lambda h: h):
     :param k: Current log file iteration (in space [0, 1, 2, 3]).
     :param x_index: Index of the CSV column that represents dimension X of the data point.
     :param y_index: Index of the CSV column that represents dimension Y of the data point.
-    :param restriction: Restriction function to apply to the data-set we operate on.
-    :param limit_y: A restriction function to apply to every list of Y points. Defaults to using data as-is.
+    :param restrict_d: A restriction function to apply to the data-set we operate on.
+    :param restrict_y: A restriction function to apply to every list of Y points. Defaults to using data as-is.
+    :param y_divisor: If specified, we divide every Y point with the point at this index.
     :return: None.
     """
 
-    # Apply a restriction to our dataset if given. Determine our X axis.
-    d = [tuple for tuple in log if (True if restriction is None else restriction(tuple))]
+    # Apply a restriction to our data-set if given. Determine our X axis.
+    d = [tuple for tuple in log if (True if restrict_d is None else restrict_d(tuple))]
     sorted(d, key=lambda x: x[x_index])
     x_count = list(set([float(x[x_index]) for x in d]))
     y_list = [[] for _ in x_count]
 
-    # Determine our Y axis.
-    for i in range(0, len(x_count)):
-        for j in range(0, POINTS_PER_VARIATION):
-            y_list[i].append(float(d[i * POINTS_PER_VARIATION + j][y_index]))
+    # Determine our Y axis. Dependent on if y_divisor is specified or not.
+    if y_divisor is None:
+        for i in range(0, len(x_count)):
+            for j in range(0, POINTS_PER_VARIATION):
+                y_list[i].append(float(d[i * POINTS_PER_VARIATION + j][y_index]))
+    else:
+        for i in range(0, len(x_count)):
+            for j in range(0, POINTS_PER_VARIATION):
+                y_list.append(float(d[i * POINTS_PER_VARIATION + j][y_index] /
+                                    d[i * POINTS_PER_VARIATION + j][y_divisor]))
 
     # Plot the bar chart of our averages, as well as the corresponding error bars.
-    plt.bar(np.arange(len(x_count)) + 0.2 * k - 0.3, [np.average(limit_y(y)) for y in y_list], 0.2,
-            yerr=[np.std(limit_y(y)) for y in y_list])
+    plt.bar(np.arange(len(x_count)) + 0.2 * k - 0.3, [np.average(restrict_y(y)) for y in y_list], 0.2,
+            yerr=[np.std(restrict_y(y)) for y in y_list])
 
 
 def plot_add_info(yll, xtl, tl, ll, xal, yal):
@@ -128,13 +152,13 @@ def query_trial_plot(log_sets):
     sigma_set_2 = ['3.1861e-09', '9.55829e-09', '2.86749e-08', '8.60246e-08', '2.58074e-07']
     sigma_set_3 = ['2.22045e-16', '5.9952e-15', '5.39568e-14', '4.85612e-13', '4.3705e-12']
 
-    # Plot #1: Query Sigma vs. P(SExistence) with a small amount of noise.
+    # Plot #1: Query Sigma vs. P(SExistence) with noise.
     plt.figure()
     plt.subplot(121)
     [bar_plot(log, k, 1, 4, lambda g: g[2] == '4.3705e-12' and g[1] in sigma_set_1) for k, log in enumerate(log_sets)]
     plot_add_info(qu_yll, qu_xtl, qu_tl, qu_ll, qu_xal, qu_yal)
 
-    # Plot #2: Query Sigma vs. CandidateSetSize- with a small amount of noise.
+    # Plot #2: Query Sigma vs. CandidateSetSize- with noise.
     plt.subplot(122)
     [bar_plot(log, k, 1, 3, lambda g: g[2] == '4.3705e-12' and g[1] in sigma_set_2,
               lambda h: [a for a in h if a > 1]) for k, log in enumerate(log_sets)]
@@ -162,22 +186,62 @@ def alignment_trial_plot(log_sets):
     """
     plt.rc('text', usetex=True), plt.rc('font', family='serif', size=12)
     sigma_set = ['2.22045e-16', '5.9952e-15', '5.39568e-14', '4.85612e-13', '4.3705e-12']
-    middle_match_sigma = '4.3705e-12'
+    middle_sigma = '4.3705e-12'
 
     # Plot #1: Camera Sensitivity vs. ||Original Star - Estimated Star||. We are not testing for noise in this case.
     plt.figure()
-    [bar_plot(log, k, 3, 6, lambda g: g[2] == '0' and g[1] == middle_match_sigma) for k, log in enumerate(log_sets)]
+    [bar_plot(log, k, 3, 6, lambda g: g[2] == '0' and g[1] == middle_sigma) for k, log in enumerate(log_sets)]
     plot_add_info(al_yll, al_xtl, al_tl, al_ll, al_xal, al_yal)
 
     # Plot #2: Shift Sigma vs. ||Original Star - Estimated Star||. Using MBar = 6.0 & middle MatchSigma for each.
     plt.figure()
-    [bar_plot(log, k, 2, 6, lambda g: g[3] == '6' and g[1] == middle_match_sigma and g[2] in sigma_set)
+    [bar_plot(log, k, 2, 6, lambda g: g[3] == '6' and g[1] == middle_sigma and g[2] in sigma_set)
      for k, log in enumerate(log_sets)]
     plot_add_info(al_yll, al_xtl, al_tl, al_ll, al_xal, al_yal)
 
     # Plot 2 requires a log axis here.
     ax = plt.gca()
     ax.set_yscale('log')
+
+    plt.show()
+
+
+def crown_trial_plot(log_sets):
+    """ For every log in log_sets (which hold sets of tuples), display a plot comparing each.
+
+    The following plots are displayed: False Percentage vs. |Correct Stars| / |Total Number of True Stars|
+                                       False Percentage vs. Number of Star Sets Exhausted
+                                       Shift Sigma vs. |Correct Stars| / |Total Number of True Stars|
+                                       Shift Sigma vs. Number of Star Sets Exhausted
+
+    :param log_sets: List of list of lists representing the contents of the several log files
+    :return: None.
+    """
+    plt.rc('text', usetex=True), plt.rc('font', family='serif', size=12)
+    sigma_set = ['2.22045e-16', '5.9952e-15', '5.39568e-14', '4.85612e-13', '4.3705e-12']
+    middle_sigma = '4.3705e-12'
+
+    # Plot #1: False Percentage vs. |Correct Stars| / |Total Number of True Stars|
+    plt.figure(), plt.subplot(121)
+    [bar_plot(log, k, 5, 9, lambda g: g[3] == middle_sigma and g[4] == '6') for k, log in enumerate(log_sets)]
+    plot_add_info(cr_yll, cr_xtl, cr_tl, cr_ll, cr_xal, cr_yal)
+
+    # Plot #2: False Percentage vs. Number of Star Sets Exhausted
+    plt.subplot(122)
+    [bar_plot(log, k, 5, 6, lambda g: g[3] == middle_sigma and g[4] == '6') for k, log in enumerate(log_sets)]
+    plot_add_info(cr_yll, cr_xtl, cr_tl, cr_ll, cr_xal, cr_yal)
+
+    # Plot 3: Shift Sigma vs. |Correct Stars| / |Total Number of True Stars|
+    plt.figure(), plt.subplot(121)
+    [bar_plot(log, k, 3, 9, lambda g: g[5] == '0' and g[4] == '6' and g[3] in sigma_set)
+     for k, log in enumerate(log_sets)]
+    plot_add_info(cr_yll, cr_xtl, cr_tl, cr_ll, cr_xal, cr_yal)
+
+    # Plot 4: Shift Sigma vs. Number of Star Sets Exhausted
+    plt.subplot(122)
+    [bar_plot(log, k, 3, 6, lambda g: g[5] == '0' and g[4] == '6' and g[3] in sigma_set)
+     for k, log in enumerate(log_sets)]
+    plot_add_info(cr_yll, cr_xtl, cr_tl, cr_ll, cr_xal, cr_yal)
 
     plt.show()
 
