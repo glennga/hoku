@@ -134,7 +134,7 @@ Star Rotation::shake (const Star &s, const double sigma, std::random_device &see
     axis = axis * (sqrt((1.0 - c_a) / 2.0) / sqrt(Star::dot(axis, axis)));
     
     // Return the rotated star s by our axis quaternion.
-    return rotate(s, Rotation(sqrt((1.0 + c_a) / 2.0), axis));
+    return rotate(s, Rotation(sqrt((1.0 + c_a) / 2.0), axis)).as_unit();
 }
 
 /// Get a scalar quantity for how 'close' two quaternions are. We find the quaternion from q_1 to q_2, and return the
