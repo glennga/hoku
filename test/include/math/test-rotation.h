@@ -23,6 +23,7 @@ class TestRotation : public BaseTest {
     int test_triad_property_simple ();
     int test_triad_property_random ();
     int test_triad_multiple_stars ();
+    int test_shake_method ();
   
   public:
     int enumerate_tests (int);

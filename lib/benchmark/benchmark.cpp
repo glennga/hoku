@@ -262,12 +262,9 @@ void Benchmark::remove_light (const int n, const double psi) {
 /// expected and having a standard deviation of sigma.
 ///
 /// @param n Number of stars to move.
-/// @param sigma Amount to shift stars by, in terms of XYZ coordinates.
+/// @param sigma Amount to shift stars by, in terms of degrees.
 /// @param cap_error Flag to move an error star to the front of the star list.
 void Benchmark::shift_light (const int n, const double sigma, bool cap_error) {
-    std::mt19937_64 mersenne_twister((*seed)());
-    std::normal_distribution<double> dist(0, sigma);
-    
     ErrorModel shifted_light = {"Shifted Light", "g", {Star::zero()}};
     int current_n = 0;
     
@@ -277,9 +274,7 @@ void Benchmark::shift_light (const int n, const double sigma, bool cap_error) {
         
         // Check inside if n is met early, break if met.
         for (unsigned int i = 0; i < this->stars.size() && n_condition; i++) {
-            Star candidate = Star(this->stars[i][0] + dist(mersenne_twister),
-                                  this->stars[i][1] + dist(mersenne_twister),
-                                  this->stars[i][2] + dist(mersenne_twister), this->stars[i].get_label()).as_unit();
+            Star candidate = Rotation::shake(this->stars[i], sigma, *seed);
             
             // If shifted star is near focus, add the shifted star and remove the old.
             if (Star::within_angle(candidate, this->focus, this->fov / 2.0)) {

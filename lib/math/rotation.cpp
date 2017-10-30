@@ -115,6 +115,28 @@ Star Rotation::rotate (const Star &s, const Rotation &q) {
     return {Star::dot(s, a_1n), Star::dot(s, a_2n), Star::dot(s, a_3n), s.get_label(), s.get_magnitude()};
 }
 
+/// Rotate the given star s in a random direction, by a random theta who's distribution is varied by the given sigma.
+/// Followed answer given here: https://stackoverflow.com/a/7583931
+///
+/// @param s Star to rotate randomly.
+/// @param sigma Standard deviation of the angle to rotate by, in degrees.
+/// @return The star S "shaken".
+Star Rotation::shake (const Star &s, const double sigma, std::random_device &seed) {
+    std::mt19937_64 mersenne_twister(seed());
+    std::normal_distribution<double> dist(0, sigma);
+    
+    // We define a random direction 'axis', as well as a random theta.
+    double theta = dist(mersenne_twister);
+    Star axis = Star::chance(seed);
+    
+    // Determine our cosine component, and scale our axis vector.
+    double c_a = cos(theta * (M_PI / 180.0));
+    axis = axis * (sqrt((1.0 - c_a) / 2.0) / sqrt(Star::dot(axis, axis)));
+    
+    // Return the rotated star s by our axis quaternion.
+    return rotate(s, Rotation(sqrt((1.0 + c_a) / 2.0), axis)).as_unit();
+}
+
 /// Get a scalar quantity for how 'close' two quaternions are. We find the quaternion from q_1 to q_2, and return the
 /// axis angle from this.
 ///
@@ -140,7 +162,7 @@ double Rotation::angle_between (const Rotation &q_1, const Rotation &q_2) {
 /// @param q_2 Rotation two to compare against.
 /// @param s Star to rotate with.
 /// @return Difference between q_1 and q_2's rotation of s.
-Star Rotation::rotation_difference(const Rotation &q_1, const Rotation &q_2, const Star &s) {
+Star Rotation::rotation_difference (const Rotation &q_1, const Rotation &q_2, const Star &s) {
     return rotate(s, q_1) - rotate(s, q_2);
 }
 

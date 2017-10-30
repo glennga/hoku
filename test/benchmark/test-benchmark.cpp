@@ -192,7 +192,7 @@ int TestBenchmark::test_display_plot () {
     
     Benchmark input(ch, seed, 15);
     input.add_extra_light(2);
-    input.shift_light(2, 0.1);
+    input.shift_light(2, 10);
     
     input.display_plot();
     return 0;

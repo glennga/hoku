@@ -25,8 +25,14 @@ affected_n.i affected_n.j affected_n.k affected_n.bsc_id affected_n.plot_color
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import matplotlib
 import numpy as np
 import os
+
+# matplotlib.rcParams.update({'font.size': 40})
+
+# Check as true to enable lines to origin.
+SHOW_QUIVER = True
 
 # Create 3D axis and figure.
 fig = plt.figure()
@@ -76,18 +82,29 @@ v = np.linspace(delta - fov_limit, delta + fov_limit, 100)
 sphere_x = np.outer(np.cos(u), np.sin(v))
 sphere_y = np.outer(np.sin(u), np.sin(v))
 sphere_z = np.outer(np.ones(np.size(u)), np.cos(v))
-ax.plot_surface(sphere_x, sphere_y, sphere_z, color='b', alpha='0.1')
+# ax.plot_surface(sphere_x, sphere_y, sphere_z, color='b', alpha='0.1')
+ax.plot_wireframe(sphere_x, sphere_y, sphere_z, alpha='0.4' )
+
+# Draw origin (if desired).
+if SHOW_QUIVER:
+    ax.scatter(0, 0, 0)
+    ax.text(0, 0, 0, 'Observer')
 
 # Plot clean data set as black.
 for star in stars:
+    if SHOW_QUIVER:
+        ax.quiver(0, 0, 0, star[0], star[1], star[2], arrow_length_ratio=0.0000001, alpha=0.2)
     ax.scatter(star[0], star[1], star[2], marker='*', color='k')
-    ax.text(star[0], star[1], star[2], '{}'.format(int(star[3])))
+    # ax.text(star[0], star[1], star[2], '{}'.format(int(star[3])))
 
-# Plot error models with specified colors.
+# Plot error models with specified colors.'
 for model in errors:
     for error in model:
+        if SHOW_QUIVER:
+            ax.quiver(0, 0, 0, error[0], error[1], error[2], arrow_length_ratio=0.0000001, alpha=0.2)
         ax.scatter(error[0], error[1], error[2], marker='*', color=error[4])
-        ax.text(error[0], error[1], error[2], '{}'.format(int(error[3])))
+        # ax.text(error[0], error[1], error[2], '{}'.format(int(error[3])))
 
 # Display the plot!
+ax.set_axis_off()
 plt.show()
