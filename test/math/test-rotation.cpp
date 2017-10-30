@@ -175,6 +175,23 @@ int TestRotation::test_triad_multiple_stars () {
     return 0;
 }
 
+/// Check that the shake method doesn't shake with the deviation is 0, and returns a unique star when the deviation
+/// is non-zero.
+///
+/// @return 0 when finished.
+int TestRotation::test_shake_method () {
+    std::random_device seed;
+    Star a = Star::chance(seed);
+    
+    Star b = Rotation::shake(a, 0, seed);
+    assert_equal(a, b, "NoDeviationShake", a.str() + "," + b.str());
+    
+    Star c = Rotation::shake(a, 30, seed);
+    assert_not_equal(a, c, "15DegreeDeviationShake", a.str() + "," + c.str());
+    
+    return 0 * assert_greater_than(Star::angle_between(a, c), 1.0, "StarShifted");
+}
+
 /// Enumerate all tests in TestRotation.
 ///
 /// @param test_case Number of test to run.
@@ -193,6 +210,7 @@ int TestRotation::enumerate_tests (int test_case) {
         case 9: return test_triad_property_simple();
         case 10: return test_triad_property_random();
         case 11: return test_triad_multiple_stars();
+        case 12: return test_shake_method();
         default: return -1;
     }
 }
