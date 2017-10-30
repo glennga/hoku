@@ -53,16 +53,12 @@ void Query::trial_angle (Chomp &ch, std::ofstream &log) {
     std::random_device seed;
     Benchmark beta(ch, seed, WORKING_FOV);
     
-    for (int ss_i = -1; ss_i < SS_ITER; ss_i++) {
+    for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
         for (int qs_i = 0; qs_i < QS_ITER; qs_i++) {
             for (int i = 0; i < QUERY_SAMPLES; i++) {
                 beta.stars = generate_n_stars(ch, 2, seed);
                 beta.focus = beta.stars[0];
-                
-                // If shift trials, shift stars by shift_sigma.
-                if (ss_i != -1) {
-                    beta.shift_light(2, SS_MIN * pow(SS_MULT, ss_i)), beta.error_models.clear();
-                }
+                beta.shift_light(2, SS_MIN + SS_STEP * ss_i), beta.error_models.clear();
                 
                 // Log our label values, and get our result set.
                 ch.select_table(ANGLE_TABLE);
@@ -71,9 +67,8 @@ void Query::trial_angle (Chomp &ch, std::ofstream &log) {
                                                                       QS_MIN * pow(QS_MULT, qs_i));
                 
                 // Log our results.
-                log << "Angle," << QS_MIN * pow(QS_MULT, qs_i) << ","
-                    << ((ss_i == -1) ? 0 : SS_MIN * pow(SS_MULT, ss_i)) << "," << r.size() << "," << set_existence(r, b)
-                    << '\n';
+                log << "Angle," << QS_MIN * pow(QS_MULT, qs_i) << "," << SS_MIN + SS_STEP * ss_i << "," << r.size()
+                    << "," << set_existence(r, b) << '\n';
             }
         }
     }
@@ -89,17 +84,15 @@ void Query::trial_plane (Chomp &ch, std::ofstream &log) {
     Plane::Parameters p;
     p.table_name = PLANE_TABLE;
     
-    for (int ss_i = -1; ss_i < SS_ITER; ss_i++) {
+    for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
         for (int qs_i = 0; qs_i < QS_ITER; qs_i++) {
             for (int i = 0; i < QUERY_SAMPLES; i++) {
                 beta.stars = generate_n_stars(ch, 3, seed);
                 beta.focus = beta.stars[0];
                 
-                // Vary our area and moment sigma. If shift trials, shift stars by shift_sigma.
+                // Vary our area and moment sigma.
                 p.sigma_a = QS_MIN * pow(QS_MULT, qs_i), p.sigma_i = QS_MIN * pow(QS_MULT, qs_i);
-                if (ss_i != -1) {
-                    beta.shift_light(3, SS_MIN * pow(SS_MULT, ss_i)), beta.error_models.clear();
-                }
+                beta.shift_light(3, SS_MIN + SS_STEP * ss_i), beta.error_models.clear();
                 
                 // Log our label values, and get our result set.
                 Plane::label_trio b = {(double) beta.stars[0].get_label(), (double) beta.stars[1].get_label(),
@@ -109,9 +102,8 @@ void Query::trial_plane (Chomp &ch, std::ofstream &log) {
                 std::vector<Plane::label_trio> r = Plane(beta, p).query_for_trio(a_i, i_i);
                 
                 // Log our results.
-                log << "Plane," << QS_MIN * pow(QS_MULT, qs_i) << ","
-                    << ((ss_i == -1) ? 0 : SS_MIN * pow(SS_MULT, ss_i)) << "," << r.size() << "," << set_existence(r, b)
-                    << '\n';
+                log << "Plane," << QS_MIN * pow(QS_MULT, qs_i) << "," << SS_MIN + SS_STEP * ss_i << "," << r.size()
+                    << "," << set_existence(r, b) << '\n';
             }
         }
     }
@@ -127,17 +119,15 @@ void Query::trial_sphere (Chomp &ch, std::ofstream &log) {
     Sphere::Parameters p;
     p.table_name = SPHERE_TABLE;
     
-    for (int ss_i = -1; ss_i < SS_ITER; ss_i++) {
+    for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
         for (int qs_i = 0; qs_i < QS_ITER; qs_i++) {
             for (int i = 0; i < QUERY_SAMPLES; i++) {
                 beta.stars = generate_n_stars(ch, 3, seed);
                 beta.focus = beta.stars[0];
                 
-                // Vary our area and moment sigma. If shift trials, shift stars by shift_sigma.
+                // Vary our area and moment sigma.
                 p.sigma_a = QS_MIN * pow(QS_MULT, qs_i), p.sigma_i = QS_MIN * pow(QS_MULT, qs_i);
-                if (ss_i != -1) {
-                    beta.shift_light(3, SS_MIN * pow(SS_MULT, ss_i)), beta.error_models.clear();
-                }
+                beta.shift_light(3, SS_MIN + SS_STEP * ss_i), beta.error_models.clear();
                 
                 // Log our label values, and get our result set.
                 Sphere::label_trio b = {(double) beta.stars[0].get_label(), (double) beta.stars[1].get_label(),
@@ -148,9 +138,8 @@ void Query::trial_sphere (Chomp &ch, std::ofstream &log) {
                 std::vector<Sphere::label_trio> r = Sphere(beta, p).query_for_trio(a_i, i_i);
                 
                 // Log our results.
-                log << "Sphere," << QS_MIN * pow(QS_MULT, qs_i) << ","
-                    << ((ss_i == -1) ? 0 : SS_MIN * pow(SS_MULT, ss_i)) << "," << r.size() << "," << set_existence(r, b)
-                    << '\n';
+                log << "Sphere," << QS_MIN * pow(QS_MULT, qs_i) << "," << SS_MIN + SS_STEP * ss_i << "," << r.size()
+                    << "," << set_existence(r, b) << '\n';
             }
         }
     }
@@ -165,16 +154,12 @@ void Query::trial_pyramid (Chomp &ch, std::ofstream &log) {
     std::random_device seed;
     Benchmark beta(ch, seed, WORKING_FOV);
     
-    for (int ss_i = -1; ss_i < SS_ITER; ss_i++) {
+    for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
         for (int qs_i = 0; qs_i < QS_ITER; qs_i++) {
             for (int i = 0; i < QUERY_SAMPLES; i++) {
                 beta.stars = generate_n_stars(ch, 2, seed);
                 beta.focus = beta.stars[0];
-                
-                // If shift trials, shift stars by shift_sigma.
-                if (ss_i != -1) {
-                    beta.shift_light(2, SS_MIN * pow(SS_MULT, ss_i)), beta.error_models.clear();
-                }
+                beta.shift_light(2, SS_MIN + SS_STEP * ss_i), beta.error_models.clear();
                 
                 // Log our label values, and get our result set.
                 ch.select_table(ANGLE_TABLE);
@@ -183,9 +168,8 @@ void Query::trial_pyramid (Chomp &ch, std::ofstream &log) {
                                                                       QS_MIN * pow(QS_MULT, qs_i));
                 
                 // Log our results.
-                log << "Pyramid," << QS_MIN * pow(QS_MULT, qs_i) << ","
-                    << ((ss_i == -1) ? 0 : SS_MIN * pow(SS_MULT, ss_i)) << "," << r.size() << "," << set_existence(r, b)
-                    << '\n';
+                log << "Pyramid," << QS_MIN * pow(QS_MULT, qs_i) << "," << SS_MIN + SS_STEP * ss_i << "," << r.size()
+                    << "," << set_existence(r, b) << '\n';
             }
         }
     }

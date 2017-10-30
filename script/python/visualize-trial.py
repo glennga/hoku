@@ -223,23 +223,23 @@ def crown_trial_plot(log_sets):
 
     # Plot #1: False Percentage vs. |Correct Stars| / |Total Number of True Stars|
     plt.figure(), plt.subplot(121)
-    [bar_plot(log, k, 5, 9, lambda g: g[3] == middle_sigma and g[4] == '6') for k, log in enumerate(log_sets)]
+    [bar_plot(log, k, 5, 9, lambda g: g[3] == sigma_set[3] and g[4] == '6.5') for k, log in enumerate(log_sets)]
     plot_add_info(cr_yll, cr_xtl, cr_tl, cr_ll, cr_xal, cr_yal)
 
     # Plot #2: False Percentage vs. Number of Star Sets Exhausted
     plt.subplot(122)
-    [bar_plot(log, k, 5, 6, lambda g: g[3] == middle_sigma and g[4] == '6') for k, log in enumerate(log_sets)]
+    [bar_plot(log, k, 5, 6, lambda g: g[3] == sigma_set[3] and g[4] == '6.5') for k, log in enumerate(log_sets)]
     plot_add_info(cr_yll, cr_xtl, cr_tl, cr_ll, cr_xal, cr_yal)
 
     # Plot 3: Shift Sigma vs. |Correct Stars| / |Total Number of True Stars|
     plt.figure(), plt.subplot(121)
-    [bar_plot(log, k, 3, 9, lambda g: g[5] == '0' and g[4] == '6' and g[3] in sigma_set)
+    [bar_plot(log, k, 3, 9, lambda g: g[5] == '0' and g[4] == '6.5' and g[3] in sigma_set)
      for k, log in enumerate(log_sets)]
     plot_add_info(cr_yll, cr_xtl, cr_tl, cr_ll, cr_xal, cr_yal)
 
     # Plot 4: Shift Sigma vs. Number of Star Sets Exhausted
     plt.subplot(122)
-    [bar_plot(log, k, 3, 6, lambda g: g[5] == '0' and g[4] == '6' and g[3] in sigma_set)
+    [bar_plot(log, k, 3, 6, lambda g: g[5] == '0' and g[4] == '6.5' and g[3] in sigma_set)
      for k, log in enumerate(log_sets)]
     plot_add_info(cr_yll, cr_xtl, cr_tl, cr_ll, cr_xal, cr_yal)
 

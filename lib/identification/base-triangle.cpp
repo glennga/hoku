@@ -223,6 +223,11 @@ Star::list BaseTriangle::identify_stars (unsigned int &z) {
                 Trio::stars candidate_trio;
                 Star::list candidates;
                 z++;
+    
+                // Practical limit: exit early if we have iterated through too many comparisons without match.
+                if (z > parameters.z_max) {
+                    return {};
+                }
                 
                 // Find matches of current body trio to catalog. Pivot if necessary.
                 candidate_trio = pivot({(double) i, (double) j, (double) k});
@@ -236,11 +241,6 @@ Star::list BaseTriangle::identify_stars (unsigned int &z) {
                 
                 // Check all possible configurations. Return the most likely.
                 matches = check_assumptions(candidates, candidate_trio, {(double) i, (double) j, (double) k});
-
-                // Practical limit: exit early if we have iterated through too many comparisons without match.
-                if (z > parameters.z_max) {
-                    return {};
-                }
 
                 // Definition of image match: |match| > match minimum. Break early.
                 if (matches.size() > parameters.match_minimum) {

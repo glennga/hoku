@@ -4,7 +4,7 @@
 /// Source file for Hoku class, which matches a set of body vectors (stars) to their inertial counter-parts in the
 /// database.
 
-#include "identification/hoku.h"
+#include "identification/coin.h"
 
 /// Constructor. Sets the benchmark data, fov, parameters, and current working table.
 ///

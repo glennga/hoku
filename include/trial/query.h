@@ -13,6 +13,9 @@
 #include "identification/pyramid.h"
 
 /// Contains constants and functions to test various hashing methods.
+///
+/// Reasoning for shift sigma: Pyramid paper.
+/// -- Pg. 14 "To simulate the centroiding errors, Gaussian noise of 50μrad (3 sigma) was added..."
 namespace Query {
     /// Attribute header that corresponds to the log file for all query trials.
     const char *const ATTRIBUTE = "IdentificationMethod,QuerySigma,ShiftSigma,CandidateSetSize,SExistence\n";
@@ -24,10 +27,9 @@ namespace Query {
     const double QS_MULT = 3; ///< Query sigma multiplier for each variation.
     const int QS_ITER = 20; ///< Number of query sigma variations.
     
-    const double SS_MIN = std::numeric_limits<double>::epsilon(); ///< Minimum shift sigma (using machine epsilon).
-    const double SS_MULT = 3; ///< Shift sigma multiplier for each variation.
-//    const double SS_STEP = std::numeric_limits<double>::epsilon() * 5; ///< Shift sigma step for each variation.
-    const int SS_ITER = 20; ///< Number of shift sigma variations.
+    const double SS_MIN = 0; ///< Minimum shift sigma.
+    const double SS_STEP = 0.001; ///< Shift sigma step for each variation.
+    const int SS_ITER = 5; ///< Number of shift sigma variations.
     
     const std::string ANGLE_TABLE = "SEP_20"; ///< Name of table generated for Angle method.
     const std::string PLANE_TABLE = "PLANE_20"; ///< Name of table generated for Plane method.

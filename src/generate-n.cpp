@@ -28,7 +28,7 @@
 #include "identification/spherical-triangle.h"
 #include "identification/planar-triangle.h"
 #include "identification/pyramid.h"
-#include "identification/hoku.h"
+#include "identification/coin.h"
 
 /// Defining characteristics of the Nibble tables generated.
 namespace DCNT {
