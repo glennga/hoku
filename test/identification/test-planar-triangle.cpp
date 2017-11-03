@@ -343,5 +343,5 @@ int TestPlanarTriangle::enumerate_tests (int test_case) {
 ///
 /// @return -1 if the log file cannot be opened. 0 otherwise.
 int main () {
-    return TestPlanarTriangle().execute_tests(BaseTest::Flavor::FULL_PRINT_LOG_ON, 9);
+    return TestPlanarTriangle().execute_tests(BaseTest::Flavor::FULL_PRINT_LOG_ON);
 }

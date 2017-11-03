@@ -54,7 +54,7 @@ class Pyramid {
     static int generate_sep_table (double, const std::string &);
 
 #if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
-    private:
+  private:
 #endif
     /// Alias for a list of catalog IDs (STL vector of doubles).
     using hr_list = std::vector<int>;
@@ -87,7 +87,7 @@ class Pyramid {
     double fov;
 
 #if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
-    private:
+  private:
 #endif
     Pyramid (const Benchmark &, const Parameters &);
     
@@ -98,6 +98,8 @@ class Pyramid {
     Star::list match_remaining (const Star::list &, const index_quad &, const hr_quad &);
     
     Rotation trial_attitude_determine (const std::array<Star, 4> &, const std::array<Star, 4> &);
+    
+    static std::vector<label_pair> trial_query (Chomp &, const Star &, const Star &, double);
 };
 
 #endif /* HOKU_PYRAMID_H */

@@ -239,3 +239,29 @@ Star::list Pyramid::identify (const Benchmark &input, const Parameters &paramete
     unsigned int z;
     return Pyramid::identify(input, parameters, z);
 }
+
+/// Reproduction of the Pyramid method's Nibble querying. Unlike the one used in identification, this does not return
+/// the most likely match.
+///
+/// **Need to select the proper table before calling this method.**
+///
+/// @param ch Open Nibble connection with Chomp.
+/// @param s_1 Star one to query with.
+/// @param s_2 Star two to query with.
+/// @param query_sigma Theta must be within 3 * query_sigma to appear in results.
+std::vector<Pyramid::label_pair> Pyramid::trial_query (Chomp &ch, const Star &s_1, const Star &s_2,
+                                                   const double query_sigma) {
+    double epsilon = 3.0 * query_sigma, theta = Star::angle_between(s_1, s_2);
+    std::vector<Pyramid::label_pair> r_bar;
+    
+    // Query using theta with epsilon bounds.
+    Nibble::tuples_d r = ch.k_vector_query("theta", "label_a, label_b", theta - epsilon, theta + epsilon, 500);
+    
+    // Sort tuple_d into list of catalog ID pairs.
+    r_bar.reserve(r.size() / 2);
+    for (const Nibble::tuple_d &r_t : r) {
+        r_bar.emplace_back(Angle::label_pair {(int) r_t[0], (int) r_t[1]});
+    }
+    
+    return r_bar;
+}

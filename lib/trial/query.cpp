@@ -162,10 +162,10 @@ void Query::trial_pyramid (Chomp &ch, std::ofstream &log) {
                 beta.shift_light(2, SS_MIN + SS_STEP * ss_i), beta.error_models.clear();
                 
                 // Log our label values, and get our result set.
-                ch.select_table(ANGLE_TABLE);
-                Angle::label_pair b = {beta.stars[0].get_label(), beta.stars[1].get_label()};
-                std::vector<Angle::label_pair> r = Angle::trial_query(ch, beta.stars[0], beta.stars[1],
-                                                                      QS_MIN * pow(QS_MULT, qs_i));
+                ch.select_table(PYRAMID_TABLE);
+                Pyramid::label_pair b = {beta.stars[0].get_label(), beta.stars[1].get_label()};
+                std::vector<Pyramid::label_pair> r = Pyramid::trial_query(ch, beta.stars[0], beta.stars[1],
+                                                                          QS_MIN * pow(QS_MULT, qs_i));
                 
                 // Log our results.
                 log << "Pyramid," << QS_MIN * pow(QS_MULT, qs_i) << "," << SS_MIN + SS_STEP * ss_i << "," << r.size()
