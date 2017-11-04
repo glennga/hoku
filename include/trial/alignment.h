@@ -39,10 +39,11 @@ namespace Alignment {
     const double MB_STEP = 0.25; ///< Step to increment magnitude bound with for each variation.
     const int MB_ITER = 5; ///< Number of magnitude bound variations.
     
-    const std::string ANGLE_TABLE = "SEP_20"; ///< Name of table generated for Angle method.
+    const std::string ANGLE_TABLE = "ANG_20"; ///< Name of table generated for Angle method.
     const std::string PLANE_TABLE = "PLANE_20"; ///< Name of table generated for Plane method.
     const std::string SPHERE_TABLE = "SPHERE_20"; ///< Name of table generated for Sphere method.
     const std::string PYRAMID_TABLE = "PYRA_20"; ///< Name of table generated for Pyramid method.
+    const std::string COIN_TABLE = "COIN_20"; ///< Name of the table generated for the Coin method.
     
     void present_stars (Chomp &, std::random_device &, Star::list &, Star::list &, Rotation &, const double);
     void shift_body (std::random_device &, Star::list &, const double, const int);
@@ -51,6 +52,7 @@ namespace Alignment {
     void trial_plane (Chomp &, std::ofstream &);
     void trial_sphere (Chomp &, std::ofstream &);
     void trial_pyramid (Chomp &, std::ofstream &);
+    void trial_crown (Chomp &, std::ofstream &);
 }
 
 #endif /* TRIAL_ALIGNMENT_H */

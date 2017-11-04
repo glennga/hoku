@@ -42,10 +42,11 @@ namespace Crown {
     const int ES_STEP = 5; ///< Step to increment extra stars with.
     const int ES_ITER = 5;  ///< Number of extra stars variations.
     
-    const std::string ANGLE_TABLE = "SEP_20"; ///< Name of table generated for Angle method.
+    const std::string ANGLE_TABLE = "ANG_20"; ///< Name of table generated for Angle method.
     const std::string PLANE_TABLE = "PLANE_20"; ///< Name of table generated for Plane method.
     const std::string SPHERE_TABLE = "SPHERE_20"; ///< Name of table generated for Sphere method.
     const std::string PYRAMID_TABLE = "PYRA_20"; ///< Name of table generated for Pyramid method.
+    const std::string COIN_TABLE = "COIN_20"; ///< Name of the table generated for the Coin method.
     
     void present_benchmark (Chomp &, std::random_device &, Star::list &, Star &, double = 0);
     
@@ -53,6 +54,7 @@ namespace Crown {
     void trial_plane (Chomp &, std::ofstream &);
     void trial_sphere (Chomp &, std::ofstream &);
     void trial_pyramid (Chomp &, std::ofstream &);
+    void trial_coin (Chomp &, std::ofstream &);
 }
 
 #endif /* TRIAL_CROWN_H */

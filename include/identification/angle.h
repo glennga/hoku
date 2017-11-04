@@ -45,7 +45,7 @@ class Angle {
         double match_sigma = 0.00001; ///< Resultant of inertial->body rotation must within 3 * match_sigma of *a* body.
         unsigned int match_minimum = 3; ///< The minimum number of body-inertial matches.
         unsigned int z_max = 1000; ///< Maximum number of comparisons before returning an empty list.
-        std::string table_name = "SEP_20"; ///< Name of the Nibble database table created with 'generate_sep_table'.
+        std::string table_name = "ANG_20"; ///< Name of the Nibble database table created with 'generate_sep_table'.
     };
     
     /// User should **NOT** be creating instances of Angle manually. Instead, use the static 'identify' function.
