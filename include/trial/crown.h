@@ -11,6 +11,7 @@
 #include "identification/spherical-triangle.h"
 #include "identification/planar-triangle.h"
 #include "identification/pyramid.h"
+#include "identification/coin.h"
 
 /// Contains constants and functions to test various star identification functions end to end.
 ///

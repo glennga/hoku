@@ -11,6 +11,7 @@
 #include "identification/spherical-triangle.h"
 #include "identification/planar-triangle.h"
 #include "identification/pyramid.h"
+#include "identification/coin.h"
 
 /// Contains constants and functions to test various attitude determination functions.
 ///
@@ -52,7 +53,7 @@ namespace Alignment {
     void trial_plane (Chomp &, std::ofstream &);
     void trial_sphere (Chomp &, std::ofstream &);
     void trial_pyramid (Chomp &, std::ofstream &);
-    void trial_crown (Chomp &, std::ofstream &);
+    void trial_coin (Chomp &, std::ofstream &);
 }
 
 #endif /* TRIAL_ALIGNMENT_H */

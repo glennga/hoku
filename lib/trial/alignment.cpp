@@ -212,3 +212,42 @@ void Alignment::trial_pyramid (Chomp &ch, std::ofstream &log) {
         }
     }
 }
+
+/// Record the results of Coin's attitude determination process. We note that a correct star configuration is
+/// assumed to be found prior to determining the attitude for this specific method.
+///
+/// @param nb Open Nibble connection.
+/// @param log Open stream to log file.
+void Alignment::trial_coin (Chomp &ch, std::ofstream &log) {
+    Rotation q, qe_optimal, qe_not_optimal;
+    std::random_device seed;
+    Star::list inertial;
+    Coin::Parameters par;
+    par.table_name = PYRAMID_TABLE;
+    
+    // First run is clean, without shifts. Following are shift trials.
+    Coin c(Benchmark(ch, seed, WORKING_FOV), par);
+    for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
+        for (int mb_i = 0; mb_i < MB_ITER; mb_i++) {
+            for (int ms_i = 0; ms_i < MS_ITER; ms_i++) {
+                for (int i = 0; i < ALIGNMENT_SAMPLES; i++) {
+                    present_stars(ch, seed, c.input, inertial, q, (MB_MIN + mb_i * MB_STEP));
+                    shift_body(seed, c.input, SS_MIN + SS_STEP * ss_i, (signed) c.input.size());
+                    
+                    // A correct star configuration is assumed to be found prior to determining the attitude.
+                    c.parameters.match_sigma = MS_MIN * pow(MS_MULT, ms_i);
+                    qe_optimal = c.trial_attitude_determine({c.input[0], c.input[1], c.input[2], c.input[3]},
+                                                            {inertial[0], inertial[1], inertial[2], inertial[3]});
+                    qe_not_optimal = qe_optimal;
+                    
+                    // Log our results.
+                    log << "Coin," << MS_MIN * pow(MS_MULT, ms_i) << "," << SS_MIN + SS_STEP * ss_i << ","
+                        << MB_MIN + mb_i * MB_STEP << "," << Rotation::angle_between(q, qe_optimal) << ","
+                        << Rotation::angle_between(q, qe_not_optimal) << ","
+                        << Rotation::rotation_difference(q, qe_optimal, inertial[4]).norm() << ","
+                        << Rotation::rotation_difference(q, qe_not_optimal, inertial[4]).norm() << '\n';
+                }
+            }
+        }
+    }
+}

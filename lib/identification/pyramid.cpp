@@ -260,7 +260,7 @@ std::vector<Pyramid::label_pair> Pyramid::trial_query (Chomp &ch, const Star &s_
     // Sort tuple_d into list of catalog ID pairs.
     r_bar.reserve(r.size() / 2);
     for (const Nibble::tuple_d &r_t : r) {
-        r_bar.emplace_back(Angle::label_pair {(int) r_t[0], (int) r_t[1]});
+        r_bar.emplace_back(Pyramid::label_pair {(int) r_t[0], (int) r_t[1]});
     }
     
     return r_bar;

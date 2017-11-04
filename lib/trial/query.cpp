@@ -6,6 +6,7 @@
 // Give us access to everything in identification.
 #define ENABLE_IDENTIFICATION_ACCESS
 
+#include <identification/coin.h>
 #include "trial/query.h"
 
 /// Generate N random stars that fall within the specified field-of-view. Rotate this result by some random quaternion.
@@ -169,6 +170,41 @@ void Query::trial_pyramid (Chomp &ch, std::ofstream &log) {
                 
                 // Log our results.
                 log << "Pyramid," << QS_MIN * pow(QS_MULT, qs_i) << "," << SS_MIN + SS_STEP * ss_i << "," << r.size()
+                    << "," << set_existence(r, b) << '\n';
+            }
+        }
+    }
+}
+
+/// Record the results of querying Nibble for nearby stars as the Coin method does (this is identical to the Planar
+/// Triangles method).
+///
+/// @param ch Open Nibble connection.
+/// @param log Open stream to log file.
+void Query::trial_coin (Chomp &ch, std::ofstream &log) {
+    std::random_device seed;
+    Benchmark beta(ch, seed, WORKING_FOV);
+    Coin::Parameters p;
+    p.table_name = COIN_TABLE;
+    
+    for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
+        for (int qs_i = 0; qs_i < QS_ITER; qs_i++) {
+            for (int i = 0; i < QUERY_SAMPLES; i++) {
+                beta.stars = generate_n_stars(ch, 3, seed);
+                beta.focus = beta.stars[0];
+    
+                // Vary our area and moment sigma.
+                p.sigma_a = QS_MIN * pow(QS_MULT, qs_i), p.sigma_i = QS_MIN * pow(QS_MULT, qs_i);
+                beta.shift_light(3, SS_MIN + SS_STEP * ss_i), beta.error_models.clear();
+    
+                // Log our label values, and get our result set.
+                Coin::label_trio b = {beta.stars[0].get_label(), beta.stars[1].get_label(), beta.stars[2].get_label()};
+                double a_i = Trio::planar_area(beta.stars[0], beta.stars[1], beta.stars[2]);
+                double i_i = Trio::planar_moment(beta.stars[0], beta.stars[1], beta.stars[2]);
+                std::vector<Coin::label_trio> r = Coin(beta, p).query_for_trios(a_i, i_i);
+    
+                // Log our results.
+                log << "Coin," << QS_MIN * pow(QS_MULT, qs_i) << "," << SS_MIN + SS_STEP * ss_i << "," << r.size()
                     << "," << set_existence(r, b) << '\n';
             }
         }
