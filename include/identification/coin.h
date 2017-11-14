@@ -47,7 +47,7 @@ class Coin {
         double sigma_i = std::numeric_limits<double>::epsilon() * 10000; ///< Moment query must be in 3 * sigma_i.
         unsigned int query_expected = 100; ///< Expected number of stars to be found with query. Better to overshoot.
         double match_sigma = 0.00001; ///< Resultant of inertial->body rotation must within 3 * match_sigma of *a* body.
-        unsigned int match_minimum = 3; ///< The minimum number of body-inertial matches.
+        unsigned int match_minimum = 5; ///< The minimum number of body-inertial matches.
         unsigned int z_max = 1000; ///< Maximum number of comparisons before returning an empty list.
         std::string table_name = "HOKU_20"; ///< Name of the Nibble database table.
     };

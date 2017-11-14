@@ -51,7 +51,7 @@ void Crown::trial_angle (Chomp &ch, std::ofstream &log) {
     // These are the optimal parameters for the Angle method.
     Angle::Parameters par;
     par.table_name = ANGLE_TABLE;
-    par.match_sigma = 10e-10;
+    par.match_sigma = SS_MIN + SS_STEP * SS_ITER;
     par.query_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5);
     par.z_max = 20000;
     
@@ -95,7 +95,8 @@ void Crown::trial_plane (Chomp &ch, std::ofstream &log) {
     // These are the optimal parameters for the Plane method.
     Plane::Parameters par;
     par.table_name = PLANE_TABLE;
-    par.match_sigma = 10e-10;
+    par.match_sigma = SS_MIN + SS_STEP * SS_ITER;
+    //    par.match_sigma = 10e-10;
     par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 5);
     par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 5);
     par.z_max = 20000;
@@ -140,7 +141,8 @@ void Crown::trial_sphere (Chomp &ch, std::ofstream &log) {
     // These are the optimal parameters for the Sphere method.
     Sphere::Parameters par;
     par.table_name = SPHERE_TABLE;
-    par.match_sigma = 10e-10;
+    par.match_sigma = SS_MIN + SS_STEP * SS_ITER;
+//    par.match_sigma = 10e-10;
     par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 7);
     par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 7);
     par.z_max = 20000;
@@ -185,7 +187,8 @@ void Crown::trial_pyramid (Chomp &ch, std::ofstream &log) {
     // These are the optimal parameters for the Pyramid method.
     Pyramid::Parameters par;
     par.table_name = PYRAMID_TABLE;
-    par.match_sigma = 10e-10;
+//    par.match_sigma = 10e-10;
+    par.match_sigma = SS_MIN + SS_STEP * SS_ITER;
     par.query_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5);
     par.z_max = 20000;
     
@@ -229,7 +232,8 @@ void Crown::trial_coin (Chomp &ch, std::ofstream &log) {
     // These are the optimal parameters for the Coin method.
     Coin::Parameters par;
     par.table_name = COIN_TABLE;
-    par.match_sigma = 10e-10;
+//    par.match_sigma = 10e-10;
+    par.match_sigma = SS_MIN + SS_STEP * SS_ITER;
     par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 7);
     par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 7);
     par.z_max = 20000;
@@ -252,8 +256,8 @@ void Crown::trial_coin (Chomp &ch, std::ofstream &log) {
                     result = Coin::identify(input, par, z);
                     
                     // Log our results. Note that our match and query sigma are fixed.
-                    log << "Coin," << par.match_sigma << "," << par.sigma_a << "," << SS_MIN + SS_STEP * ss_i
-                        << "," << MB_MIN + mb_i * MB_STEP << "," << p << "," << z << "," << input.stars.size() << ","
+                    log << "Coin," << par.match_sigma << "," << par.sigma_a << "," << SS_MIN + SS_STEP * ss_i << ","
+                        << MB_MIN + mb_i * MB_STEP << "," << p << "," << z << "," << input.stars.size() << ","
                         << result.size() << "," << Benchmark::compare_stars(input, result) / clean_size << '\n';
                 }
             }
