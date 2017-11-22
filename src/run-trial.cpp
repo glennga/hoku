@@ -43,23 +43,26 @@ void record_header (const int choice, std::ofstream &log) {
 
 /// Return the appropriate trial function given the identification and trial choices.
 ///
-/// @param identification_choice Choice corresponding to the identification method. Must exist in space [0, 1, 2, 3].
+/// @param identification_choice Choice corresponding to the identification method. Must exist in space [0, 1, 2, 3, 4].
 /// @param trial_choice Choice corresponding to the trial. Must exist in space [0, 1, 2].
 /// @return
 trial_function select_trial (const int identification_choice, const int trial_choice) {
-    switch (trial_choice * 4 + identification_choice) {
+    switch (trial_choice * 5 + identification_choice) {
         case 0: return &Query::trial_angle;
         case 1: return &Query::trial_sphere;
         case 2: return &Query::trial_plane;
         case 3: return &Query::trial_pyramid;
-        case 4: return &Alignment::trial_angle;
-        case 5: return &Alignment::trial_sphere;
-        case 6: return &Alignment::trial_plane;
-        case 7: return &Alignment::trial_pyramid;
-        case 8: return &Crown::trial_angle;
-        case 9: return &Crown::trial_sphere;
-        case 10: return &Crown::trial_plane;
-        case 11: return &Crown::trial_pyramid;
+        case 4: return &Query::trial_coin;
+        case 5: return &Alignment::trial_angle;
+        case 6: return &Alignment::trial_sphere;
+        case 7: return &Alignment::trial_plane;
+        case 8: return &Alignment::trial_pyramid;
+        case 9: return &Alignment::trial_coin;
+        case 10: return &Crown::trial_angle;
+        case 11: return &Crown::trial_sphere;
+        case 12: return &Crown::trial_plane;
+        case 13: return &Crown::trial_pyramid;
+        case 14: return &Crown::trial_coin;
         default: throw "Choices not in appropriate spaces or test does not exist.";
     }
 }

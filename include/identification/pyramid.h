@@ -40,7 +40,7 @@ class Pyramid {
         double query_sigma = std::numeric_limits<double>::epsilon() * 10000000; ///< Query must be in 3 * query_sigma.
         unsigned int query_limit = 100; ///< While performing k-vector query, limit results by this number.
         double match_sigma = 0.00001; ///< Resultant of inertial->body rotation must within 3 * match_sigma of *a* body.
-        unsigned int match_minimum = 4; ///< The minimum number of body-inertial matches.
+        unsigned int match_minimum = 5; ///< The minimum number of body-inertial matches.
         unsigned int z_max = 1000; ///< Maximum number of comparisons before returning an empty list.
         std::string table_name = "PYRA_20"; ///< Name of the pyramid table created with 'generate_pyramid_table'.
     };
@@ -54,24 +54,24 @@ class Pyramid {
     static int generate_sep_table (double, const std::string &);
 
 #if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
-    private:
+  private:
 #endif
-    /// Alias for a list of catalog IDs (STL vector of doubles).
-    using hr_list = std::vector<int>;
+    /// Alias for a list of catalog IDs (STL vector of integers).
+    using label_list = std::vector<int>;
     
-    /// Alias for a quad of catalog IDs (4-element STL array of doubles).
-    using hr_quad = std::array<int, 4>;
+    /// Alias for a quad of catalog IDs (4-element STL array of integers).
+    using label_quad = std::array<int, 4>;
     
     /// Alias for a list of catalog ID quads (STL vector of 3-element arrays of integers).
-    using label_list_trio = std::vector<hr_quad>;
+    using label_list_trio = std::vector<label_quad>;
     
-    /// Alias for a pair of catalog IDs (2-element STL array of doubles).
+    /// Alias for a pair of catalog IDs (2-element STL array of integers).
     using label_pair = std::array<int, 2>;
     
     /// Alias for a list of catalog ID pairs (STL vector of 2-element arrays of integers).
     using label_list_pair = std::vector<label_pair>;
     
-    /// Alias for a quad of index numbers for the input star list (4-element STL array of doubles).
+    /// Alias for a quad of index numbers for the input star list (4-element STL array of integers).
     using index_quad = std::array<int, 4>;
     
     /// The star set we are working with. The catalog IDs are all set to 0 here.
@@ -87,17 +87,18 @@ class Pyramid {
     double fov;
 
 #if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
-    private:
+  private:
 #endif
     Pyramid (const Benchmark &, const Parameters &);
     
     Star find_reference (const label_list_pair &, const label_list_pair &, const label_list_pair &);
     label_list_pair query_for_pairs (double);
     Star::list find_matches (const Star::list &, const Rotation &);
-    hr_quad find_candidate_quad (const index_quad &);
-    Star::list match_remaining (const Star::list &, const index_quad &, const hr_quad &);
+    label_quad find_candidate_quad (const index_quad &);
+    Star::list match_remaining (const Star::list &, const index_quad &, const label_quad &);
     
     Rotation trial_attitude_determine (const std::array<Star, 4> &, const std::array<Star, 4> &);
+    static std::vector<label_pair> trial_query (Chomp &, const Star &, const Star &, double);
 };
 
 #endif /* HOKU_PYRAMID_H */

@@ -33,7 +33,7 @@ void Alignment::present_stars (Chomp &ch, std::random_device &seed, Star::list &
             }
         }
     }
-    while(inertial.size() < 5);
+    while (inertial.size() < 5);
     
     // Shuffle our inertial, then rotate our inertial set to get our body set.
     std::shuffle(inertial.begin(), inertial.end(), mersenne_twister);
@@ -51,15 +51,10 @@ void Alignment::present_stars (Chomp &ch, std::random_device &seed, Star::list &
 /// @param shift_n Number of stars to shift. Shifts from the front of the list.
 void Alignment::shift_body (std::random_device &seed, Star::list &candidates, const double shift_sigma,
                             const int shift_n) {
-    std::mt19937_64 mersenne_twister(seed());
-    std::normal_distribution<double> dist(0, shift_sigma);
-    
     if (shift_sigma != 0) {
         // Starting from the front of our list, apply noise. **Assumes that list generated is bigger than shift_n.
         for (int i = 0; i < shift_n; i++) {
-            candidates[i] = Star(candidates[i][0] + dist(mersenne_twister), candidates[i][1] + dist(mersenne_twister),
-                                 candidates[i][2] + dist(mersenne_twister), candidates[i].get_label(),
-                                 candidates[i].get_magnitude(), true);
+            candidates[i] = Rotation::shake(candidates[i], shift_sigma, seed);
         }
     }
 }
@@ -77,14 +72,12 @@ void Alignment::trial_angle (Chomp &ch, std::ofstream &log) {
     
     // First run is clean, without shifts. Following are shift trials.
     Angle a(Benchmark(ch, seed, WORKING_FOV), Angle::Parameters());
-    for (int ss_i = -1; ss_i < SS_ITER; ss_i++) {
+    for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
         for (int mb_i = 0; mb_i < MB_ITER; mb_i++) {
             for (int ms_i = 0; ms_i < MS_ITER; ms_i++) {
                 for (int i = 0; i < ALIGNMENT_SAMPLES; i++) {
                     present_stars(ch, seed, a.input, inertial, q, (MB_MIN + mb_i * MB_STEP));
-                    if (ss_i != -1) {
-                        shift_body(seed, a.input, SS_MIN * pow(SS_MULT, ss_i), (signed) a.input.size());
-                    }
+                    shift_body(seed, a.input, SS_MIN + SS_STEP * ss_i, (signed) a.input.size());
                     
                     a.parameters.match_sigma = MS_MIN * pow(MS_MULT, ms_i);
                     qe_optimal = a.trial_attitude_determine(inertial, {inertial[0], inertial[1]},
@@ -93,10 +86,10 @@ void Alignment::trial_angle (Chomp &ch, std::ofstream &log) {
                                                                 {a.input[1], a.input[0]});
                     
                     // Log our results.
-                    log << "Angle," << MS_MIN * pow(MS_MULT, ms_i) << ","
-                        << ((ss_i == -1) ? 0 : SS_MIN * pow(SS_MULT, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << ","
-                        << Rotation::angle_between(q, qe_optimal) << "," << Rotation::angle_between(q, qe_not_optimal)
-                        << "," << Rotation::rotation_difference(q, qe_optimal, inertial[2]).norm() << ","
+                    log << "Angle," << MS_MIN * pow(MS_MULT, ms_i) << "," << SS_MIN + SS_STEP * ss_i << ","
+                        << MB_MIN + mb_i * MB_STEP << "," << Rotation::angle_between(q, qe_optimal) << ","
+                        << Rotation::angle_between(q, qe_not_optimal) << ","
+                        << Rotation::rotation_difference(q, qe_optimal, inertial[2]).norm() << ","
                         << Rotation::rotation_difference(q, qe_not_optimal, inertial[2]).norm() << '\n';
                 }
             }
@@ -118,14 +111,12 @@ void Alignment::trial_plane (Chomp &ch, std::ofstream &log) {
     
     // First run is clean, without shifts. Following are shift trials.
     Plane p(Benchmark(ch, seed, WORKING_FOV), par);
-    for (int ss_i = -1; ss_i < SS_ITER; ss_i++) {
+    for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
         for (int mb_i = 0; mb_i < MB_ITER; mb_i++) {
             for (int ms_i = 0; ms_i < MS_ITER; ms_i++) {
                 for (int i = 0; i < ALIGNMENT_SAMPLES; i++) {
                     present_stars(ch, seed, p.input, inertial, q, (MB_MIN + mb_i * MB_STEP));
-                    if (ss_i != -1) {
-                        shift_body(seed, p.input, SS_MIN * pow(SS_MULT, ss_i), (signed) p.input.size());
-                    }
+                    shift_body(seed, p.input, SS_MIN + SS_STEP * ss_i, (signed) p.input.size());
                     
                     p.parameters.match_sigma = MS_MIN * pow(MS_MULT, ms_i);
                     qe_optimal = p.trial_attitude_determine(inertial, {inertial[0], inertial[1], inertial[2]},
@@ -134,9 +125,8 @@ void Alignment::trial_plane (Chomp &ch, std::ofstream &log) {
                                                                 {p.input[0], p.input[1], p.input[2]});
                     
                     // Log our results.
-                    log << "Plane," << MS_MIN * pow(MS_MULT, ms_i) << ","
-                        << ((ss_i == -1) ? 0 : SS_MIN * pow(SS_MULT, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << ","
-                        << Rotation::angle_between(q, qe_optimal) << ","
+                    log << "Plane," << MS_MIN * pow(MS_MULT, ms_i) << "," << SS_MIN + SS_STEP * ss_i << ","
+                        << MB_MIN + mb_i * MB_STEP << "," << Rotation::angle_between(q, qe_optimal) << ","
                         << Rotation::angle_between(q, qe_not_optimal) << ","
                         << Rotation::rotation_difference(q, qe_optimal, inertial[3]).norm() << ","
                         << Rotation::rotation_difference(q, qe_not_optimal, inertial[3]).norm() << '\n';
@@ -159,14 +149,12 @@ void Alignment::trial_sphere (Chomp &ch, std::ofstream &log) {
     
     // First run is clean, without shifts. Following are shift trials.
     Sphere s(Benchmark(ch, seed, WORKING_FOV), par);
-    for (int ss_i = -1; ss_i < SS_ITER; ss_i++) {
+    for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
         for (int mb_i = 0; mb_i < MB_ITER; mb_i++) {
             for (int ms_i = 0; ms_i < MS_ITER; ms_i++) {
                 for (int i = 0; i < ALIGNMENT_SAMPLES; i++) {
                     present_stars(ch, seed, s.input, inertial, q, (MB_MIN + mb_i * MB_STEP));
-                    if (ss_i != -1) {
-                        shift_body(seed, s.input, SS_MIN * pow(SS_MULT, ss_i), (signed) s.input.size());
-                    }
+                    shift_body(seed, s.input, SS_MIN + SS_STEP * ss_i, (signed) s.input.size());
                     
                     s.parameters.match_sigma = MS_MIN * pow(MS_MULT, ms_i);
                     qe_optimal = s.trial_attitude_determine(inertial, {inertial[0], inertial[1], inertial[2]},
@@ -175,9 +163,8 @@ void Alignment::trial_sphere (Chomp &ch, std::ofstream &log) {
                                                                 {s.input[0], s.input[1], s.input[2]});
                     
                     // Log our results.
-                    log << "Sphere," << MS_MIN * pow(MS_MULT, ms_i) << ","
-                        << ((ss_i == -1) ? 0 : SS_MIN * pow(SS_MULT, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << ","
-                        << Rotation::angle_between(q, qe_optimal) << ","
+                    log << "Sphere," << MS_MIN * pow(MS_MULT, ms_i) << "," << SS_MIN + SS_STEP * ss_i << ","
+                        << MB_MIN + mb_i * MB_STEP << "," << Rotation::angle_between(q, qe_optimal) << ","
                         << Rotation::angle_between(q, qe_not_optimal) << ","
                         << Rotation::rotation_difference(q, qe_optimal, inertial[3]).norm() << ","
                         << Rotation::rotation_difference(q, qe_not_optimal, inertial[3]).norm() << '\n';
@@ -201,14 +188,12 @@ void Alignment::trial_pyramid (Chomp &ch, std::ofstream &log) {
     
     // First run is clean, without shifts. Following are shift trials.
     Pyramid p(Benchmark(ch, seed, WORKING_FOV), par);
-    for (int ss_i = -1; ss_i < SS_ITER; ss_i++) {
+    for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
         for (int mb_i = 0; mb_i < MB_ITER; mb_i++) {
             for (int ms_i = 0; ms_i < MS_ITER; ms_i++) {
                 for (int i = 0; i < ALIGNMENT_SAMPLES; i++) {
                     present_stars(ch, seed, p.input, inertial, q, (MB_MIN + mb_i * MB_STEP));
-                    if (ss_i != -1) {
-                        shift_body(seed, p.input, SS_MIN * pow(SS_MULT, ss_i), (signed) p.input.size());
-                    }
+                    shift_body(seed, p.input, SS_MIN + SS_STEP * ss_i, (signed) p.input.size());
                     
                     // A correct star configuration is assumed to be found prior to determining the attitude.
                     p.parameters.match_sigma = MS_MIN * pow(MS_MULT, ms_i);
@@ -217,10 +202,49 @@ void Alignment::trial_pyramid (Chomp &ch, std::ofstream &log) {
                     qe_not_optimal = qe_optimal;
                     
                     // Log our results.
-                    log << "Pyramid," << MS_MIN * pow(MS_MULT, ms_i) << ","
-                        << ((ss_i == -1) ? 0 : SS_MIN * pow(SS_MULT, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << ","
-                        << Rotation::angle_between(q, qe_optimal) << "," << Rotation::angle_between(q, qe_not_optimal)
-                        << "," << Rotation::rotation_difference(q, qe_optimal, inertial[4]).norm() << ","
+                    log << "Pyramid," << MS_MIN * pow(MS_MULT, ms_i) << "," << SS_MIN + SS_STEP * ss_i << ","
+                        << MB_MIN + mb_i * MB_STEP << "," << Rotation::angle_between(q, qe_optimal) << ","
+                        << Rotation::angle_between(q, qe_not_optimal) << ","
+                        << Rotation::rotation_difference(q, qe_optimal, inertial[4]).norm() << ","
+                        << Rotation::rotation_difference(q, qe_not_optimal, inertial[4]).norm() << '\n';
+                }
+            }
+        }
+    }
+}
+
+/// Record the results of Coin's attitude determination process. We note that a correct star configuration is
+/// assumed to be found prior to determining the attitude for this specific method.
+///
+/// @param nb Open Nibble connection.
+/// @param log Open stream to log file.
+void Alignment::trial_coin (Chomp &ch, std::ofstream &log) {
+    Rotation q, qe_optimal, qe_not_optimal;
+    std::random_device seed;
+    Star::list inertial;
+    Coin::Parameters par;
+    par.table_name = PYRAMID_TABLE;
+    
+    // First run is clean, without shifts. Following are shift trials.
+    Coin c(Benchmark(ch, seed, WORKING_FOV), par);
+    for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
+        for (int mb_i = 0; mb_i < MB_ITER; mb_i++) {
+            for (int ms_i = 0; ms_i < MS_ITER; ms_i++) {
+                for (int i = 0; i < ALIGNMENT_SAMPLES; i++) {
+                    present_stars(ch, seed, c.input, inertial, q, (MB_MIN + mb_i * MB_STEP));
+                    shift_body(seed, c.input, SS_MIN + SS_STEP * ss_i, (signed) c.input.size());
+                    
+                    // A correct star configuration is assumed to be found prior to determining the attitude.
+                    c.parameters.match_sigma = MS_MIN * pow(MS_MULT, ms_i);
+                    qe_optimal = c.trial_attitude_determine({c.input[0], c.input[1], c.input[2], c.input[3]},
+                                                            {inertial[0], inertial[1], inertial[2], inertial[3]});
+                    qe_not_optimal = qe_optimal;
+                    
+                    // Log our results.
+                    log << "Coin," << MS_MIN * pow(MS_MULT, ms_i) << "," << SS_MIN + SS_STEP * ss_i << ","
+                        << MB_MIN + mb_i * MB_STEP << "," << Rotation::angle_between(q, qe_optimal) << ","
+                        << Rotation::angle_between(q, qe_not_optimal) << ","
+                        << Rotation::rotation_difference(q, qe_optimal, inertial[4]).norm() << ","
                         << Rotation::rotation_difference(q, qe_not_optimal, inertial[4]).norm() << '\n';
                 }
             }

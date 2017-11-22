@@ -5,12 +5,12 @@ and Crown trials. We assume the Query, Alignment, and Crown trials use the follo
 Query:     IdentificationMethod,QuerySigma,ShiftSigma,CandidateSetSize,SExistence
 Alignment: IdentificationMethod,MatchSigma,ShiftSigma,MBar,OptimalConfigRotation,
            NonOptimalConfigRotation,OptimalComponentError,NonOptimalComponentError
-Crown:     IdentificationMethod,MatchSigma,QuerySigma,ShiftSigma,MBar,FalsePercentage,
+Crown:     IdentificationMethod,MatchSigma,QuerySigma,ShiftSigma,CameraSensitivity,FalseStars,
            ComparisonCount,BenchmarkSetSize,ResultSetSize,PercentageCorrectInCleanResultSet
 
 The first argument is the location of the log file. We can infer the type of trial from the length of the header.
 
-Usage: visualize-trial [angle-log] [sphere-log] [plane-log] [pyramid-log] 
+Usage: visualize-trial [angle-log] [sphere-log] [plane-log] [pyramid-log] [coin-log]
 """""
 
 import matplotlib.pyplot as plt
@@ -22,7 +22,7 @@ POINTS_PER_VARIATION = 100
 
 # Y axis limits for each plot, wrapped in an iterator.
 qu_yll = iter([[0, 1], [0, 100], [0, 1]])
-al_yll = iter([[0, 3.0e-015], [0, 1.0e-11]])
+al_yll = iter([[0, 5.0e-015], [0, 1.0e-11]])
 cr_yll = iter([[0, 1], [0, 100], [0, 1], [0, 100]])
 
 # X axis tick labels, wrapped in an iterator.
@@ -30,48 +30,47 @@ qu_xtl = iter([[r'$\epsilon \times 3^{0}$'] + [r'$\epsilon \times 3^{4}$'] + [r'
                [r'$\epsilon \times 3^{14}$'] + [r'$\epsilon \times 3^{19}$']] +
               [[r'$\epsilon \times 3^{15}$'] + [r'$\epsilon \times 3^{16}$'] + [r'$\epsilon \times 3^{17}$'] +
                [r'$\epsilon \times 3^{18}$'] + [r'$\epsilon \times 3^{19}$']] +
-              [[r'$\epsilon \times 3^{0}$'] + [r'$\epsilon \times 3^{3}$'] + [r'$\epsilon \times 3^{5}$'] +
-               [r'$\epsilon \times 3^{7}$'] + [r'$\epsilon \times 3^{9}$']])
+              [[r'$0^{\circ}$'] + [r'$0.001^{\circ}$'] + [r'$0.002^{\circ}$'] + [r'$0.003^{\circ}$'] +
+               [r'$0.004^{\circ}$']])
 al_xtl = iter([['5.5', '6.0', '6.5', '7.0', '7.5']] +
               [[r'$\epsilon \times 3^{0}$', r'$\epsilon \times 3^{3}$', r'$\epsilon \times 3^{5}$',
                 r'$\epsilon \times 3^{7}$', r'$\epsilon \times 3^{9}$']])
 cr_xtl = iter([['0', '0.1', '0.2', '0.3', '0.4']] + [['0', '0.1', '0.2', '0.3', '0.4']] +
-              [[r'$\epsilon \times 3^{0}$', r'$\epsilon \times 3^{3}$', r'$\epsilon \times 3^{5}$',
-                r'$\epsilon \times 3^{7}$', r'$\epsilon \times 3^{9}$']] +
-              [[r'$\epsilon \times 3^{0}$', r'$\epsilon \times 3^{3}$', r'$\epsilon \times 3^{5}$',
-                r'$\epsilon \times 3^{7}$', r'$\epsilon \times 3^{9}$']])
+              [[r'$0^{\circ}$'] + [r'$0.001^{\circ}$'] + [r'$0.002^{\circ}$'] + [r'$0.003^{\circ}$'] +
+               [r'$0.004^{\circ}$']] +
+              [[r'$0^{\circ}$'] + [r'$0.001^{\circ}$'] + [r'$0.002^{\circ}$'] + [r'$0.003^{\circ}$'] +
+               [r'$0.004^{\circ}$']])
 
 # Titles for each plot, wrapped in an iterator.
 qu_tl = iter([r'$Query \ \sigma$ vs. $P(Correct \ Star \ Set \ in \ Candidate \ Set), '
               r'Noise = \epsilon \times 3^{9}$',
               r'$Query \ \sigma$ vs. $|Candidate \ Set \ Outliers|, Noise = \epsilon \times 3^{9}$',
-              r'$Shift \ \sigma$ (Noise) vs. $P(Correct \ Star \ Set \ in \ Candidate \ Set)$'])
+              'Centroiding Error (i.e. Noise) vs. P(Correct Star Set in Candidates)'])
 al_tl = iter([r'$Camera \ Sensitivity \ (m)$ vs. $|| Catalog \ Vector - Estimated \ Vector ||$',
               r'$Shift \ \sigma$ (Noise) vs. $|| Catalog \ Vector - Estimated \ Vector ||$'])
 cr_tl = iter([r'$Percentage \ of \ False \ Stars$ vs. $|Correct \ Stars| / |Total \ Number \ of \ True \ Stars|$',
               r'$Percentage \ of \ False \ Stars$ vs. $Number \ of \ Star \ Sets \ Exhausted$',
-              r'$Shift \ \sigma$ (Noise) vs. $|Correct \ Stars| / |Total \ Number \ of \ True \ Stars|$',
-              r'$Shift \ \sigma$ (Noise) vs. $Number \ of \ Star \ Sets \ Exhausted$'])
+              'Centroiding Error vs. Percentage of Correct Identification',
+              'Centroiding Error vs. Number of Times we Pick Query Stars'])
 
 # Legends for each plot, wrapped in an iterator.
-qu_ll = iter([['Angle', 'Spherical Triangle', 'Planar Triangle', 'Pyramid'] for _ in range(3)])
-al_ll = iter([['Angle', 'Spherical Triangle', 'Planar Triangle', 'Pyramid'] for _ in range(2)])
-cr_ll = iter([['Angle', 'Spherical Triangle', 'Planar Triangle', 'Pyramid'] for _ in range(4)])
+qu_ll = iter([['Angle', 'Spherical Triangle', 'Planar Triangle', 'Pyramid', 'CoIn'] for _ in range(3)])
+al_ll = iter([['Angle', 'Spherical Triangle', 'Planar Triangle', 'Pyramid', 'CoIn'] for _ in range(2)])
+cr_ll = iter([['Angle', 'Spherical Triangle', 'Planar Triangle', 'Pyramid', 'CoIn'] for _ in range(4)])
 
 # X axis label (not ticks) for each plot, wrapped in an iterator.
-qu_xal = iter([r'$Query \ \sigma$', r'$Query \ \sigma$', r'$Shift \ \sigma$ (Noise)'])
+qu_xal = iter([r'$Query \ \sigma$', r'$Query \ \sigma$', 'Centroiding Error (Degrees)'])
 al_xal = iter([r'$Camera \ Sensitivity \ (m)$', r'$Shift \ \sigma$'])
 cr_xal = iter([r'$Percentage \ of \ False \ Stars$', r'$Percentage \ of \ False \ Stars$',
-               r'$Shift \ \sigma$ (Noise)', r'$Shift \ \sigma$ (Noise)'])
+               'Centroiding Error (Degrees)', 'Centroiding Error (Degrees)'])
 
 # Y axis label (not ticks) for each plot, wrapped in an iterator.
-qu_yal = iter([r'$P(Correct \ Star \ Set \ in \ Candidate \ Set)$', r'$|Candidate \ Set \ Outliers|$',
-               r'$P(Correct \ Star \ Set \ in \ Candidate \ Set)$'])
+qu_yal = iter([r'$P(Correct \ Star \ Set \ in \ Candidates)$', r'$|Candidate \ Set \ Outliers|$',
+               'P(Correct Star Set in Candidates)'])
 al_yal = iter([r'$|| Catalog \ Vector - Estimated \ Vector ||$' for _ in range(2)])
 cr_yal = iter([r'$|Correct \ Stars| / |Total \ Number \ of \ True \ Stars|$',
                r'$Number \ of \ Star \ Sets \ Exhausted$',
-               r'$|Correct \ Stars| / |Total \ Number \ of \ True \ Stars|$',
-               r'$Number \ of \ Star \ Sets \ Exhausted$'])
+               'Percentage of Correct Identification', 'Times we Pick Query Stars'])
 
 
 def bar_plot(log, k, x_index, y_index, restrict_d=None, restrict_y=lambda h: h, y_divisor=None):
@@ -106,8 +105,9 @@ def bar_plot(log, k, x_index, y_index, restrict_d=None, restrict_y=lambda h: h, 
                                     d[i * POINTS_PER_VARIATION + j][y_divisor]))
 
     # Plot the bar chart of our averages, as well as the corresponding error bars.
-    plt.bar(np.arange(len(x_count)) + 0.2 * k - 0.3, [np.average(restrict_y(y)) for y in y_list], 0.2,
+    plt.bar(np.arange(len(x_count)) + 0.15 * k - 0.3, [np.average(restrict_y(y)) for y in y_list], 0.15,
             yerr=[np.std(restrict_y(y)) for y in y_list])
+    # plt.bar(np.arange(len(x_count)) + 0.15 * k - 0.3, [np.average(restrict_y(y)) for y in y_list], 0.15)
 
 
 def plot_add_info(yll, xtl, tl, ll, xal, yal):
@@ -147,29 +147,29 @@ def query_trial_plot(log_sets):
     :param log_sets: List of list of lists representing the contents of the several log files
     :return: None.
     """
-    plt.rc('text', usetex=True), plt.rc('font', family='serif', size=12)
+    plt.rc('text', usetex=True), plt.rc('font', family='serif', size=30)
     sigma_set_1 = ['2.22045e-16', '1.79856e-14', '4.3705e-12', '1.06203e-09', '2.58074e-07']
     sigma_set_2 = ['3.1861e-09', '9.55829e-09', '2.86749e-08', '8.60246e-08', '2.58074e-07']
-    sigma_set_3 = ['2.22045e-16', '5.9952e-15', '5.39568e-14', '4.85612e-13', '4.3705e-12']
 
     # Plot #1: Query Sigma vs. P(SExistence) with noise.
     plt.figure()
     plt.subplot(121)
-    [bar_plot(log, k, 1, 4, lambda g: g[2] == '4.3705e-12' and g[1] in sigma_set_1) for k, log in enumerate(log_sets)]
+    [bar_plot(log, k, 1, 4, lambda g: g[2] == '0.002' and g[1] in sigma_set_1) for k, log in enumerate(log_sets)]
     plot_add_info(qu_yll, qu_xtl, qu_tl, qu_ll, qu_xal, qu_yal)
 
     # Plot #2: Query Sigma vs. CandidateSetSize- with noise.
     plt.subplot(122)
-    [bar_plot(log, k, 1, 3, lambda g: g[2] == '4.3705e-12' and g[1] in sigma_set_2,
+    [bar_plot(log, k, 1, 3, lambda g: g[2] == '0.002' and g[1] in sigma_set_2,
               lambda h: [a for a in h if a > 1]) for k, log in enumerate(log_sets)]
     plot_add_info(qu_yll, qu_xtl, qu_tl, qu_ll, qu_xal, qu_yal)
 
-    # Plot #3: ShiftSigma vs. P(SExistence). We restrict each data set to it's specific optimal query sigma.
+    # Plot #3: ShiftSigma vs. P(SExistence). We restrict each data set to the biggest query sigma.
     plt.figure()
-    bar_plot(log_sets[0], 0, 2, 4, lambda g: g[1] == '5.39568e-14' and g[2] in sigma_set_3)
-    bar_plot(log_sets[1], 1, 2, 4, lambda g: g[1] == '1.61871e-13' and g[2] in sigma_set_3)
-    bar_plot(log_sets[2], 2, 2, 4, lambda g: g[1] == '5.9952e-15' and g[2] in sigma_set_3)
-    bar_plot(log_sets[3], 3, 2, 4, lambda g: g[1] == '5.39568e-14' and g[2] in sigma_set_3)
+    bar_plot(log_sets[0], 0, 2, 4, lambda g: g[1] == '2.58074e-07')
+    bar_plot(log_sets[1], 1, 2, 4, lambda g: g[1] == '2.58074e-07')
+    bar_plot(log_sets[2], 2, 2, 4, lambda g: g[1] == '2.58074e-07')
+    bar_plot(log_sets[3], 3, 2, 4, lambda g: g[1] == '2.58074e-07')
+    bar_plot(log_sets[4], 4, 2, 4, lambda g: g[1] == '2.58074e-07')
     plot_add_info(qu_yll, qu_xtl, qu_tl, qu_ll, qu_xal, qu_yal)
 
     plt.show()
@@ -185,8 +185,8 @@ def alignment_trial_plot(log_sets):
     :return: None.
     """
     plt.rc('text', usetex=True), plt.rc('font', family='serif', size=12)
-    sigma_set = ['2.22045e-16', '5.9952e-15', '5.39568e-14', '4.85612e-13', '4.3705e-12']
-    middle_sigma = '4.3705e-12'
+    sigma_set = ['0', '0.001', '0.002', '0.003', '0.004']
+    middle_sigma = sigma_set[2]
 
     # Plot #1: Camera Sensitivity vs. ||Original Star - Estimated Star||. We are not testing for noise in this case.
     plt.figure()
@@ -217,28 +217,27 @@ def crown_trial_plot(log_sets):
     :param log_sets: List of list of lists representing the contents of the several log files
     :return: None.
     """
-    plt.rc('text', usetex=True), plt.rc('font', family='serif', size=12)
-    sigma_set = ['2.22045e-16', '5.9952e-15', '5.39568e-14', '4.85612e-13', '4.3705e-12']
-    middle_sigma = '4.3705e-12'
+    plt.rc('text', usetex=True), plt.rc('font', family='serif', size=30)
+    sigma_set = ['0', '0.001', '0.002', '0.003', '0.004']
 
     # Plot #1: False Percentage vs. |Correct Stars| / |Total Number of True Stars|
     plt.figure(), plt.subplot(121)
-    [bar_plot(log, k, 5, 9, lambda g: g[3] == middle_sigma and g[4] == '6') for k, log in enumerate(log_sets)]
+    [bar_plot(log, k, 5, 9, lambda g: g[3] == sigma_set[3] and g[4] == '6.5') for k, log in enumerate(log_sets)]
     plot_add_info(cr_yll, cr_xtl, cr_tl, cr_ll, cr_xal, cr_yal)
 
     # Plot #2: False Percentage vs. Number of Star Sets Exhausted
     plt.subplot(122)
-    [bar_plot(log, k, 5, 6, lambda g: g[3] == middle_sigma and g[4] == '6') for k, log in enumerate(log_sets)]
+    [bar_plot(log, k, 5, 6, lambda g: g[3] == sigma_set[3] and g[4] == '6.5') for k, log in enumerate(log_sets)]
     plot_add_info(cr_yll, cr_xtl, cr_tl, cr_ll, cr_xal, cr_yal)
 
     # Plot 3: Shift Sigma vs. |Correct Stars| / |Total Number of True Stars|
-    plt.figure(), plt.subplot(121)
+    plt.figure()
     [bar_plot(log, k, 3, 9, lambda g: g[5] == '0' and g[4] == '6' and g[3] in sigma_set)
      for k, log in enumerate(log_sets)]
     plot_add_info(cr_yll, cr_xtl, cr_tl, cr_ll, cr_xal, cr_yal)
 
     # Plot 4: Shift Sigma vs. Number of Star Sets Exhausted
-    plt.subplot(122)
+    plt.figure()
     [bar_plot(log, k, 3, 6, lambda g: g[5] == '0' and g[4] == '6' and g[3] in sigma_set)
      for k, log in enumerate(log_sets)]
     plot_add_info(cr_yll, cr_xtl, cr_tl, cr_ll, cr_xal, cr_yal)
@@ -246,21 +245,24 @@ def crown_trial_plot(log_sets):
     plt.show()
 
 
-def visualize_trial(log_1, log_2, log_3, log_4):
+def visualize_trial(angle_log, sphere_log, plane_log, pyramid_log, coin_log):
     """ Source function, used to display a plot of the given exactly four log files.
 
-    :param log_1 Location of the first log file to use.
-    :param log_2 Location of the second log file to use.
-    :param log_3 Location of the third log file to use.
-    :param log_4 Location of the fourth log file to use.
+    :param angle_log Location of the angle log file to use.
+    :param sphere_log Location of the sphere log file to use.
+    :param plane_log Location of the plane log file to use.
+    :param pyramid_log Location of the pyramid log file to use.
+    :param coin_log Location of the coin log file to use.
     :return: None.
     """
-    with open(log_1, 'r') as f_1, open(log_2, 'r') as f_2, open(log_3, 'r') as f_3, open(log_4, 'r') as f_4:
-        csv_1, csv_2, csv_3, csv_4 = list(map(lambda f: csv.reader(f, delimiter=','), [f_1, f_2, f_3, f_4]))
+    with open(angle_log, 'r') as f_1, open(sphere_log, 'r') as f_2, open(plane_log, 'r') as f_3, \
+            open(pyramid_log, 'r') as f_4, open(coin_log, 'r') as f_5:
+        csv_1, csv_2, csv_3, csv_4, csv_5 = list(map(lambda f: csv.reader(f, delimiter=','), [f_1, f_2, f_3, f_4, f_5]))
 
         # Parse our header, and the rest of the logs.
-        attributes = list(map(lambda c: next(c), [csv_1, csv_2, csv_3, csv_4]))
-        logs = list(map(lambda c: np.array(np.array([tuple for tuple in c])), [csv_1, csv_2, csv_3, csv_4]))
+        attributes = list(map(lambda c: next(c), [csv_1, csv_2, csv_3, csv_4, csv_5]))
+        logs = list(map(lambda c: np.array(np.array([tuple for tuple in c])), [csv_1, csv_2, csv_3, csv_4, csv_5]))
+        # logs = list(map(lambda c: np.array(np.array([tuple for tuple in c])), [csv_1, csv_2, csv_3]))
 
         # Based on the header, determine what plots to produce.
         if all(map(lambda a: len(a) == 5, attributes)):
@@ -274,7 +276,7 @@ def visualize_trial(log_1, log_2, log_3, log_4):
 
 
 # Perform the trials!
-if len(sys.argv) is not 5:
-    print('Usage: visualize-trial [angle-log] [sphere-log] [plane-log] [pyramid-log] ')
+if len(sys.argv) is not 6:
+    print('Usage: visualize-trial [angle-log] [sphere-log] [plane-log] [pyramid-log] [coin-log]')
 else:
-    visualize_trial(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
+    visualize_trial(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])

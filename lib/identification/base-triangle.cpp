@@ -40,30 +40,17 @@ std::vector<BaseTriangle::label_trio> BaseTriangle::query_for_trio (const double
     return area_moment_match;
 }
 
-/// Generate a unique permutation [A,B,C] given the current index trio. A, B, and C exist in the space [0, 1, ...,
-/// |input|], and the condition A != B, B != C, A != C must hold.
+/// Return the same index trio, with a new A value such that A exists in space [0, 1, ..., |input|] and A != B, A != C.
 ///
-/// @param i_t Current index trio, generates new permutation based off this.
-/// @return A new, unique 3-element permutation of input indices.
+/// @param i_t Current index trio, generates another permutation based off this.
+/// @return Same index trio, with a new A index.
 BaseTriangle::index_trio BaseTriangle::permutate_index (const index_trio &i_t) {
     index_trio t = i_t;
     
-    // Increment in order of index 2, 1, and 0.
     do {
-        if (t[2] < input.size() - 2) {
-            t = {t[0], t[1], t[2] + 1};
-        }
-        else if (t[1] < input.size() - 1) {
-            t = {t[0], t[1] + 1, 0};
-        }
-        else if (t[0] < input.size()) {
-            t = {t[0] + 1, 0, 0};
-        }
-        else {
-            return t;
-        }
+        t[0]++;
     }
-    while (t[0] == t[1] || t[0] == t[2] || t[1] == t[2]);
+    while (t[0] == t[1] || t[0] == t[2]);
     
     return t;
 }
@@ -80,13 +67,15 @@ Trio::stars BaseTriangle::pivot (const index_trio &i_b, const std::vector<Trio::
         matches.clear();
     }
     
-    // Remove all trios from matches that don't exist in the past set.
+    // Remove all trios from matches that have at least two stars in the past set.
     if (!past_set.empty() && !(std::equal(past_set[0].begin() + 1, past_set[0].end(), past_set[0].begin()))) {
         for (unsigned int i = 0; i < matches.size(); i++) {
             bool match_found = false;
+            
             for (const Trio::stars &past : past_set) {
                 // We do not need to check all permutations. Break early and advance to next star.
-                if (past[0] == matches[i][0] && past[1] == matches[i][1] && past[2] == matches[i][2]) {
+                if ((past[1] == matches[i][0] || past[1] == matches[i][1] || past[1] == matches[i][2])
+                    && (past[2] == matches[i][0] || past[2] == matches[i][1] || past[2] == matches[i][2])) {
                     match_found = true;
                     break;
                 }
@@ -224,6 +213,11 @@ Star::list BaseTriangle::identify_stars (unsigned int &z) {
                 Star::list candidates;
                 z++;
                 
+                // Practical limit: exit early if we have iterated through too many comparisons without match.
+                if (z > parameters.z_max) {
+                    return {};
+                }
+                
                 // Find matches of current body trio to catalog. Pivot if necessary.
                 candidate_trio = pivot({(double) i, (double) j, (double) k});
                 if (candidate_trio[0] == Star::zero() && candidate_trio[1] == Star::zero()
@@ -236,12 +230,7 @@ Star::list BaseTriangle::identify_stars (unsigned int &z) {
                 
                 // Check all possible configurations. Return the most likely.
                 matches = check_assumptions(candidates, candidate_trio, {(double) i, (double) j, (double) k});
-
-                // Practical limit: exit early if we have iterated through too many comparisons without match.
-                if (z > parameters.z_max) {
-                    return {};
-                }
-
+                
                 // Definition of image match: |match| > match minimum. Break early.
                 if (matches.size() > parameters.match_minimum) {
                     return matches;

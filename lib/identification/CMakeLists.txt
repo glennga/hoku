@@ -56,8 +56,8 @@ install(FILES ${INCLUDES} DESTINATION include)
 ##################################################################
 # Build Library Hoku
 ##################################################################
-FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/hoku.cpp)
-FILE(GLOB INCLUDES ${CMAKE_SOURCE_DIR}/include/identification/hoku.h)
-add_library(Hoku STATIC ${SOURCES} ${INCLUDES})
-install(TARGETS Hoku DESTINATION lib)
+FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/coin.cpp)
+FILE(GLOB INCLUDES ${CMAKE_SOURCE_DIR}/include/identification/coin.h)
+add_library(Coin STATIC ${SOURCES} ${INCLUDES})
+install(TARGETS Coin DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include)

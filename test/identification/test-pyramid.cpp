@@ -32,7 +32,7 @@ int TestPyramid::test_candidate_quad_find () {
     
     Benchmark input(ch, seed, 20);
     Pyramid a(input, Pyramid::Parameters());
-    Pyramid::hr_quad b = a.find_candidate_quad({0, 1, 2, 3});
+    Pyramid::label_quad b = a.find_candidate_quad({0, 1, 2, 3});
     
     assert_equal(input.stars[0].get_label(), b[0], "Star0MatchesInputHR");
     assert_equal(input.stars[1].get_label(), b[1], "Star1MatchesInputHR");

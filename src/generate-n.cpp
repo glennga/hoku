@@ -12,7 +12,7 @@
 /// - 3 -> Produce table for SphericalTriangle method.
 /// - 4 -> Produce table for PlanarTriangle method.
 /// - 5 -> Produce table for Pyramid method.
-/// - 6 -> Produce table for Hoku method.
+/// - 6 -> Produce table for Coin method.
 ///
 /// - x k -> Produce K-Vector table for the given method (valid above 1).
 /// - x d -> Delete all tables for the given method.
@@ -28,7 +28,7 @@
 #include "identification/spherical-triangle.h"
 #include "identification/planar-triangle.h"
 #include "identification/pyramid.h"
-#include "identification/hoku.h"
+#include "identification/coin.h"
 
 /// Defining characteristics of the Nibble tables generated.
 namespace DCNT {
@@ -37,11 +37,11 @@ namespace DCNT {
     
     static const char *BRIGHT_HIP_NAME = "HIP_BRIGHT"; ///< Name of star catalog table w/ magnitude < 6.0 restriction.
     static const char *HIP_NAME = "HIP"; ///< Name of star catalog table w/o magnitude restrictions.
-    static const char *ANGLE_NAME = "SEP_20"; ///< Name of table generated for Angle method.
+    static const char *ANGLE_NAME = "ANG_20"; ///< Name of table generated for Angle method.
     static const char *SPHERE_NAME = "SPHERE_20"; ///< Name of table generated for SphericalTriangle method.
     static const char *PLANE_NAME = "PLANE_20"; ///< Name of table generated for PlanarTriangle method.
     static const char *PYRAMID_NAME = "PYRA_20"; ///< Name of table generated for Pyramid method.
-    static const char *HOKU_NAME = "HOKU_20"; ///< Name of table generated for Hoku method.
+    static const char *COIN_NAME = "HOKU_20"; ///< Name of table generated for Hoku method.
     
     static const char *KVEC_ANGLE_FOCUS = "theta"; ///< Focus attribute for K-Vector Angle table.
     static const char *KVEC_SPHERE_FOCUS = "a"; ///< Focus attribute for K-Vector SphericalTriangle table.
@@ -62,7 +62,7 @@ void remove_table (const int choice) {
             case 3: return DCNT::SPHERE_NAME;
             case 4: return DCNT::PLANE_NAME;
             case 5: return DCNT::PYRAMID_NAME;
-            case 6: return DCNT::HOKU_NAME;
+            case 6: return DCNT::COIN_NAME;
             default: throw "Table choice is not within space {0, 1, 2, 3, 4, 5, 6}.";
         }
     };
@@ -86,7 +86,7 @@ void generate_table (const int choice) {
         case 3: return (void) Sphere::generate_triangle_table(DCNT::FOV, DCNT::TD_H, DCNT::SPHERE_NAME);
         case 4: return (void) Plane::generate_triangle_table(DCNT::FOV, DCNT::PLANE_NAME);
         case 5: return (void) Pyramid::generate_sep_table(DCNT::FOV, DCNT::PYRAMID_NAME);
-        case 6: return (void) Hoku::generate_asterism_table(DCNT::FOV, DCNT::HOKU_NAME);
+        case 6: return (void) Coin::generate_triangle_table(DCNT::FOV, DCNT::COIN_NAME);
         default: throw "Table choice is not within space {0, 1, 2, 3, 4, 5, 6}.";
     }
 }
@@ -112,7 +112,7 @@ void generate_kvec_table (const int choice) {
         case 3: return create_and_polish(DCNT::SPHERE_NAME, DCNT::KVEC_SPHERE_FOCUS);
         case 4: return create_and_polish(DCNT::PLANE_NAME, DCNT::KVEC_PLANE_FOCUS);
         case 5: return create_and_polish(DCNT::PYRAMID_NAME, DCNT::KVEC_PYRAMID_FOCUS);
-        case 6: return create_and_polish(DCNT::HOKU_NAME, DCNT::KVEC_HOKU_FOCUS);
+        case 6: return create_and_polish(DCNT::COIN_NAME, DCNT::KVEC_HOKU_FOCUS);
         default: throw "Table choice is not within space {0, 1, 2, 3, 4, 5, 6}.";
     }
 }
