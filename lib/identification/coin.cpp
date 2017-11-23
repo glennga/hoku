@@ -247,3 +247,68 @@ Star::list Coin::identify (const Benchmark &input, const Parameters &parameters)
     unsigned int z;
     return Coin::identify(input, parameters, z);
 }
+
+/// Finds the single, most likely result for the first four stars in our current benchmark.
+///
+/// @param input The set of benchmark data to work with.
+/// @param parameters Adjustments to the identification process.
+/// @return [-1][-1][-1][-1] if there are no matches. Otherwise, the most likely result for the first four stars.
+Coin::label_quad Coin::trial_reduction (const Benchmark &input, const Parameters &parameters) {
+    Coin p(input, parameters);
+    
+    label_quad r_quad = p.find_candidate_quad({0, 1, 2, 3});
+    if (std::find(r_quad.begin(), r_quad.end(), 0) != r_quad.end()) {
+        return {-1, -1, -1, -1};
+    }
+    else {
+        return r_quad;
+    }
+}
+
+/// Determine the most likely rotation of the given benchmark to the star catalog.
+///
+/// @param input The set of benchmark data to work with.
+/// @param parameters Adjustments to the identification process.
+/// @param z Reference to variable that will hold the input comparison count.
+/// @return Identity quaternion if there exists no match. Otherwise, the resulting rotation after our attitude
+/// determination step.
+Rotation Coin::trial_semi_crown (const Benchmark &input, const Parameters &parameters, unsigned int &z) {
+    Coin p(input, parameters);
+    z = 0;
+    
+    // This procedure will not work |P_input| < 4. Exit early with empty list.
+    if (p.input.size() < 4) {
+        return Rotation::identity();
+    }
+    
+    // Otherwise, there exists |P_input| choose 4 possibilities. Looping specified in paper. E chosen after K.
+    for (unsigned int dj = 1; dj < p.input.size() - 1; dj++) {
+        for (unsigned int dk = 1; dk < p.input.size() - dj - 1; dk++) {
+            for (unsigned int i = 0; i < p.input.size() - dj - dk - 1; i++) {
+                int j = i + dj, k = j + dk, e = k + 1;
+                Star::list candidates, matches;
+                z++;
+                
+                // Given four stars in our catalog, find their catalog IDs in the catalog.
+                label_quad r_quad = p.find_candidate_quad({(signed) i, j, k, e});
+                if (std::find(r_quad.begin(), r_quad.end(), 0) != r_quad.end()) {
+                    break;
+                }
+                
+                // Find candidate stars around the reference star.
+                candidates = p.ch.nearby_hip_stars(p.ch.query_hip(r_quad[3]), p.fov,
+                                                   3 * ((unsigned int) p.input.size()));
+                
+                // Practical limit: exit early if we have iterated through too many comparisons without match.
+                if (z > p.parameters.z_max) {
+                    return Rotation::identity();
+                }
+                
+                // Find the rotation given the two pairs.
+                return Rotation::rotation_across_frames({p.input[i], p.input[e]},
+                                                        {p.ch.query_hip(r_quad[0]), p.ch.query_hip(r_quad[3])});
+            }
+        }
+    }
+    return Rotation::identity();
+}

@@ -12,7 +12,9 @@
 ///
 /// - b 0 -> Run the query trials with the B method.
 /// - b 1 -> Run the alignment trials with the B method.
-/// - b 2 -> Run the crown trials with the B method.
+/// - b 2 -> Run the reduction trials with the B method.
+/// - b 3 -> Run the semi-crown trials with the B method.
+/// - b 4 -> Run the crown trials with the B method.
 /// @endcode{.cpp}
 /// @example
 /// @code{.cpp}
@@ -23,29 +25,32 @@
 #include <chrono>
 #include "trial/query.h"
 #include "trial/alignment.h"
+#include "trial/reduction.h"
+#include "trial/semi-crown.h"
 #include "trial/crown.h"
 
 /// Alias for trial function pointers.
-typedef void (*trial_function) (Chomp &, std::ofstream &);
+typedef void (*trial_function) (Chomp &ch, std::ofstream &);
 
 /// Record the header given the trial choice.
 ///
-/// @param choice Choice corresponding to the trial. Must exist in space [0, 1, 2].
+/// @param choice Choice corresponding to the trial. Must exist in space [0, 1, 2, 3, 4].
 /// @param log Open file-stream to log. This is the same stream that will be used to record results.
 void record_header (const int choice, std::ofstream &log) {
     switch (choice) {
         case 0: return (void) (log << Query::ATTRIBUTE);
         case 1: return (void) (log << Alignment::ATTRIBUTE);
-        case 2: return (void) (log << Crown::ATTRIBUTE);
-        default: throw "Trial choice is not within space {0, 1, 2}.";
+        case 2: return (void) (log << Reduction::ATTRIBUTE);
+        case 3: return (void) (log << SemiCrown::ATTRIBUTE);
+        default: throw "Trial choice is not within space {0, 1, 2, 3, 4}.";
     }
 }
 
 /// Return the appropriate trial function given the identification and trial choices.
 ///
 /// @param identification_choice Choice corresponding to the identification method. Must exist in space [0, 1, 2, 3, 4].
-/// @param trial_choice Choice corresponding to the trial. Must exist in space [0, 1, 2].
-/// @return
+/// @param trial_choice Choice corresponding to the trial. Must exist in space [0, 1, 2, 3, 4].
+/// @return The specific trial function to run.
 trial_function select_trial (const int identification_choice, const int trial_choice) {
     switch (trial_choice * 5 + identification_choice) {
         case 0: return &Query::trial_angle;
@@ -58,11 +63,21 @@ trial_function select_trial (const int identification_choice, const int trial_ch
         case 7: return &Alignment::trial_plane;
         case 8: return &Alignment::trial_pyramid;
         case 9: return &Alignment::trial_coin;
-        case 10: return &Crown::trial_angle;
-        case 11: return &Crown::trial_sphere;
-        case 12: return &Crown::trial_plane;
-        case 13: return &Crown::trial_pyramid;
-        case 14: return &Crown::trial_coin;
+        case 10: return &Reduction::trial_angle;
+        case 11: return &Reduction::trial_sphere;
+        case 12: return &Reduction::trial_plane;
+        case 13: return &Reduction::trial_pyramid;
+        case 14: return &Reduction::trial_coin;
+        case 15: return &SemiCrown::trial_angle;
+        case 16: return &SemiCrown::trial_sphere;
+        case 17: return &SemiCrown::trial_plane;
+        case 18: return &SemiCrown::trial_pyramid;
+        case 19: return &SemiCrown::trial_coin;
+        case 20: return &Crown::trial_angle;
+        case 21: return &Crown::trial_sphere;
+        case 22: return &Crown::trial_plane;
+        case 23: return &Crown::trial_pyramid;
+        case 24: return &Crown::trial_coin;
         default: throw "Choices not in appropriate spaces or test does not exist.";
     }
 }
@@ -71,8 +86,8 @@ trial_function select_trial (const int identification_choice, const int trial_ch
 ///
 /// @param ch Open Nibble connection using Chomp methods.
 /// @param log Open file-stream to log to.
-/// @param id_choice Identification choice, in space [0, 1, 2, 3].
-/// @param trial_choice Trial choice, in space [0, 1, 2].
+/// @param id_choice Identification choice, in space [0, 1, 2, 3, 4].
+/// @param trial_choice Trial choice, in space [0, 1, 2, 3, 4].
 /// @return 0 when finished.
 int perform_trial (Chomp &ch, std::ofstream &log, const int id_choice, const int trial_choice) {
     // Set the attributes of the log.
@@ -95,7 +110,9 @@ int perform_trial (Chomp &ch, std::ofstream &log, const int id_choice, const int
 ///
 /// - b 0 -> Run the query trials with the B method.
 /// - b 1 -> Run the alignment trials with the B method.
-/// - b 2 -> Run the crown trials with the B method.
+/// - b 2 -> Run the reduction trials with the B method.
+/// - b 3 -> Run the semi-crown trials with the B method.
+/// - b 4 -> Run the crown trials with the B method.
 /// @endcode{.cpp}
 ///
 /// @param argc Argument count. This must be equal to 3.
@@ -121,8 +138,8 @@ int main (int argc, char *argv[]) {
             std::string a = std::string(arg);
             return std::find(input_space.begin(), input_space.end(), a) != input_space.end();
         };
-        if (!is_valid_arg(argv[1], {"0", "1", "2", "3", "4"}) || !is_valid_arg(argv[2], {"0", "1", "2", "3"})) {
-            std::cout << "Usage: RunTrial [0 - 4] [0 - 3]" << std::endl;
+        if (!is_valid_arg(argv[1], {"0", "1", "2", "3", "4"}) || !is_valid_arg(argv[2], {"0", "1", "2", "3", "4"})) {
+            std::cout << "Usage: RunTrial [0 - 4] [0 - 4]" << std::endl;
             return -1;
         }
     }

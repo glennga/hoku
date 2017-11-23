@@ -190,12 +190,12 @@ Star::list Angle::identify (const Benchmark &input, const Parameters &parameters
             
             // Check both possible configurations. Return the most likely of the two.
             matches = a.check_assumptions(candidates, candidate_pair, {a.input[i], a.input[j]});
-
+            
             // Practical limit: exit early if we have iterated through too many comparisons without match.
             if (z > a.parameters.z_max) {
                 return {};
             }
-
+            
             // Definition of image match: |match| > match minimum OR |match| == |input|.
             if (matches.size() > a.parameters.match_minimum || matches.size() == a.input.size()) {
                 return matches;
@@ -227,6 +227,7 @@ Star::list Angle::identify (const Benchmark &input, const Parameters &parameters
 /// @param s_1 Star one to query with.
 /// @param s_2 Star two to query with.
 /// @param query_sigma Theta must be within 3 * query_sigma to appear in results.
+/// @return Vector of likely matches found by the angle method.
 std::vector<Angle::label_pair> Angle::trial_query (Chomp &ch, const Star &s_1, const Star &s_2,
                                                    const double query_sigma) {
     double epsilon = 3.0 * query_sigma, theta = Star::angle_between(s_1, s_2);
@@ -245,6 +246,20 @@ std::vector<Angle::label_pair> Angle::trial_query (Chomp &ch, const Star &s_1, c
     }
     
     return r_bar;
+}
+
+/// Reproduction of the Angle method's querying to candidate reduction step. This returns the first match found by our
+/// trial_query method.
+///
+/// **Need to select the proper table before calling this method.**
+///
+/// @param ch Open Nibble connection with Chomp.
+/// @param s_1 Star one to query with.
+/// @param s_2 Star two to query with.
+/// @param query_sigma Theta must be within 3 * query_sigma to appear in results.
+/// @return [0, 0] if no match is found. Otherwise, a single match for the given stars s_1 and s_2.
+Angle::label_pair Angle::trial_reduction (Chomp &ch, const Star &s_1, const Star &s_2, double query_sigma) {
+    return trial_query(ch, s_1, s_2, query_sigma)[0];
 }
 
 /// Reproduction of the Angle method's check_assumption. Unlike the method used in identification, this does not
@@ -268,4 +283,39 @@ Rotation Angle::trial_attitude_determine (const Star::list &candidates, const St
     
     // Return the rotation associated with the largest set of matches.
     return matches[0].size() > matches[1].size() ? q[0] : q[1];
+}
+
+/// Reproduction of the Angle method's process from beginning to the orientation determination. Unlike our main
+/// identify method, this does not perform our match step.
+///
+/// @param input The set of benchmark data to work with.
+/// @param parameters Adjustments to the identification process.
+/// @param z Reference to variable that will hold the input comparison count.
+/// @return Identity quaternion if no rotation can be found. Otherwise, the resulting rotation after our attitude
+/// determination step.
+Rotation Angle::trial_semi_crown (const Benchmark &input, const Parameters &parameters, unsigned int &z) {
+    Angle a(input, parameters);
+    z = 0;
+    
+    // There exists |A_input| choose 2 possibilities.
+    for (int i = 0; i < (signed) a.input.size() - 1; i++) {
+        for (int j = i + 1; j < (signed) a.input.size(); j++) {
+            Star::list candidates;
+            z++;
+            
+            // Narrow down current pair to two stars in catalog. The order is currently unknown.
+            Star::pair candidate_pair = a.find_candidate_pair(a.input[i], a.input[j]);
+            if (Star::is_equal(candidate_pair[0], Star()) && Star::is_equal(candidate_pair[1], Star())) {
+                break;
+            }
+            
+            // Find candidate stars around the candidate pair.
+            candidates = a.ch.nearby_hip_stars(candidate_pair[0], a.fov, 3 * ((unsigned int) a.input.size()));
+    
+            // Find the most likely rotation given the two pairs.
+            return a.trial_attitude_determine(candidates, candidate_pair, {a.input[i], a.input[j]});
+        }
+    }
+    
+    return Rotation::identity();
 }

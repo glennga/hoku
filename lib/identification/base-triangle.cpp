@@ -6,7 +6,7 @@
 
 #include "identification/base-triangle.h"
 
-/// Find the best matching pair using the appropriate triangle table and by comparing areas and polar moments. Assumes
+/// Find the matching pairs using the appropriate triangle table and by comparing areas and polar moments. Assumes
 /// noise is normally distributed, searches using epsilon (3 * sigma_a) and K-Vector query.
 ///
 /// **REQUIRES create_k_vector TO HAVE BEEN RUN PRIOR TO THIS METHOD**
@@ -192,6 +192,61 @@ Rotation BaseTriangle::trial_attitude_determine (const Star::list &candidates, c
     return q[std::max_element(matches.begin(), matches.end(), [] (const Star::list &lhs, const Star::list &rhs) {
         return lhs.size() < rhs.size();
     }) - matches.begin()];
+}
+
+/// Find the **best** matching pair to the first three stars in our benchmark using the appropriate triangle table.
+/// Assumes noise is normally distributed, searches using epsilon (3 * sigma_a) and K-Vector query.
+///
+/// @return [-1][-1][-1] if no candidates found. Otherwise, a single elements that best meets the criteria.
+BaseTriangle::label_trio BaseTriangle::trial_reduction () {
+    Trio::stars candidate_trio = pivot({0, 1, 2});
+    
+    if (candidate_trio[0] == Star::zero() && candidate_trio[1] == Star::zero() && candidate_trio[2] == Star::zero()) {
+        return {-1, -1, -1};
+    }
+    else {
+        return {candidate_trio[0].get_label(), candidate_trio[1].get_label(), candidate_trio[2].get_label()};
+    }
+}
+
+/// Find the rotation from the images in our current benchmark to our inertial frame (i.e. the catalog).
+///
+/// @param z Reference to variable that will hold the input comparison count.
+/// @return The identity rotation if no rotation can be found. Otherwise, the rotation from our current benchmark to
+/// the catalog.
+Rotation BaseTriangle::trial_semi_crown (unsigned int &z) {
+    z = 0;
+    
+    // There exists |input| choose 3 possibilities.
+    for (int i = 0; i < (signed) input.size() - 2; i++) {
+        for (int j = i + 1; j < (signed) input.size() - 1; j++) {
+            for (int k = j + 1; k < (signed) input.size(); k++) {
+                std::vector<Trio::stars> candidate_trios;
+                Trio::stars candidate_trio;
+                Star::list candidates;
+                z++;
+                
+                // Practical limit: exit early if we have iterated through too many comparisons without match.
+                if (z > parameters.z_max) {
+                    return {};
+                }
+                
+                // Find matches of current body trio to catalog. Pivot if necessary.
+                candidate_trio = pivot({(double) i, (double) j, (double) k});
+                if (candidate_trio[0] == Star::zero() && candidate_trio[1] == Star::zero()
+                    && candidate_trio[2] == Star::zero()) {
+                    break;
+                }
+                
+                // Find candidate stars around the candidate trio.
+                candidates = ch.nearby_hip_stars(candidate_trio[0], fov, (unsigned int) (3.0 * input.size()));
+                
+                // Find the most likely rotation given the two pairs.
+                return trial_attitude_determine(candidates, candidate_trio, {input[i], input[j], input[k]});
+            }
+        }
+    }
+    return Rotation::identity();
 }
 
 /// Match the stars found in the current benchmark to those in the Nibble database. The child class should wrap this

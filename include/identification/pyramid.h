@@ -99,6 +99,8 @@ class Pyramid {
     
     Rotation trial_attitude_determine (const std::array<Star, 4> &, const std::array<Star, 4> &);
     static std::vector<label_pair> trial_query (Chomp &, const Star &, const Star &, double);
+    static label_quad trial_reduction (const Benchmark &, const Parameters &);
+    static Rotation trial_semi_crown(const Benchmark &, const Parameters &, unsigned int &);
 };
 
 #endif /* HOKU_PYRAMID_H */

@@ -44,7 +44,7 @@ class BaseTriangle {
     Chomp ch;
     
     /// Alias for a list of catalog IDs (STL vector of doubles).
-    using hr_list = std::vector<double>;
+    using label_list = std::vector<double>;
     
     /// Alias for a trio of catalog IDs (3-element STL array of doubles).
     using label_trio = std::array<double, 3>;
@@ -68,6 +68,8 @@ class BaseTriangle {
     Star::list check_assumptions (const Star::list &, const Trio::stars &, const index_trio &);
     
     Rotation trial_attitude_determine (const Star::list &, const Trio::stars &, const Trio::stars &);
+    label_trio trial_reduction ();
+    Rotation trial_semi_crown(unsigned int &z);
 };
 
 #endif /* HOKU_BASE_TRIANGLE_H */

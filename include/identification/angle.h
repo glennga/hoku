@@ -84,8 +84,10 @@ class Angle {
     Star::pair find_candidate_pair (const Star &, const Star &);
     Star::list check_assumptions (const Star::list &, const Star::pair &, const Star::pair &);
     
-    static std::vector<label_pair> trial_query (Chomp &, const Star &, const Star &, double);
+    static std::vector<label_pair> trial_query (Chomp &ch, const Star &, const Star &, double);
     Rotation trial_attitude_determine (const Star::list &, const Star::pair &, const Star::pair &);
+    static label_pair trial_reduction (Chomp &ch, const Star &, const Star &, double);
+    static Rotation trial_semi_crown(const Benchmark &, const Parameters &, unsigned int &);
 };
 
 #endif /* HOKU_ANGLE_H */
