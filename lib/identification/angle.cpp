@@ -259,7 +259,8 @@ std::vector<Angle::label_pair> Angle::trial_query (Chomp &ch, const Star &s_1, c
 /// @param query_sigma Theta must be within 3 * query_sigma to appear in results.
 /// @return [0, 0] if no match is found. Otherwise, a single match for the given stars s_1 and s_2.
 Angle::label_pair Angle::trial_reduction (Chomp &ch, const Star &s_1, const Star &s_2, double query_sigma) {
-    return trial_query(ch, s_1, s_2, query_sigma)[0];
+    std::vector<label_pair> p = trial_query(ch, s_1, s_2, query_sigma);
+    return p.empty() ? (label_pair) {0, 0} : p[0];
 }
 
 /// Reproduction of the Angle method's check_assumption. Unlike the method used in identification, this does not

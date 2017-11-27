@@ -22,7 +22,8 @@
 /// -- Pg. 14 "To simulate the centroiding errors, Gaussian noise of 50μrad (3 sigma) was added..."
 namespace Reduction {
     /// Attribute header that corresponds to the log file for all reduction trials.
-    const char *const ATTRIBUTE = "IdentificationMethod,QuerySigma,ShiftSigma,CameraSensitivity,ResultMatchesInput\n";
+    const char *const ATTRIBUTE = "IdentificationMethod,MatchSigma,QuerySigma,ShiftSigma,CameraSensitivity,"
+            "ResultMatchesInput\n";
     
     const double WORKING_FOV = 20; ///< Field of view that all our test stars must be within.
     const int CROWN_SAMPLES = 100; ///< Number of samples to retrieve for each individual trial.
