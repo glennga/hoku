@@ -36,4 +36,4 @@ target_link_libraries(TestMercator BaseTest Mercator Star)
 # Link and Create Executable TestTrio
 ##################################################################
 add_executable(TestTrio test-trio.cpp)
-target_link_libraries(TestTrio BaseTest Star Trio)
+target_link_libraries(TestTrio BaseTest Rotation Star Trio)

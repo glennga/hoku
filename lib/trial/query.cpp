@@ -55,22 +55,20 @@ void Query::trial_angle (Chomp &ch, std::ofstream &log) {
     Benchmark beta(ch, seed, WORKING_FOV);
     
     for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
-        for (int qs_i = 0; qs_i < QS_ITER; qs_i++) {
-            for (int i = 0; i < QUERY_SAMPLES; i++) {
-                beta.stars = generate_n_stars(ch, 2, seed);
-                beta.focus = beta.stars[0];
-                beta.shift_light(2, SS_MIN + SS_STEP * ss_i), beta.error_models.clear();
-                
-                // Log our label values, and get our result set.
-                ch.select_table(ANGLE_TABLE);
-                Angle::label_pair b = {beta.stars[0].get_label(), beta.stars[1].get_label()};
-                std::vector<Angle::label_pair> r = Angle::trial_query(ch, beta.stars[0], beta.stars[1],
-                                                                      QS_MIN + QS_STEP * qs_i);
-                
-                // Log our results.
-                log << "Angle," << QS_MIN + QS_STEP * qs_i << "," << SS_MIN + SS_STEP * ss_i << "," << r.size()
-                    << "," << set_existence(r, b) << '\n';
-            }
+        for (int i = 0; i < QUERY_SAMPLES; i++) {
+            beta.stars = generate_n_stars(ch, 2, seed);
+            beta.focus = beta.stars[0];
+            beta.shift_light(2, SS_MIN + SS_STEP * ss_i), beta.error_models.clear();
+            
+            // Log our label values, and get our result set.
+            ch.select_table(ANGLE_TABLE);
+            Angle::label_pair b = {beta.stars[0].get_label(), beta.stars[1].get_label()};
+            std::vector<Angle::label_pair> r = Angle::trial_query(ch, beta.stars[0], beta.stars[1],
+                                                                  QS_MIN + SS_MIN + SS_STEP * ss_i);
+            
+            // Log our results.
+            log << "Angle," << QS_MIN + SS_MIN + SS_STEP * ss_i << "," << SS_MIN + SS_STEP * ss_i << "," << r.size()
+                << "," << set_existence(r, b) << '\n';
         }
     }
 }
@@ -86,26 +84,25 @@ void Query::trial_plane (Chomp &ch, std::ofstream &log) {
     p.table_name = PLANE_TABLE;
     
     for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
-        for (int qs_i = 0; qs_i < QS_ITER; qs_i++) {
-            for (int i = 0; i < QUERY_SAMPLES; i++) {
-                beta.stars = generate_n_stars(ch, 3, seed);
-                beta.focus = beta.stars[0];
-                
-                // Vary our area and moment sigma.
-                p.sigma_a = QS_MIN + QS_STEP * qs_i, p.sigma_i = QS_MIN + QS_STEP * qs_i;
-                beta.shift_light(3, SS_MIN + SS_STEP * ss_i), beta.error_models.clear();
-                
-                // Log our label values, and get our result set.
-                Plane::label_trio b = {(double) beta.stars[0].get_label(), (double) beta.stars[1].get_label(),
-                    (double) beta.stars[2].get_label()};
-                double a_i = Trio::planar_area(beta.stars[0], beta.stars[1], beta.stars[2]);
-                double i_i = Trio::planar_moment(beta.stars[0], beta.stars[1], beta.stars[2]);
-                std::vector<Plane::label_trio> r = Plane(beta, p).query_for_trio(a_i, i_i);
-                
-                // Log our results.
-                log << "Plane," << QS_MIN + QS_STEP * qs_i << "," << SS_MIN + SS_STEP * ss_i << "," << r.size()
-                    << "," << set_existence(r, b) << '\n';
-            }
+        for (int i = 0; i < QUERY_SAMPLES; i++) {
+            beta.stars = generate_n_stars(ch, 3, seed);
+            beta.focus = beta.stars[0];
+            
+            // Vary our area and moment sigma.
+            p.sigma_a = QS_MIN + SS_MIN + SS_STEP * ss_i * QS_TRIANGLE_K;
+            p.sigma_i = QS_MIN + SS_MIN + SS_STEP * ss_i * QS_TRIANGLE_K;
+            beta.shift_light(3, SS_MIN + SS_STEP * ss_i), beta.error_models.clear();
+            
+            // Log our label values, and get our result set.
+            Plane::label_trio b = {(double) beta.stars[0].get_label(), (double) beta.stars[1].get_label(),
+                (double) beta.stars[2].get_label()};
+            double a_i = Trio::planar_area(beta.stars[0], beta.stars[1], beta.stars[2]);
+            double i_i = Trio::planar_moment(beta.stars[0], beta.stars[1], beta.stars[2]);
+            std::vector<Plane::label_trio> r = Plane(beta, p).query_for_trio(a_i, i_i);
+            
+            // Log our results.
+            log << "Plane," << QS_MIN + SS_MIN + SS_STEP * ss_i * QS_TRIANGLE_K << "," << SS_MIN + SS_STEP * ss_i << ","
+                << r.size() << "," << set_existence(r, b) << '\n';
         }
     }
 }
@@ -121,27 +118,26 @@ void Query::trial_sphere (Chomp &ch, std::ofstream &log) {
     p.table_name = SPHERE_TABLE;
     
     for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
-        for (int qs_i = 0; qs_i < QS_ITER; qs_i++) {
-            for (int i = 0; i < QUERY_SAMPLES; i++) {
-                beta.stars = generate_n_stars(ch, 3, seed);
-                beta.focus = beta.stars[0];
-                
-                // Vary our area and moment sigma.
-                p.sigma_a = QS_MIN + QS_STEP * qs_i, p.sigma_i = QS_MIN + QS_STEP * qs_i;
-                beta.shift_light(3, SS_MIN + SS_STEP * ss_i), beta.error_models.clear();
-                
-                // Log our label values, and get our result set.
-                Sphere::label_trio b = {(double) beta.stars[0].get_label(), (double) beta.stars[1].get_label(),
-                    (double) beta.stars[2].get_label()};
-                double a_i = Trio::spherical_area(beta.stars[0], beta.stars[1], beta.stars[2]);
-                double i_i = Trio::spherical_moment(beta.stars[0], beta.stars[1], beta.stars[2],
-                                                    Sphere::Parameters().moment_td_h);
-                std::vector<Sphere::label_trio> r = Sphere(beta, p).query_for_trio(a_i, i_i);
-                
-                // Log our results.
-                log << "Sphere," << QS_MIN + QS_STEP * qs_i << "," << SS_MIN + SS_STEP * ss_i << "," << r.size()
-                    << "," << set_existence(r, b) << '\n';
-            }
+        for (int i = 0; i < QUERY_SAMPLES; i++) {
+            beta.stars = generate_n_stars(ch, 3, seed);
+            beta.focus = beta.stars[0];
+            
+            // Vary our area and moment sigma.
+            p.sigma_a = QS_MIN + SS_MIN + SS_STEP * ss_i * QS_TRIANGLE_K;
+            p.sigma_i = QS_MIN + SS_MIN + SS_STEP * ss_i * QS_TRIANGLE_K;
+            beta.shift_light(3, SS_MIN + SS_STEP * ss_i), beta.error_models.clear();
+            
+            // Log our label values, and get our result set.
+            Sphere::label_trio b = {(double) beta.stars[0].get_label(), (double) beta.stars[1].get_label(),
+                (double) beta.stars[2].get_label()};
+            double a_i = Trio::spherical_area(beta.stars[0], beta.stars[1], beta.stars[2]);
+            double i_i = Trio::spherical_moment(beta.stars[0], beta.stars[1], beta.stars[2],
+                                                Sphere::Parameters().moment_td_h);
+            std::vector<Sphere::label_trio> r = Sphere(beta, p).query_for_trio(a_i, i_i);
+            
+            // Log our results.
+            log << "Sphere," << QS_MIN + SS_MIN + SS_STEP * ss_i * QS_TRIANGLE_K << "," << SS_MIN + SS_STEP * ss_i
+                << "," << r.size() << "," << set_existence(r, b) << '\n';
         }
     }
 }
@@ -156,22 +152,20 @@ void Query::trial_pyramid (Chomp &ch, std::ofstream &log) {
     Benchmark beta(ch, seed, WORKING_FOV);
     
     for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
-        for (int qs_i = 0; qs_i < QS_ITER; qs_i++) {
-            for (int i = 0; i < QUERY_SAMPLES; i++) {
-                beta.stars = generate_n_stars(ch, 2, seed);
-                beta.focus = beta.stars[0];
-                beta.shift_light(2, SS_MIN + SS_STEP * ss_i), beta.error_models.clear();
-                
-                // Log our label values, and get our result set.
-                ch.select_table(PYRAMID_TABLE);
-                Pyramid::label_pair b = {beta.stars[0].get_label(), beta.stars[1].get_label()};
-                std::vector<Pyramid::label_pair> r = Pyramid::trial_query(ch, beta.stars[0], beta.stars[1],
-                                                                          QS_MIN + QS_STEP * qs_i);
-                
-                // Log our results.
-                log << "Pyramid," << QS_MIN + QS_STEP * qs_i << "," << SS_MIN + SS_STEP * ss_i << "," << r.size()
-                    << "," << set_existence(r, b) << '\n';
-            }
+        for (int i = 0; i < QUERY_SAMPLES; i++) {
+            beta.stars = generate_n_stars(ch, 2, seed);
+            beta.focus = beta.stars[0];
+            beta.shift_light(2, SS_MIN + SS_STEP * ss_i), beta.error_models.clear();
+            
+            // Log our label values, and get our result set.
+            ch.select_table(PYRAMID_TABLE);
+            Pyramid::label_pair b = {beta.stars[0].get_label(), beta.stars[1].get_label()};
+            std::vector<Pyramid::label_pair> r = Pyramid::trial_query(ch, beta.stars[0], beta.stars[1],
+                                                                      QS_MIN + SS_MIN + SS_STEP * ss_i);
+            
+            // Log our results.
+            log << "Pyramid," << QS_MIN + SS_MIN + SS_STEP * ss_i << "," << SS_MIN + SS_STEP * ss_i << "," << r.size()
+                << "," << set_existence(r, b) << '\n';
         }
     }
 }
@@ -188,25 +182,24 @@ void Query::trial_coin (Chomp &ch, std::ofstream &log) {
     p.table_name = COIN_TABLE;
     
     for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
-        for (int qs_i = 0; qs_i < QS_ITER; qs_i++) {
-            for (int i = 0; i < QUERY_SAMPLES; i++) {
-                beta.stars = generate_n_stars(ch, 3, seed);
-                beta.focus = beta.stars[0];
-    
-                // Vary our area and moment sigma.
-                p.sigma_a = QS_MIN + QS_STEP * qs_i, p.sigma_i = QS_MIN + QS_STEP * qs_i;
-                beta.shift_light(3, SS_MIN + SS_STEP * ss_i), beta.error_models.clear();
-    
-                // Log our label values, and get our result set.
-                Coin::label_trio b = {beta.stars[0].get_label(), beta.stars[1].get_label(), beta.stars[2].get_label()};
-                double a_i = Trio::planar_area(beta.stars[0], beta.stars[1], beta.stars[2]);
-                double i_i = Trio::planar_moment(beta.stars[0], beta.stars[1], beta.stars[2]);
-                std::vector<Coin::label_trio> r = Coin(beta, p).query_for_trios(a_i, i_i);
-    
-                // Log our results.
-                log << "Coin," << QS_MIN + QS_STEP * qs_i << "," << SS_MIN + SS_STEP * ss_i << "," << r.size()
-                    << "," << set_existence(r, b) << '\n';
-            }
+        for (int i = 0; i < QUERY_SAMPLES; i++) {
+            beta.stars = generate_n_stars(ch, 3, seed);
+            beta.focus = beta.stars[0];
+            
+            // Vary our area and moment sigma.
+            p.sigma_a = QS_MIN + SS_MIN + SS_STEP * ss_i * QS_TRIANGLE_K;
+            p.sigma_i = QS_MIN + SS_MIN + SS_STEP * ss_i * QS_TRIANGLE_K;
+            beta.shift_light(3, SS_MIN + SS_STEP * ss_i), beta.error_models.clear();
+            
+            // Log our label values, and get our result set.
+            Coin::label_trio b = {beta.stars[0].get_label(), beta.stars[1].get_label(), beta.stars[2].get_label()};
+            double a_i = Trio::planar_area(beta.stars[0], beta.stars[1], beta.stars[2]);
+            double i_i = Trio::planar_moment(beta.stars[0], beta.stars[1], beta.stars[2]);
+            std::vector<Coin::label_trio> r = Coin(beta, p).query_for_trios(a_i, i_i);
+            
+            // Log our results.
+            log << "Coin," << QS_MIN + SS_MIN + SS_STEP * ss_i * QS_TRIANGLE_K << "," << SS_MIN + SS_STEP * ss_i << ","
+                << r.size() << "," << set_existence(r, b) << '\n';
         }
     }
 }

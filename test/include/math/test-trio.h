@@ -19,6 +19,8 @@ class TestTrio : public BaseTest {
     int test_spherical_area_computation ();
     int test_planar_centroid_computation ();
     int test_spherical_moment_computation ();
+    int view_planar_triangle_shifts ();
+    int view_spherical_triangle_shifts ();
   
   public:
     int enumerate_tests (int);

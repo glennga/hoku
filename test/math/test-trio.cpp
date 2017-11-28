@@ -3,6 +3,7 @@
 ///
 /// Source file for the TestTrio class, as well as the main function to run the tests.
 
+#include <math/rotation.h>
 #include "math/test-trio.h"
 
 /// Check that the side lengths generated for a planar triangle are correct. Answers checked with WolframAlpha.
@@ -126,6 +127,56 @@ int TestTrio::test_spherical_moment_computation () {
     return 0;
 }
 
+/// This is not a test. We just want to see the effect of shifting stars on the planar area and moment.
+///
+/// @return 0 when finished.
+int TestTrio::view_planar_triangle_shifts () {
+    std::random_device seed;
+    
+    for (int i = 0; i < 100; i++) {
+        std::array<Star, 3> t_original = {Star(1 - 0.001, 0, 0), Star(0, 1 - 0.001, 0), Star(0, 0, 1 - 0.001)};
+        std::array<Star, 3> t_shaken = {Rotation::shake(t_original[0], 0.001, seed),
+            Rotation::shake(t_original[1], 0.001, seed), Rotation::shake(t_original[2], 0.001, seed)};
+        
+        double a_original = Trio::planar_area(t_original[0], t_original[1], t_original[2]);
+        double i_original = Trio::planar_moment(t_original[0], t_original[1], t_original[2]);
+        
+        double a_shaken = Trio::planar_area(t_shaken[0], t_shaken[1], t_shaken[2]);
+        double i_shaken = Trio::planar_moment(t_shaken[0], t_shaken[1], t_shaken[2]);
+        
+        assert_true(true, "PlanarTriangleShiftArea" + std::to_string(i), std::to_string(fabs(a_original - a_shaken)));
+        assert_true(true, "PlanarTriangleShiftMoment" + std::to_string(i), std::to_string(fabs(i_original - i_shaken)));
+    }
+    
+    return 0;
+}
+
+/// This is not a test. We just want to see the effects of shifting stars on the spherical area and moment.
+///
+/// @return 0 when finished.
+int TestTrio::view_spherical_triangle_shifts () {
+    std::random_device seed;
+    
+    for (int i = 0; i < 100; i++) {
+        std::array<Star, 3> t_original = {Star(1 - 0.001, 0, 0), Star(0, 1 - 0.001, 0), Star(0, 0, 1 - 0.001)};
+        std::array<Star, 3> t_shaken = {Rotation::shake(t_original[0], 0.001, seed),
+            Rotation::shake(t_original[1], 0.001, seed), Rotation::shake(t_original[2], 0.001, seed)};
+        
+        double a_original = Trio::spherical_area(t_original[0], t_original[1], t_original[2]);
+        double i_original = Trio::spherical_moment(t_original[0], t_original[1], t_original[2]);
+        
+        double a_shaken = Trio::spherical_area(t_shaken[0], t_shaken[1], t_shaken[2]);
+        double i_shaken = Trio::spherical_moment(t_shaken[0], t_shaken[1], t_shaken[2]);
+        
+        assert_true(true, "SphericalTriangleShiftArea" + std::to_string(i),
+                    std::to_string(fabs(a_original - a_shaken)));
+        assert_true(true, "SphericalTriangleShiftMoment" + std::to_string(i),
+                    std::to_string(fabs(i_original - i_shaken)));
+    }
+    
+    return 0;
+}
+
 /// Enumerate all tests in TestTrio.
 ///
 /// @param test_case Number of the test case to run.
@@ -139,7 +190,9 @@ int TestTrio::enumerate_tests (int test_case) {
         case 4: return test_planar_moment_computation();
         case 5: return test_spherical_area_computation();
         case 6: return test_planar_centroid_computation();
-        case 8: return test_spherical_moment_computation();
+        case 7: return test_spherical_moment_computation();
+        case 8: return view_planar_triangle_shifts();
+        case 9: return view_spherical_triangle_shifts();
         default: return -1;
     }
 }
