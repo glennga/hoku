@@ -55,7 +55,6 @@ void SemiCrown::trial_angle (Chomp &ch, std::ofstream &log) {
     // These are the optimal parameters for the Angle method.
     Angle::Parameters par;
     par.table_name = ANGLE_TABLE;
-    par.query_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5);
     par.z_max = 20000;
     
     // First run is clean, without shifts. Following are the shift trials.
@@ -71,7 +70,8 @@ void SemiCrown::trial_angle (Chomp &ch, std::ofstream &log) {
                     double p = ES_MIN + ES_STEP * es_i, clean_size = input.stars.size();
                     input.add_extra_light((int) ((p / (1 - p)) * clean_size));
                     par.match_sigma = SS_MIN + SS_STEP * ss_i;
-    
+                    par.query_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5) + par.match_sigma;
+
                     // Find the resulting rotation.
                     z = 0;
                     q = Angle::trial_semi_crown(input, par, z);
@@ -100,8 +100,6 @@ void SemiCrown::trial_plane (Chomp &ch, std::ofstream &log) {
     // These are the optimal parameters for the Plane method.
     Plane::Parameters par;
     par.table_name = PLANE_TABLE;
-    par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 5);
-    par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 5);
     par.z_max = 20000;
     
     // First run is clean, without shifts. Following are the shift trials.
@@ -117,7 +115,9 @@ void SemiCrown::trial_plane (Chomp &ch, std::ofstream &log) {
                     double p = ES_MIN + ES_STEP * es_i, clean_size = input.stars.size();
                     input.add_extra_light((int) ((p / (1 - p)) * clean_size));
                     par.match_sigma = SS_MIN + SS_STEP * ss_i;
-                    
+                    par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 5) + par.match_sigma;
+                    par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 5) + par.match_sigma;
+
                     // Find our result set. Run the identification.
                     z = 0;
                     q = Plane(input, par).trial_semi_crown(z);
@@ -146,8 +146,6 @@ void SemiCrown::trial_sphere (Chomp &ch, std::ofstream &log) {
     // These are the optimal parameters for the Sphere method.
     Sphere::Parameters par;
     par.table_name = SPHERE_TABLE;
-    par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 7);
-    par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 7);
     par.z_max = 20000;
     
     // First run is clean, without shifts. Following are the shift trials.
@@ -163,7 +161,9 @@ void SemiCrown::trial_sphere (Chomp &ch, std::ofstream &log) {
                     double p = ES_MIN + ES_STEP * es_i, clean_size = input.stars.size();
                     input.add_extra_light((int) ((p / (1 - p)) * clean_size));
                     par.match_sigma = SS_MIN + SS_STEP * ss_i;
-                    
+                    par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 7) + par.match_sigma;
+                    par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 7) + par.match_sigma;
+
                     // Find our result set. Run the identification.
                     z = 0;
                     q = Sphere(input, par).trial_semi_crown(z);
@@ -192,7 +192,6 @@ void SemiCrown::trial_pyramid (Chomp &ch, std::ofstream &log) {
     // These are the optimal parameters for the Pyramid method.
     Pyramid::Parameters par;
     par.table_name = PYRAMID_TABLE;
-    par.query_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5);
     par.z_max = 20000;
     
     // First run is clean, without shifts. Following are the shift trials.
@@ -208,7 +207,8 @@ void SemiCrown::trial_pyramid (Chomp &ch, std::ofstream &log) {
                     double p = ES_MIN + ES_STEP * es_i, clean_size = input.stars.size();
                     input.add_extra_light((int) ((p / (1 - p)) * clean_size));
                     par.match_sigma = SS_MIN + SS_STEP * ss_i;
-    
+                    par.query_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5) + par.match_sigma;
+
                     // Find our result set. Run the identification.
                     z = 0;
                     q = Pyramid::trial_semi_crown(input, par, z);
@@ -237,8 +237,6 @@ void SemiCrown::trial_coin (Chomp &ch, std::ofstream &log) {
     // These are the optimal parameters for the Coin method.
     Coin::Parameters par;
     par.table_name = COIN_TABLE;
-    par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 7);
-    par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 7);
     par.z_max = 20000;
     
     // First run is clean, without shifts. Following are the shift trials.
@@ -254,7 +252,9 @@ void SemiCrown::trial_coin (Chomp &ch, std::ofstream &log) {
                     double p = ES_MIN + ES_STEP * es_i, clean_size = input.stars.size();
                     input.add_extra_light((int) ((p / (1 - p)) * clean_size));
                     par.match_sigma = SS_MIN + SS_STEP * ss_i;
-    
+                    par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 5) + par.match_sigma;
+                    par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 5) + par.match_sigma;
+
                     // Find our result set. Run the identification.
                     z = 0;
                     q = Coin::trial_semi_crown(input, par, z);

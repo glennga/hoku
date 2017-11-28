@@ -22,9 +22,10 @@ namespace Query {
     
     const double WORKING_FOV = 20; ///< Field of view that all our test stars must be within.
     const int QUERY_SAMPLES = 1000; ///< Number of samples to retrieve for each individual trial.
-    
+
     const double QS_MIN = std::numeric_limits<double>::epsilon(); ///< Minimum query sigma (machine epsilon).
-    const double QS_MULT = 3; ///< Query sigma multiplier for each variation.
+    const double QS_STEP = 0.001; ///< Query sigma step for each variation.
+//    const double QS_MULT = 3; ///< Query sigma multiplier for each variation.
     const int QS_ITER = 20; ///< Number of query sigma variations.
     
     const double SS_MIN = 0; ///< Minimum shift sigma.

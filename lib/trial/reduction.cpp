@@ -51,8 +51,6 @@ void Reduction::trial_angle (Chomp &ch, std::ofstream &log) {
     
     // These are the optimal parameters for the Angle method.
     Angle::Parameters par;
-    ch.select_table(ANGLE_TABLE);
-    par.query_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5);
     par.z_max = 20000;
     
     // First run is clean, without shifts. Following are the shift trials.
@@ -65,6 +63,7 @@ void Reduction::trial_angle (Chomp &ch, std::ofstream &log) {
                 // Append our error.
                 input.shift_light((int) input.stars.size(), SS_MIN + SS_STEP * ss_i);
                 par.match_sigma = SS_MIN + SS_STEP * ss_i;
+                par.query_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5) + par.match_sigma;
                 
                 // Find the resulting pair.
                 Angle::label_pair p = Angle::trial_reduction(ch, input.stars[0], input.stars[1], par.query_sigma);
@@ -90,8 +89,6 @@ void Reduction::trial_plane (Chomp &ch, std::ofstream &log) {
     // These are the optimal parameters for the Plane method.
     Plane::Parameters par;
     par.table_name = PLANE_TABLE;
-    par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 5);
-    par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 5);
     
     // First run is clean, without shifts. Following are the shift trials.
     for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
@@ -103,6 +100,8 @@ void Reduction::trial_plane (Chomp &ch, std::ofstream &log) {
                 // Append our error.
                 input.shift_light((int) input.stars.size(), SS_MIN + SS_STEP * ss_i);
                 par.match_sigma = SS_MIN + SS_STEP * ss_i;
+                par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 5) + par.match_sigma;
+                par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 5) + par.match_sigma;
                 
                 // Find the resulting pair.
                 Plane::label_trio p = Plane(input, par).trial_reduction();
@@ -128,8 +127,6 @@ void Reduction::trial_sphere (Chomp &ch, std::ofstream &log) {
     // These are the optimal parameters for the Sphere method.
     Sphere::Parameters par;
     par.table_name = SPHERE_TABLE;
-    par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 7);
-    par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 7);
     par.z_max = 20000;
     
     // First run is clean, without shifts. Following are the shift trials.
@@ -142,7 +139,9 @@ void Reduction::trial_sphere (Chomp &ch, std::ofstream &log) {
                 // Append our error.
                 input.shift_light((int) input.stars.size(), SS_MIN + SS_STEP * ss_i);
                 par.match_sigma = SS_MIN + SS_STEP * ss_i;
-                
+                par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 7) + par.match_sigma;
+                par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 7) + par.match_sigma;
+
                 // Find the resulting pair.
                 Sphere::label_trio p = Sphere(input, par).trial_reduction();
                 
@@ -167,7 +166,6 @@ void Reduction::trial_pyramid (Chomp &ch, std::ofstream &log) {
     // These are the optimal parameters for the Pyramid method.
     Pyramid::Parameters par;
     par.table_name = PYRAMID_TABLE;
-    par.query_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5);
     par.z_max = 20000;
     
     // First run is clean, without shifts. Following are the shift trials.
@@ -180,6 +178,7 @@ void Reduction::trial_pyramid (Chomp &ch, std::ofstream &log) {
                 // Append our error.
                 input.shift_light((int) input.stars.size(), SS_MIN + SS_STEP * ss_i);
                 par.match_sigma = SS_MIN + SS_STEP * ss_i;
+                par.query_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5) + par.match_sigma;
                 
                 // Find the resulting pair.
                 Pyramid::label_quad p = Pyramid::trial_reduction(input, par);
@@ -206,8 +205,6 @@ void Reduction::trial_coin (Chomp &ch, std::ofstream &log) {
     // These are the optimal parameters for the Coin method.
     Coin::Parameters par;
     par.table_name = COIN_TABLE;
-    par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 5);
-    par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 5);
     par.z_max = 20000;
     
     // First run is clean, without shifts. Following are the shift trials.
@@ -220,6 +217,8 @@ void Reduction::trial_coin (Chomp &ch, std::ofstream &log) {
                 // Append our error.
                 input.shift_light((int) input.stars.size(), SS_MIN + SS_STEP * ss_i);
                 par.match_sigma = SS_MIN + SS_STEP * ss_i;
+                par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 5) + par.match_sigma;
+                par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 5) + par.match_sigma;
                 
                 // Find the resulting pair.
                 Coin::label_quad p = Coin::trial_reduction(input, par);

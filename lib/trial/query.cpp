@@ -65,10 +65,10 @@ void Query::trial_angle (Chomp &ch, std::ofstream &log) {
                 ch.select_table(ANGLE_TABLE);
                 Angle::label_pair b = {beta.stars[0].get_label(), beta.stars[1].get_label()};
                 std::vector<Angle::label_pair> r = Angle::trial_query(ch, beta.stars[0], beta.stars[1],
-                                                                      QS_MIN * pow(QS_MULT, qs_i));
+                                                                      QS_MIN + QS_STEP * qs_i);
                 
                 // Log our results.
-                log << "Angle," << QS_MIN * pow(QS_MULT, qs_i) << "," << SS_MIN + SS_STEP * ss_i << "," << r.size()
+                log << "Angle," << QS_MIN + QS_STEP * qs_i << "," << SS_MIN + SS_STEP * ss_i << "," << r.size()
                     << "," << set_existence(r, b) << '\n';
             }
         }
@@ -92,7 +92,7 @@ void Query::trial_plane (Chomp &ch, std::ofstream &log) {
                 beta.focus = beta.stars[0];
                 
                 // Vary our area and moment sigma.
-                p.sigma_a = QS_MIN * pow(QS_MULT, qs_i), p.sigma_i = QS_MIN * pow(QS_MULT, qs_i);
+                p.sigma_a = QS_MIN + QS_STEP * qs_i, p.sigma_i = QS_MIN + QS_STEP * qs_i;
                 beta.shift_light(3, SS_MIN + SS_STEP * ss_i), beta.error_models.clear();
                 
                 // Log our label values, and get our result set.
@@ -103,7 +103,7 @@ void Query::trial_plane (Chomp &ch, std::ofstream &log) {
                 std::vector<Plane::label_trio> r = Plane(beta, p).query_for_trio(a_i, i_i);
                 
                 // Log our results.
-                log << "Plane," << QS_MIN * pow(QS_MULT, qs_i) << "," << SS_MIN + SS_STEP * ss_i << "," << r.size()
+                log << "Plane," << QS_MIN + QS_STEP * qs_i << "," << SS_MIN + SS_STEP * ss_i << "," << r.size()
                     << "," << set_existence(r, b) << '\n';
             }
         }
@@ -127,7 +127,7 @@ void Query::trial_sphere (Chomp &ch, std::ofstream &log) {
                 beta.focus = beta.stars[0];
                 
                 // Vary our area and moment sigma.
-                p.sigma_a = QS_MIN * pow(QS_MULT, qs_i), p.sigma_i = QS_MIN * pow(QS_MULT, qs_i);
+                p.sigma_a = QS_MIN + QS_STEP * qs_i, p.sigma_i = QS_MIN + QS_STEP * qs_i;
                 beta.shift_light(3, SS_MIN + SS_STEP * ss_i), beta.error_models.clear();
                 
                 // Log our label values, and get our result set.
@@ -139,7 +139,7 @@ void Query::trial_sphere (Chomp &ch, std::ofstream &log) {
                 std::vector<Sphere::label_trio> r = Sphere(beta, p).query_for_trio(a_i, i_i);
                 
                 // Log our results.
-                log << "Sphere," << QS_MIN * pow(QS_MULT, qs_i) << "," << SS_MIN + SS_STEP * ss_i << "," << r.size()
+                log << "Sphere," << QS_MIN + QS_STEP * qs_i << "," << SS_MIN + SS_STEP * ss_i << "," << r.size()
                     << "," << set_existence(r, b) << '\n';
             }
         }
@@ -166,10 +166,10 @@ void Query::trial_pyramid (Chomp &ch, std::ofstream &log) {
                 ch.select_table(PYRAMID_TABLE);
                 Pyramid::label_pair b = {beta.stars[0].get_label(), beta.stars[1].get_label()};
                 std::vector<Pyramid::label_pair> r = Pyramid::trial_query(ch, beta.stars[0], beta.stars[1],
-                                                                          QS_MIN * pow(QS_MULT, qs_i));
+                                                                          QS_MIN + QS_STEP * qs_i);
                 
                 // Log our results.
-                log << "Pyramid," << QS_MIN * pow(QS_MULT, qs_i) << "," << SS_MIN + SS_STEP * ss_i << "," << r.size()
+                log << "Pyramid," << QS_MIN + QS_STEP * qs_i << "," << SS_MIN + SS_STEP * ss_i << "," << r.size()
                     << "," << set_existence(r, b) << '\n';
             }
         }
@@ -194,7 +194,7 @@ void Query::trial_coin (Chomp &ch, std::ofstream &log) {
                 beta.focus = beta.stars[0];
     
                 // Vary our area and moment sigma.
-                p.sigma_a = QS_MIN * pow(QS_MULT, qs_i), p.sigma_i = QS_MIN * pow(QS_MULT, qs_i);
+                p.sigma_a = QS_MIN + QS_STEP * qs_i, p.sigma_i = QS_MIN + QS_STEP * qs_i;
                 beta.shift_light(3, SS_MIN + SS_STEP * ss_i), beta.error_models.clear();
     
                 // Log our label values, and get our result set.
@@ -204,7 +204,7 @@ void Query::trial_coin (Chomp &ch, std::ofstream &log) {
                 std::vector<Coin::label_trio> r = Coin(beta, p).query_for_trios(a_i, i_i);
     
                 // Log our results.
-                log << "Coin," << QS_MIN * pow(QS_MULT, qs_i) << "," << SS_MIN + SS_STEP * ss_i << "," << r.size()
+                log << "Coin," << QS_MIN + QS_STEP * qs_i << "," << SS_MIN + SS_STEP * ss_i << "," << r.size()
                     << "," << set_existence(r, b) << '\n';
             }
         }
