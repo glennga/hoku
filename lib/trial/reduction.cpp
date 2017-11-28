@@ -66,10 +66,10 @@ void Reduction::trial_angle (Chomp &ch, std::ofstream &log) {
                 input.shift_light((int) input.stars.size(), SS_MIN + SS_STEP * ss_i);
                 par.match_sigma = SS_MIN + SS_STEP * ss_i;
                 
-                // Find the resulting pair. 
+                // Find the resulting pair.
                 Angle::label_pair p = Angle::trial_reduction(ch, input.stars[0], input.stars[1], par.query_sigma);
                 
-                // Log our results. 
+                // Log our results.
                 log << "Angle," << par.match_sigma << "," << par.query_sigma << "," << SS_MIN + SS_STEP * ss_i << ","
                     << MB_MIN + mb_i * MB_STEP << "," << is_correctly_identified({input.stars[0], input.stars[1]}, p)
                     << "\n";
@@ -107,7 +107,7 @@ void Reduction::trial_plane (Chomp &ch, std::ofstream &log) {
                 // Find the resulting pair.
                 Plane::label_trio p = Plane(input, par).trial_reduction();
                 
-                // Log our results. 
+                // Log our results.
                 log << "Plane," << par.match_sigma << "," << par.sigma_a << "," << SS_MIN + SS_STEP * ss_i << ","
                     << MB_MIN + mb_i * MB_STEP << ","
                     << is_correctly_identified({input.stars[0], input.stars[1], input.stars[2]}, p) << "\n";
@@ -146,7 +146,7 @@ void Reduction::trial_sphere (Chomp &ch, std::ofstream &log) {
                 // Find the resulting pair.
                 Sphere::label_trio p = Sphere(input, par).trial_reduction();
                 
-                // Log our results. 
+                // Log our results.
                 log << "Sphere," << par.match_sigma << "," << par.sigma_a << "," << SS_MIN + SS_STEP * ss_i << ","
                     << MB_MIN + mb_i * MB_STEP << ","
                     << is_correctly_identified({input.stars[0], input.stars[1], input.stars[2]}, p) << "\n";
@@ -184,7 +184,7 @@ void Reduction::trial_pyramid (Chomp &ch, std::ofstream &log) {
                 // Find the resulting pair.
                 Pyramid::label_quad p = Pyramid::trial_reduction(input, par);
                 
-                // Log our results. 
+                // Log our results.
                 log << "Pyramid," << par.match_sigma << "," << par.query_sigma << "," << SS_MIN + SS_STEP * ss_i << ","
                     << MB_MIN + mb_i * MB_STEP << ","
                     << is_correctly_identified({input.stars[0], input.stars[1], input.stars[2], input.stars[3]}, p)
@@ -206,8 +206,8 @@ void Reduction::trial_coin (Chomp &ch, std::ofstream &log) {
     // These are the optimal parameters for the Coin method.
     Coin::Parameters par;
     par.table_name = COIN_TABLE;
-    par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 7);
-    par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 7);
+    par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 5);
+    par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 5);
     par.z_max = 20000;
     
     // First run is clean, without shifts. Following are the shift trials.
@@ -224,7 +224,7 @@ void Reduction::trial_coin (Chomp &ch, std::ofstream &log) {
                 // Find the resulting pair.
                 Coin::label_quad p = Coin::trial_reduction(input, par);
                 
-                // Log our results. 
+                // Log our results.
                 log << "Coin," << par.match_sigma << "," << par.sigma_a << "," << SS_MIN + SS_STEP * ss_i << ","
                     << MB_MIN + mb_i * MB_STEP << ","
                     << is_correctly_identified({input.stars[0], input.stars[1], input.stars[2], input.stars[3]}, p)

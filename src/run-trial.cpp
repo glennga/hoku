@@ -2,13 +2,14 @@
 /// @author Glenn Galvizo
 ///
 /// Source file for the trial runner. Based on the arguments, run the specific trial for the given identification
-/// method and log the data to a CSV file. There exists three trial types, and four identification methods.
+/// method and log the data to a CSV file. There exists five trial types, and five identification methods.
 ///
 /// @code{.cpp}
 /// - 0 a -> Run trial A with the Angle method.
 /// - 1 a -> Run trial A with the SphericalTriangle method.
 /// - 2 a -> Run trial A with the PlanarTriangle method.
 /// - 3 a -> Run trial A with the Pyramid method.
+/// - 4 a -> Run trial A with the CoIn method.
 ///
 /// - b 0 -> Run the query trials with the B method.
 /// - b 1 -> Run the alignment trials with the B method.
@@ -107,6 +108,7 @@ int perform_trial (Chomp &ch, std::ofstream &log, const int id_choice, const int
 /// - 1 a -> Run trial A with the SphericalTriangle method.
 /// - 2 a -> Run trial A with the PlanarTriangle method.
 /// - 3 a -> Run trial A with the Pyramid method.
+/// - 4 a -> Run trial A with the CoIn method.
 ///
 /// - b 0 -> Run the query trials with the B method.
 /// - b 1 -> Run the alignment trials with the B method.
