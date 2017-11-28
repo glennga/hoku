@@ -51,8 +51,6 @@ void Crown::trial_angle (Chomp &ch, std::ofstream &log) {
     // These are the optimal parameters for the Angle method.
     Angle::Parameters par;
     par.table_name = ANGLE_TABLE;
-    par.match_sigma = SS_MIN + SS_STEP * SS_ITER;
-    par.query_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5);
     par.z_max = 20000;
     
     // First run is clean, without shifts. Following are the shift trials.
@@ -67,7 +65,9 @@ void Crown::trial_angle (Chomp &ch, std::ofstream &log) {
                     input.shift_light((int) input.stars.size(), SS_MIN + SS_STEP * ss_i);
                     double p = ES_MIN + ES_STEP * es_i, clean_size = input.stars.size();
                     input.add_extra_light((int) ((p / (1 - p)) * clean_size));
-                    
+                    par.match_sigma = SS_MIN + SS_STEP * ss_i;
+                    par.query_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5) + par.match_sigma;
+
                     // Find our result set. Run the identification.
                     z = 0;
                     result = Angle::identify(input, par, z);
@@ -95,10 +95,6 @@ void Crown::trial_plane (Chomp &ch, std::ofstream &log) {
     // These are the optimal parameters for the Plane method.
     Plane::Parameters par;
     par.table_name = PLANE_TABLE;
-    par.match_sigma = SS_MIN + SS_STEP * SS_ITER;
-    //    par.match_sigma = 10e-10;
-    par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 5);
-    par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 5);
     par.z_max = 20000;
     
     // First run is clean, without shifts. Following are the shift trials.
@@ -113,7 +109,10 @@ void Crown::trial_plane (Chomp &ch, std::ofstream &log) {
                     input.shift_light((int) input.stars.size(), SS_MIN + SS_STEP * ss_i);
                     double p = ES_MIN + ES_STEP * es_i, clean_size = input.stars.size();
                     input.add_extra_light((int) ((p / (1 - p)) * clean_size));
-                    
+                    par.match_sigma = SS_MIN + SS_STEP * ss_i;
+                    par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 5) + par.match_sigma;
+                    par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 5) + par.match_sigma;
+
                     // Find our result set. Run the identification.
                     z = 0;
                     result = Plane::identify(input, par, z);
@@ -141,10 +140,6 @@ void Crown::trial_sphere (Chomp &ch, std::ofstream &log) {
     // These are the optimal parameters for the Sphere method.
     Sphere::Parameters par;
     par.table_name = SPHERE_TABLE;
-    par.match_sigma = SS_MIN + SS_STEP * SS_ITER;
-//    par.match_sigma = 10e-10;
-    par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 7);
-    par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 7);
     par.z_max = 20000;
     
     // First run is clean, without shifts. Following are the shift trials.
@@ -159,7 +154,10 @@ void Crown::trial_sphere (Chomp &ch, std::ofstream &log) {
                     input.shift_light((int) input.stars.size(), SS_MIN + SS_STEP * ss_i);
                     double p = ES_MIN + ES_STEP * es_i, clean_size = input.stars.size();
                     input.add_extra_light((int) ((p / (1 - p)) * clean_size));
-                    
+                    par.match_sigma = SS_MIN + SS_STEP * ss_i;
+                    par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 7) + par.match_sigma;
+                    par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 7) + par.match_sigma;
+
                     // Find our result set. Run the identification.
                     z = 0;
                     result = Sphere::identify(input, par, z);
@@ -187,9 +185,6 @@ void Crown::trial_pyramid (Chomp &ch, std::ofstream &log) {
     // These are the optimal parameters for the Pyramid method.
     Pyramid::Parameters par;
     par.table_name = PYRAMID_TABLE;
-//    par.match_sigma = 10e-10;
-    par.match_sigma = SS_MIN + SS_STEP * SS_ITER;
-    par.query_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5);
     par.z_max = 20000;
     
     // First run is clean, without shifts. Following are the shift trials.
@@ -204,7 +199,9 @@ void Crown::trial_pyramid (Chomp &ch, std::ofstream &log) {
                     input.shift_light((int) input.stars.size(), SS_MIN + SS_STEP * ss_i);
                     double p = ES_MIN + ES_STEP * es_i, clean_size = input.stars.size();
                     input.add_extra_light((int) ((p / (1 - p)) * clean_size));
-                    
+                    par.match_sigma = SS_MIN + SS_STEP * ss_i;
+                    par.query_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5) + par.match_sigma;
+
                     // Find our result set. Run the identification.
                     z = 0;
                     result = Pyramid::identify(input, par, z);
@@ -232,10 +229,6 @@ void Crown::trial_coin (Chomp &ch, std::ofstream &log) {
     // These are the optimal parameters for the Coin method.
     Coin::Parameters par;
     par.table_name = COIN_TABLE;
-//    par.match_sigma = 10e-10;
-    par.match_sigma = SS_MIN + SS_STEP * SS_ITER;
-    par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 7);
-    par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 7);
     par.z_max = 20000;
     
     // First run is clean, without shifts. Following are the shift trials.
@@ -250,7 +243,10 @@ void Crown::trial_coin (Chomp &ch, std::ofstream &log) {
                     input.shift_light((int) input.stars.size(), SS_MIN + SS_STEP * ss_i);
                     double p = ES_MIN + ES_STEP * es_i, clean_size = input.stars.size();
                     input.add_extra_light((int) ((p / (1 - p)) * clean_size));
-                    
+                    par.match_sigma = SS_MIN + SS_STEP * ss_i;
+                    par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 5) + par.match_sigma;
+                    par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 5) + par.match_sigma;
+
                     // Find our result set. Run the identification.
                     z = 0;
                     result = Coin::identify(input, par, z);
