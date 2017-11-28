@@ -24,7 +24,7 @@ namespace Query {
     const int QUERY_SAMPLES = 100; ///< Number of samples to retrieve for each individual trial.
 
     const double QS_MIN = std::numeric_limits<double>::epsilon(); ///< Minimum query sigma (machine epsilon).
-    const double QS_TRIANGLE_K = 0.1; ///< Query sigma scale for triangle methods.
+    const double QS_TRIANGLE_K = 0.001; ///< Query sigma scale for triangle methods.
     
     const double SS_MIN = 0; ///< Minimum shift sigma.
     const double SS_STEP = 0.001; ///< Shift sigma step for each variation.
