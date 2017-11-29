@@ -66,6 +66,7 @@ void Reduction::trial_angle (Chomp &ch, std::ofstream &log) {
                 par.query_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5) + par.match_sigma;
                 
                 // Find the resulting pair.
+                ch.select_table(ANGLE_TABLE)
                 Angle::label_pair p = Angle::trial_reduction(ch, input.stars[0], input.stars[1], par.query_sigma);
                 
                 // Log our results.
@@ -89,6 +90,7 @@ void Reduction::trial_plane (Chomp &ch, std::ofstream &log) {
     // These are the optimal parameters for the Plane method.
     Plane::Parameters par;
     par.table_name = PLANE_TABLE;
+    par.z_max = 20000;
     
     // First run is clean, without shifts. Following are the shift trials.
     for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
