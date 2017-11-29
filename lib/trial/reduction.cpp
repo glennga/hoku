@@ -66,7 +66,7 @@ void Reduction::trial_angle (Chomp &ch, std::ofstream &log) {
                 par.query_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5) + par.match_sigma;
                 
                 // Find the resulting pair.
-                ch.select_table(ANGLE_TABLE)
+                ch.select_table(ANGLE_TABLE);
                 Angle::label_pair p = Angle::trial_reduction(ch, input.stars[0], input.stars[1], par.query_sigma);
                 
                 // Log our results.
