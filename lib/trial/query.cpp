@@ -81,6 +81,7 @@ void Query::trial_plane (Chomp &ch, std::ofstream &log) {
     Benchmark beta(ch, seed, WORKING_FOV);
     Plane::Parameters p;
     p.table_name = PLANE_TABLE;
+    p.query_expected = 10000;
     
     for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
         for (int i = 0; i < QUERY_SAMPLES; i++) {
@@ -115,6 +116,7 @@ void Query::trial_sphere (Chomp &ch, std::ofstream &log) {
     Benchmark beta(ch, seed, WORKING_FOV);
     Sphere::Parameters p;
     p.table_name = SPHERE_TABLE;
+    p.query_expected = 10000;
     
     for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
         for (int i = 0; i < QUERY_SAMPLES; i++) {
@@ -178,6 +180,7 @@ void Query::trial_coin (Chomp &ch, std::ofstream &log) {
     Benchmark beta(ch, seed, WORKING_FOV);
     Coin::Parameters p;
     p.table_name = COIN_TABLE;
+    p.query_expected = 10000;
     
     for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
         for (int i = 0; i < QUERY_SAMPLES; i++) {

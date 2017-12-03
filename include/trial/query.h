@@ -27,7 +27,7 @@ namespace Query {
 //    const double QS_TRIANGLE_K = 0.001; ///< Query sigma scale for triangle methods.
     
     const double SS_MIN = 0; ///< Minimum shift sigma.
-    const double SS_STEP = 0.001; ///< Shift sigma step for each variation.
+    const double SS_STEP = 0.0000000001; ///< Shift sigma step for each variation.
     const int SS_ITER = 5; ///< Number of shift sigma variations.
     
     const std::string ANGLE_TABLE = "ANG_20"; ///< Name of table generated for Angle method.
