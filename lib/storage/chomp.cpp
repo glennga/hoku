@@ -304,7 +304,7 @@ Nibble::tuples_d Chomp::k_vector_query (const std::string &focus, const std::str
     std::ostringstream condition;
     
     select_table(table);
-    condition << focus << " BETWEEN" << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed;
+    condition << focus << " BETWEEN " << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed;
     condition << y_a << " AND " << y_b;
     return search_table(fields, condition.str(), expected, expected);
     
