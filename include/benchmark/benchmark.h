@@ -87,7 +87,7 @@ class Benchmark {
     const std::string ERROR_TMP = PROJECT_LOCATION + "/data/logs/tmp/errplt.tmp";
     
     /// Location of the Python benchmark plotter.
-    const std::string PLOT_SCRIPT = "\"" + PROJECT_LOCATION + "/script/python/generate-plot.py\"";
+    const std::string PLOT_SCRIPT = "\"" + PROJECT_LOCATION + "/script/python/visualize_image.py\"";
     
     /// Alias for the list (stack) of ErrorModels.
     using model_list = std::vector<ErrorModel>;
