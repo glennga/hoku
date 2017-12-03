@@ -26,9 +26,10 @@ qu_ppv, al_ppv, r_ppv, sc_ppv, cr_ppv = 100, 100, 100, 100, 100
 
 # Plot parameters for query trials.
 # noinspection PyRedeclaration
-query_params = {"yll": iter([[0, 1.3], [0, 20000.0]]),
-                "xtl": iter([[r'$0^{\circ}$'] + [r'$0.001^{\circ}$'] + [r'$0.002^{\circ}$'] + [r'$0.003^{\circ}$'] +
-                             [r'$0.004^{\circ}$'] for _ in range(0, 2)]),
+query_params = {"yll": iter([[0, 1.3], [0, 1.1]]),
+                "xtl": iter([[r'$0^{\circ}$'] + [r'$(1.0\times10^{-7})^{\circ}$'] + [r'$(1.0\times10^{-6})^{\circ}$']
+                             + [r'$(1.0\times10^{-5})^{\circ}$'] + [r'$(1.0\times10^{-4})^{\circ}$']
+                             for _ in range(0, 2)]),
                 "ll": iter([['Angle', 'Spherical Triangle', 'Planar Triangle', 'Pyramid', 'CoIn'] for _ in range(3)]),
                 "xal": iter(['Noise (Degrees)', 'Noise (Degrees)']),
                 "yal": iter([r'$P(Correct \ Star \ Set \ in \ Candidates)$', r'$|Candidate \ Set|$'])}
@@ -89,13 +90,13 @@ def visualize_trial(angle_log, sphere_log, plane_log, pyramid_log, coin_log):
     :param coin_log Location of the coin log file to use.
     :return: None.
     """
-    # with open(angle_log, 'r') as f_1, open(sphere_log, 'r') as f_2, open(plane_log, 'r') as f_3, \
-    #         open(pyramid_log, 'r') as f_4, open(coin_log, 'r') as f_5:
-    #     csvs = list(map(lambda f: csv.reader(f, delimiter=','), [f_1, f_2, f_3, f_4, f_5]))
+    with open(angle_log, 'r') as f_1, open(sphere_log, 'r') as f_2, open(plane_log, 'r') as f_3, \
+            open(pyramid_log, 'r') as f_4, open(coin_log, 'r') as f_5:
+        csvs = list(map(lambda f: csv.reader(f, delimiter=','), [f_1, f_2, f_3, f_4, f_5]))
 
-    with open(angle_log, 'r') as f_1, open(sphere_log, 'r') as f_2, open(pyramid_log, 'r') as f_4, \
-            open(coin_log, 'r') as f_5:
-        csvs = list(map(lambda f: csv.reader(f, delimiter=','), [f_1, f_2, f_4, f_5]))
+    # with open(angle_log, 'r') as f_1, open(sphere_log, 'r') as f_2, open(pyramid_log, 'r') as f_4, \
+    #         open(coin_log, 'r') as f_5:
+    #     csvs = list(map(lambda f: csv.reader(f, delimiter=','), [f_1, f_2, f_4, f_5]))
 
         # Parse our header, and the rest of the logs.
         attributes = list(map(lambda c: next(c), csvs))

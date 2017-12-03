@@ -84,12 +84,12 @@ def query_trial_plot(ppv, log_sets, plot_params):
     plt.rc('text', usetex=True), plt.rc('font', family='serif', size=12)
 
     plt.figure()
-    [bar_plot(ppv, log, k, 2, 4, display_err=False) for k, log in enumerate(log_sets)]
+    [bar_plot(ppv, log, k, 2, 4, display_err=True) for k, log in enumerate(log_sets)]
     plot_add_info(plot_params)
 
     plt.figure()
     # [bar_plot(ppv, log, k, 2, 3, restrict_y=lambda h: [a for a in h if a > 1]) for k, log in enumerate(log_sets)]
-    [bar_plot(ppv, log, k, 2, 3, display_err=False) for k, log in enumerate(log_sets)]
+    [bar_plot(ppv, log, k, 2, 3, display_err=True) for k, log in enumerate(log_sets)]
     plot_add_info(plot_params)
 
     plt.show()
