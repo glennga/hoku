@@ -229,6 +229,7 @@ int Chomp::build_k_vector_table (const std::string &focus_column, const double m
     
     // Load the entire table into RAM.
     tuples_d s_vector = search_table(focus_column, (unsigned) s_l);
+    std::string original_table = table;
     select_table(table + "_KVEC");
     
     // Load K-Vector into table, K(i) = j where s(j) <= z(i) < s(j + 1).
@@ -248,9 +249,11 @@ int Chomp::build_k_vector_table (const std::string &focus_column, const double m
     table_transaction.commit();
     std::cout << std::endl;
     
-    // Index the K-Vector column.
+    // Index the K-Vector column and the original table.
     SQLite::Transaction index_transaction(*db);
     (*db).exec("CREATE INDEX " + table + "_" + focus_column + " ON " + table + "(k_value)");
+    (*db).exec(
+        "CREATE INDEX " + original_table + "_" + focus_column + " ON " + original_table + "(" + focus_column + ")");
     index_transaction.commit();
     
     return 0;
@@ -305,36 +308,36 @@ Nibble::tuples_d Chomp::k_vector_query (const std::string &focus, const std::str
     condition << y_a << " AND " << y_b;
     return search_table(fields, condition.str(), expected, expected);
     
-//    tuples_d s_endpoints;
-//    std::string sql, s_table = table;
-//
-//    // Search for last and first element of sorted table.
-//    std::string sql_for_max_id = std::string("(SELECT MAX(rowid) FROM ") + table + ")";
-//    double focus_n = search_single(focus, "rowid = " + sql_for_max_id);
-//    double focus_0 = search_single(focus, "rowid = 1");
-//
-//    // Determine Z equation, this creates slightly steeper line.
-//    double n = search_single("MAX(rowid)");
-//    double m = (focus_n - focus_0 + (2.0 * DOUBLE_EPSILON)) / (int) (n - 1);
-//    double q = focus_0 - m - DOUBLE_EPSILON;
-//
-//    // Determine indices of search, and perform search.
-//    double j_b = floor((y_a - q) / m);
-//    double j_t = ceil((y_b - q) / m);
-//
-//    // Get index to s-vector (original table).
-//    select_table(s_table + "_KVEC");
-//    sql = "rowid BETWEEN " + std::to_string((int) j_b) + " AND " + std::to_string((int) j_t);
-//    s_endpoints = search_table("k_value", sql, expected / 2);
-//
-//    select_table(s_table);
-//
-//    if (!s_endpoints.empty()) {
-//        sql = "rowid BETWEEN " + std::to_string(s_endpoints.front()[0]) + " AND " + std::to_string(
-//                s_endpoints.back()[0]);
-//        return search_table(fields, sql, expected);
-//    }
-//    else {
-//        return {};
-//    }
+    //    tuples_d s_endpoints;
+    //    std::string sql, s_table = table;
+    //
+    //    // Search for last and first element of sorted table.
+    //    std::string sql_for_max_id = std::string("(SELECT MAX(rowid) FROM ") + table + ")";
+    //    double focus_n = search_single(focus, "rowid = " + sql_for_max_id);
+    //    double focus_0 = search_single(focus, "rowid = 1");
+    //
+    //    // Determine Z equation, this creates slightly steeper line.
+    //    double n = search_single("MAX(rowid)");
+    //    double m = (focus_n - focus_0 + (2.0 * DOUBLE_EPSILON)) / (int) (n - 1);
+    //    double q = focus_0 - m - DOUBLE_EPSILON;
+    //
+    //    // Determine indices of search, and perform search.
+    //    double j_b = floor((y_a - q) / m);
+    //    double j_t = ceil((y_b - q) / m);
+    //
+    //    // Get index to s-vector (original table).
+    //    select_table(s_table + "_KVEC");
+    //    sql = "rowid BETWEEN " + std::to_string((int) j_b) + " AND " + std::to_string((int) j_t);
+    //    s_endpoints = search_table("k_value", sql, expected / 2);
+    //
+    //    select_table(s_table);
+    //
+    //    if (!s_endpoints.empty()) {
+    //        sql = "rowid BETWEEN " + std::to_string(s_endpoints.front()[0]) + " AND " + std::to_string(
+    //                s_endpoints.back()[0]);
+    //        return search_table(fields, sql, expected);
+    //    }
+    //    else {
+    //        return {};
+    //    }
 }
