@@ -16,10 +16,11 @@ The first argument is the location of the log file. We can infer the type of tri
 Usage: visualize-trial [angle-log] [sphere-log] [plane-log] [pyramid-log] [coin-log]
 """""
 
-import visualize_base_trial as v
-import matplotlib.pyplot as plt
+import csv
+import sys
+
 import numpy as np
-import os, csv, sys
+import visualize_base_trial as v
 
 # Points per variation, defined in each trial's header file.
 qu_ppv, al_ppv, r_ppv, sc_ppv, cr_ppv = 100, 100, 100, 100, 100
@@ -36,10 +37,10 @@ query_params = {"yll": iter([[0, 1.3], [0, 1.1]]),
 
 # Plot parameters for alignment trials.
 # noinspection PyRedeclaration
-alignment_params = {"yll": iter([[0, 5.0e-04], [0, 1.0e-04]]),
+alignment_params = {"yll": iter([[0, 10e-0-15], [0, 1.0e-04]]),
                     "xtl": iter([['5.5', '6.0', '6.5', '7.0', '7.5']] +
-                                [[r'$\epsilon \times 3^{0}$', r'$\epsilon \times 3^{3}$', r'$\epsilon \times 3^{5}$',
-                                  r'$\epsilon \times 3^{7}$', r'$\epsilon \times 3^{9}$']]),
+                                [[r'$0^{\circ}$'] + [r'$(1.0\times10^{-7})^{\circ}$'] + [r'$(1.0\times10^{-6})^{\circ}$']
+                                 + [r'$(1.0\times10^{-5})^{\circ}$'] + [r'$(1.0\times10^{-4})^{\circ}$']]),
                     "ll": iter([['Angle', 'Spherical Triangle', 'Planar Triangle', 'Pyramid', 'CoIn']
                                 for _ in range(2)]),
                     "xal": iter([r'$Camera \ Sensitivity \ (m)$', r'Noise (degrees)']),
@@ -48,16 +49,16 @@ alignment_params = {"yll": iter([[0, 5.0e-04], [0, 1.0e-04]]),
 # Plot parameters for reduction trials.
 # noinspection PyRedeclaration
 reduction_params = {"yll": iter([[0, 1], [0, 1]]),
-                    "xtl": iter([[r'$0^{\circ}$'] + [r'$0.001^{\circ}$'] + [r'$0.002^{\circ}$'] + [
-                        r'$0.003^{\circ}$'] + [r'$0.004^{\circ}$']] +
+                    "xtl": iter([[r'$0^{\circ}$'] + [r'$(1.0\times10^{-7})^{\circ}$'] + [r'$(1.0\times10^{-6})^{\circ}$']
+                                 + [r'$(1.0\times10^{-5})^{\circ}$'] + [r'$(1.0\times10^{-4})^{\circ}$']] +
                                 [['6.0'] + ['6.25'] + ['6.5'] + ['6.75'] + ['7.0']]),
-                    "ll": iter([['Angle', 'Spherical Triangle', 'Pyramid', 'CoIn']
+                    "ll": iter([['Angle', 'Spherical Triangle', 'Planar Triangle', 'Pyramid', 'CoIn']
                                 for _ in range(2)]),
                     "xal": iter([r'$Noise$'] + [r'$Camera Sensitivity$']),
                     "yal": iter([r'P(Correct Star Set After Reduction)' for _ in range(2)])}
 
 # Plot parameters for semi-crown trials.
-semi_crown_params = {"yll": iter([]),
+semi_crown_params = {"yll": iter([[0, 10e-15], [0, 10e-15], [0, 1.3], [0, 100]]),
                      "xtl": iter([]),
                      "ll": iter([]),
                      "xal": iter([]),

@@ -27,7 +27,7 @@ def bar_plot(ppv, log, k, x_index, y_index, restrict_d=None, restrict_y=lambda h
     d = [tuple for tuple in log if (True if restrict_d is None else restrict_d(tuple))]
     sorted(d, key=lambda x: x[x_index])
     x_count = list(set([float(x[x_index]) for x in d]))
-    y_list = [[] for _ in x_count]
+    y_list, avg_y = [[] for _ in x_count], [[] for _ in x_count]
 
     # Determine our Y axis. Dependent on if y_divisor is specified or not.
     if y_divisor is None:
@@ -39,12 +39,22 @@ def bar_plot(ppv, log, k, x_index, y_index, restrict_d=None, restrict_y=lambda h
             for j in range(0, ppv):
                 y_list.append(float(d[i * ppv + j][y_index] / d[i * ppv + j][y_divisor]))
 
+    # Find 10 averages over our data.
+    for i in range(10):
+        for j in range(len(x_count)):
+            avg_y[j].append(np.average([restrict_y(np.array(y)[int(i*ppv / 10):int((i + 1)*(ppv / 10)))
+
+        a.append(np.average([restrict_y(np.array(y)[int(i*ppv / 10):int((i + 1)*(ppv / 10))])) for y in y_list])
+
+    for i in range(10):
+        avg_y
+        avg_y[i] = [np.average(restrict_y(np.array(y)[int(i*ppv / 10):int((i + 1)*(ppv / 10))])) for y in y_list]
+
     # Plot the bar chart of our averages, as well as the corresponding error bars.
     if display_err:
-        plt.bar(np.arange(len(x_count)) + 0.15 * k - 0.3, [np.average(restrict_y(y)) for y in y_list], 0.15,
-            yerr=[np.std(restrict_y(y)) for y in y_list])
+        plt.bar(np.arange(len(x_count)) + 0.15 * k - 0.3, np.average(avg_y), 0.15, yerr=np.std(avg_y))
     else:
-        plt.bar(np.arange(len(x_count)) + 0.15 * k - 0.3, [np.average(restrict_y(y)) for y in y_list], 0.15)
+        plt.bar(np.arange(len(x_count)) + 0.15 * k - 0.3, np.average(avg_y), 0.15)
 
 
 def plot_add_info(params):
@@ -109,15 +119,15 @@ def alignment_trial_plot(ppv, log_sets, plot_params):
     plt.rc('text', usetex=True), plt.rc('font', family='serif', size=12)
 
     plt.figure()
-    [bar_plot(ppv, log, k, 3, 6, lambda g: g[2] == '0.001') for k, log in enumerate(log_sets)]
+    [bar_plot(ppv, log, k, 3, 6, lambda g: g[2] == '1e-07') for k, log in enumerate(log_sets)]
     plot_add_info(plot_params)
+    plt.yscale('log')
 
     plt.figure()
     [bar_plot(ppv, log, k, 2, 6, lambda g: g[3] == '6') for k, log in enumerate(log_sets)]
     plot_add_info(plot_params)
+    plt.yscale('log')
 
-    # ax = plt.gca()
-    # ax.set_yscale('log')
     plt.show()
 
 
@@ -141,7 +151,7 @@ def reduction_trial_plot(ppv, log_sets, plot_params):
 
     # Plot #2: Camera Sensitivity vs. P(Correctly Identified Star Set)
     plt.figure()
-    [bar_plot(ppv, log, k, 4, 5, lambda g: g[3] == '0.002') for k, log in enumerate(log_sets)]
+    [bar_plot(ppv, log, k, 4, 5, lambda g: g[3] == '1e-07') for k, log in enumerate(log_sets)]
     plot_add_info(plot_params)
 
     plt.show()
@@ -167,7 +177,7 @@ def semi_crown_trial_plot(ppv, log_sets, plot_params):
     # plot_add_info(plot_params)
 
     plt.figure()
-    [bar_plot(ppv, log, k, 4, 7, lambda g: g[5] == '0') for k, log in enumerate(log_sets)]
+    [bar_plot(ppv, log, k, 4, 7, lambda g: g[5] == '1e-07') for k, log in enumerate(log_sets)]
     # plot_add_info(plot_params)
 
     plt.figure()
@@ -175,7 +185,7 @@ def semi_crown_trial_plot(ppv, log_sets, plot_params):
     # plot_add_info(plot_params)
 
     plt.figure()
-    [bar_plot(ppv, log, k, 4, 6, lambda g: g[5] == '0') for k, log in enumerate(log_sets)]
+    [bar_plot(ppv, log, k, 4, 6, lambda g: g[5] == '1e-07') for k, log in enumerate(log_sets)]
     # plot_add_info(plot_params)
 
     plt.show()

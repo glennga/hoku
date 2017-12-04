@@ -43,6 +43,7 @@ void record_header (const int choice, std::ofstream &log) {
         case 1: return (void) (log << Alignment::ATTRIBUTE);
         case 2: return (void) (log << Reduction::ATTRIBUTE);
         case 3: return (void) (log << SemiCrown::ATTRIBUTE);
+        case 4: return (void) (log << Crown::ATTRIBUTE);
         default: throw "Trial choice is not within space {0, 1, 2, 3, 4}.";
     }
 }
