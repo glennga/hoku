@@ -19,7 +19,7 @@ def bar_plot(ppv, log, k, x_index, y_index, restrict_d=None, restrict_y=lambda h
     :param restrict_d: A restriction function to apply to the data-set we operate on.
     :param restrict_y: A restriction function to apply to every list of Y points. Defaults to using data as-is.
     :param y_divisor: If specified, we divide every Y point with the point at this index.
-    :oaram display_err: If specified, we display error-bars.
+    :param display_err: If specified, we display error-bars.
     :return: None.
     """
 

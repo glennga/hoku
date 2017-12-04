@@ -30,8 +30,8 @@ namespace Alignment {
     
     const double MS_MIN = std::numeric_limits<double>::epsilon() * 3; ///< Minimum match sigma.
     
-    const double SS_MIN = 0; ///< Minimum shift sigma.
-    const double SS_STEP = 0.001; ///< Shift sigma step for each variation.
+    const double SS_MULT = 0.00000001; ///< Shift sigma multiplier for each variation.
+//    const double SS_STEP = 0.001; ///< Shift sigma step for each variation.
     const int SS_ITER = 5; ///< Number of shift sigma variations.
     
     const double MB_MIN = 6.0; ///< Minimum magnitude bound.

@@ -36,7 +36,8 @@ namespace Crown {
     const int MB_ITER = 5; ///< Number of magnitude bound variations.
     
     const double SS_MIN = 0; ///< Minimum shift sigma.
-    const double SS_STEP = 0.001; ///< Shift sigma step for each variation.
+    const double SS_MULT = 0.00000001; ///< Shift sigma multiplier for each variation.
+    //    const double SS_STEP = 0.001; ///< Shift sigma step for each variation.
     const int SS_ITER = 5; ///< Number of shift sigma variations.
     
     const int ES_MIN = 0; ///< Minimum number of extra stars to add.

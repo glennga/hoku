@@ -28,15 +28,15 @@ namespace Reduction {
     const double WORKING_FOV = 20; ///< Field of view that all our test stars must be within.
     const int CROWN_SAMPLES = 1000; ///< Number of samples to retrieve for each individual trial.
     
-    const double QS_TRIANGLE_K = 0.001; ///< Query sigma scale for triangle methods.
+//    const double QS_TRIANGLE_K = 0.001; ///< Query sigma scale for triangle methods.
     const double MS_MIN = std::numeric_limits<double>::epsilon() * 3; ///< Minimum match sigma.
     
     const double MB_MIN = 6.0; ///< Minimum magnitude bound.
     const double MB_STEP = 0.25; ///< Step to increment magnitude bound with for each variation.
     const int MB_ITER = 5; ///< Number of magnitude bound variations.
     
-    const double SS_MIN = 0; ///< Minimum shift sigma.
-    const double SS_STEP = 0.001; ///< Shift sigma step for each variation.
+    const double SS_MULT = 0.00000001; ///< Shift sigma multiplier for each variation.
+//    const double SS_STEP = 0.001; ///< Shift sigma step for each variation.
     const int SS_ITER = 5; ///< Number of shift sigma variations.
     
     const std::string ANGLE_TABLE = "ANG_20"; ///< Name of table generated for Angle method.

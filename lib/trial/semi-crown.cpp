@@ -56,6 +56,8 @@ void SemiCrown::trial_angle (Chomp &ch, std::ofstream &log) {
     Angle::Parameters par;
     par.table_name = ANGLE_TABLE;
     par.z_max = 20000;
+    par.match_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5);
+    par.query_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5);
     
     // First run is clean, without shifts. Following are the shift trials.
     for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
@@ -66,20 +68,18 @@ void SemiCrown::trial_angle (Chomp &ch, std::ofstream &log) {
                     Benchmark input(seed, body, focus, WORKING_FOV);
                     
                     // Append our error.
-                    input.shift_light((int) input.stars.size(), SS_MIN + SS_STEP * ss_i);
+                    input.shift_light((int) input.stars.size(), ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)));
                     double p = ES_MIN + ES_STEP * es_i, clean_size = input.stars.size();
                     input.add_extra_light((int) ((p / (1 - p)) * clean_size));
-                    par.match_sigma = SS_MIN + SS_STEP * ss_i;
-                    par.query_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5) + par.match_sigma;
-
+                    
                     // Find the resulting rotation.
                     z = 0;
                     q = Angle::trial_semi_crown(input, par, z);
                     
                     // Log our results.
-                    log << "Angle," << par.match_sigma << "," << par.query_sigma << "," << SS_MIN + SS_STEP * ss_i
-                        << "," << MB_MIN + mb_i * MB_STEP << "," << p << "," << z << ","
-                        << Rotation::angle_between(q, q_actual) << "\n";
+                    log << "Angle," << par.match_sigma << "," << par.query_sigma << ","
+                        << ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << "," << p
+                        << "," << z << "," << Rotation::angle_between(q, q_actual) << "\n";
                 }
             }
         }
@@ -101,6 +101,9 @@ void SemiCrown::trial_plane (Chomp &ch, std::ofstream &log) {
     Plane::Parameters par;
     par.table_name = PLANE_TABLE;
     par.z_max = 20000;
+    par.match_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5);
+    par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 5);
+    par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 5);
     
     // First run is clean, without shifts. Following are the shift trials.
     for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
@@ -111,21 +114,18 @@ void SemiCrown::trial_plane (Chomp &ch, std::ofstream &log) {
                     Benchmark input(seed, body, focus, WORKING_FOV);
                     
                     // Append our error.
-                    input.shift_light((int) input.stars.size(), SS_MIN + SS_STEP * ss_i);
+                    input.shift_light((int) input.stars.size(), ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)));
                     double p = ES_MIN + ES_STEP * es_i, clean_size = input.stars.size();
                     input.add_extra_light((int) ((p / (1 - p)) * clean_size));
-                    par.match_sigma = SS_MIN + SS_STEP * ss_i;
-                    par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 5) + par.match_sigma;
-                    par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 5) + par.match_sigma;
-
+                    
                     // Find our result set. Run the identification.
                     z = 0;
                     q = Plane(input, par).trial_semi_crown(z);
-    
+                    
                     // Log our results.
-                    log << "Plane," << par.match_sigma << "," << par.sigma_a << "," << SS_MIN + SS_STEP * ss_i
-                        << "," << MB_MIN + mb_i * MB_STEP << "," << p << "," << z << ","
-                        << Rotation::angle_between(q, q_actual) << "\n";
+                    log << "Plane," << par.match_sigma << "," << par.sigma_a << ","
+                        << ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << "," << p
+                        << "," << z << "," << Rotation::angle_between(q, q_actual) << "\n";
                 }
             }
         }
@@ -147,6 +147,9 @@ void SemiCrown::trial_sphere (Chomp &ch, std::ofstream &log) {
     Sphere::Parameters par;
     par.table_name = SPHERE_TABLE;
     par.z_max = 20000;
+    par.match_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5);
+    par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 5);
+    par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 5);
     
     // First run is clean, without shifts. Following are the shift trials.
     for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
@@ -157,21 +160,18 @@ void SemiCrown::trial_sphere (Chomp &ch, std::ofstream &log) {
                     Benchmark input(seed, body, focus, WORKING_FOV);
                     
                     // Append our error.
-                    input.shift_light((int) input.stars.size(), SS_MIN + SS_STEP * ss_i);
+                    input.shift_light((int) input.stars.size(), ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)));
                     double p = ES_MIN + ES_STEP * es_i, clean_size = input.stars.size();
                     input.add_extra_light((int) ((p / (1 - p)) * clean_size));
-                    par.match_sigma = SS_MIN + SS_STEP * ss_i;
-                    par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 7) + par.match_sigma;
-                    par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 7) + par.match_sigma;
-
+                    
                     // Find our result set. Run the identification.
                     z = 0;
                     q = Sphere(input, par).trial_semi_crown(z);
-    
+                    
                     // Log our results.
-                    log << "Sphere," << par.match_sigma << "," << par.sigma_a << "," << SS_MIN + SS_STEP * ss_i
-                        << "," << MB_MIN + mb_i * MB_STEP << "," << p << "," << z << ","
-                        << Rotation::angle_between(q, q_actual) << "\n";
+                    log << "Sphere," << par.match_sigma << "," << par.sigma_a << ","
+                        << ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << "," << p
+                        << "," << z << "," << Rotation::angle_between(q, q_actual) << "\n";
                 }
             }
         }
@@ -193,6 +193,8 @@ void SemiCrown::trial_pyramid (Chomp &ch, std::ofstream &log) {
     Pyramid::Parameters par;
     par.table_name = PYRAMID_TABLE;
     par.z_max = 20000;
+    par.match_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5);
+    par.query_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5);
     
     // First run is clean, without shifts. Following are the shift trials.
     for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
@@ -203,20 +205,18 @@ void SemiCrown::trial_pyramid (Chomp &ch, std::ofstream &log) {
                     Benchmark input(seed, body, focus, WORKING_FOV);
                     
                     // Append our error.
-                    input.shift_light((int) input.stars.size(), SS_MIN + SS_STEP * ss_i);
+                    input.shift_light((int) input.stars.size(), ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)));
                     double p = ES_MIN + ES_STEP * es_i, clean_size = input.stars.size();
                     input.add_extra_light((int) ((p / (1 - p)) * clean_size));
-                    par.match_sigma = SS_MIN + SS_STEP * ss_i;
-                    par.query_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5) + par.match_sigma;
-
+                    
                     // Find our result set. Run the identification.
                     z = 0;
                     q = Pyramid::trial_semi_crown(input, par, z);
-    
+                    
                     // Log our results.
-                    log << "Pyramid," << par.match_sigma << "," << par.query_sigma << "," << SS_MIN + SS_STEP * ss_i
-                        << "," << MB_MIN + mb_i * MB_STEP << "," << p << "," << z << ","
-                        << Rotation::angle_between(q, q_actual) << "\n";
+                    log << "Pyramid," << par.match_sigma << "," << par.query_sigma << ","
+                        << ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << "," << p
+                        << "," << z << "," << Rotation::angle_between(q, q_actual) << "\n";
                 }
             }
         }
@@ -238,6 +238,9 @@ void SemiCrown::trial_coin (Chomp &ch, std::ofstream &log) {
     Coin::Parameters par;
     par.table_name = COIN_TABLE;
     par.z_max = 20000;
+    par.match_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5);
+    par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 5);
+    par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 5);
     
     // First run is clean, without shifts. Following are the shift trials.
     for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
@@ -248,21 +251,18 @@ void SemiCrown::trial_coin (Chomp &ch, std::ofstream &log) {
                     Benchmark input(seed, body, focus, WORKING_FOV);
                     
                     // Append our error.
-                    input.shift_light((int) input.stars.size(), SS_MIN + SS_STEP * ss_i);
+                    input.shift_light((int) input.stars.size(), ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)));
                     double p = ES_MIN + ES_STEP * es_i, clean_size = input.stars.size();
                     input.add_extra_light((int) ((p / (1 - p)) * clean_size));
-                    par.match_sigma = SS_MIN + SS_STEP * ss_i;
-                    par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 5) + par.match_sigma;
-                    par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 5) + par.match_sigma;
-
+                    
                     // Find our result set. Run the identification.
                     z = 0;
                     q = Coin::trial_semi_crown(input, par, z);
-    
+                    
                     // Log our results.
-                    log << "Coin," << par.match_sigma << "," << par.sigma_a << "," << SS_MIN + SS_STEP * ss_i
-                        << "," << MB_MIN + mb_i * MB_STEP << "," << p << "," << z << ","
-                        << Rotation::angle_between(q, q_actual) << "\n";
+                    log << "Coin," << par.match_sigma << "," << par.sigma_a << ","
+                        << ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << "," << p
+                        << "," << z << "," << Rotation::angle_between(q, q_actual) << "\n";
                 }
             }
         }
