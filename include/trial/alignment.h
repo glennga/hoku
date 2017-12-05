@@ -26,7 +26,7 @@ namespace Alignment {
         "NonOptimalConfigRotation,OptimalComponentError,NonOptimalComponentError\n";
     
     const double WORKING_FOV = 20; ///< Field of view that all our test stars must be within.
-    const int ALIGNMENT_SAMPLES = 100; ///< Number of samples to retrieve for each individual trial.
+    const int ALIGNMENT_SAMPLES = 1000; ///< Number of samples to retrieve for each individual trial.
     
     const double MS_MIN = std::numeric_limits<double>::epsilon() * 3; ///< Minimum match sigma.
     
