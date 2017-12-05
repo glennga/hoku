@@ -28,6 +28,7 @@ void SemiCrown::present_benchmark (Chomp &ch, std::random_device &seed, Star::li
     do {
         focus = Star::chance(seed);
         body.clear(), body.reserve((unsigned int) WORKING_FOV * 4);
+        inertial.clear(); inertial.reserve((unsigned int) WORKING_FOV * 4);
         
         for (const Star &s : ch.nearby_hip_stars(focus, WORKING_FOV / 2.0, (unsigned int) WORKING_FOV * 4)) {
             if (s.get_magnitude() < m_bar) {
