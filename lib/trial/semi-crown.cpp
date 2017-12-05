@@ -15,11 +15,12 @@
 /// @param ch Open Nibble connection using Chomp methods.
 /// @param seed Random seed to use for rotation and focus star.
 /// @param body Reference to location of the body stars.
+/// @param inertial Reference to location of the inertial stars.
 /// @param focus Reference to location of the focus star.
 /// @param m_bar Minimum magnitude that all stars must be under.
 /// @param q Reference to where the actual rotation of the image will be placed.
-void SemiCrown::present_benchmark (Chomp &ch, std::random_device &seed, Star::list &body, Star &focus,
-                                   const double m_bar, Rotation &q) {
+void SemiCrown::present_benchmark (Chomp &ch, std::random_device &seed, Star::list &body, Star::list &inertial,
+                                   Star &focus, const double m_bar, Rotation &q) {
     std::mt19937_64 mersenne_twister(seed());
     q = Rotation::chance(seed);
     
@@ -30,6 +31,7 @@ void SemiCrown::present_benchmark (Chomp &ch, std::random_device &seed, Star::li
         
         for (const Star &s : ch.nearby_hip_stars(focus, WORKING_FOV / 2.0, (unsigned int) WORKING_FOV * 4)) {
             if (s.get_magnitude() < m_bar) {
+                inertial.emplace_back(s);
                 body.emplace_back(Rotation::rotate(s, q));
             }
         }
@@ -49,7 +51,7 @@ void SemiCrown::trial_angle (Chomp &ch, std::ofstream &log) {
     std::random_device seed;
     unsigned int z;
     Rotation q, q_actual;
-    Star::list body;
+    Star::list body, inertial;
     Star focus;
     
     // These are the optimal parameters for the Angle method.
@@ -64,7 +66,7 @@ void SemiCrown::trial_angle (Chomp &ch, std::ofstream &log) {
         for (int mb_i = 0; mb_i < MB_ITER; mb_i++) {
             for (int es_i = 0; es_i < ES_ITER; es_i++) {
                 for (int i = 0; i < CROWN_SAMPLES; i++) {
-                    present_benchmark(ch, seed, body, focus, MB_MIN + mb_i * MB_STEP, q_actual);
+                    present_benchmark(ch, seed, body, inertial, focus, MB_MIN + mb_i * MB_STEP, q_actual);
                     Benchmark input(seed, body, focus, WORKING_FOV);
                     
                     // Append our error.
@@ -79,7 +81,8 @@ void SemiCrown::trial_angle (Chomp &ch, std::ofstream &log) {
                     // Log our results.
                     log << "Angle," << par.match_sigma << "," << par.query_sigma << ","
                         << ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << "," << p
-                        << "," << z << "," << Rotation::angle_between(q, q_actual) << "\n";
+                        << "," << z << "," << Rotation::rotation_difference(q_actual, q, inertial.back()).norm()
+                        << "\n";
                 }
             }
         }
@@ -94,7 +97,7 @@ void SemiCrown::trial_plane (Chomp &ch, std::ofstream &log) {
     std::random_device seed;
     unsigned int z = 0;
     Rotation q, q_actual;
-    Star::list body;
+    Star::list body, inertial;
     Star focus;
     
     // These are the optimal parameters for the Plane method.
@@ -110,7 +113,7 @@ void SemiCrown::trial_plane (Chomp &ch, std::ofstream &log) {
         for (int mb_i = 0; mb_i < MB_ITER; mb_i++) {
             for (int es_i = 0; es_i < ES_ITER; es_i++) {
                 for (int i = 0; i < CROWN_SAMPLES; i++) {
-                    present_benchmark(ch, seed, body, focus, MB_MIN + mb_i * MB_STEP, q_actual);
+                    present_benchmark(ch, seed, body, inertial, focus, MB_MIN + mb_i * MB_STEP, q_actual);
                     Benchmark input(seed, body, focus, WORKING_FOV);
                     
                     // Append our error.
@@ -125,7 +128,8 @@ void SemiCrown::trial_plane (Chomp &ch, std::ofstream &log) {
                     // Log our results.
                     log << "Plane," << par.match_sigma << "," << par.sigma_a << ","
                         << ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << "," << p
-                        << "," << z << "," << Rotation::angle_between(q, q_actual) << "\n";
+                        << "," << z << "," << Rotation::rotation_difference(q_actual, q, inertial.back()).norm()
+                        << "\n";
                 }
             }
         }
@@ -140,7 +144,7 @@ void SemiCrown::trial_sphere (Chomp &ch, std::ofstream &log) {
     std::random_device seed;
     unsigned int z = 0;
     Rotation q, q_actual;
-    Star::list body;
+    Star::list body, inertial;
     Star focus;
     
     // These are the optimal parameters for the Sphere method.
@@ -156,7 +160,7 @@ void SemiCrown::trial_sphere (Chomp &ch, std::ofstream &log) {
         for (int mb_i = 0; mb_i < MB_ITER; mb_i++) {
             for (int es_i = 0; es_i < ES_ITER; es_i++) {
                 for (int i = 0; i < CROWN_SAMPLES; i++) {
-                    present_benchmark(ch, seed, body, focus, MB_MIN + mb_i * MB_STEP, q_actual);
+                    present_benchmark(ch, seed, body, inertial, focus, MB_MIN + mb_i * MB_STEP, q_actual);
                     Benchmark input(seed, body, focus, WORKING_FOV);
                     
                     // Append our error.
@@ -171,7 +175,8 @@ void SemiCrown::trial_sphere (Chomp &ch, std::ofstream &log) {
                     // Log our results.
                     log << "Sphere," << par.match_sigma << "," << par.sigma_a << ","
                         << ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << "," << p
-                        << "," << z << "," << Rotation::angle_between(q, q_actual) << "\n";
+                        << "," << z << "," << Rotation::rotation_difference(q_actual, q, inertial.back()).norm()
+                        << "\n";
                 }
             }
         }
@@ -186,7 +191,7 @@ void SemiCrown::trial_pyramid (Chomp &ch, std::ofstream &log) {
     std::random_device seed;
     unsigned int z = 0;
     Rotation q, q_actual;
-    Star::list body;
+    Star::list body, inertial;
     Star focus;
     
     // These are the optimal parameters for the Pyramid method.
@@ -201,7 +206,7 @@ void SemiCrown::trial_pyramid (Chomp &ch, std::ofstream &log) {
         for (int mb_i = 0; mb_i < MB_ITER; mb_i++) {
             for (int es_i = 0; es_i < ES_ITER; es_i++) {
                 for (int i = 0; i < CROWN_SAMPLES; i++) {
-                    present_benchmark(ch, seed, body, focus, MB_MIN + mb_i * MB_STEP, q_actual);
+                    present_benchmark(ch, seed, body, inertial, focus, MB_MIN + mb_i * MB_STEP, q_actual);
                     Benchmark input(seed, body, focus, WORKING_FOV);
                     
                     // Append our error.
@@ -216,7 +221,8 @@ void SemiCrown::trial_pyramid (Chomp &ch, std::ofstream &log) {
                     // Log our results.
                     log << "Pyramid," << par.match_sigma << "," << par.query_sigma << ","
                         << ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << "," << p
-                        << "," << z << "," << Rotation::angle_between(q, q_actual) << "\n";
+                        << "," << z << "," << Rotation::rotation_difference(q_actual, q, inertial.back()).norm()
+                        << "\n";
                 }
             }
         }
@@ -231,7 +237,7 @@ void SemiCrown::trial_coin (Chomp &ch, std::ofstream &log) {
     std::random_device seed;
     unsigned int z = 0;
     Rotation q, q_actual;
-    Star::list body;
+    Star::list body, inertial;
     Star focus;
     
     // These are the optimal parameters for the Coin method.
@@ -247,7 +253,7 @@ void SemiCrown::trial_coin (Chomp &ch, std::ofstream &log) {
         for (int mb_i = 0; mb_i < MB_ITER; mb_i++) {
             for (int es_i = 0; es_i < ES_ITER; es_i++) {
                 for (int i = 0; i < CROWN_SAMPLES; i++) {
-                    present_benchmark(ch, seed, body, focus, MB_MIN + mb_i * MB_STEP, q_actual);
+                    present_benchmark(ch, seed, body, inertial, focus, MB_MIN + mb_i * MB_STEP, q_actual);
                     Benchmark input(seed, body, focus, WORKING_FOV);
                     
                     // Append our error.
@@ -262,7 +268,8 @@ void SemiCrown::trial_coin (Chomp &ch, std::ofstream &log) {
                     // Log our results.
                     log << "Coin," << par.match_sigma << "," << par.sigma_a << ","
                         << ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << "," << p
-                        << "," << z << "," << Rotation::angle_between(q, q_actual) << "\n";
+                        << "," << z << "," << Rotation::rotation_difference(q_actual, q, inertial.back()).norm()
+                        << "\n";
                 }
             }
         }

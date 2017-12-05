@@ -26,10 +26,10 @@
 namespace SemiCrown {
     /// Attribute header that corresponds to the log file for all semi-crown trials.
     const char *const ATTRIBUTE = "IdentificationMethod,MatchSigma,QuerySigma,ShiftSigma,CameraSensitivity,FalseStars,"
-        "ComparisonCount,RotationalAngle\n";
+        "ComparisonCount,ComponentError\n";
     
     const double WORKING_FOV = 20; ///< Field of view that all our test stars must be within.
-    const int CROWN_SAMPLES = 1000; ///< Number of samples to retrieve for each individual trial.
+    const int CROWN_SAMPLES = 500; ///< Number of samples to retrieve for each individual trial.
     
     const double MB_MIN = 6.0; ///< Minimum magnitude bound.
     const double MB_STEP = 0.25; ///< Step to increment magnitude bound with for each variation.
@@ -49,7 +49,7 @@ namespace SemiCrown {
     const std::string PYRAMID_TABLE = "PYRA_20"; ///< Name of table generated for Pyramid method.
     const std::string COIN_TABLE = "COIN_20"; ///< Name of the table generated for the Coin method.
     
-    void present_benchmark (Chomp &, std::random_device &, Star::list &, Star &, double, Rotation &);
+    void present_benchmark (Chomp &, std::random_device &, Star::list &, Star::list &, Star &, double, Rotation &);
     
     void trial_angle (Chomp &, std::ofstream &);
     void trial_plane (Chomp &, std::ofstream &);
