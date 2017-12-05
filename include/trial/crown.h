@@ -29,7 +29,7 @@ namespace Crown {
         "ComparisonCount,BenchmarkSetSize,ResultSetSize,PercentageCorrectInCleanResultSet\n";
     
     const double WORKING_FOV = 20; ///< Field of view that all our test stars must be within.
-    const int CROWN_SAMPLES = 100; ///< Number of samples to retrieve for each individual trial.
+    const int CROWN_SAMPLES = 1000; ///< Number of samples to retrieve for each individual trial.
     
     const double MB_MIN = 6.0; ///< Minimum magnitude bound.
     const double MB_STEP = 0.25; ///< Step to increment magnitude bound with for each variation.
