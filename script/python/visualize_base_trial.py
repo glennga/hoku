@@ -27,7 +27,7 @@ def bar_plot(ppv, log, k, x_index, y_index, restrict_d=None, restrict_y=lambda h
     d = [tuple for tuple in log if (True if restrict_d is None else restrict_d(tuple))]
     sorted(d, key=lambda x: x[x_index])
     x_count = list(set([float(x[x_index]) for x in d]))
-    y_list, avg_y = [[] for _ in x_count], [[] for _ in x_count]
+    y_list, avg_y, std_y = [[] for _ in x_count], [[] for _ in x_count], [0 for _ in x_count]
 
     # Determine our Y axis. Dependent on if y_divisor is specified or not.
     if y_divisor is None:
@@ -40,21 +40,20 @@ def bar_plot(ppv, log, k, x_index, y_index, restrict_d=None, restrict_y=lambda h
                 y_list.append(float(d[i * ppv + j][y_index] / d[i * ppv + j][y_divisor]))
 
     # Find 10 averages over our data.
-    for i in range(10):
-        for j in range(len(x_count)):
-            avg_y[j].append(np.average([restrict_y(np.array(y)[int(i*ppv / 10):int((i + 1)*(ppv / 10)))
+    for i in range(len(x_count)):
+        for j in range(10):
+            b, e = int((ppv / 10) * j), int((ppv / 10) * (j + 1))
+            avg_y[i].append(np.mean(np.array(y_list[i])[b:]))
 
-        a.append(np.average([restrict_y(np.array(y)[int(i*ppv / 10):int((i + 1)*(ppv / 10))])) for y in y_list])
-
-    for i in range(10):
-        avg_y
-        avg_y[i] = [np.average(restrict_y(np.array(y)[int(i*ppv / 10):int((i + 1)*(ppv / 10))])) for y in y_list]
+    # Determine the deviations of this data.
+    for i in range(len(x_count)):
+        std_y[i] = np.std(avg_y[i])
 
     # Plot the bar chart of our averages, as well as the corresponding error bars.
     if display_err:
-        plt.bar(np.arange(len(x_count)) + 0.15 * k - 0.3, np.average(avg_y), 0.15, yerr=np.std(avg_y))
+        plt.bar(np.arange(len(x_count)) + 0.15 * k - 0.3, [np.mean(y) for y in avg_y], 0.15, yerr=std_y)
     else:
-        plt.bar(np.arange(len(x_count)) + 0.15 * k - 0.3, np.average(avg_y), 0.15)
+        plt.bar(np.arange(len(x_count)) + 0.15 * k - 0.3, [np.mean(y) for y in avg_y], 0.15)
 
 
 def plot_add_info(params):
