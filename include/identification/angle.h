@@ -7,9 +7,10 @@
 #ifndef HOKU_ANGLE_H
 #define HOKU_ANGLE_H
 
-#include "benchmark/benchmark.h"
+#include "identification.h"
 #include <iostream>
 
+// TODO: fix these docs
 /// The angle class is an implementation of the identification portion of the LIS Stellar Attitude Acquisition
 /// process. This is one of the five star identification procedures being tested.
 ///
@@ -36,58 +37,30 @@
 ///     printf("%s", s.str().c_str());
 /// }
 /// @endcode
-class Angle {
+class Angle : public Identification {
   public:
-    /// Defines the query and match operations, user can tweak for custom performance.
-    struct Parameters {
-        double query_sigma = std::numeric_limits<double>::epsilon() * 1000; ///< Query must be within 3 * query_sigma.
-        unsigned int query_limit = 100; ///< While performing a basic bound query, limit results by this number.
-        double match_sigma = 0.00001; ///< Resultant of inertial->body rotation must within 3 * match_sigma of *a* body.
-        unsigned int match_minimum = 3; ///< The minimum number of body-inertial matches.
-        unsigned int z_max = 1000; ///< Maximum number of comparisons before returning an empty list.
-        std::string table_name = "ANG_20"; ///< Name of the Nibble database table created with 'generate_sep_table'.
-    };
-    
-    /// User should **NOT** be creating instances of Angle manually. Instead, use the static 'identify' function.
+    /// User should **NOT** be creating instances of Angle manually. Instead, use the provided static functions.
     Angle () = delete;
-  
-  public:
-    static Star::list identify (const Benchmark &, const Parameters &, unsigned int &);
-    static Star::list identify (const Benchmark &, const Parameters &);
-    static int generate_sep_table (double, const std::string &);
-
-#if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
-  private:
-#endif
+    
     /// Alias for a pair of catalog IDs (2-element STL array of doubles).
     using label_pair = std::array<int, 2>;
+  
+  public:
+    static std::vector<label_pair> experiment_query (Chomp &ch, const Star &s_1, const Star &s_2, double sigma_query);
+    static Rotation experiment_alignment (Chomp &ch, const Benchmark &input, const Star::list &candidates,
+                                          const Star::pair &r, const Star::pair &b, double sigma_overlay);
+    static label_pair experiment_reduction (Chomp &ch, const Star &s_1, const Star &s_2, double sigma_query);
+    static Rotation experiment_attitude (const Benchmark &input, const Parameters &p);
+    static Star::list experiment_crown (const Benchmark &input, const Parameters &p);
     
-    /// The star set we are working with. The catalog ID values are all set to 0 here.
-    Star::list input;
-    
-    /// Current working parameters.
-    Parameters parameters;
-    
-    /// Chomp instance, gives us access to the Nibble database.
-    Chomp ch;
-    
-    /// All stars in 'input' are fov degrees from the focus.
-    double fov;
-
-#if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
+    static int generate_ang_table (double fov, const std::string &table_name);
+  
   private:
-#endif
-    Angle (const Benchmark &, const Parameters &);
+    Angle (const Benchmark &input, const Parameters &p);
     
-    label_pair query_for_pair (double);
-    Star::list find_matches (const Star::list &, const Rotation &);
-    Star::pair find_candidate_pair (const Star &, const Star &);
-    Star::list check_assumptions (const Star::list &, const Star::pair &, const Star::pair &);
-    
-    static std::vector<label_pair> trial_query (Chomp &ch, const Star &, const Star &, double);
-    Rotation trial_attitude_determine (const Star::list &, const Star::pair &, const Star::pair &);
-    static label_pair trial_reduction (Chomp &ch, const Star &, const Star &, double);
-    static Rotation trial_semi_crown(const Benchmark &, const Parameters &, unsigned int &);
+    label_pair query_for_pair (double theta);
+    Star::pair find_candidate_pair (const Star &b_a, const Star &b_b);
+    Star::list check_assumptions (const Star::list &candidates, const Star::pair &r, const Star::pair &b);
 };
 
 #endif /* HOKU_ANGLE_H */

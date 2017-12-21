@@ -62,12 +62,15 @@ class Chomp : public Nibble {
     int create_k_vector (const std::string &);
     tuples_d k_vector_query (const std::string &, const std::string &, double, double, unsigned int);
     
+    tuples_d simple_bound_query (const std::string &, const std::string &, double, double, unsigned int);
+    
     Star::list nearby_bright_stars (const Star &, double, unsigned int);
     Star::list nearby_hip_stars (const Star &, double, unsigned int);
     
     Star::list bright_as_list ();
     Star::list hip_as_list ();
     Star query_hip (int);
+    
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif

@@ -7,7 +7,7 @@ Alignment:  IdentificationMethod,MatchSigma,ShiftSigma,MBar,OptimalConfigRotatio
             NonOptimalConfigRotation,OptimalComponentError,NonOptimalComponentError [8]
 Reduction:  IdentificationMethod,MatchSigma,QuerySigma,ShiftSigma,CameraSensitivity,ResultMatchesInput [6]
 Semi-Crown: IdentificationMethod,MatchSigma,QuerySigma,ShiftSigma,CameraSensitivity,FalseStars,
-            ComparisonCount,RotationalAngle [8]
+            ComparisonCount,ComponentError [8]
 Crown:      IdentificationMethod,MatchSigma,QuerySigma,ShiftSigma,CameraSensitivity,FalseStars,
             ComparisonCount,BenchmarkSetSize,ResultSetSize,PercentageCorrectInCleanResultSet [10]
 
@@ -23,62 +23,56 @@ import numpy as np
 import visualize_base_trial as v
 
 # Points per variation, defined in each trial's header file.
-qu_ppv, al_ppv, r_ppv, sc_ppv, cr_ppv = 100, 100, 100, 100, 100
+qu_ppv, al_ppv, r_ppv, sc_ppv, cr_ppv = 1000, 1000, 1000, 1000, 1000
 
 # Plot parameters for query trials.
 # noinspection PyRedeclaration
-query_params = {"yll": iter([[0, 1.3], [0, 1.1]]),
-                "xtl": iter([[r'$0^{\circ}$'] + [r'$(1.0\times10^{-7})^{\circ}$'] + [r'$(1.0\times10^{-6})^{\circ}$']
-                             + [r'$(1.0\times10^{-5})^{\circ}$'] + [r'$(1.0\times10^{-4})^{\circ}$']
+query_params = {"yll": iter([[0, 1.05], [0, 1.3]]),
+                "xtl": iter([[r'$0$'] + [r'$10^{-7}$'] + [r'$10^{-6}$'] + [r'$10^{-5}$'] + [r'$10^{-4}$']
                              for _ in range(0, 2)]),
                 "ll": iter([['Angle', 'Spherical Triangle', 'Planar Triangle', 'Pyramid', 'CoIn'] for _ in range(3)]),
                 "xal": iter(['Noise (Degrees)', 'Noise (Degrees)']),
-                "yal": iter([r'$P(Correct \ Star \ Set \ in \ Candidates)$', r'$|Candidate \ Set|$'])}
+                "yal": iter(['P(Correct Star Set in Candidates)', r'$|$Candidate Set$|$'])}
 
 # Plot parameters for alignment trials.
 # noinspection PyRedeclaration
-alignment_params = {"yll": iter([[0, 10e-0-15], [0, 1.0e-04]]),
-                    "xtl": iter([['5.5', '6.0', '6.5', '7.0', '7.5']] +
-                                [[r'$0^{\circ}$'] + [r'$(1.0\times10^{-7})^{\circ}$'] + [r'$(1.0\times10^{-6})^{\circ}$']
-                                 + [r'$(1.0\times10^{-5})^{\circ}$'] + [r'$(1.0\times10^{-4})^{\circ}$']]),
+alignment_params = {"yll": iter([[0, 0.002], [0, 1]]),
+                    "xtl": iter([['6.0', '6.25', '6.5', '6.75', '7.0']] +
+                                [[r'$0$'] + [r'$10^{-6}$'] + [r'$10^{-5}$'] + [r'$10^{-4}$'] + [r'$10^{-3}$']]),
                     "ll": iter([['Angle', 'Spherical Triangle', 'Planar Triangle', 'Pyramid', 'CoIn']
                                 for _ in range(2)]),
-                    "xal": iter([r'$Camera \ Sensitivity \ (m)$', r'Noise (degrees)']),
-                    "yal": iter([r'$|| Catalog \ Vector - Estimated \ Vector ||$' for _ in range(2)])}
+                    "xal": iter([r'Camera Sensitivity (m)', 'Noise (Degrees)']),
+                    "yal": iter([r'Rotational Error' for _ in range(2)])}
 
 # Plot parameters for reduction trials.
 # noinspection PyRedeclaration
-reduction_params = {"yll": iter([[0, 1], [0, 1]]),
-                    "xtl": iter([[r'$0^{\circ}$'] + [r'$(1.0\times10^{-7})^{\circ}$'] + [r'$(1.0\times10^{-6})^{\circ}$']
-                                 + [r'$(1.0\times10^{-5})^{\circ}$'] + [r'$(1.0\times10^{-4})^{\circ}$']] +
+reduction_params = {"yll": iter([[0, 1.05], [0, 1]]),
+                    "xtl": iter([[r'$0$'] + [r'$10^{-7}$'] + [r'$10^{-6}$'] + [r'$10^{-5}$'] + [r'$10^{-4}$']] +
                                 [['6.0'] + ['6.25'] + ['6.5'] + ['6.75'] + ['7.0']]),
                     "ll": iter([['Angle', 'Spherical Triangle', 'Planar Triangle', 'Pyramid', 'CoIn']
                                 for _ in range(2)]),
-                    "xal": iter([r'$Noise$'] + [r'$Camera Sensitivity$']),
-                    "yal": iter([r'P(Correct Star Set After Reduction)' for _ in range(2)])}
+                    "xal": iter(['Noise (Degrees)'] + ['Camera Sensitivity (m)']),
+                    "yal": iter(['P(Correct Star Set After Reduction)' for _ in range(2)])}
 
 # Plot parameters for semi-crown trials.
-semi_crown_params = {"yll": iter([[0, 10e-15], [0, 10e-15], [0, 1.3], [0, 100]]),
-                     "xtl": iter([]),
-                     "ll": iter([]),
-                     "xal": iter([]),
-                     "yal": iter([])}
+semi_crown_params = {"yll": iter([[0, 1], [0, 1], [0, 1.3], [0, 40]]),
+                     "xtl": iter([['0', '5', '10', '15', '20']] +
+                                 [[r'$0$'] + [r'$10^{-7}$'] + [r'$10^{-6}$'] + [r'$10^{-5}$'] + [r'$10^{-4}$']] +
+                                 [['0', '5', '10', '15', '20']] +
+                                 [[r'$0$'] + [r'$10^{-7}$'] + [r'$10^{-6}$'] + [r'$10^{-5}$'] + [r'$10^{-4}$']]),
+                     "ll": iter([['Angle', 'Spherical Triangle', 'Planar Triangle', 'Pyramid', 'CoIn']
+                                 for _ in range(4)]),
+                     "xal": iter(['False Stars'] + ['Noise (Degrees)'] + ['False Stars'] + ['Noise (Degrees)']),
+                     "yal": iter(['Rotational Error'] + ['Rotational Error'] + ['Star Sets Exhausted'] +
+                                 ['Star Sets Exhausted'])}
 
 # Plot parameters for crown trials.
 # noinspection PyRedeclaration
-crown_params = {"yll": iter([[0, 1], [0, 100], [0, 1], [0, 100]]),
-                "xtl": iter([['0', '0.1', '0.2', '0.3', '0.4']] + [['0', '0.1', '0.2', '0.3', '0.4']] +
-                            [[r'$0^{\circ}$'] + [r'$0.001^{\circ}$'] + [r'$0.002^{\circ}$'] + [r'$0.003^{\circ}$'] +
-                             [r'$0.004^{\circ}$']] +
-                            [[r'$0^{\circ}$'] + [r'$0.001^{\circ}$'] + [r'$0.002^{\circ}$'] + [r'$0.003^{\circ}$'] +
-                             [r'$0.004^{\circ}$']]),
-                "ll": iter([['Angle', 'Spherical Triangle', 'Planar Triangle', 'Pyramid', 'CoIn']
-                            for _ in range(4)]),
-                "xal": iter([r'$Percentage \ of \ False \ Stars$', r'$Percentage \ of \ False \ Stars$',
-                             'Centroiding Error (Degrees)', 'Centroiding Error (Degrees)']),
-                "yal": iter([r'$|Correct \ Stars| / |Total \ Number \ of \ True \ Stars|$',
-                             r'$Number \ of \ Star \ Sets \ Exhausted$',
-                             'Percentage of Correct Identification', 'Times we Pick Query Stars'])}
+crown_params = {"yll": iter([]),
+                "xtl": iter([]),
+                "ll": iter([]),
+                "xal": iter([]),
+                "yal": iter([])}
 
 
 def visualize_trial(angle_log, sphere_log, plane_log, pyramid_log, coin_log):
@@ -95,9 +89,9 @@ def visualize_trial(angle_log, sphere_log, plane_log, pyramid_log, coin_log):
             open(pyramid_log, 'r') as f_4, open(coin_log, 'r') as f_5:
         csvs = list(map(lambda f: csv.reader(f, delimiter=','), [f_1, f_2, f_3, f_4, f_5]))
 
-    # with open(angle_log, 'r') as f_1, open(sphere_log, 'r') as f_2, open(pyramid_log, 'r') as f_4, \
-    #         open(coin_log, 'r') as f_5:
-    #     csvs = list(map(lambda f: csv.reader(f, delimiter=','), [f_1, f_2, f_4, f_5]))
+        # with open(angle_log, 'r') as f_1, open(sphere_log, 'r') as f_2, open(pyramid_log, 'r') as f_4, \
+        #         open(coin_log, 'r') as f_5:
+        #     csvs = list(map(lambda f: csv.reader(f, delimiter=','), [f_1, f_2, f_4, f_5]))
 
         # Parse our header, and the rest of the logs.
         attributes = list(map(lambda c: next(c), csvs))
