@@ -214,6 +214,25 @@ void Chomp::load_all_stars () {
     }
 }
 
+/// Search a table for the specified fields given a focus column using a simple bound query. Searches for all results
+/// between y_a and y_b.
+///
+/// @param focus Our search attribute.
+/// @param fields The attributes to search for in the given table.
+/// @param y_a Lower bound of the focus to search for.
+/// @param y_b Upper bound of the focus to search for.
+/// @param limit Maximum number of results to retrieve.
+/// @return A list of results (in form of tuples), in order of that queried from Nibble.
+Nibble::tuples_d Chomp::simple_bound_query (const std::string &focus, const std::string &fields, const double y_a,
+                                            const double y_b, const unsigned int limit) {
+    std::ostringstream condition;
+    
+    select_table(table);
+    condition << focus << " BETWEEN " << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed;
+    condition << y_a << " AND " << y_b;
+    return search_table(fields, condition.str(), limit * 3, limit);
+}
+
 /// A helper method for the create_k_vector function. Build the K-Vector table for the given table using the
 /// specified focus column and Z-equation description. K(i) = j represents how many elements j in our s_vector (the
 /// focus column) are below Z(i).

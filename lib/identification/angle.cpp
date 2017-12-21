@@ -22,7 +22,7 @@ Angle::Angle (const Benchmark &input, const Parameters &p) {
 /// @param fov Field of view limit (degrees) that all pairs must be within.
 /// @param table_name Name of the table to generate.
 /// @return 0 when finished.
-int Angle::generate_sep_table (const double fov, const std::string &table_name) {
+int Angle::generate_ang_table (const double fov, const std::string &table_name) {
     Chomp ch;
     SQLite::Transaction transaction(*ch.db);
     ch.create_table(table_name, "label_a INT, label_b INT, theta FLOAT");
@@ -55,16 +55,12 @@ int Angle::generate_sep_table (const double fov, const std::string &table_name) 
 /// @return [-1][-1] if no candidates found. Two element array of the matching catalog IDs otherwise.
 Angle::label_pair Angle::query_for_pair (const double theta) {
     // Noise is normally distributed. Angle within 3 sigma of theta.
-    double epsilon = 3.0 * this->parameters.query_sigma;
-    unsigned int limit = this->parameters.query_limit;
-    std::ostringstream condition;
+    double epsilon = 3.0 * this->parameters.sigma_query;
+    unsigned int limit = this->parameters.sql_limit;
     Nibble::tuples_d candidates;
     
     // Query using theta with epsilon bounds. Return [-1][-1] if nothing is found.
-    ch.select_table(parameters.table_name);
-    condition << "theta BETWEEN " << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed;
-    condition << theta - epsilon << " AND " << theta + epsilon;
-    candidates = ch.search_table("label_a, label_b, theta", condition.str(), limit * 3, limit);
+    candidates = ch.simple_bound_query("theta", "label_a, label_b, theta", theta - epsilon, theta + epsilon, limit);
     if (candidates.empty()) {
         return label_pair {-1, -1};
     }
@@ -107,35 +103,6 @@ Star::pair Angle::find_candidate_pair (const Star &b_a, const Star &b_b) {
     return {ch.query_hip(candidates[0]), ch.query_hip(candidates[1])};
 }
 
-/// Rotate every point the given rotation and check if the angle of separation between any two stars is within a
-/// given limit sigma.
-///
-/// @param candidates All stars to check against the body star set.
-/// @param q The rotation to apply to all stars.
-/// @return Set of matching stars found in candidates and the body sets.
-Star::list Angle::find_matches (const Star::list &candidates, const Rotation &q) {
-    Star::list matches, non_matched = this->input;
-    double epsilon = 3.0 * this->parameters.match_sigma;
-    matches.reserve(this->input.size());
-    
-    for (const Star &candidate : candidates) {
-        Star r_prime = Rotation::rotate(candidate, q);
-        for (unsigned int i = 0; i < non_matched.size(); i++) {
-            if (Star::angle_between(r_prime, non_matched[i]) < epsilon) {
-                // Add this match to the list by noting the candidate star's catalog ID.
-                matches.emplace_back(
-                    Star(non_matched[i][0], non_matched[i][1], non_matched[i][2], candidate.get_label()));
-                
-                // Remove the current star from the searching set. End the search for this star.
-                non_matched.erase(non_matched.begin() + i);
-                break;
-            }
-        }
-    }
-    
-    return matches;
-}
-
 /// Find the best fitting match of input stars (frame B) to database stars (frame R) using the given pair as reference.
 /// Both possible configurations are searched for:
 ///
@@ -161,76 +128,17 @@ Star::list Angle::check_assumptions (const Star::list &candidates, const Star::p
     return matches[0].size() > matches[1].size() ? matches[0] : matches[1];
 }
 
-/// Match the stars found in the given benchmark to those in the Nibble database.
-///
-/// @param input The set of benchmark data to work with.
-/// @param parameters Adjustments to the identification process.
-/// @param z Reference to variable that will hold the input comparison count.
-/// @return Empty list if an image match cannot be found in "time". Otherwise, a vector of body stars with their
-/// inertial catalog IDs that qualify as matches.
-Star::list Angle::identify (const Benchmark &input, const Parameters &parameters, unsigned int &z) {
-    Star::list matches;
-    Angle a(input, parameters);
-    z = 0;
-    
-    // There exists |A_input| choose 2 possibilities.
-    for (int i = 0; i < (signed) a.input.size() - 1; i++) {
-        for (int j = i + 1; j < (signed) a.input.size(); j++) {
-            Star::list candidates;
-            z++;
-            
-            // Narrow down current pair to two stars in catalog. The order is currently unknown.
-            Star::pair candidate_pair = a.find_candidate_pair(a.input[i], a.input[j]);
-            if (Star::is_equal(candidate_pair[0], Star()) && Star::is_equal(candidate_pair[1], Star())) {
-                break;
-            }
-            
-            // Find candidate stars around the candidate pair.
-            candidates = a.ch.nearby_hip_stars(candidate_pair[0], a.fov, 3 * ((unsigned int) a.input.size()));
-            
-            // Check both possible configurations. Return the most likely of the two.
-            matches = a.check_assumptions(candidates, candidate_pair, {a.input[i], a.input[j]});
-            
-            // Practical limit: exit early if we have iterated through too many comparisons without match.
-            if (z > a.parameters.z_max) {
-                return {};
-            }
-            
-            // Definition of image match: |match| > match minimum OR |match| == |input|.
-            if (matches.size() > a.parameters.match_minimum || matches.size() == a.input.size()) {
-                return matches;
-            }
-        }
-    }
-    
-    // Return an empty list if no matches found.
-    return matches;
-}
-
-/// Overloaded to not include the comparison count parameter. Match the stars found in the given benchmark to those in
-/// the Nibble database.
-///
-/// @param input The set of benchmark data to work with.
-/// @param parameters Adjustments to the identification process.
-/// @return Vector of body stars with their inertial BSC IDs that qualify as matches.
-Star::list Angle::identify (const Benchmark &input, const Parameters &parameters) {
-    unsigned int z = 0;
-    return Angle::identify(input, parameters, z);
-}
-
-/// Reproduction of the Angle method's Nibble querying. Unlike the one used in identification, this does not restrict
-/// our results (no LIMIT in query) and does not return the most likely match. Messy, but gets the job done. (:
-///
-/// **Need to select the proper table before calling this method.**
+/// Reproduction of the Angle method's database querying. **Need to select the proper table before calling this
+/// method.**
 ///
 /// @param ch Open Nibble connection with Chomp.
 /// @param s_1 Star one to query with.
 /// @param s_2 Star two to query with.
-/// @param query_sigma Theta must be within 3 * query_sigma to appear in results.
+/// @param sigma_query Theta must be within 3 * query_sigma to appear in results.
 /// @return Vector of likely matches found by the angle method.
-std::vector<Angle::label_pair> Angle::trial_query (Chomp &ch, const Star &s_1, const Star &s_2,
-                                                   const double query_sigma) {
-    double epsilon = 3.0 * query_sigma, theta = Star::angle_between(s_1, s_2);
+std::vector<Angle::label_pair> Angle::experiment_query (Chomp &ch, const Star &s_1, const Star &s_2,
+                                                        double sigma_query) {
+    double epsilon = 3.0 * sigma_query, theta = Star::angle_between(s_1, s_2);
     std::ostringstream condition;
     std::vector<Angle::label_pair> r_bar;
     
@@ -249,29 +157,35 @@ std::vector<Angle::label_pair> Angle::trial_query (Chomp &ch, const Star &s_1, c
 }
 
 /// Reproduction of the Angle method's querying to candidate reduction step. This returns the first match found by our
-/// trial_query method.
-///
-/// **Need to select the proper table before calling this method.**
+/// trial_query method. **Need to select the proper table before calling this method.**
 ///
 /// @param ch Open Nibble connection with Chomp.
 /// @param s_1 Star one to query with.
 /// @param s_2 Star two to query with.
-/// @param query_sigma Theta must be within 3 * query_sigma to appear in results.
+/// @param sigma_query Theta must be within 3 * query_sigma to appear in results.
 /// @return [0, 0] if no match is found. Otherwise, a single match for the given stars s_1 and s_2.
-Angle::label_pair Angle::trial_reduction (Chomp &ch, const Star &s_1, const Star &s_2, double query_sigma) {
-    std::vector<label_pair> p = trial_query(ch, s_1, s_2, query_sigma);
+Angle::label_pair Angle::experiment_reduction (Chomp &ch, const Star &s_1, const Star &s_2, double sigma_query) {
+    std::vector<label_pair> p = experiment_query(ch, s_1, s_2, sigma_query);
     return p.empty() ? (label_pair) {0, 0} : p[0];
 }
 
 /// Reproduction of the Angle method's check_assumption. Unlike the method used in identification, this does not
 /// return the larger star list, but rather the resulting attitude.
 ///
+/// @param ch Open Nibble connection with Chomp.
+/// @param image All stars that exist in the image.
 /// @param candidates All stars found near the inertial pair.
 /// @param r Inertial (frame R) pair of stars that match the body pair.
 /// @param b Body (frame B) pair of stars that match the inertial pair.
 /// @return The quaternion associated with the largest set of matching stars across the body and inertial in both
 /// pairing configurations.
-Rotation Angle::trial_attitude_determine (const Star::list &candidates, const Star::pair &r, const Star::pair &b) {
+Rotation Angle::experiment_alignment (Chomp &ch, const Benchmark &input, const Star::list &candidates,
+                                      const Star::pair &r, const Star::pair &b, double sigma_overlay) {
+    Angle::Parameters p;
+    p.sigma_overlay = sigma_overlay;
+    Angle a(input, p);
+    
+    // We have two configurations here.
     std::array<Star::pair, 2> assumption_list = {r, {r[1], r[0]}};
     std::array<Star::list, 2> matches;
     std::array<Rotation, 2> q;
@@ -279,30 +193,28 @@ Rotation Angle::trial_attitude_determine (const Star::list &candidates, const St
     // Determine the rotation to take frame B to A, find all matches with this rotation.
     for (unsigned int i = 0; i < assumption_list.size(); i++) {
         q[i] = Rotation::rotation_across_frames(b, assumption_list[i]);
-        matches[i] = this->find_matches(candidates, q[i]);
+        matches[i] = a.find_matches(candidates, q[i]);
     }
     
     // Return the rotation associated with the largest set of matches.
     return matches[0].size() > matches[1].size() ? q[0] : q[1];
 }
 
-/// Reproduction of the Angle method's process from beginning to the orientation determination. Unlike our main
-/// identify method, this does not perform our match step.
+/// Reproduction of the Angle method's process from beginning to the orientation determination.
 ///
 /// @param input The set of benchmark data to work with.
-/// @param parameters Adjustments to the identification process.
-/// @param z Reference to variable that will hold the input comparison count.
+/// @param p Adjustments to the identification process.
 /// @return Identity quaternion if no rotation can be found. Otherwise, the resulting rotation after our attitude
 /// determination step.
-Rotation Angle::trial_semi_crown (const Benchmark &input, const Parameters &parameters, unsigned int &z) {
-    Angle a(input, parameters);
-    z = 0;
+Rotation Angle::experiment_attitude (const Benchmark &input, const Parameters &p) {
+    Angle a(input, p);
+    *p.nu = 0;
     
     // There exists |A_input| choose 2 possibilities.
     for (int i = 0; i < (signed) a.input.size() - 1; i++) {
         for (int j = i + 1; j < (signed) a.input.size(); j++) {
             Star::list candidates;
-            z++;
+            (*p.nu)++;
             
             // Narrow down current pair to two stars in catalog. The order is currently unknown.
             Star::pair candidate_pair = a.find_candidate_pair(a.input[i], a.input[j]);
@@ -312,11 +224,57 @@ Rotation Angle::trial_semi_crown (const Benchmark &input, const Parameters &para
             
             // Find candidate stars around the candidate pair.
             candidates = a.ch.nearby_hip_stars(candidate_pair[0], a.fov, 3 * ((unsigned int) a.input.size()));
-    
+            
             // Find the most likely rotation given the two pairs.
-            return a.trial_attitude_determine(candidates, candidate_pair, {a.input[i], a.input[j]});
+            return a.experiment_alignment(a.ch, input, candidates, candidate_pair, {a.input[i], a.input[j]},
+                                          p.sigma_overlay);
         }
     }
     
     return Rotation::identity();
+}
+
+/// Match the stars found in the given benchmark to those in the Nibble database.
+///
+/// @param input The set of benchmark data to work with.
+/// @param p Adjustments to the identification process.
+/// @return Empty list if an image match cannot be found in "time". Otherwise, a vector of body stars with their
+/// inertial catalog IDs that qualify as matches.
+Star::list Angle::experiment_crown (const Benchmark &input, const Parameters &p) {
+    Star::list matches;
+    Angle a(input, p);
+   *p.nu = 0;
+    
+    // There exists |A_input| choose 2 possibilities.
+    for (int i = 0; i < (signed) a.input.size() - 1; i++) {
+        for (int j = i + 1; j < (signed) a.input.size(); j++) {
+            Star::list candidates;
+            (*p.nu)++;
+            
+            // Narrow down current pair to two stars in catalog. The order is currently unknown.
+            Star::pair candidate_pair = a.find_candidate_pair(a.input[i], a.input[j]);
+            if (Star::is_equal(candidate_pair[0], Star()) && Star::is_equal(candidate_pair[1], Star())) {
+                break;
+            }
+            
+            // Find candidate stars around the candidate pair.
+            candidates = a.ch.nearby_hip_stars(candidate_pair[0], a.fov, 3 * ((unsigned int) a.input.size()));
+            
+            // Check both possible configurations. Return the most likely of the two.
+            matches = a.check_assumptions(candidates, candidate_pair, {a.input[i], a.input[j]});
+            
+            // Practical limit: exit early if we have iterated through too many comparisons without match.
+            if (*p.nu > a.parameters.nu_max) {
+                return {};
+            }
+            
+            // Definition of image match: |match| > gamma minimum OR |match| == |input|.
+            if (matches.size() > a.parameters.gamma || matches.size() == a.input.size()) {
+                return matches;
+            }
+        }
+    }
+    
+    // Return an empty list if no matches found.
+    return matches;
 }

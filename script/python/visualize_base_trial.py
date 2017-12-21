@@ -7,7 +7,8 @@ import numpy as np
 import os, csv, sys
 
 
-def bar_plot(ppv, log, k, x_index, y_index, restrict_d=None, restrict_y=lambda h: h, y_divisor=None, display_err=True):
+def bar_plot(ppv, log, k, x_index, y_index, restrict_d=None, restrict_y=lambda h: True, y_divisor=None,
+             display_err=True):
     """ Generic bar plot function, given the indices of the X and Y data (with respect the the log), as well as a
     restriction function.
 
@@ -43,11 +44,12 @@ def bar_plot(ppv, log, k, x_index, y_index, restrict_d=None, restrict_y=lambda h
     for i in range(len(x_count)):
         for j in range(10):
             b, e = int((ppv / 10) * j), int((ppv / 10) * (j + 1))
-            avg_y[i].append(np.mean(np.array(y_list[i])[b:]))
+            raw = np.array(y_list[i])[b:]
+            avg_y[i].append(np.mean([y if restrict_y(y) else 0 for y in raw]))
 
     # Determine the deviations of this data.
-    for i in range(len(x_count)):
-        std_y[i] = np.std(avg_y[i])
+    std_y = list(map(lambda s: np.std(s), avg_y))
+    print('{} : {}'.format(log[0][0], std_y))
 
     # Plot the bar chart of our averages, as well as the corresponding error bars.
     if display_err:
@@ -72,7 +74,7 @@ def plot_add_info(params):
     plt.xticks(np.arange(len(x_labels)), x_labels)
 
     # Add the legend.
-    leg = plt.legend(next(params["ll"]))
+    leg = plt.legend(next(params["ll"]), fontsize=18)
     leg.draggable(True)
 
     # Add the chart X and Y labels.
@@ -93,12 +95,12 @@ def query_trial_plot(ppv, log_sets, plot_params):
     plt.rc('text', usetex=True), plt.rc('font', family='serif', size=12)
 
     plt.figure()
-    [bar_plot(ppv, log, k, 2, 4, display_err=True) for k, log in enumerate(log_sets)]
+    [bar_plot(ppv, log, k, 2, 4) for k, log in enumerate(log_sets)]
     plot_add_info(plot_params)
 
     plt.figure()
     # [bar_plot(ppv, log, k, 2, 3, restrict_y=lambda h: [a for a in h if a > 1]) for k, log in enumerate(log_sets)]
-    [bar_plot(ppv, log, k, 2, 3, display_err=True) for k, log in enumerate(log_sets)]
+    [bar_plot(ppv, log, k, 2, 3) for k, log in enumerate(log_sets)]
     plot_add_info(plot_params)
 
     plt.show()
@@ -118,7 +120,7 @@ def alignment_trial_plot(ppv, log_sets, plot_params):
     plt.rc('text', usetex=True), plt.rc('font', family='serif', size=12)
 
     plt.figure()
-    [bar_plot(ppv, log, k, 3, 6, lambda g: g[2] == '1e-07') for k, log in enumerate(log_sets)]
+    [bar_plot(ppv, log, k, 3, 6, lambda g: g[2] == '1e-05') for k, log in enumerate(log_sets)]
     plot_add_info(plot_params)
     plt.yscale('log')
 
@@ -141,7 +143,7 @@ def reduction_trial_plot(ppv, log_sets, plot_params):
     :param plot_params: The variables that determine how to decorate the plot.
     :return: None.
     """
-    plt.rc('text', usetex=True), plt.rc('font', family='serif', size=12)
+    plt.rc('text', usetex=True), plt.rc('font', family='serif', size=25)
 
     # Plot #1: Shift Sigma vs. P(Correctly Identified Star Set)
     plt.figure()
@@ -150,7 +152,7 @@ def reduction_trial_plot(ppv, log_sets, plot_params):
 
     # Plot #2: Camera Sensitivity vs. P(Correctly Identified Star Set)
     plt.figure()
-    [bar_plot(ppv, log, k, 4, 5, lambda g: g[3] == '1e-07') for k, log in enumerate(log_sets)]
+    [bar_plot(ppv, log, k, 4, 5, lambda g: g[3] == '1e-05') for k, log in enumerate(log_sets)]
     plot_add_info(plot_params)
 
     plt.show()
@@ -159,9 +161,9 @@ def reduction_trial_plot(ppv, log_sets, plot_params):
 def semi_crown_trial_plot(ppv, log_sets, plot_params):
     """ For every log in log_sets (which hold sets of tuples), display a plot comparing each.
 
-    The following plots are displayed: False Percentage vs. Rotational Error
+    The following plots are displayed: False Stars vs. Rotational Error
                                        Shift Sigma vs. Rotational Error
-                                       False Percentage vs. Number of Star Sets Exhausted
+                                       False Stars vs. Number of Star Sets Exhausted
                                        Shift Sigma vs. Number of Star Sets Exhausted
 
     :param ppv: The number of points per variation of each trial.
@@ -169,23 +171,26 @@ def semi_crown_trial_plot(ppv, log_sets, plot_params):
     :param plot_params: The variables that determine how to decorate the plot.
     :return: None.
     """
-    plt.rc('text', usetex=True), plt.rc('font', family='serif', size=12)
+    plt.rc('text', usetex=True), plt.rc('font', family='serif', size=25)
 
     plt.figure()
-    [bar_plot(ppv, log, k, 5, 7, lambda g: g[4] == '6') for k, log in enumerate(log_sets)]
-    # plot_add_info(plot_params)
+    [bar_plot(ppv, log, k, 5, 7, lambda g: g[3] == '0' and g[4] == '6') for k, log in enumerate(log_sets)]
+    plot_add_info(plot_params)
+
+    # Need to keep false stars zero here.
+    plt.figure()
+    [bar_plot(ppv, log, k, 3, 7, lambda g: g[4] == '6' and g[5] == '0')
+     for k, log in enumerate(log_sets)]
+    plot_add_info(plot_params)
 
     plt.figure()
-    [bar_plot(ppv, log, k, 4, 7, lambda g: g[5] == '1e-07') for k, log in enumerate(log_sets)]
-    # plot_add_info(plot_params)
+    [bar_plot(ppv, log, k, 5, 6, lambda g: g[3] == '0' and g[4] == '6') for k, log in enumerate(log_sets)]
+    plot_add_info(plot_params)
 
+    # Need to keep false stars zero here.
     plt.figure()
-    [bar_plot(ppv, log, k, 5, 6, lambda g: g[4] == '6') for k, log in enumerate(log_sets)]
-    # plot_add_info(plot_params)
-
-    plt.figure()
-    [bar_plot(ppv, log, k, 4, 6, lambda g: g[5] == '1e-07') for k, log in enumerate(log_sets)]
-    # plot_add_info(plot_params)
+    [bar_plot(ppv, log, k, 3, 6, lambda g: g[4] == '6' and g[5] == '0') for k, log in enumerate(log_sets)]
+    plot_add_info(plot_params)
 
     plt.show()
 
@@ -204,28 +209,21 @@ def crown_trial_plot(ppv, log_sets, plot_params):
     :return: None.
     """
     plt.rc('text', usetex=True), plt.rc('font', family='serif', size=12)
-    sigma_set = ['0', '0.001', '0.002', '0.003', '0.004']
 
-    # Plot #1: False Percentage vs. |Correct Stars| / |Total Number of True Stars|
-    plt.figure(), plt.subplot(121)
-    [bar_plot(ppv, log, k, 5, 9, lambda g: g[3] == sigma_set[3] and g[4] == '6.5') for k, log in enumerate(log_sets)]
-    plot_add_info(plot_params)
-
-    # Plot #2: False Percentage vs. Number of Star Sets Exhausted
-    plt.subplot(122)
-    [bar_plot(ppv, log, k, 5, 6, lambda g: g[3] == sigma_set[3] and g[4] == '6.5') for k, log in enumerate(log_sets)]
-    plot_add_info(plot_params)
-
-    # Plot 3: Shift Sigma vs. |Correct Stars| / |Total Number of True Stars|
     plt.figure()
-    [bar_plot(log, k, 3, 9, lambda g: g[5] == '0' and g[4] == '6' and g[3] in sigma_set)
-     for k, log in enumerate(log_sets)]
-    plot_add_info(plot_params)
+    [bar_plot(ppv, log, k, 5, 9, lambda g: g[3] == '0' and g[4] == '6') for k, log in enumerate(log_sets[:-1])]
+    # plot_add_info(plot_params)
 
-    # Plot 4: Shift Sigma vs. Number of Star Sets Exhausted
     plt.figure()
-    [bar_plot(log, k, 3, 6, lambda g: g[5] == '0' and g[4] == '6' and g[3] in sigma_set)
-     for k, log in enumerate(log_sets)]
-    plot_add_info(plot_params)
+    [bar_plot(ppv, log, k, 5, 6, lambda g: g[3] == '0' and g[4] == '6') for k, log in enumerate(log_sets[:-1])]
+    # plot_add_info(plot_params)
+
+    plt.figure()
+    [bar_plot(ppv, log, k, 3, 9, lambda g: g[5] == '0' and g[4] == '6') for k, log in enumerate(log_sets[:-1])]
+    # plot_add_info(plot_params)
+
+    plt.figure()
+    [bar_plot(ppv, log, k, 3, 6, lambda g: g[5] == '0' and g[4] == '6') for k, log in enumerate(log_sets[:-1])]
+    # plot_add_info(plot_params)
 
     plt.show()

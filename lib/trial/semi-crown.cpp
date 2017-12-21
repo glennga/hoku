@@ -86,7 +86,7 @@ void SemiCrown::trial_angle (Chomp &ch, std::ofstream &log) {
                     // Log our results.
                     log << "Angle," << par.match_sigma << "," << par.query_sigma << ","
                         << ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << "," << p
-                        << "," << z << "," << Rotation::rotation_difference(q_actual, q, inertial[0]).norm()
+                        << "," << z << "," << Rotation::rotation_difference(q_actual, q, body[0]).norm()
                         << "\n";
                 }
             }
@@ -133,7 +133,7 @@ void SemiCrown::trial_plane (Chomp &ch, std::ofstream &log) {
                     // Log our results.
                     log << "Plane," << par.match_sigma << "," << par.sigma_a << ","
                         << ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << "," << p
-                        << "," << z << "," << Rotation::rotation_difference(q_actual, q, inertial[0]).norm()
+                        << "," << z << "," << Rotation::rotation_difference(q_actual, q, body[0]).norm()
                         << "\n";
                 }
             }
@@ -180,7 +180,7 @@ void SemiCrown::trial_sphere (Chomp &ch, std::ofstream &log) {
                     // Log our results.
                     log << "Sphere," << par.match_sigma << "," << par.sigma_a << ","
                         << ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << "," << p
-                        << "," << z << "," << Rotation::rotation_difference(q_actual, q, inertial[0]).norm()
+                        << "," << z << "," << Rotation::rotation_difference(q_actual, q, body[0]).norm()
                         << "\n";
                 }
             }
@@ -226,7 +226,7 @@ void SemiCrown::trial_pyramid (Chomp &ch, std::ofstream &log) {
                     // Log our results.
                     log << "Pyramid," << par.match_sigma << "," << par.query_sigma << ","
                         << ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << "," << p
-                        << "," << z << "," << Rotation::rotation_difference(q_actual, q, inertial[0]).norm()
+                        << "," << z << "," << Rotation::rotation_difference(q_actual, q, body[0]).norm()
                         << "\n";
                 }
             }
@@ -273,7 +273,7 @@ void SemiCrown::trial_coin (Chomp &ch, std::ofstream &log) {
                     // Log our results.
                     log << "Coin," << par.match_sigma << "," << par.sigma_a << ","
                         << ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << "," << p
-                        << "," << z << "," << Rotation::rotation_difference(q_actual, q, inertial[0]).norm()
+                        << "," << z << "," << Rotation::rotation_difference(q_actual, q, body[0]).norm()
                         << "\n";
                 }
             }
