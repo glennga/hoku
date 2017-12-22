@@ -10,10 +10,10 @@
 /// @param i The i'th component from the observer to the star.
 /// @param j The j'th component from the observer to the star.
 /// @param k The k'th component from the observer to the star.
-/// @param hr The catalog ID of the star, found in the Yale Bright Star Catalog.
+/// @param label The catalog ID of the star.
 /// @param m Apparent magnitude of the given star.
 /// @param set_unit If true, normalize the star. Otherwise, directly set the i, j, and k.
-Star::Star (const double i, const double j, const double k, const int hr, const double m, const bool set_unit) {
+Star::Star (const double i, const double j, const double k, const int label, const double m, const bool set_unit) {
     if (!set_unit) {
         this->i = i, this->j = j, this->k = k;
     }
@@ -22,7 +22,7 @@ Star::Star (const double i, const double j, const double k, const int hr, const 
         this->i = s.i, this->j = s.j, this->k = s.k;
     }
     
-    this->label = hr;
+    this->label = label;
     this->m = m;
 }
 
@@ -151,11 +151,11 @@ Star Star::chance (std::random_device &seed) {
 /// of 0, the user can assign one of their own.
 ///
 /// @param seed Random device to use when generating star.
-/// @param hr Catalog ID to use with the randomized star.
+/// @param label Catalog ID to use with the randomized star.
 /// @return Star with random, normalized components and a catalog ID = 0.
-Star Star::chance (std::random_device &seed, const int hr) {
+Star Star::chance (std::random_device &seed, const int label) {
     Star s = chance(seed);
-    s.label = hr;
+    s.label = label;
     
     return s;
 }

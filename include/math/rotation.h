@@ -36,21 +36,21 @@ class Rotation {
     Rotation () = default;
   
   public:
-    bool operator== (const Rotation &) const;
+    bool operator== (const Rotation &q) const;
     
-    static Star rotate (const Star &, const Rotation &);
-    static Star shake (const Star &, double, std::random_device &);
+    static Star rotate (const Star &s, const Rotation &q);
+    static Star shake (const Star &s, double sigma, std::random_device &seed);
     
-    static double angle_between (const Rotation &, const Rotation &);
-    static Star rotation_difference (const Rotation &, const Rotation &, const Star &);
+    static double angle_between (const Rotation &q_1, const Rotation &q_2);
+    static Star rotation_difference (const Rotation &q_1, const Rotation &q_2, const Star &s);
     
     static Rotation identity ();
-    static Rotation chance (std::random_device &);
+    static Rotation chance (std::random_device &seed);
     
-    static Rotation rotation_across_frames (const Star::pair &, const Star::pair &);
+    static Rotation rotation_across_frames (const Star::pair &r, const Star::pair &b);
 
 #if !defined ENABLE_TESTING_ACCESS
-  private:
+    private:
 #endif
     /// Precision default for '==' method.
     constexpr static double ROTATION_EQUALITY_PRECISION_DEFAULT = 0.000000000001;
@@ -59,16 +59,16 @@ class Rotation {
     using matrix = std::array<Star, 3>;
 
 #if !defined ENABLE_TESTING_ACCESS
-  private:
+    private:
 #endif
-    Rotation (double, const Star &, bool = false);
+    Rotation (double w, const Star &v, bool as_unit = false);
     
-    static Rotation multiply (const Rotation &, const Rotation &);
-    static Rotation matrix_to_quaternion (const matrix &);
-    static matrix matrix_multiply_transpose (const matrix &, const matrix &);
+    static Rotation multiply (const Rotation &q_1, const Rotation &q_2);
+    static Rotation matrix_to_quaternion (const matrix &r);
+    static matrix matrix_multiply_transpose (const matrix &a, const matrix &b);
 
 #if !defined ENABLE_TESTING_ACCESS
-  private:
+    private:
 #endif
     /// W component, or the sole real component of a quaternion. Defaults to one (identity quaternion).
     double w = 1;

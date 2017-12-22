@@ -40,49 +40,49 @@ class Star {
     using pair = std::array<Star, 2>;
 
 #if !defined ENABLE_TESTING_ACCESS
-  private:
+    private:
 #endif
     /// Precision default for is_equal and '==' methods.
     constexpr static double STAR_EQUALITY_PRECISION_DEFAULT = 0.000000000001;
   
   public:
-    Star (double, double, double, int = 0, double = -30.0, bool = false);
+    Star (double i, double j, double k, int label = 0, double m = -30.0, bool set_unit = false);
     Star ();
     
     std::string str () const;
     
-    double operator[] (unsigned int) const;
+    double operator[] (unsigned int n) const;
     int get_label () const;
     double get_magnitude () const;
     
-    Star operator+ (const Star &) const;
-    Star operator- (const Star &) const;
+    Star operator+ (const Star &s) const;
+    Star operator- (const Star &s) const;
     
-    Star operator* (double) const;
+    Star operator* (double kappa) const;
     
     double norm () const;
     
     Star as_unit () const;
     
-    static bool is_equal (const Star &, const Star &, double = STAR_EQUALITY_PRECISION_DEFAULT);
-    bool operator== (const Star &) const;
+    static bool is_equal (const Star &s_1, const Star &s_2, double epsilon = STAR_EQUALITY_PRECISION_DEFAULT);
+    bool operator== (const Star &s) const;
     
     static Star zero ();
     
-    static Star chance (std::random_device &);
-    static Star chance (std::random_device &, int);
+    static Star chance (std::random_device &seed);
+    static Star chance (std::random_device &seed, int label);
     
-    static double dot (const Star &, const Star &);
-    static Star cross (const Star &, const Star &);
+    static double dot (const Star &s_1, const Star &s_2);
+    static Star cross (const Star &s_1, const Star &s_2);
     
-    static double angle_between (const Star &, const Star &);
-    static bool within_angle (const Star &, const Star &, double);
-    static bool within_angle (const list &, double);
+    static double angle_between (const Star &s_1, const Star &s_2);
+    static bool within_angle (const Star &s_1, const Star &s_2, double theta);
+    static bool within_angle (const list &s_l, double theta);
     
-    static Star reset_label (const Star &);
+    static Star reset_label (const Star &s);
 
 #if !defined ENABLE_TESTING_ACCESS
-  private:
+    private:
 #endif
     /// I Component (element 0) of 3D vector.
     double i;

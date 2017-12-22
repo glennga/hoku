@@ -69,7 +69,7 @@ Rotation Rotation::multiply (const Rotation &q_1, const Rotation &q_2) {
     double n_2 = (q_1.w * q_2.j) + (q_1.i * q_2.k) + (q_1.j * q_2.w) - (q_1.k * q_2.i);
     double n_3 = (q_1.w * q_2.k) - (q_1.i * q_2.j) + (q_1.j * q_2.i) + (q_1.k * q_2.w);
     
-    return Rotation(n_0, Star(n_1, n_2, n_3));
+    return {n_0, Star(n_1, n_2, n_3)};
 }
 
 /// Find the quaternion across two different frames given pairs of vectors in each frame. Solution found here:

@@ -47,7 +47,7 @@ endif ()
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib)
 
 ##################################################################
-# Add Subdirectory Containing User Tests (If Desired)
+# Add Subdirectory Containing Unit Tests (If Desired)
 ##################################################################
 Option(BUILD_TEST "Build for Testing" OFF)
 if (BUILD_TEST)

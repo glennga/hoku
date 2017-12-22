@@ -32,16 +32,16 @@ class Mercator {
     Mercator () = default;
   
   public:
-    Mercator (const Star &, double);
-    Mercator (double, double, double, int = 0);
+    Mercator (const Star &s, double w_n);
+    Mercator (double x, double y, double w_n, int label = 0);
     
     static Mercator zero ();
     
-    double operator[] (unsigned int) const;
+    double operator[] (unsigned int n) const;
     
-    Mercator::quad find_corners (double) const;
+    Mercator::quad find_corners (double a) const;
     
-    static double distance_between (const Mercator &, const Mercator &);
+    static double distance_between (const Mercator &m_1, const Mercator &m_2);
     int get_label () const;
     
     virtual std::string str () const;
@@ -49,7 +49,7 @@ class Mercator {
 #if !defined ENABLE_TESTING_ACCESS
   protected:
 #endif
-    bool is_within_bounds (const quad &) const;
+    bool is_within_bounds (const quad &corners) const;
 
 #if !defined ENABLE_TESTING_ACCESS
   protected:
@@ -69,7 +69,7 @@ class Mercator {
 #if !defined ENABLE_TESTING_ACCESS
   protected:
 #endif
-    void project_star (const Star &, double);
+    void project_star (const Star &s, double w_n);
 };
 
 #endif /* HOKU_MERCATOR_H */

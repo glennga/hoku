@@ -19,9 +19,9 @@ Mercator::Mercator (const Star &s, const double w_n) {
 /// @param x X coordinate to store.
 /// @param y Y coordinate to store.
 /// @param w_n Width used to project the given X, Y coordinates.
-/// @param hr Catalog ID to store.
-Mercator::Mercator (const double x, const double y, const double w_n, const int hr) {
-    this->x = x, this->y = y, this->w_n = w_n, this->label = hr;
+/// @param label Catalog ID to store.
+Mercator::Mercator (const double x, const double y, const double w_n, const int label) {
+    this->x = x, this->y = y, this->w_n = w_n, this->label = label;
 }
 
 /// Return a point with coordinates (0, 0) and w_n = 0.

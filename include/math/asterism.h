@@ -34,15 +34,15 @@ class Asterism {
     Asterism () = delete;
   
   public:
-    static points_cd hash (const stars &);
-    static stars find_abcd (const stars &);
+    static points_cd hash (const stars &s);
+    static stars find_abcd (const stars &s);
     
-    static Star center (const stars &);
-    
+    static Star center (const stars &s);
+
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
-    explicit Asterism (const stars &);
+    explicit Asterism (const stars &s);
     
     void verify_ab_stars ();
     Asterism::points_cd compute_cd_prime ();
