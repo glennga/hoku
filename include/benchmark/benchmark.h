@@ -46,12 +46,10 @@ class Benchmark {
         Star::list affected; ///< List of stars affected by the error.
     };
     
-    /// Default constructor must not be generated. User must specify fov, focus, and rotation.
-    Benchmark () = delete;
-  
   public:
     Benchmark (Chomp &, std::random_device &, double, double = 6.0);
     Benchmark (Chomp &, std::random_device &, const Star &, const Rotation &, double, double = 6.0);
+    static Benchmark black();
     
     void generate_stars (Chomp &, double = 6.0);
     

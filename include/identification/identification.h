@@ -21,6 +21,7 @@ class Identification {
         std::string table_name; ///< Name of the Nibble database table created with 'generate_sep_table'.
     };
     
+  protected:
     Star::list find_matches (const Star::list &candidates, const Rotation &q);
 
   protected:

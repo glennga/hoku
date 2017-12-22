@@ -22,7 +22,7 @@ Angle::Angle (const Benchmark &input, const Parameters &p) {
 /// @param fov Field of view limit (degrees) that all pairs must be within.
 /// @param table_name Name of the table to generate.
 /// @return 0 when finished.
-int Angle::generate_ang_table (const double fov, const std::string &table_name) {
+int Angle::generate_angle_table (double fov, const std::string &table_name) {
     Chomp ch;
     SQLite::Transaction transaction(*ch.db);
     ch.create_table(table_name, "label_a INT, label_b INT, theta FLOAT");
@@ -134,39 +134,23 @@ Star::list Angle::check_assumptions (const Star::list &candidates, const Star::p
 /// @param ch Open Nibble connection with Chomp.
 /// @param s_1 Star one to query with.
 /// @param s_2 Star two to query with.
-/// @param sigma_query Theta must be within 3 * query_sigma to appear in results.
+/// @param sigma_query Theta must be within 3 * sigma_query to appear in results.
 /// @return Vector of likely matches found by the angle method.
 std::vector<Angle::label_pair> Angle::experiment_query (Chomp &ch, const Star &s_1, const Star &s_2,
                                                         double sigma_query) {
     double epsilon = 3.0 * sigma_query, theta = Star::angle_between(s_1, s_2);
-    std::ostringstream condition;
     std::vector<Angle::label_pair> r_bar;
     
     // Query using theta with epsilon bounds.
-    condition << "theta BETWEEN " << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed;
-    condition << theta - epsilon << " AND " << theta + epsilon;
-    Nibble::tuples_d r = ch.search_table("label_a, label_b", condition.str(), 500);
+    Nibble::tuples_d r = ch.simple_bound_query("theta", "label_a, label_b", theta - epsilon, theta + epsilon, 500);
     
-    // Sort tuple_d into list of catalog ID pairs.
+    // Sort r into list of catalog ID pairs.
     r_bar.reserve(r.size() / 2);
     for (const Nibble::tuple_d &r_t : r) {
         r_bar.emplace_back(Angle::label_pair {(int) r_t[0], (int) r_t[1]});
     }
     
     return r_bar;
-}
-
-/// Reproduction of the Angle method's querying to candidate reduction step. This returns the first match found by our
-/// trial_query method. **Need to select the proper table before calling this method.**
-///
-/// @param ch Open Nibble connection with Chomp.
-/// @param s_1 Star one to query with.
-/// @param s_2 Star two to query with.
-/// @param sigma_query Theta must be within 3 * query_sigma to appear in results.
-/// @return [0, 0] if no match is found. Otherwise, a single match for the given stars s_1 and s_2.
-Angle::label_pair Angle::experiment_reduction (Chomp &ch, const Star &s_1, const Star &s_2, double sigma_query) {
-    std::vector<label_pair> p = experiment_query(ch, s_1, s_2, sigma_query);
-    return p.empty() ? (label_pair) {0, 0} : p[0];
 }
 
 /// Reproduction of the Angle method's check_assumption. Unlike the method used in identification, this does not
@@ -177,6 +161,7 @@ Angle::label_pair Angle::experiment_reduction (Chomp &ch, const Star &s_1, const
 /// @param candidates All stars found near the inertial pair.
 /// @param r Inertial (frame R) pair of stars that match the body pair.
 /// @param b Body (frame B) pair of stars that match the inertial pair.
+/// @param sigma_overlay Star must be within 3 * sigma_overlay of the resulting inertial rotation.
 /// @return The quaternion associated with the largest set of matching stars across the body and inertial in both
 /// pairing configurations.
 Rotation Angle::experiment_alignment (Chomp &ch, const Benchmark &input, const Star::list &candidates,
@@ -198,6 +183,19 @@ Rotation Angle::experiment_alignment (Chomp &ch, const Benchmark &input, const S
     
     // Return the rotation associated with the largest set of matches.
     return matches[0].size() > matches[1].size() ? q[0] : q[1];
+}
+
+/// Reproduction of the Angle method's querying to candidate reduction step. This returns the first match found by our
+/// trial_query method. **Need to select the proper table before calling this method.**
+///
+/// @param ch Open Nibble connection with Chomp.
+/// @param s_1 Star one to query with.
+/// @param s_2 Star two to query with.
+/// @param sigma_query Theta must be within 3 * query_sigma to appear in results.
+/// @return [0, 0] if no match is found. Otherwise, a single match for the given stars s_1 and s_2.
+Angle::label_pair Angle::experiment_reduction (Chomp &ch, const Star &s_1, const Star &s_2, double sigma_query) {
+    std::vector<label_pair> p = experiment_query(ch, s_1, s_2, sigma_query);
+    return p.empty() ? (label_pair) {0, 0} : p[0];
 }
 
 /// Reproduction of the Angle method's process from beginning to the orientation determination.
@@ -243,7 +241,7 @@ Rotation Angle::experiment_attitude (const Benchmark &input, const Parameters &p
 Star::list Angle::experiment_crown (const Benchmark &input, const Parameters &p) {
     Star::list matches;
     Angle a(input, p);
-   *p.nu = 0;
+    *p.nu = 0;
     
     // There exists |A_input| choose 2 possibilities.
     for (int i = 0; i < (signed) a.input.size() - 1; i++) {
