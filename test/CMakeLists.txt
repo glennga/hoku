@@ -9,11 +9,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/test/bin)
 add_subdirectory(${CMAKE_SOURCE_DIR}/test/lib/googletest)
 
 ##################################################################
-# Build Base-Test Library
-##################################################################
-add_subdirectory(${CMAKE_SOURCE_DIR}/test/base-test)
-
-##################################################################
 # Add Subdirectories Containing User Tests
 ##################################################################
 add_subdirectory(${CMAKE_SOURCE_DIR}/test/tests/identification)
