@@ -28,8 +28,8 @@ Benchmark::Benchmark (Chomp &ch, std::random_device &seed, const double fov, con
 /// @param q Quaternion to take inertial frame to body frame.
 /// @param fov Limit a star must be separated from the focus by.
 /// @param m_bar Maximum magnitude a star must be within in the given benchmark.
-Benchmark::Benchmark (Chomp &ch, std::random_device &seed, const Star &focus, const Rotation &q,
-                      const double fov, const double m_bar) {
+Benchmark::Benchmark (Chomp &ch, std::random_device &seed, const Star &focus, const Rotation &q, const double fov,
+                      const double m_bar) {
     this->fov = fov, this->focus = focus, this->inertial_to_image = q, this->seed = &seed;
     generate_stars(ch, m_bar);
 }
@@ -41,9 +41,16 @@ Benchmark::Benchmark (Chomp &ch, std::random_device &seed, const Star &focus, co
 /// @param stars Star set to give the current benchmark.
 /// @param focus Focus star of the given star set.
 /// @param fov Field of view (degrees) associated with the given star set.
-Benchmark::Benchmark (std::random_device &seed, const Star::list &stars, const Star &focus,
-                      const double fov) {
+Benchmark::Benchmark (std::random_device &seed, const Star::list &stars, const Star &focus, const double fov) {
     this->seed = &seed, this->stars = stars, this->focus = focus, this->fov = fov;
+}
+
+/// Dummy image. Holds no image or field of view.
+///
+/// @return A dummy image without stars.
+Benchmark Benchmark::black () {
+    std::random_device rd;
+    return Benchmark(rd, {}, Star::zero(), 0);
 }
 
 /// Shuffle the current star set. Uses C++11 random library.

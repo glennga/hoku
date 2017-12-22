@@ -18,110 +18,98 @@ SphericalTriangle::SphericalTriangle (const Benchmark &input, const Parameters &
     ch.select_table(this->parameters.table_name);
 }
 
-/// Generate the triangle table given the specified FOV and table name. This find the spherical area and polar moment
+/// Generate the triangle table given the specified FOV and table name. This find the area and polar moment
 /// between each distinct permutation of trios, and only stores them if they fall within the corresponding
 /// field-of-view.
 ///
 /// @param fov Field of view limit (degrees) that all pairs must be within.
-/// @param td_h Maximum depth to recurse to when constructing spherical triangle for moment calculations.
 /// @param table_name Name of the table to generate.
 /// @return 0 when finished.
-int Sphere::generate_triangle_table (const double fov, const unsigned int td_h, const std::string &table_name) {
-    Chomp ch;
-    SQLite::Transaction initial_transaction(*ch.db);
-    
-    ch.create_table(table_name, "label_a INT, label_b INT, label_c INT, a FLOAT, i FLOAT");
-    initial_transaction.commit();
-    ch.select_table(table_name);
-    
-    // (i, j, k) are distinct, where no (i, j, k) = (j, k, i), (j, i, k), ....
-    Star::list all_stars = ch.bright_as_list();
-    for (unsigned int i = 0; i < all_stars.size() - 2; i++) {
-        SQLite::Transaction transaction(*ch.db);
-        std::cout << "\r" << "Current *I* Star: " << all_stars[i].get_label();
-        for (unsigned int j = i + 1; j < all_stars.size() - 1; j++) {
-            for (unsigned int k = j + 1; k < all_stars.size(); k++) {
-                
-                // Only insert if the angle between all stars are separated by fov degrees or less.
-                if (Star::within_angle({all_stars[i], all_stars[j], all_stars[k]}, fov)) {
-                    double a_t = Trio::spherical_area(all_stars[i], all_stars[j], all_stars[k]);
-                    double i_t = Trio::spherical_moment(all_stars[i], all_stars[j], all_stars[k], td_h);
-                    
-                    // Prevent insertion of trios with areas = -1.
-                    if (a_t > 0) {
-                        ch.insert_into_table("label_a, label_b, label_c, a, i",
-                                             Nibble::tuple_d {(double) all_stars[i].get_label(),
-                                                 (double) all_stars[j].get_label(), (double) all_stars[k].get_label(),
-                                                 a_t, i_t});
-                    }
-                }
-            }
-        }
-        // Commit every star I change.
-        transaction.commit();
-    }
-    
-    // Create an index for area searches. We aren't searching for polar moments.
-    return ch.polish_table("a");
+int SphericalTriangle::generate_sphere_table (const double fov, const std::string &table_name) {
+    return BaseTriangle::generate_triangle_table(fov, table_name, Trio::spherical_area,
+                                                 [] (const Star &s_1, const Star &s_2, const Star &s_3) {
+                                                     return Trio::spherical_moment(s_1, s_2, s_3, TREE_DEPTH_MOMENT);
+                                                 });
 }
 
-/// Given a trio of body stars, find matching trios of inertial stars using their respective spherical areas and polar
+/// Given a trio of body stars, find matching trios of inertial stars using their respective planar areas and polar
 /// moments.
 ///
-/// @param label_b Index trio of stars in body (B) frame.
+/// @param i_b Index trio of stars in body (B) frame.
 /// @return 1D vector of a trio of Star(0, 0, 0) if stars are not within the fov or if no matches currently exist.
 /// Otherwise, vector of trios whose areas and moments are close.
-std::vector<Trio::stars> Sphere::match_stars (const index_trio &label_b) {
-    Trio::stars b_stars{this->input[label_b[0]], this->input[label_b[1]], this->input[label_b[2]]};
-    std::vector<label_trio> match_hr;
-    std::vector<Trio::stars> matched_stars;
-    
-    // Do not attempt to find matches if all stars are not within fov.
-    if (!Star::within_angle({b_stars[0], b_stars[1], b_stars[2]}, this->fov)) {
-        return {{Star::zero(), Star::zero(), Star::zero()}};
-    }
-    
-    // Do not proceed if the trio is invalid (negative value returned from area).
-    double a = Trio::spherical_area(b_stars[0], b_stars[1], b_stars[2]);
-    double i = Trio::spherical_moment(b_stars[0], b_stars[1], b_stars[2], parameters.moment_td_h);
-    if (a < 0) {
-        return {{Star::zero(), Star::zero(), Star::zero()}};
-    }
-    
-    // Search for the current trio. If this is empty, then break early.
-    match_hr = this->query_for_trio(a, i);
-    if (std::equal(match_hr[0].begin() + 1, match_hr[0].end(), match_hr[0].begin())) {
-        return {{Star::zero(), Star::zero(), Star::zero()}};
-    }
-    
-    // Grab stars themselves from catalog IDs found in matches. Return these matches.
-    matched_stars.reserve(match_hr.size());
-    for (const label_trio &t : match_hr) {
-        matched_stars.push_back({ch.query_hip((int) t[0]), ch.query_hip((int) t[1]), ch.query_hip((int) t[2])});
-    }
-    
-    return matched_stars;
+std::vector<Trio::stars> Sphere::match_stars (const index_trio &i_b) {
+    return m_stars(i_b, Trio::spherical_area, [] (const Star &s_1, const Star &s_2, const Star &s_3) {
+        return Trio::spherical_moment(s_1, s_2, s_3, TREE_DEPTH_MOMENT);
+    });
 }
 
-/// Wrapper for BaseTriangle's identify_stars method. Match the stars found in the given benchmark to those in the
-/// Nibble database.
+/// Find the matching pairs using the appropriate triangle table and by comparing areas and polar moments.
 ///
-/// @param input The set of benchmark data to work with.
-/// @param parameters Adjustments to the identification process.
-/// @param z Reference to variable that will hold the input comparison count.
-/// @param q_root Working quad-tree root node. If none is specified, we build the quad-tree here.
-/// @return Vector of body stars with their inertial BSC IDs that qualify as matches.
-Star::list Sphere::identify (const Benchmark &input, const Parameters &p, unsigned int &z) {
-    return Sphere(input, p).identify_stars(z);
+/// @param ch Open Nibble connection with Chomp.
+/// @param s_1 Star one to query with.
+/// @param s_2 Star two to query with.
+/// @param s_3 Star three to query with.
+/// @param sigma_query Theta must be within 3 * sigma_query to appear in results.
+/// @return Vector of likely matches found by the planar triangle method.
+std::vector<Sphere::label_trio> Sphere::experiment_query (Chomp &ch, const Star &s_1, const Star &s_2, const Star &s_3,
+                                                          double sigma_query) {
+    double area = Trio::spherical_area(s_1, s_2, s_3);
+    double moment = Trio::spherical_moment(s_1, s_2, s_3, TREE_DEPTH_MOMENT);
+    
+    // Set our parameters.
+    Parameters p;
+    p.sigma_query = sigma_query;
+    
+    return Sphere(Benchmark::black(), p).e_query(area, moment);
 }
 
-/// Overloaded wrapper for BaseTriangle's identify_stars method. Match the stars found in the given benchmark to those
-/// in the Nibble database.
+/// Check all possible configuration of star trios and return quaternion corresponding to the set with the largest
+/// number of reference to body matches.
+///
+/// @param ch Open Nibble connection with Chomp.
+/// @param input Benchmark containing the stars in the given image.
+/// @param candidates All stars found near the inertial pair.
+/// @param r Inertial (frame R) pair of stars that match the body pair.
+/// @param b Body (frame B) pair of stars that match the inertial pair.
+/// @param sigma_overlay Star must be within 3 * sigma_overlay of the resulting inertial rotation.
+/// @return The quaternion associated with the largest set of matching stars across the body and inertial in both
+/// pairing configurations.
+Rotation Sphere::experiment_alignment (Chomp &ch, const Benchmark &input, const Star::list &candidates,
+                                       const Trio::stars &r, const Trio::stars &b, double sigma_overlay) {
+    Parameters p;
+    p.sigma_overlay = sigma_overlay;
+    
+    return Sphere(input, p).e_alignment(candidates, r, b);
+}
+
+/// Find the **best** matching pair to the first three stars in our benchmark using the appropriate triangle table.
+/// Assumes noise is normally distributed, searches using epsilon (3 * sigma_a) and a basic bounded query.
+/// 
+/// @param input The set of benchmark data to work with.
+/// @param p Adjustments to the identification process.
+/// @return [0, 0, 0] if no match is found. Otherwise, a single match for the first three stars.
+Sphere::label_trio Sphere::experiment_reduction (const Benchmark &input, const Parameters &p) {
+    return Sphere(input, p).e_reduction();
+}
+
+/// Find the rotation from the images in our current benchmark to our inertial frame (i.e. the catalog).
+/// 
+/// @param input The set of benchmark data to work with.
+/// @param p Adjustments to the identification process.
+/// @return The identity rotation if no rotation can be found. Otherwise, the rotation from our current benchmark to
+/// the catalog.
+Rotation Sphere::experiment_attitude (const Benchmark &input, const Parameters &p) {
+    return Sphere(input, p).e_attitude();
+}
+
+/// Match the stars found in the current benchmark to those in the Nibble database. The child class should wrap this
+/// function as 'experiment_crown' to mimic the other methods.
 ///
 /// @param input The set of benchmark data to work with.
-/// @param parameters Adjustments to the identification process.
-/// @return Vector of body stars with their inertial BSC IDs that qualify as matches.
-Star::list Sphere::identify (const Benchmark &input, const Parameters &p) {
-    unsigned int z;
-    return Sphere(input, p).identify_stars(z);
+/// @param p Adjustments to the identification process.
+/// @return Empty list if an image match cannot be found in "time". Otherwise, a vector of body stars with their
+/// inertial catalog IDs that qualify as matches.
+Star::list Sphere::experiment_crown (const Benchmark &input, const Parameters &p) {
+    return Sphere(input, p).e_crown();
 }

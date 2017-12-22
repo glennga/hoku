@@ -14,6 +14,7 @@
 #include "math/trio.h"
 #include <iostream>
 
+// TODO: fix the documentation here
 /// The triangle planar class is an implementation of Crassidis and Cole's Planar Triangle Pattern Recognition
 /// Process. This is one of the five star identification procedures being tested.
 ///
@@ -43,11 +44,18 @@
 /// @endcode
 class PlanarTriangle : public BaseTriangle {
   public:
-    static Star::list identify (const Benchmark &, const Parameters &, unsigned int &);
-    static Star::list identify (const Benchmark &, const Parameters &);
-    static int generate_triangle_table (double, const std::string &);
     using BaseTriangle::Parameters;
-
+    
+    static std::vector<label_trio> experiment_query (Chomp &ch, const Star &s_1, const Star &s_2, const Star &s_3,
+                                                     double sigma_query);
+    static Rotation experiment_alignment (Chomp &ch, const Benchmark &input, const Star::list &candidates,
+                                          const Trio::stars &r, const Trio::stars &b, double sigma_query);
+    static label_trio experiment_reduction (const Benchmark &input, const Parameters &p);
+    static Rotation experiment_attitude (const Benchmark &input, const Parameters &p);
+    static Star::list experiment_crown (const Benchmark &input, const Parameters &p);
+    
+    static int generate_plane_table (double fov, const std::string &table_name);
+  
   private:
     PlanarTriangle (const Benchmark &, const Parameters &);
     std::vector<Trio::stars> match_stars (const index_trio &);

@@ -44,7 +44,7 @@ class Angle : public Identification {
     
     /// Alias for a pair of catalog IDs (2-element STL array of doubles).
     using label_pair = std::array<int, 2>;
-  
+    
   public:
     static std::vector<label_pair> experiment_query (Chomp &ch, const Star &s_1, const Star &s_2, double sigma_query);
     static Rotation experiment_alignment (Chomp &ch, const Benchmark &input, const Star::list &candidates,
@@ -53,7 +53,7 @@ class Angle : public Identification {
     static Rotation experiment_attitude (const Benchmark &input, const Parameters &p);
     static Star::list experiment_crown (const Benchmark &input, const Parameters &p);
     
-    static int generate_ang_table (double fov, const std::string &table_name);
+    static int generate_angle_table (double fov, const std::string &table_name);
   
   private:
     Angle (const Benchmark &input, const Parameters &p);
