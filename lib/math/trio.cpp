@@ -5,6 +5,12 @@
 
 #include "math/trio.h"
 
+/// Returned if we cannot compute a spherical area for a given trio.
+const double Trio::INVALID_TRIO_NEGATIVE_F = -1;
+
+/// Returned if there exists duplicate stars for a given trio.
+const double Trio::DUPLICATE_STARS_IN_TRIO = 0;
+
 /// Private constructor. Sets the individual stars.
 ///
 /// @param b_1 Star B_1 of the trio.
@@ -73,14 +79,15 @@ double Trio::planar_moment (const Star &b_1, const Star &b_2, const Star &b_3) {
 /// @param b_1 Star B_1 of the trio.
 /// @param b_2 Star B_2 of the trio.
 /// @param b_3 Star B_3 of the trio.
-/// @return -1 if f is negative. 0 if two stars are the same. The spherical area of {B_1, B_2, B_3} otherwise.
+/// @return INVALID_TRIO_NEGATIVE_F if f is negative. DUPLICATE_STARS_IN_TRIO if two stars are the same. The spherical 
+/// area of {B_1, B_2, B_3} otherwise.
 double Trio::spherical_area (const Star &b_1, const Star &b_2, const Star &b_3) {
     side_lengths ell = Trio(b_1, b_2, b_3).spherical_lengths();
     double s = semi_perimeter(ell[0], ell[1], ell[2]);
     
     // If any of the stars are positioned in the same spot, this is a line. There exists no area.
     if (b_1 == b_2 || b_2 == b_3 || b_3 == b_1) {
-        return 0;
+        return DUPLICATE_STARS_IN_TRIO;
     }
     
     // Determine the inner component of the square root.
@@ -89,7 +96,7 @@ double Trio::spherical_area (const Star &b_1, const Star &b_2, const Star &b_3) 
     
     // F should not be negative. If this is the case, then we don't proceed. Return zero.
     if (f < 0) {
-        return -1;
+        return INVALID_TRIO_NEGATIVE_F;
     }
     
     // Find and return the excess.
@@ -102,8 +109,8 @@ double Trio::spherical_area (const Star &b_1, const Star &b_2, const Star &b_3) 
 /// @return Star with the components of {B_1, B_2, B_3} centroid.
 Star Trio::planar_centroid () const {
     return {(1 / 3.0) * (this->b_1[0] + this->b_2[0] + this->b_3[0]),
-                (1 / 3.0) * (this->b_1[1] + this->b_2[1] + this->b_3[1]),
-                (1 / 3.0) * (this->b_1[2] + this->b_2[2] + this->b_3[2])};
+        (1 / 3.0) * (this->b_1[1] + this->b_2[1] + this->b_3[1]),
+        (1 / 3.0) * (this->b_1[2] + this->b_2[2] + this->b_3[2])};
 }
 
 /// Cut the current triangle into one smaller, retaining the focus coordinate and half the distance from star C_1 &
@@ -117,7 +124,7 @@ Star Trio::planar_centroid () const {
 Trio Trio::cut_triangle (const Star &c_1, const Star &c_2, const Star &c_3, const Star &keep) {
     // Keep desired stars. Only include those who are directly related to the midpoint.
     return {(keep == c_3) ? c_3 : (c_1 + c_2).as_unit(), (keep == c_2) ? c_2 : (c_1 + c_3).as_unit(),
-                (keep == c_1) ? c_1 : (c_2 + c_3).as_unit()};
+        (keep == c_1) ? c_1 : (c_2 + c_3).as_unit()};
 }
 
 /// Recursively determine the spherical moment of a trio. This is a divide-and-conquer approach, creating four

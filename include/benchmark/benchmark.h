@@ -52,11 +52,10 @@ class Benchmark {
     static Benchmark black();
     
     void generate_stars (Chomp &, double = 6.0);
-    
     void present_image (Star::list &, double &) const;
     
-    int record_current_plot ();
-    int display_plot ();
+    void record_current_plot ();
+    void display_plot ();
     
     void add_extra_light (int, bool = false);
     void shift_light (int, double, bool = false);

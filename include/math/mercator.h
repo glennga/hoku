@@ -36,15 +36,15 @@ class Mercator {
     Mercator (double x, double y, double w_n, int label = 0);
     
     static Mercator zero ();
-    
     double operator[] (unsigned int n) const;
     
     Mercator::quad find_corners (double a) const;
-    
     static double distance_between (const Mercator &m_1, const Mercator &m_2);
     int get_label () const;
     
     virtual std::string str () const;
+    
+    static const double INVALID_ELEMENT_ACCESSED; // 0
 
 #if !defined ENABLE_TESTING_ACCESS
   protected:

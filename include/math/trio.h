@@ -36,7 +36,10 @@ class Trio {
     static double planar_moment (const Star &b_1, const Star &b_2, const Star &b_3);
     
     static double spherical_area (const Star &b_1, const Star &b_2, const Star &b_3);
-    static double spherical_moment (const Star &b_1, const Star &b_2, const Star &b_3, int= 3);
+    static double spherical_moment (const Star &b_1, const Star &b_2, const Star &b_3, int td_h= 3);
+    
+    static const double INVALID_TRIO_NEGATIVE_F;
+    static const double DUPLICATE_STARS_IN_TRIO;
 
 #if !defined ENABLE_TESTING_ACCESS
   private:

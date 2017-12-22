@@ -38,13 +38,7 @@ class Star {
     
     /// Pair type, defined as a 2-element array of Stars.
     using pair = std::array<Star, 2>;
-
-#if !defined ENABLE_TESTING_ACCESS
-    private:
-#endif
-    /// Precision default for is_equal and '==' methods.
-    constexpr static double STAR_EQUALITY_PRECISION_DEFAULT = 0.000000000001;
-  
+    
   public:
     Star (double i, double j, double k, int label = 0, double m = -30.0, bool set_unit = false);
     Star ();
@@ -57,18 +51,16 @@ class Star {
     
     Star operator+ (const Star &s) const;
     Star operator- (const Star &s) const;
-    
     Star operator* (double kappa) const;
     
     double norm () const;
-    
     Star as_unit () const;
     
+    static const double STAR_EQUALITY_PRECISION_DEFAULT;
     static bool is_equal (const Star &s_1, const Star &s_2, double epsilon = STAR_EQUALITY_PRECISION_DEFAULT);
     bool operator== (const Star &s) const;
     
     static Star zero ();
-    
     static Star chance (std::random_device &seed);
     static Star chance (std::random_device &seed, int label);
     
@@ -80,6 +72,10 @@ class Star {
     static bool within_angle (const list &s_l, double theta);
     
     static Star reset_label (const Star &s);
+    
+    static const double INVALID_ELEMENT_ACCESSED;
+    static const int NO_LABEL;
+    
 
 #if !defined ENABLE_TESTING_ACCESS
     private:

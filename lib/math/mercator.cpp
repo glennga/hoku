@@ -6,6 +6,9 @@
 
 #include "math/mercator.h"
 
+/// Returned when a user attempts to access an item using the [] operator for n > 1.
+const double Mercator::INVALID_ELEMENT_ACCESSED = 0;
+
 /// Constructor. Projects the input star by the given width and records the results.
 ///
 /// @param s Star to project and store.
@@ -34,9 +37,9 @@ Mercator Mercator::zero () {
 /// Access method for the x and y components of the star. Overloads the [] operator.
 ///
 /// @param n Index of {x, y to return.
-/// @return 0 if n > 1. Otherwise component at index n of {x, y}.
+/// @return INVALID_ELEMENT_ACCESSED if n > 1. Otherwise component at index n of {x, y}.
 double Mercator::operator[] (const unsigned int n) const {
-    return n > 1 ? 0 : std::array<double, 2> {x, y}[n];
+    return n > 1 ? INVALID_ELEMENT_ACCESSED : std::array<double, 2> {x, y}[n];
 }
 
 /// Determine the length of the line that connects points m_1 and m_2.

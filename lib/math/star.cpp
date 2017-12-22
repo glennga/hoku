@@ -5,6 +5,15 @@
 
 #include "math/star.h"
 
+/// Returned when a user attempts to access an item using the [] operator for n > 1.
+const double Star::INVALID_ELEMENT_ACCESSED = 0;
+
+/// Precision default for is_equal and '==' methods.
+const double Star::STAR_EQUALITY_PRECISION_DEFAULT = std::numeric_limits<double>::epsilon();
+
+/// The default label of all stars.
+const int Star::NO_LABEL = 0;
+
 /// Constructor. Sets the i, j, and k components, as well as the catalog ID of the Star.
 ///
 /// @param i The i'th component from the observer to the star.
@@ -27,6 +36,7 @@ Star::Star (const double i, const double j, const double k, const int label, con
 }
 
 /// Overloaded constructor. Sets the i, j, k, magnitude, and catalog ID of a star to 0.
+[[deprecated]]
 Star::Star () {
     this->i = this->j = this->k = this->m = this->label = 0;
 }
@@ -46,9 +56,9 @@ std::string Star::str () const {
 /// Access method for the i, j, and k components of the star. Overloads the [] operator.
 ///
 /// @param n Index of {i, j, k} to return.
-/// @return 0 if n > 2. Otherwise component at index n of {i, j, k}.
+/// @return INVALID_ELEMENT_ACCESSED if n > 2. Otherwise component at index n of {i, j, k}.
 double Star::operator[] (const unsigned int n) const {
-    return n > 2 ? 0 : std::array<double, 3> {i, j, k}[n];
+    return n > 2 ? INVALID_ELEMENT_ACCESSED : std::array<double, 3> {i, j, k}[n];
 }
 
 /// Accessor method for catalog ID of the star.
@@ -131,20 +141,20 @@ bool Star::operator== (const Star &s) const {
 
 /// Return a star with all components set to zero.
 ///
-/// @return Star with components {0, 0, 0} and hr = 0.
+/// @return Star with components {0, 0, 0} and label = NO_LABEL.
 Star Star::zero () {
-    return {0, 0, 0, 0};
+    return {0, 0, 0, NO_LABEL};
 }
 
 /// Generate a random star with normalized components. Using C++11 random functions.
 ///
 /// @param seed Random device to use when generating star.
-/// @return Star with random, normalized components and a catalog ID = 0.
+/// @return Star with random, normalized components and a catalog ID = NO_LABEL.
 Star Star::chance (std::random_device &seed) {
     std::mt19937_64 mersenne_twister(seed());
     std::uniform_real_distribution<double> dist(-1.0, 1.0);
     
-    return Star(dist(mersenne_twister), dist(mersenne_twister), dist(mersenne_twister), 0).as_unit();
+    return Star(dist(mersenne_twister), dist(mersenne_twister), dist(mersenne_twister), NO_LABEL).as_unit();
 }
 
 /// Generate a random star with normalized components. Using C++11 random functions. Instead of assigning a catalog ID
@@ -214,10 +224,10 @@ bool Star::within_angle (const list &s_l, const double theta) {
     return true;
 }
 
-/// Return the given star with a catalog ID of 0.
+/// Return the given star with a catalog ID of NO_LABEL.
 ///
 /// @param s Star to remove catalog ID from.
-/// @return Same star with catalog ID equal to 0.
+/// @return Same star with catalog ID equal to NO_LABEL.
 Star Star::reset_label (const Star &s) {
-    return {s.i, s.j, s.k, 0};
+    return {s.i, s.j, s.k, NO_LABEL};
 }

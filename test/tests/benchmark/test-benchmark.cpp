@@ -1,7 +1,7 @@
 /// @file test-benchmark.cpp
 /// @author Glenn Galvizo
 ///
-/// Source file for the TestBenchmark class, as well as the main function to run the tests.
+/// Source file for all Benchmark class unit tests and the test runner.
 
 #define ENABLE_TESTING_ACCESS
 
@@ -140,7 +140,7 @@ TEST(BenchmarkImage, LabelClear) {
     std::vector<Star> a = input.clean_stars();
     
     for (int q = 0; q < 3; q++) {
-        EXPECT_EQ(a[q].get_label(), 0);
+        EXPECT_EQ(a[q].get_label(), Star::NO_LABEL);
     }
 }
 

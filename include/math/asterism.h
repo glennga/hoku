@@ -32,13 +32,16 @@ class Asterism {
     
     /// Ensure default constructor is **not** generated.
     Asterism () = delete;
-  
+    
   public:
     static points_cd hash (const stars &s);
-    static stars find_abcd (const stars &s);
+    static stars find_order (const stars &s);
     
     static Star center (const stars &s);
-
+    
+    static const points_cd MALFORMED_HASH;
+    static const stars INDETERMINATE_ORDER;
+    
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
