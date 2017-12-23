@@ -71,12 +71,13 @@ class Chomp : public Nibble {
     Star::list hip_as_list ();
     Star query_hip (int);
     
+    static const int TABLE_EXISTS;
+    static const Star NONEXISTENT_STAR;
+    static const Star::list NONEXISTENT_STAR_LIST;
+
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
-    /// Standard machine epsilon for doubles. This represents the smallest possible change in precision.
-    const double DOUBLE_EPSILON = std::numeric_limits<double>::epsilon();
-    
     /// All stars in the HIP_BRIGHT table, from the 'load_all_stars' method.
     Star::list all_bright_stars;
     
@@ -99,6 +100,7 @@ class Chomp : public Nibble {
     void load_all_stars ();
     
     static std::array<double, 6> components_from_line (const std::string &);
+    static const double DOUBLE_EPSILON;
 };
 
 #endif /* HOKU_CHOMP_H */

@@ -70,6 +70,9 @@ class Nibble {
     int find_attributes (std::string &, std::string &);
     int sort_table (const std::string &);
     int polish_table (const std::string &);
+    
+    static const int TABLE_NOT_CREATED;
+    static const double NO_RESULT_FOUND;
   
   public:
     /// Using the currently selected table, insert the set of values in order of the fields given.

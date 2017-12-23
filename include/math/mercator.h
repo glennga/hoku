@@ -32,24 +32,25 @@ class Mercator {
     Mercator () = default;
   
   public:
-    Mercator (const Star &, double);
-    Mercator (double, double, double, int = 0);
+    Mercator (const Star &s, double w_n);
+    Mercator (double x, double y, double w_n, int label = 0);
     
     static Mercator zero ();
+    double operator[] (unsigned int n) const;
     
-    double operator[] (unsigned int) const;
-    
-    Mercator::quad find_corners (double) const;
-    
-    static double distance_between (const Mercator &, const Mercator &);
+    Mercator::quad find_corners (double a) const;
+    static double distance_between (const Mercator &m_1, const Mercator &m_2);
     int get_label () const;
     
     virtual std::string str () const;
+    
+    static const double INVALID_ELEMENT_ACCESSED;
+    static const int NO_LABEL;
 
 #if !defined ENABLE_TESTING_ACCESS
   protected:
 #endif
-    bool is_within_bounds (const quad &) const;
+    bool is_within_bounds (const quad &corners) const;
 
 #if !defined ENABLE_TESTING_ACCESS
   protected:
@@ -63,13 +64,13 @@ class Mercator {
     /// Width of the map the point is projected onto. Default width is 0.
     double w_n = 0;
     
-    /// Catalog ID for the point. Default is 0.
+    /// Catalog ID for the point.
     int label = 0;
 
 #if !defined ENABLE_TESTING_ACCESS
   protected:
 #endif
-    void project_star (const Star &, double);
+    void project_star (const Star &s, double w_n);
 };
 
 #endif /* HOKU_MERCATOR_H */

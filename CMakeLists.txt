@@ -12,10 +12,10 @@ Option(BUILD_GPROF "Build for Profiling" OFF)
 if (BUILD_GPROF)
     message("Building for GPrOF Profiler")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -pg -g3 -Wall -pedantic \
-	-std=c++14 -U__STRICT_ANSI__ -fno-omit-frame-pointer -gdwarf-2 -Wextra ")
+	-std=c++17 -U__STRICT_ANSI__ -fno-omit-frame-pointer -gdwarf-2 -Wextra ")
 else ()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wall -Wextra -pedantic \
-	-std=c++14 -U__STRICT_ANSI__")
+	-std=c++17 -U__STRICT_ANSI__")
 endif ()
 
 ##################################################################
@@ -47,7 +47,7 @@ endif ()
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib)
 
 ##################################################################
-# Add Subdirectory Containing User Tests (If Desired)
+# Add Subdirectory Containing Unit Tests (If Desired)
 ##################################################################
 Option(BUILD_TEST "Build for Testing" OFF)
 if (BUILD_TEST)

@@ -5,6 +5,12 @@
 
 #include "storage/nibble.h"
 
+/// Returned when the result of a search returns no tuples.
+const double Nibble::NO_RESULT_FOUND = 0;
+
+/// Returned when a table creation is not successful.
+const int Nibble::TABLE_NOT_CREATED = -1;
+
 /// Constructor. This dynamically allocates a database connection object to nibble.db. If the database does not exist,
 /// it is created.
 Nibble::Nibble () {
@@ -33,7 +39,7 @@ Nibble::Nibble (const std::string &table_name, const std::string &focus) {
     // Determine the schema and fields for insertion. Create the table.
     std::string schema, fields;
     nb.find_attributes(schema, fields);
-    if (this->create_table(table_name, schema) == -1) {
+    if (this->create_table(table_name, schema) == TABLE_NOT_CREATED) {
         throw "Unable to create specified table";
     }
     
@@ -137,7 +143,8 @@ Nibble::tuples_d Nibble::search_table (const std::string &fields, const unsigned
 ///
 /// @param fields The columns to search for in the current table.
 /// @param constraint The SQL string to be used with the WHERE clause.
-/// @return If there exists nothing returned from query, return 0. Otherwise,the first result returned from query.
+/// @return If there exists nothing returned from query, return NO_RESULT_FOUND. Otherwise,the first result returned
+/// from query.
 double Nibble::search_single (const std::string &fields, const std::string &constraint) {
     std::string sql = "SELECT " + fields + " FROM " + table + (constraint.empty() ? "" : " WHERE " + constraint);
     
@@ -146,7 +153,7 @@ double Nibble::search_single (const std::string &fields, const std::string &cons
         // This should only execute once.
         return query.getColumn(0).getDouble();
     }
-    return 0;
+    return NO_RESULT_FOUND;
 }
 
 
@@ -154,14 +161,14 @@ double Nibble::search_single (const std::string &fields, const std::string &cons
 ///
 /// @param table Name of the table to create.
 /// @param schema Schema for the table.
-/// @return -1 if a table already exists. 0 otherwise.
+/// @return TABLE_NOT_CREATED if a table already exists. 0 otherwise.
 int Nibble::create_table (const std::string &table, const std::string &schema) {
     SQLite::Statement query(*db, "SELECT name FROM sqlite_master WHERE type='table' AND name='" + table + "\'");
     
     select_table(table);
     while (query.executeStep()) {
         if (query.getColumnCount() > 0) {
-            return -1;
+            return TABLE_NOT_CREATED;
         }
     }
     

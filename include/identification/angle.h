@@ -47,15 +47,19 @@ class Angle : public Identification {
     
   public:
     static std::vector<label_pair> experiment_query (Chomp &ch, const Star &s_1, const Star &s_2, double sigma_query);
-    static Rotation experiment_alignment (Chomp &ch, const Benchmark &input, const Star::list &candidates,
-                                          const Star::pair &r, const Star::pair &b, double sigma_overlay);
+    static Rotation experiment_alignment (const Benchmark &input, const Star::list &candidates, const Star::pair &r,
+                                          const Star::pair &b, double sigma_overlay);
     static label_pair experiment_reduction (Chomp &ch, const Star &s_1, const Star &s_2, double sigma_query);
     static Rotation experiment_attitude (const Benchmark &input, const Parameters &p);
     static Star::list experiment_crown (const Benchmark &input, const Parameters &p);
     
     static int generate_angle_table (double fov, const std::string &table_name);
-  
-  private:
+    
+    static const Parameters DEFAULT_PARAMETERS;
+
+#if !defined ENABLE_TESTING_ACCESS
+    private:
+#endif
     Angle (const Benchmark &input, const Parameters &p);
     
     label_pair query_for_pair (double theta);

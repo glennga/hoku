@@ -6,6 +6,18 @@
 
 #include "storage/chomp.h"
 
+/// Standard machine epsilon for doubles. This represents the smallest possible change in precision.
+const double Chomp::DOUBLE_EPSILON = std::numeric_limits<double>::epsilon();
+
+/// Returned from table generators when the table already exists in the database.
+const int Chomp::TABLE_EXISTS = -1;
+
+/// Returned from query method if the specified star does not exist.
+const Star Chomp::NONEXISTENT_STAR = Star::zero();
+
+/// Returned from bound query methods if the stars do not exist.
+const Star::list Chomp::NONEXISTENT_STAR_LIST = Star::list {};
+
 /// Constructor. This dynamically allocates a database connection object to nibble.db. If the database does not exist,
 /// it is created. We then proceed to load all stars into RAM from both tables.
 Chomp::Chomp () {
@@ -51,7 +63,7 @@ std::array<double, 6> Chomp::components_from_line (const std::string &entry) {
 /// Parse the right ascension, declination, visual magnitude, and catalog ID for each star. The i, j, and k components
 /// are converted from the star's alpha, delta, and an assumed parallax = 1.
 ///
-/// @return -1 if the bright stars table already exists. 0 otherwise.
+/// @return TABLE_EXISTS if the bright stars table already exists. 0 otherwise.
 int Chomp::generate_bright_table () {
     std::ifstream catalog(HIP_CATALOG_LOCATION);
     if (!catalog.is_open()) {
@@ -60,7 +72,7 @@ int Chomp::generate_bright_table () {
     
     SQLite::Transaction transaction(*db);
     if (create_table(BRIGHT_TABLE, "alpha FLOAT, delta FLOAT, i FLOAT, j FLOAT, k FLOAT, m FLOAT, label INT") == -1) {
-        return -1;
+        return TABLE_EXISTS;
     }
     
     // We skip the header here.
@@ -89,7 +101,7 @@ int Chomp::generate_bright_table () {
 /// Parse the right ascension, declination, visual magnitude, and catalog ID for each star. The i, j, and k components
 /// are converted from the star's alpha, delta, and an assumed parallax = 1.
 ///
-/// @return -1 if the general stars table already exists. 0 otherwise.
+/// @return TABLE_EXISTS if the general stars table already exists. 0 otherwise.
 int Chomp::generate_hip_table () {
     std::ifstream catalog(HIP_CATALOG_LOCATION);
     if (!catalog.is_open()) {
@@ -97,8 +109,9 @@ int Chomp::generate_hip_table () {
     }
     
     SQLite::Transaction transaction(*db);
-    if (create_table("HIP", "alpha FLOAT, delta FLOAT, i FLOAT, j FLOAT, k FLOAT, m FLOAT, label INT") == -1) {
-        return -1;
+    if (create_table("HIP", "alpha FLOAT, delta FLOAT, i FLOAT, j FLOAT, k FLOAT, m FLOAT, label INT")
+        == Nibble::TABLE_NOT_CREATED) {
+        return TABLE_EXISTS;
     }
     
     // We skip the header here.
@@ -124,7 +137,7 @@ int Chomp::generate_hip_table () {
 /// and catalog ID of this search.
 ///
 /// @param label Catalog ID of the star to return.
-/// @return Zero star if the star does not exist. Star with the components of the matching catalog ID entry otherwise.
+/// @return NONEXISTENT_STAR if the star does not exist. Star with the components of the matching catalog ID entry otherwise.
 Star Chomp::query_hip (int label) {
     std::string t_table = this->table;
     
@@ -133,7 +146,7 @@ Star Chomp::query_hip (int label) {
     
     // Keep our previous table.
     select_table(t_table);
-    return results.empty() ? Star::zero() : Star(results[0][0], results[0][1], results[0][2], label, results[0][3]);
+    return results.empty() ? NONEXISTENT_STAR : Star(results[0][0], results[0][1], results[0][2], label, results[0][3]);
 }
 
 /// Accessor for all_bright_stars list.

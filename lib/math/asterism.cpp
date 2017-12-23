@@ -6,6 +6,12 @@
 
 #include "math/asterism.h"
 
+/// Returned by hashing functions when an asterism cannot be formed.
+const Asterism::points_cd Asterism::MALFORMED_HASH = {0, 0, 0, 0};
+
+/// Returned by ordering functions when order cannot be determined.
+const Asterism::stars Asterism::INDETERMINATE_ORDER = {Star::zero(), Star::zero(), Star::zero(), Star::zero()};
+
 /// Constructor. Projects stars with width = 1.0 and finds points A, B, C, and D.
 ///
 /// @param s Quad of stars to construct asterism of.
@@ -100,7 +106,7 @@ bool Asterism::cd_property_met () {
 
 /// Determines the position of C and D stars based on the local coordinate system formed by A and B stars.
 ///
-/// @return The list [0][0][0][0] if an asterism cannot be formed. The projected coordinates of the C' and D' stars:
+/// @return A MALFORMED_HASH if an asterism cannot be formed. The projected coordinates of the C' and D' stars:
 /// C'_x, C'_y, D'_x, D'_y otherwise.
 Asterism::points_cd Asterism::compute_cd_prime () {
     // Treat point A as the origin (0, 0). Point B is defined as (1, 1). Determine coordinates of C' and D'.
@@ -117,13 +123,8 @@ Asterism::points_cd Asterism::compute_cd_prime () {
     
     // If CD properties are still not met, set stars appropriately and return a hash code of [0, 0, 0, 0].
     if (!cd_property_met()) {
-        auto set_zero = [] (Mercator &m) -> void {
-            m = Mercator::zero();
-        };
-        
-        set_zero(c), set_zero(d), set_zero(c_prime), set_zero(d_prime);
+        return MALFORMED_HASH;
     }
-    
     return {c_prime[0], c_prime[1], d_prime[0], d_prime[1]};
 }
 
@@ -131,7 +132,7 @@ Asterism::points_cd Asterism::compute_cd_prime () {
 /// system formed by A and B stars.
 ///
 /// @param s Quad of stars to construct asterism of.
-/// @return The list [0][0][0][0] if an asterism cannot be formed. The projected coordinates of the C' and D' stars:
+/// @return A MALFORMED_HASH if an asterism cannot be formed. The projected coordinates of the C' and D' stars:
 /// C'_x, C'_y, D'_x, D'_y otherwise.
 Asterism::points_cd Asterism::hash (const stars &s) {
     // Determine A, B, C, and D stars.
@@ -144,11 +145,11 @@ Asterism::points_cd Asterism::hash (const stars &s) {
 /// Given a quad of stars, return them in the order A, B, C, and D respectively.
 /// 
 /// @param s Quad of stars to find order of.
-/// @return A quad of zero stars if the CD property cannot be met. The same stars in the order of A, B, C, and D
+/// @return INDETERMINATE_ORDER if the CD property cannot be met. The same stars in the order of A, B, C, and D
 /// otherwise.
-Asterism::stars Asterism::find_abcd (const stars &s) {
+Asterism::stars Asterism::find_order (const stars &s) {
     Asterism m(s);
-    stars s_abcd = {Star::zero(), Star::zero(), Star::zero(), Star::zero()};
+    stars s_abcd = INDETERMINATE_ORDER;
     
     // We run the computation if the hash generated switches C and D.
     points_cd h = m.compute_cd_prime();

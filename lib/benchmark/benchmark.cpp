@@ -3,6 +3,8 @@
 ///
 /// Source file for Benchmark class, which generates the input data for star identification testing.
 
+#include <random>
+
 #include "benchmark/benchmark.h"
 
 /// Constructor. Generate a random focus and rotation. Scale and restrict the image using the given fov and magnitude
@@ -56,7 +58,6 @@ Benchmark Benchmark::black () {
 /// Shuffle the current star set. Uses C++11 random library.
 void Benchmark::shuffle () {
     std::mt19937_64 mersenne_twister((*seed)());
-    
     std::shuffle(this->stars.begin(), this->stars.end(), mersenne_twister);
 }
 
@@ -80,10 +81,10 @@ void Benchmark::generate_stars (Chomp &ch, const double m_bar) {
     this->shuffle();
 }
 
-/// Return the current star set with all catalog ID s set to 0. In practice, the catalog ID of a star set is never
-/// given from the image itself.
+/// Return the current star set with all catalog IDs set to Star::NO_LABEL. In practice, the catalog ID of a star set is
+/// never given from the image itself.
 ///
-/// @return Copy of current star set with catalog IDs set to 0.
+/// @return Copy of current star set with catalog IDs set to Star::NO_LABEL.
 Star::list Benchmark::clean_stars () const {
     // Keep the current star set intact.
     Star::list clean = this->stars;
@@ -106,9 +107,7 @@ void Benchmark::present_image (Star::list &image_s, double &image_fov) const {
 
 /// Write the current data in the star set to two files. This includes the fov, norm, focus, star set, and the
 /// error set.
-///
-/// @return 0 when finished.
-int Benchmark::record_current_plot () {
+void Benchmark::record_current_plot () {
     std::ofstream current(CURRENT_TMP), error(ERROR_TMP);
     std::ostringstream current_record, error_record;
     
@@ -145,14 +144,11 @@ int Benchmark::record_current_plot () {
     
     current.close();
     error.close();
-    return 0;
 }
 
 /// Write the current data in the star set to a file, and let a separate Python script generate the plot. I am most
 /// familiar with Python's MatPlotLib, so this seemed like the most straight-forward approach.
-///
-/// @return 0 when finished.
-int Benchmark::display_plot () {
+void Benchmark::display_plot () {
     std::remove(CURRENT_TMP.c_str());
     std::remove(ERROR_TMP.c_str());
 
@@ -169,7 +165,6 @@ int Benchmark::display_plot () {
     // Record the current instance, and let Python work its magic!
     this->record_current_plot();
     std::system(cmd.c_str());
-    return 0;
 }
 
 /// Compare the number of matching stars that exist between the two stars sets.
@@ -215,7 +210,8 @@ void Benchmark::add_extra_light (const int n, bool cap_error) {
     
     // Shuffle to maintain randomness. If desired, an error star remains at the front.
     std::iter_swap(this->stars.begin(), this->stars.end() - 1);
-    (!cap_error) ? std::random_shuffle(this->stars.begin() + 1, this->stars.end()) : this->shuffle();
+    (!cap_error) ? std::shuffle(this->stars.begin() + 1, this->stars.end(), std::mt19937(std::random_device()()))
+                 : this->shuffle();
     
     // Remove the first element. Append to error models.
     extra_light.affected.erase(extra_light.affected.begin());
@@ -298,7 +294,8 @@ void Benchmark::shift_light (const int n, const double sigma, bool cap_error) {
     
     // Shuffle to maintain randomness. If desired, an error star remains at the front.
     std::iter_swap(this->stars.begin(), this->stars.end() - 1);
-    cap_error ? std::random_shuffle(this->stars.begin() + 1, this->stars.end()) : this->shuffle();
+    cap_error ? std::shuffle(this->stars.begin() + 1, this->stars.end(), std::mt19937(std::random_device()()))
+              : this->shuffle();
     
     // Remove first element. Append this to the error models.
     shifted_light.affected.erase(shifted_light.affected.begin());

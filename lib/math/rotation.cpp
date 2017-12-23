@@ -5,6 +5,9 @@
 
 #include "math/rotation.h"
 
+/// Precision default for '==' method.
+const double Rotation::EQUALITY_PRECISION_DEFAULT = 0.000000000001;
+
 /// Private constructor. Sets the individual components.
 ///
 /// @param w The scalar component of the quaternion.
@@ -25,9 +28,8 @@ Rotation::Rotation (const double w, const Star &v, const bool as_unit) {
 /// @param q Quaternion to compare with.
 /// @return True if all components are the same. False otherwise.
 bool Rotation::operator== (const Rotation &q) const {
-    return fabs(w - q.w) < ROTATION_EQUALITY_PRECISION_DEFAULT && fabs(i - q.i) < ROTATION_EQUALITY_PRECISION_DEFAULT
-           && fabs(j - q.j) < ROTATION_EQUALITY_PRECISION_DEFAULT
-           && fabs(k - q.k) < ROTATION_EQUALITY_PRECISION_DEFAULT;
+    return fabs(w - q.w) < EQUALITY_PRECISION_DEFAULT && fabs(i - q.i) < EQUALITY_PRECISION_DEFAULT
+           && fabs(j - q.j) < EQUALITY_PRECISION_DEFAULT && fabs(k - q.k) < EQUALITY_PRECISION_DEFAULT;
 }
 
 /// Given a rotation matrix as an array of stars, return the quaternion equivalent. Solution found here:
@@ -69,7 +71,7 @@ Rotation Rotation::multiply (const Rotation &q_1, const Rotation &q_2) {
     double n_2 = (q_1.w * q_2.j) + (q_1.i * q_2.k) + (q_1.j * q_2.w) - (q_1.k * q_2.i);
     double n_3 = (q_1.w * q_2.k) - (q_1.i * q_2.j) + (q_1.j * q_2.i) + (q_1.k * q_2.w);
     
-    return Rotation(n_0, Star(n_1, n_2, n_3));
+    return {n_0, Star(n_1, n_2, n_3)};
 }
 
 /// Find the quaternion across two different frames given pairs of vectors in each frame. Solution found here:
