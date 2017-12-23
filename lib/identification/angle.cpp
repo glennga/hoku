@@ -6,6 +6,11 @@
 
 #include "identification/angle.h"
 
+/// Default parameters for the angle identification method.
+const Identification::Parameters Angle::DEFAULT_PARAMETERS = {Identification::DEFAULT_SIGMA_QUERY,
+    Identification::DEFAULT_SQL_LIMIT, Identification::DEFAULT_SIGMA_OVERLAY, Identification::DEFAULT_GAMMA,
+    Identification::DEFAULT_NU_MAX, Identification::DEFAULT_NU, "ANGLE_20"};
+
 /// Constructor. Sets the benchmark data, fov, parameters, and current working table.
 ///
 /// @param input Working Benchmark instance. We are **only** copying the star set and the fov.
@@ -156,7 +161,6 @@ std::vector<Angle::label_pair> Angle::experiment_query (Chomp &ch, const Star &s
 /// Reproduction of the Angle method's check_assumption. Unlike the method used in identification, this does not
 /// return the larger star list, but rather the resulting attitude.
 ///
-/// @param ch Open Nibble connection with Chomp.
 /// @param image All stars that exist in the image.
 /// @param candidates All stars found near the inertial pair.
 /// @param r Inertial (frame R) pair of stars that match the body pair.
@@ -164,8 +168,8 @@ std::vector<Angle::label_pair> Angle::experiment_query (Chomp &ch, const Star &s
 /// @param sigma_overlay Star must be within 3 * sigma_overlay of the resulting inertial rotation.
 /// @return The quaternion associated with the largest set of matching stars across the body and inertial in both
 /// pairing configurations.
-Rotation Angle::experiment_alignment (Chomp &ch, const Benchmark &input, const Star::list &candidates,
-                                      const Star::pair &r, const Star::pair &b, double sigma_overlay) {
+Rotation Angle::experiment_alignment (const Benchmark &input, const Star::list &candidates, const Star::pair &r,
+                                      const Star::pair &b, double sigma_overlay) {
     Angle::Parameters p;
     p.sigma_overlay = sigma_overlay;
     Angle a(input, p);
@@ -195,7 +199,7 @@ Rotation Angle::experiment_alignment (Chomp &ch, const Benchmark &input, const S
 /// @return [0, 0] if no match is found. Otherwise, a single match for the given stars s_1 and s_2.
 Angle::label_pair Angle::experiment_reduction (Chomp &ch, const Star &s_1, const Star &s_2, double sigma_query) {
     std::vector<label_pair> p = experiment_query(ch, s_1, s_2, sigma_query);
-    return p.empty() ? (label_pair) {0, 0} : p[0];
+    return p.empty() ? label_pair {0, 0} : p[0];
 }
 
 /// Reproduction of the Angle method's process from beginning to the orientation determination.
@@ -224,8 +228,7 @@ Rotation Angle::experiment_attitude (const Benchmark &input, const Parameters &p
             candidates = a.ch.nearby_hip_stars(candidate_pair[0], a.fov, 3 * ((unsigned int) a.input.size()));
             
             // Find the most likely rotation given the two pairs.
-            return a.experiment_alignment(a.ch, input, candidates, candidate_pair, {a.input[i], a.input[j]},
-                                          p.sigma_overlay);
+            return a.experiment_alignment(input, candidates, candidate_pair, {a.input[i], a.input[j]}, p.sigma_overlay);
         }
     }
     

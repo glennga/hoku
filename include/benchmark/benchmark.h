@@ -63,15 +63,15 @@ class Benchmark {
     
     static int compare_stars (const Benchmark &, const Star::list &);
 
-#if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
+#if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
     Benchmark (std::random_device &, const Star::list &, const Star &, double);
     
     Star::list clean_stars () const;
     void shuffle ();
-
-#if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
+    
+#if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
     /// String of the HOKU_PROJECT_PATH environment variable.

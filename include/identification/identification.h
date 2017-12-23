@@ -17,14 +17,40 @@ class Identification {
         double sigma_overlay; ///< Resultant of inertial->body rotation must within 3 * sigma_overlay of *a* body.
         unsigned int gamma; ///< The minimum number of body-inertial matches.
         unsigned int nu_max; ///< Maximum number of query star comparisons before returning an empty list.
-        std::unique_ptr<unsigned int> nu; ///< Pointer to the location to hold the count of query star comparisons.
+        std::shared_ptr<unsigned int> nu; ///< Pointer to the location to hold the count of query star comparisons.
         std::string table_name; ///< Name of the Nibble database table created with 'generate_sep_table'.
     };
     
+    /// Default sigma query for all identification methods.
+    static constexpr double DEFAULT_SIGMA_QUERY = std::numeric_limits<double>::epsilon();
+    
+    /// Default SQL limit for all identification methods.
+    static constexpr unsigned int DEFAULT_SQL_LIMIT = 500;
+    
+    /// Default sigma overlay (for matching) for all identification methods.
+    static constexpr double DEFAULT_SIGMA_OVERLAY = std::numeric_limits<double>::epsilon();
+    
+    /// Default gamma (match minimum) for all identification methods.
+    static constexpr unsigned int DEFAULT_GAMMA = 50000;
+    
+    /// Default nu max (comparison counts) for all identification methods.
+    static constexpr unsigned int DEFAULT_NU_MAX = 5;
+    
+    /// Default pointer to nu (comparison count) for all identification methods.
+    static constexpr auto DEFAULT_NU = nullptr;
+    
+    /// Default table name for all identification methods.
+    static constexpr const char *DEFAULT_TABLE_NAME = "NO_TABLE";
+    
+#if !defined ENABLE_TESTING_ACCESS
   protected:
+#endif
     Star::list find_matches (const Star::list &candidates, const Rotation &q);
+    static const Parameters DEFAULT_PARAMETERS;
 
+#if !defined ENABLE_TESTING_ACCESS
   protected:
+#endif
     /// The star set we are working with. The catalog ID values are all set to 0 here.
     Star::list input;
     
