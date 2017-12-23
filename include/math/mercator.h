@@ -44,7 +44,8 @@ class Mercator {
     
     virtual std::string str () const;
     
-    static const double INVALID_ELEMENT_ACCESSED; // 0
+    static const double INVALID_ELEMENT_ACCESSED;
+    static const int NO_LABEL;
 
 #if !defined ENABLE_TESTING_ACCESS
   protected:
@@ -63,7 +64,7 @@ class Mercator {
     /// Width of the map the point is projected onto. Default width is 0.
     double w_n = 0;
     
-    /// Catalog ID for the point. Default is 0.
+    /// Catalog ID for the point.
     int label = 0;
 
 #if !defined ENABLE_TESTING_ACCESS

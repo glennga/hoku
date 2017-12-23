@@ -32,14 +32,14 @@ class KdNode : public Mercator {
 #endif
   public:
     static KdNode load_tree (const Star::list &, double);
-    
     Star::list nearby_stars (const Star &, double, unsigned int, const Star::list &);
 
+    static const int NO_ORIGIN;
+    static const int ROOT_LABEL;
+    
 #if !defined ENABLE_TESTING_ACCESS
     private:
 #endif
-    /// Precision default for '==' method.
-    constexpr static double KDNODE_EQUALITY_PRECISION_DEFAULT = 0.000000000001;
     
     /// Alias for edge to nodes (there should only be a left and right).
     using child_edge = std::shared_ptr<KdNode>;
@@ -68,8 +68,9 @@ class KdNode : public Mercator {
     static void box_query (const Mercator::quad &, const KdNode &, KdNode::list &);
     
     std::string str () const override;
-    
     bool operator== (const KdNode &) const;
+    
+    static const double EQUALITY_PRECISION_DEFAULT;
 
 #if !defined ENABLE_TESTING_ACCESS
     private:
