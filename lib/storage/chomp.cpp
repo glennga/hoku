@@ -109,7 +109,8 @@ int Chomp::generate_hip_table () {
     }
     
     SQLite::Transaction transaction(*db);
-    if (create_table("HIP", "alpha FLOAT, delta FLOAT, i FLOAT, j FLOAT, k FLOAT, m FLOAT, label INT") == -1) {
+    if (create_table("HIP", "alpha FLOAT, delta FLOAT, i FLOAT, j FLOAT, k FLOAT, m FLOAT, label INT")
+        == Nibble::TABLE_NOT_CREATED) {
         return TABLE_EXISTS;
     }
     
