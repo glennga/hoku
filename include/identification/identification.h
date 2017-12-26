@@ -42,26 +42,38 @@ class Identification {
     /// Default table name for all identification methods.
     static constexpr const char *DEFAULT_TABLE_NAME = "NO_TABLE";
     
+    /// Alias for a list of labels.
+    using labels_list = std::vector<int>;
+  
+  public:
+    virtual std::vector<labels_list> experiment_query (const Star::list &s) = 0;
+    virtual Star::list experiment_alignment (const Star::list &candidates, const Star::list &r,
+                                             const Star::list &b) = 0;
+    virtual labels_list experiment_reduction (const Star::list &s) = 0;
+    virtual Star::list experiment_attitude () = 0;
+    virtual Star::list experiment_crown () = 0;
+
 #if !defined ENABLE_TESTING_ACCESS
-  protected:
+    protected:
 #endif
     Star::list find_matches (const Star::list &candidates, const Rotation &q);
     static const Parameters DEFAULT_PARAMETERS;
+    static const double NO_FOV;
 
 #if !defined ENABLE_TESTING_ACCESS
-  protected:
+    protected:
 #endif
     /// The star set we are working with. The catalog ID values are all set to 0 here.
     Star::list input;
     
     /// Current working parameters.
-    Parameters parameters;
+    Parameters parameters = DEFAULT_PARAMETERS;
     
     /// Chomp instance, gives us access to the Nibble database.
     Chomp ch;
     
     /// All stars in 'input' are fov degrees from the focus.
-    double fov;
+    double fov = NO_FOV;
 };
 
 #endif /* HOKU_IDENTIFICATION_H */

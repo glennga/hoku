@@ -9,6 +9,9 @@
 const Identification::Parameters Identification::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
     DEFAULT_SIGMA_OVERLAY, DEFAULT_GAMMA, DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_TABLE_NAME};
 
+/// Indicates that a given identification object does not have an designated field of view.
+const double NO_FOV = -1;
+
 /// Rotate every point the given rotation and check if the angle of separation between any two stars is within a
 /// given limit sigma.
 ///
