@@ -1,0 +1,53 @@
+\section{Benchmark Data and Test Conditions}
+
+
+
+\section{Background and Previous Star-Tracker Work}  Look into a
+non-cloudy night sky and you'll see light from all across the galaxy. Many
+ancient pioneers used this light as accurate guides to their destination. But
+wait, don't stars move? How is it that most stars observed don;t change
+position with respect to each other? \smallskip
+
+It is
+true that planets orbit our Sun and that our Sun moves across the galaxy, but
+space is massive. The distance these stars move with respect to each other is
+miniscule compared to what the human eye sees by looking up. This means that we
+can treat stars as fixed with respect to each other (for a reasonable amount of
+time), and that we can treat the distance to stars as infinity. Astronomers use
+a model known as the 'celestial sphere', logging the right ascension (equivalent
+to longitude) and the declination (equivalent to latitude) of stars to map the
+night sky. A plot of one catalog representing this is below.
+
+\begin{figure}[h!] \centering \includegraphics[scale=0.5]{images/bsc5-plot}
+\caption{Depicts a visualization of the celestial sphere using stars from the
+Yale Bright Star Catalog.} \end{figure}
+
+\subsection{1st Generation Star Tracker Project}
+This project is a continuation of star-based attitude estimation project I was
+working on earlier in the year. My sophomore project (Jan 2016 $\rightarrow$ May
+2016) was research into the practical considerations of star tracker hardware.
+This included a minimum FOV and maximum apparent magnitude (minimum brightness)
+for a given detector. The majority of this project was getting familiar with
+understanding and parsing star catalogs, learning Matlab and Python, and waiting
+for my code to run. \smallskip
+
+During the summer (May 2016 $\rightarrow$ August 2016), I worked on developing
+algorithms for star-based attitude estimation at an internship. I had a lot of
+help here. Given an image of stars, I matched the bright spots to the stars of
+an inertial database cataloged by specific pattern properties. To keep this
+from being too boring, the image below represents the usage of OpenCV to
+characterize the bright spots in an image as stars. Knowing the star vectors in
+the image to star vectors in the database, a quaternion attitude between the two
+was calculated.  \smallskip
+
+\begin{figure}[h!] \centering
+\includegraphics[scale=0.45]{images/location-and-brightness-test}
+\caption{Depicts the location and gray-scale values of various stars in a given
+image.} \end{figure}
+
+When it came to star recognition, I simply took the three brightest stars in an
+image, found the distance between the stars to generate a triangle, and matched
+these triangles to a database of triangles generated for a star's 10 closest
+neighbors. I didn't try to match the other stars to the database, nor was I able
+to accurately test my code without specific hardware. \smallskip
+

@@ -27,7 +27,8 @@ Nibble::Nibble (const std::string &table_name, const std::string &focus) {
     
     // Copy the entire table to RAM.
     nb.select_table(table_name, true);
-    const unsigned int CARDINALITY = (*nb.conn).execAndGet(std::string("SELECT MAX(rowid) FROM ") + table_name).getUInt();
+    const unsigned int CARDINALITY = (*nb.conn).execAndGet(
+        std::string("SELECT MAX(rowid) FROM ") + table_name).getUInt();
     tuples_d table = nb.search_table("*", CARDINALITY);
     
     // Determine the schema and fields for insertion. Create the table.
@@ -122,8 +123,8 @@ Nibble::tuples_d Nibble::search_table (const std::string &fields, const unsigned
     SQLite::Statement query(*conn, sql);
     while (query.executeStep()) {
         tuple_d tup;
-    
-        for (int i = 0; i < query.getColumnCount(); i++) {
+        
+        for (unsigned int i = 0; i < query.getColumnCount(); i++) {
             tup.push_back(query.getColumn(i).getDouble());
         }
         result.push_back(tup);
@@ -149,7 +150,6 @@ double Nibble::search_single (const std::string &fields, const std::string &cons
     }
     return NO_RESULT_FOUND;
 }
-
 
 /// Create a table in the Nibble database with the given schema.
 ///

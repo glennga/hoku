@@ -40,11 +40,11 @@ Benchmark::Benchmark (Chomp &ch, std::random_device &seed, const Star &focus, co
 /// applied to it.
 ///
 /// @param seed Reference to a random device to use for all future Benchmark methods.
-/// @param stars Star set to give the current benchmark.
+/// @param s Star set to give the current benchmark.
 /// @param focus Focus star of the given star set.
 /// @param fov Field of view (degrees) associated with the given star set.
-Benchmark::Benchmark (std::random_device &seed, const Star::list &stars, const Star &focus, const double fov) {
-    this->seed = &seed, this->stars = stars, this->focus = focus, this->fov = fov;
+Benchmark::Benchmark (std::random_device &seed, const Star::list &s, const Star &focus, const double fov) {
+    this->seed = &seed, this->fov = fov, this->stars = stars, this->focus = focus;
 }
 
 /// Dummy image. Holds no image or field of view.
@@ -67,7 +67,7 @@ void Benchmark::shuffle () {
 /// @param m_bar Maximum magnitude a star must be within in the given benchmark.
 void Benchmark::generate_stars (Chomp &ch, const double m_bar) {
     // Expected number of stars = fov * 8. Not too concerned with accuracy here.
-    unsigned int expected = (unsigned int) this->fov * 4;
+    auto expected = static_cast<unsigned int>(this->fov * 4);
     
     // Find nearby stars. Rotate these stars and the focus.
     for (const Star &s : ch.nearby_hip_stars(this->focus, this->fov / 2.0, expected)) {
@@ -272,7 +272,7 @@ void Benchmark::shift_light (const int n, const double sigma, bool cap_error) {
     int current_n = 0;
     
     // Loop through entire list again if n not met through past run.
-    while (current_n < n || this->stars.size() == (unsigned) current_n + 1) {
+    while (current_n < n || this->stars.size() == current_n + 1) {
         bool n_condition = true;
         
         // Check inside if n is met early, break if met.
@@ -288,7 +288,7 @@ void Benchmark::shift_light (const int n, const double sigma, bool cap_error) {
             }
             
             // If the n-condition is met early, we break.
-            n_condition = (current_n < n || this->stars.size() == (unsigned) current_n + 1);
+            n_condition = (current_n < n || this->stars.size() == current_n + 1);
         }
     }
     

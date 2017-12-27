@@ -149,7 +149,7 @@ KdNode KdNode::load_tree (const Star::list &v, const double w_n) {
     }
     
     // Populate the tree. The root is the center of projection.
-    KdNode root = KdNode(0, (unsigned) projected.size() - 1, 0, b, projected);
+    KdNode root = KdNode(0, static_cast<unsigned>(projected.size()) - 1, 0, b, projected);
     
     // The root has the following properties: w_n = w_n, origin_index = NO_ORIGIN, label = NO_INDEX.
     root.origin_index = NO_ORIGIN, root.w_n = w_n, root.label = ROOT_LABEL;
