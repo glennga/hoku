@@ -6,6 +6,10 @@
 
 #include "identification/base-triangle.h"
 
+const std::vector<BaseTriangle::label_trio> BaseTriangle::NO_CANDIDATES_FOUND = {{-1, -1, -1}};
+
+const std::vector<Trio::stars> Identification::NO_MATCHES_FOUND = {};
+
 /// Generate the triangle table given the specified FOV and table name. This find the area and polar moment
 /// between each distinct permutation of trios, and only stores them if they fall within the corresponding
 /// field-of-view.
@@ -18,7 +22,7 @@
 int BaseTriangle::generate_triangle_table (const double fov, const std::string &table_name, area_function compute_area,
                                            moment_function compute_moment) {
     Chomp ch;
-    SQLite::Transaction initial_transaction(*ch.db);
+    SQLite::Transaction initial_transaction(*ch.conn);
     
     ch.create_table(table_name, "label_a INT, label_b INT, label_c INT, a FLOAT, i FLOAT");
     initial_transaction.commit();
@@ -27,7 +31,7 @@ int BaseTriangle::generate_triangle_table (const double fov, const std::string &
     // (i, j, k) are distinct, where no (i, j, k) = (j, k, i), (j, i, k), ....
     Star::list all_stars = ch.bright_as_list();
     for (unsigned int i = 0; i < all_stars.size() - 2; i++) {
-        SQLite::Transaction transaction(*ch.db);
+        SQLite::Transaction transaction(*ch.conn);
         std::cout << "\r" << "Current *I* Star: " << all_stars[i].get_label();
         for (unsigned int j = i + 1; j < all_stars.size() - 1; j++) {
             for (unsigned int k = j + 1; k < all_stars.size(); k++) {

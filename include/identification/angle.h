@@ -39,30 +39,26 @@
 /// @endcode
 class Angle : public Identification {
   public:
-    /// User should **NOT** be creating instances of Angle manually. Instead, use the provided static functions.
-    Angle () = delete;
-    
-    /// Alias for a pair of catalog IDs (2-element STL array of doubles).
-    using label_pair = std::array<int, 2>;
+    explicit Angle (const Benchmark &input, const Parameters &p);
     
   public:
-    static std::vector<label_pair> experiment_query (Chomp &ch, const Star &s_1, const Star &s_2, double sigma_query);
-    static Rotation experiment_alignment (const Benchmark &input, const Star::list &candidates, const Star::pair &r,
-                                          const Star::pair &b, double sigma_overlay);
-    static label_pair experiment_reduction (Chomp &ch, const Star &s_1, const Star &s_2, double sigma_query);
-    static Rotation experiment_attitude (const Benchmark &input, const Parameters &p);
-    static Star::list experiment_crown (const Benchmark &input, const Parameters &p);
+    std::vector<labels_list> experiment_query (const Star::list &s);
+    Star::list experiment_first_alignment (const Star::list &candidates, const Star::list &r, const Star::list &b);
+    labels_list experiment_reduction (const Star::list &s);
+    Star::list experiment_alignment ();
+    Star::list experiment_crown ();
     
-    static int generate_angle_table (double fov, const std::string &table_name);
+    int generate_table(double fov, const std::string &table_name);
     
     static const Parameters DEFAULT_PARAMETERS;
+    static const Star::pair NO_CANDIDATE_PAIR_FOUND;
+    
 
 #if !defined ENABLE_TESTING_ACCESS
     private:
 #endif
-    Angle (const Benchmark &input, const Parameters &p);
     
-    label_pair query_for_pair (double theta);
+    labels_list query_for_pair (double theta);
     Star::pair find_candidate_pair (const Star &b_a, const Star &b_b);
     Star::list check_assumptions (const Star::list &candidates, const Star::pair &r, const Star::pair &b);
 };

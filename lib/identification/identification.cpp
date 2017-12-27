@@ -5,12 +5,21 @@
 
 #include "identification/identification.h"
 
-/// Default parameters for all identification methods.
-const Identification::Parameters Identification::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
-    DEFAULT_SIGMA_OVERLAY, DEFAULT_GAMMA, DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_TABLE_NAME};
+/// Returned when no candidates are found from a query.
+const Identification::labels_list Identification::NO_CANDIDATES_FOUND = {-1, -1};
 
-/// Indicates that a given identification object does not have an designated field of view.
-const double NO_FOV = -1;
+/// Returned when there exists no confident alignment from an alignment trial.
+const Star::list Identification::NO_CONFIDENT_ALIGNMENT = {};
+
+/// Returned when we count past our defined max nu from a crown or alignment trial.
+const Star::list Identification::EXCEEDED_NU_MAX = {Star::zero()};
+
+/// Returned when there exists no confident match set from a crown trial.
+const Star::list Identification::NO_CONFIDENT_MATCH_SET = {};
+
+/// Constructor. We set our field-of-view to the default here.
+Identification::Identification () : fov(Benchmark::NO_FOV) {
+}
 
 /// Rotate every point the given rotation and check if the angle of separation between any two stars is within a
 /// given limit sigma.

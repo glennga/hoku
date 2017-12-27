@@ -19,7 +19,7 @@ TEST(AngleQuery, Pair) {
     Benchmark input(ch, seed, 15);
     
     double a = Star::angle_between(input.stars[0], input.stars[1]);
-    std::array<int, 2> b = Angle(input, Angle::DEFAULT_PARAMETERS).query_for_pair(a);
+    Identification::labels_list b = Angle(input, Angle::DEFAULT_PARAMETERS).query_for_pair(a);
     std::vector<int> c = {input.stars[0].get_label(), input.stars[1].get_label()};
     std::vector<int> d = {input.stars[0].get_label(), input.stars[1].get_label()};
     EXPECT_THAT(c, Contains(b[0]));
@@ -34,7 +34,7 @@ TEST(AngleQuery, MultipleChoice) {
     p.sigma_query = 10e-7;
     Angle a(Benchmark(ch, seed, 15), p);
     Star b = ch.query_hip(103215), c = ch.query_hip(103217);
-    std::array<int, 2> d = a.query_for_pair(Star::angle_between(b, c));
+    Identification::labels_list d = a.query_for_pair(Star::angle_between(b, c));
     
     std::vector<int> e = {103215, 103217}, f = {103215, 103217};
     EXPECT_THAT(e, Contains(d[0]));
@@ -180,7 +180,7 @@ TEST(AngleIdentify, CleanInput) {
     
     // We define a match as 66% here.
     a.gamma = (unsigned int) (input.stars.size() * (2.0 / 3.0));
-    std::vector<Star> c = Angle::experiment_crown(input, a);
+    Star::list c = Angle(input, a).experiment_crown();
     EXPECT_GT(c.size(), input.stars.size() * (2.0 / 3.0));
     std::string all_input;
     for (const Star &s : input.stars) {
@@ -209,7 +209,7 @@ TEST(AngleIdentify, ErrorInput) {
     
     // We define a match as 66% here.
     a.gamma = (unsigned int) ((input.stars.size() - 1) * (2.0 / 3.0));
-    std::vector<Star> c = Angle::experiment_crown(input, a);
+    std::vector<Star> c = Angle(input, a).experiment_crown();
     EXPECT_GT(c.size(), (input.stars.size() - 1) * (2.0 / 3.0));
     std::string all_input;
     for (const Star &s : input.stars) {
@@ -238,7 +238,7 @@ TEST(AngleIdentify, SaturationMatch) {
     // Some ridiculous number...
     p.gamma = 10000;
     
-    Star::list a = Angle::experiment_crown(input, p);
+    Star::list a = Angle(input, p).experiment_crown();
     EXPECT_NE(a.size(), 0);
 }
 

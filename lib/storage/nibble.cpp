@@ -124,7 +124,7 @@ Nibble::tuples_d Nibble::search_table (const std::string &fields, const unsigned
     while (query.executeStep()) {
         tuple_d tup;
         
-        for (unsigned int i = 0; i < query.getColumnCount(); i++) {
+        for (int i = 0; i < query.getColumnCount(); i++) {
             tup.push_back(query.getColumn(i).getDouble());
         }
         result.push_back(tup);

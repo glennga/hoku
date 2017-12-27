@@ -15,7 +15,7 @@ class Identification {
         double sigma_query; ///< Query must be within 3 * sigma_query.
         unsigned int sql_limit; ///< While performing a SQL query, limit results by this number.
         double sigma_overlay; ///< Resultant of inertial->body rotation must within 3 * sigma_overlay of *a* body.
-        unsigned int gamma; ///< The minimum number of body-inertial matches.
+        double gamma; ///< The minimum percentage of body-inertial matches.
         unsigned int nu_max; ///< Maximum number of query star comparisons before returning an empty list.
         std::shared_ptr<unsigned int> nu; ///< Pointer to the location to hold the count of query star comparisons.
         std::string table_name; ///< Name of the Nibble database table created with 'generate_sep_table'.
@@ -30,11 +30,11 @@ class Identification {
     /// Default sigma overlay (for matching) for all identification methods.
     static constexpr double DEFAULT_SIGMA_OVERLAY = std::numeric_limits<double>::epsilon();
     
-    /// Default gamma (match minimum) for all identification methods.
-    static constexpr unsigned int DEFAULT_GAMMA = 50000;
+    /// Default gamma (match minimum percentage) for all identification methods.
+    static constexpr double DEFAULT_GAMMA = 0.66;
     
     /// Default nu max (comparison counts) for all identification methods.
-    static constexpr unsigned int DEFAULT_NU_MAX = 5;
+    static constexpr unsigned int DEFAULT_NU_MAX = 50000;
     
     /// Default pointer to nu (comparison count) for all identification methods.
     static constexpr auto DEFAULT_NU = nullptr;
@@ -44,22 +44,33 @@ class Identification {
     
     /// Alias for a list of labels.
     using labels_list = std::vector<int>;
-  
+    
+    /// Indicates that a table already exists upon a table creation attempt.
+    static constexpr int TABLE_ALREADY_EXISTS = -1;
+    
   public:
+    Identification();
+    
     virtual std::vector<labels_list> experiment_query (const Star::list &s) = 0;
-    virtual Star::list experiment_alignment (const Star::list &candidates, const Star::list &r,
-                                             const Star::list &b) = 0;
+    virtual Star::list experiment_first_alignment (const Star::list &candidates, const Star::list &r,
+                                                   const Star::list &b) = 0;
     virtual labels_list experiment_reduction (const Star::list &s) = 0;
-    virtual Star::list experiment_attitude () = 0;
+    virtual Star::list experiment_alignment () = 0;
     virtual Star::list experiment_crown () = 0;
+    
+    virtual int generate_table(double fov, const std::string &table_name) = 0;
+    
+    static const Star::list NO_CONFIDENT_ALIGNMENT;
+    static const labels_list NO_CANDIDATES_FOUND;
+    
+    static const Star::list EXCEEDED_NU_MAX;
+    static const Star::list NO_CONFIDENT_MATCH_SET;
 
 #if !defined ENABLE_TESTING_ACCESS
     protected:
 #endif
     Star::list find_matches (const Star::list &candidates, const Rotation &q);
-    static const Parameters DEFAULT_PARAMETERS;
-    static const double NO_FOV;
-
+    
 #if !defined ENABLE_TESTING_ACCESS
     protected:
 #endif
@@ -67,13 +78,13 @@ class Identification {
     Star::list input;
     
     /// Current working parameters.
-    Parameters parameters = DEFAULT_PARAMETERS;
+    Parameters parameters;
     
     /// Chomp instance, gives us access to the Nibble database.
     Chomp ch;
     
     /// All stars in 'input' are fov degrees from the focus.
-    double fov = NO_FOV;
+    double fov;
 };
 
 #endif /* HOKU_IDENTIFICATION_H */

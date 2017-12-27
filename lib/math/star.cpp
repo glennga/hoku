@@ -215,10 +215,19 @@ bool Star::within_angle (const list &s_l, const double theta) {
     return true;
 }
 
+/// Return the given star with a new, defined label.
+///
+/// @param s Star to attach a new catalog ID to.
+/// @param label New label to attach to the star.
+/// @return Same star with the given label.
+Star Star::define_label(const Star &s, int label) {
+    return {s.i, s.j, s.k, label, s.m};
+}
+
 /// Return the given star with a catalog ID of NO_LABEL.
 ///
 /// @param s Star to remove catalog ID from.
 /// @return Same star with catalog ID equal to NO_LABEL.
 Star Star::reset_label (const Star &s) {
-    return {s.i, s.j, s.k, NO_LABEL};
+    return define_label(s, NO_LABEL);
 }

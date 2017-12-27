@@ -79,6 +79,7 @@ class Star {
     static bool within_angle (const Star &s_1, const Star &s_2, double theta);
     static bool within_angle (const list &s_l, double theta);
     
+    static Star define_label(const Star &s, int label);
     static Star reset_label (const Star &s);
     
 #if !defined ENABLE_TESTING_ACCESS

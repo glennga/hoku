@@ -58,15 +58,15 @@ class Benchmark {
                double m_bar = DEFAULT_M_BAR);
     static Benchmark black ();
     
-    void generate_stars (Chomp &ch, double m_bar = DEFAULT_M_BAR;
+    void generate_stars (Chomp &ch, double m_bar = DEFAULT_M_BAR);
     void present_image (Star::list &image_s, double &image_fov) const;
     
     void record_current_plot ();
     void display_plot ();
     
-    void add_extra_light (int n, bool cap_error = false);
-    void shift_light (int n, double sigma, bool cap_error = false);
-    void remove_light (int n, double psi);
+    void add_extra_light (unsigned int n, bool cap_error = false);
+    void shift_light (unsigned int n, double sigma, bool cap_error = false);
+    void remove_light (unsigned int n, double psi);
     
     static int compare_stars (const Benchmark &, const Star::list &);
 

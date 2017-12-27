@@ -43,8 +43,9 @@ Benchmark::Benchmark (Chomp &ch, std::random_device &seed, const Star &focus, co
 /// @param s Star set to give the current benchmark.
 /// @param focus Focus star of the given star set.
 /// @param fov Field of view (degrees) associated with the given star set.
-Benchmark::Benchmark (std::random_device &seed, const Star::list &s, const Star &focus, const double fov) {
-    this->seed = &seed, this->fov = fov, this->stars = stars, this->focus = focus;
+Benchmark::Benchmark (std::random_device &seed, const Star::list &s, const Star &focus, const double fov) : seed(),
+    fov() {
+    this->seed = &seed, this->fov = fov, this->stars = s, this->focus = focus;
 }
 
 /// Dummy image. Holds no image or field of view.
@@ -195,8 +196,8 @@ int Benchmark::compare_stars (const Benchmark &b, const Star::list &s_l) {
 ///
 /// @param n Number of extra stars to add.
 /// @param cap_error Flag to move an error star to the front of the star list.
-void Benchmark::add_extra_light (const int n, bool cap_error) {
-    int current_n = 0;
+void Benchmark::add_extra_light (const unsigned int n, bool cap_error) {
+    unsigned int current_n = 0;
     ErrorModel extra_light = {"Extra Light", "r", {Star::zero()}};
     
     while (current_n < n) {
@@ -223,8 +224,8 @@ void Benchmark::add_extra_light (const int n, bool cap_error) {
 ///
 /// @param n Number of blobs to generate.
 /// @param psi Dark spot size (degrees). This is the cone size of the dark spot vectors.
-void Benchmark::remove_light (const int n, const double psi) {
-    int current_n = 0;
+void Benchmark::remove_light (const unsigned int n, const double psi) {
+    unsigned int current_n = 0;
     std::vector<Star> blobs;
     ErrorModel removed_light = {"Removed Light", "0.5", {Star::zero()}};
     bool is_affected = false;
@@ -267,9 +268,9 @@ void Benchmark::remove_light (const int n, const double psi) {
 /// @param n Number of stars to move.
 /// @param sigma Amount to shift stars by, in terms of degrees.
 /// @param cap_error Flag to move an error star to the front of the star list.
-void Benchmark::shift_light (const int n, const double sigma, bool cap_error) {
+void Benchmark::shift_light (const unsigned int n, const double sigma, bool cap_error) {
     ErrorModel shifted_light = {"Shifted Light", "g", {Star::zero()}};
-    int current_n = 0;
+    unsigned int current_n = 0;
     
     // Loop through entire list again if n not met through past run.
     while (current_n < n || this->stars.size() == current_n + 1) {
