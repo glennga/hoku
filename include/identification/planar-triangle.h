@@ -45,19 +45,22 @@
 class PlanarTriangle : public BaseTriangle {
   public:
     using BaseTriangle::Parameters;
+    static const Parameters DEFAULT_PARAMETERS;
     
-    static std::vector<label_trio> experiment_query (Chomp &ch, const Star &s_1, const Star &s_2, const Star &s_3,
-                                                     double sigma_query);
-    static Rotation experiment_alignment (Chomp &ch, const Benchmark &input, const Star::list &candidates,
-                                          const Trio::stars &r, const Trio::stars &b, double sigma_query);
-    static label_trio experiment_reduction (const Benchmark &input, const Parameters &p);
-    static Rotation experiment_attitude (const Benchmark &input, const Parameters &p);
-    static Star::list experiment_crown (const Benchmark &input, const Parameters &p);
-    
-    static int generate_plane_table (double fov, const std::string &table_name);
-  
-  private:
     PlanarTriangle (const Benchmark &, const Parameters &);
+    
+    std::vector<labels_list> experiment_query (const Star::list &s);
+    Star::list experiment_first_alignment (const Star::list &candidates, const Star::list &r,
+                                                  const Star::list &b);
+    labels_list experiment_reduction ();
+    Star::list experiment_alignment ();
+    Star::list experiment_crown ();
+    
+    int generate_table(double fov, const std::string &table_name);
+
+#if !defined ENABLE_TESTING_ACCESS
+  private:
+#endif
     std::vector<Trio::stars> match_stars (const index_trio &);
 };
 

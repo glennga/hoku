@@ -44,7 +44,7 @@ class Angle : public Identification {
   public:
     std::vector<labels_list> experiment_query (const Star::list &s);
     Star::list experiment_first_alignment (const Star::list &candidates, const Star::list &r, const Star::list &b);
-    labels_list experiment_reduction (const Star::list &s);
+    labels_list experiment_reduction ();
     Star::list experiment_alignment ();
     Star::list experiment_crown ();
     
@@ -57,7 +57,6 @@ class Angle : public Identification {
 #if !defined ENABLE_TESTING_ACCESS
     private:
 #endif
-    
     labels_list query_for_pair (double theta);
     Star::pair find_candidate_pair (const Star &b_a, const Star &b_b);
     Star::list check_assumptions (const Star::list &candidates, const Star::pair &r, const Star::pair &b);

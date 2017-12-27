@@ -179,7 +179,7 @@ TEST(AngleIdentify, CleanInput) {
     a.nu = std::make_shared<unsigned int>(nu);
     
     // We define a match as 66% here.
-    a.gamma = (unsigned int) (input.stars.size() * (2.0 / 3.0));
+    a.gamma = (2.0 / 3.0);
     Star::list c = Angle(input, a).experiment_crown();
     EXPECT_GT(c.size(), input.stars.size() * (2.0 / 3.0));
     std::string all_input;
@@ -208,7 +208,7 @@ TEST(AngleIdentify, ErrorInput) {
     a.nu = std::make_shared<unsigned int>(nu);
     
     // We define a match as 66% here.
-    a.gamma = (unsigned int) ((input.stars.size() - 1) * (2.0 / 3.0));
+    a.gamma = (2.0 / 3.0);
     std::vector<Star> c = Angle(input, a).experiment_crown();
     EXPECT_GT(c.size(), (input.stars.size() - 1) * (2.0 / 3.0));
     std::string all_input;

@@ -209,12 +209,11 @@ Star::list Angle::experiment_first_alignment (const Star::list &candidates, cons
 ///     - sql_limit
 /// @endcode
 ///
-/// @param s Stars to query with. This must be of length = 2.
 /// @return NO_CANDIDATES_FOUND if we cannot query anything. Otherwise, a single match configuration found by the angle
 /// method.
-Angle::labels_list Angle::experiment_reduction (const Star::list &s) {
-    ch.select_table(this->parameters.table_name);
-    std::vector<labels_list> p = experiment_query(s);
+Angle::labels_list Angle::experiment_reduction () {
+    ch.select_table(parameters.table_name);
+    std::vector<labels_list> p = experiment_query({input[0], input[1]});
     return p.empty() ? NO_CANDIDATES_FOUND : p[0];
 }
 
@@ -232,7 +231,7 @@ Angle::labels_list Angle::experiment_reduction (const Star::list &s) {
 ///
 /// @param input The set of benchmark data to work with.
 /// @param p Adjustments to the identification process.
-/// @return NO_ALIGNMENT_FOUND if an alignment cannot be found exhaustively. EXCEEDED_NU_MAX if an alignment
+/// @return NO_CONFIDENT_ALIGNMENT if an alignment cannot be found exhaustively. EXCEEDED_NU_MAX if an alignment
 /// cannot be found within a certain number of query picks. Otherwise, body stars b with the attached labels
 /// of the inertial pair r.
 Star::list Angle::experiment_alignment () {
@@ -268,7 +267,7 @@ Star::list Angle::experiment_alignment () {
 
 /// Match the stars found in the given benchmark to those in the Nibble database. All parameters must be defined.
 ///
-/// @return NO_ALIGNMENT_FOUND if an alignment cannot be found exhaustively. EXCEEDED_NU_MAX if an alignment
+/// @return NO_CONFIDENT_ALIGNMENT if an alignment cannot be found exhaustively. EXCEEDED_NU_MAX if an alignment
 /// cannot be found within a certain number of query picks. Otherwise, a vector of body stars with their
 /// inertial catalog IDs that qualify as matches.
 Star::list Angle::experiment_crown () {

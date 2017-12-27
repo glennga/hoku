@@ -19,7 +19,7 @@ target_link_libraries(TestAngle gtest gmock Angle Identification
 # Link and Create Executable TestPlanarTriangle
 ##################################################################
 add_executable(TestPlanarTriangle test-planar-triangle.cpp)
-target_link_libraries(TestPlanarTriangle gtest PlanarTriangle
+target_link_libraries(TestPlanarTriangle gtest gmock PlanarTriangle
         BaseTriangle Identification Benchmark Rotation Chomp Nibble
         Trio Star SQLiteCpp Sqlite3)
 
