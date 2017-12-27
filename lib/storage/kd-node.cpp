@@ -5,15 +5,6 @@
 
 #include "storage/kd-node.h"
 
-/// Default precision for node component comparisons.
-const double KdNode::EQUALITY_PRECISION_DEFAULT = 0.000000000001;
-
-/// For the origin_index property. This suggests that an origin has not been set (or is a median point).
-const int KdNode::NO_ORIGIN = -1;
-
-/// For the label property. This suggests that a given point is the root of the tree.
-const int KdNode::ROOT_LABEL = -1;
-
 /// Recursively populate a kd-tree given the current endpoints of a list "t", the current depth of the tree, and the
 /// bounds associated with the working node.
 ///

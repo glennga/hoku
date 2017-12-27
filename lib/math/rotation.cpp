@@ -5,8 +5,7 @@
 
 #include "math/rotation.h"
 
-/// Precision default for '==' method.
-const double Rotation::EQUALITY_PRECISION_DEFAULT = 0.000000000001;
+const double Rotation::EQUALITY_PRECISION_DEFAULT ;
 
 /// Private constructor. Sets the individual components.
 ///

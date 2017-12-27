@@ -30,7 +30,10 @@ class Mercator {
     
     /// Force default constructor. Default point is (0, 0) with w_n = 0 and hr = 0.
     Mercator () = default;
-  
+    
+    /// Returned when a user attempts to access an item using the [] operator for n > 1.
+    static constexpr double INVALID_ELEMENT_ACCESSED = 0;
+    
   public:
     Mercator (const Star &s, double w_n);
     Mercator (double x, double y, double w_n, int label = 0);
@@ -44,9 +47,6 @@ class Mercator {
     
     virtual std::string str () const;
     
-    static const double INVALID_ELEMENT_ACCESSED;
-    static const int NO_LABEL;
-
 #if !defined ENABLE_TESTING_ACCESS
   protected:
 #endif
@@ -55,6 +55,9 @@ class Mercator {
 #if !defined ENABLE_TESTING_ACCESS
   protected:
 #endif
+    /// For the label property. Indicates that the label has not been set.
+    static constexpr int NO_LABEL = 0;
+
     /// X coordinate of the projected point. Default point is (0, 0).
     double x = 0;
     

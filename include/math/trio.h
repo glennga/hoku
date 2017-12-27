@@ -30,16 +30,19 @@ class Trio {
     
     /// Ensure default constructor is **not** generated.
     Trio () = delete;
-  
+    
+    /// Returned if we cannot compute a spherical area for a given trio.
+    static constexpr double INVALID_TRIO_NEGATIVE_F = -1;
+    
+    /// Returned if there exists duplicate stars for a given trio.
+    static constexpr double DUPLICATE_STARS_IN_TRIO = 0;
+    
   public:
     static double planar_area (const Star &b_1, const Star &b_2, const Star &b_3);
     static double planar_moment (const Star &b_1, const Star &b_2, const Star &b_3);
     
     static double spherical_area (const Star &b_1, const Star &b_2, const Star &b_3);
     static double spherical_moment (const Star &b_1, const Star &b_2, const Star &b_3, int td_h= 3);
-    
-    static const double INVALID_TRIO_NEGATIVE_F;
-    static const double DUPLICATE_STARS_IN_TRIO;
 
 #if !defined ENABLE_TESTING_ACCESS
   private:

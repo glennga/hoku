@@ -9,9 +9,6 @@
 /// Standard machine epsilon for doubles. This represents the smallest possible change in precision.
 const double Chomp::DOUBLE_EPSILON = std::numeric_limits<double>::epsilon();
 
-/// Returned from table generators when the table already exists in the database.
-const int Chomp::TABLE_EXISTS = -1;
-
 /// Returned from query method if the specified star does not exist.
 const Star Chomp::NONEXISTENT_STAR = Star::zero();
 
@@ -22,7 +19,7 @@ const Star::list Chomp::NONEXISTENT_STAR_LIST = Star::list {};
 /// it is created. We then proceed to load all stars into RAM from both tables.
 Chomp::Chomp () {
     const int FLAGS = SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE;
-    this->db = std::make_unique<SQLite::Database>(DATABASE_LOCATION, FLAGS);
+    this->conn = std::make_unique<SQLite::Database>(DATABASE_LOCATION, FLAGS);
     
     generate_hip_table();
     generate_bright_table();
@@ -70,7 +67,7 @@ int Chomp::generate_bright_table () {
         throw "Catalog file cannot be opened";
     }
     
-    SQLite::Transaction transaction(*db);
+    SQLite::Transaction transaction(*conn);
     if (create_table(BRIGHT_TABLE, "alpha FLOAT, delta FLOAT, i FLOAT, j FLOAT, k FLOAT, m FLOAT, label INT") == -1) {
         return TABLE_EXISTS;
     }
@@ -108,7 +105,7 @@ int Chomp::generate_hip_table () {
         throw "Catalog file cannot be opened";
     }
     
-    SQLite::Transaction transaction(*db);
+    SQLite::Transaction transaction(*conn);
     if (create_table("HIP", "alpha FLOAT, delta FLOAT, i FLOAT, j FLOAT, k FLOAT, m FLOAT, label INT")
         == Nibble::TABLE_NOT_CREATED) {
         return TABLE_EXISTS;
@@ -137,7 +134,8 @@ int Chomp::generate_hip_table () {
 /// and catalog ID of this search.
 ///
 /// @param label Catalog ID of the star to return.
-/// @return NONEXISTENT_STAR if the star does not exist. Star with the components of the matching catalog ID entry otherwise.
+/// @return NONEXISTENT_STAR if the star does not exist. Star with the components of the matching catalog ID entry
+/// otherwise.
 Star Chomp::query_hip (int label) {
     std::string t_table = this->table;
     
@@ -210,7 +208,7 @@ void Chomp::load_all_stars () {
     
     // Select all for bright stars, and load this into RAM.
     select_table(BRIGHT_TABLE);
-    SQLite::Statement query_b(*db, "SELECT i, j, k, label, m FROM " + BRIGHT_TABLE);
+    SQLite::Statement query_b(*conn, "SELECT i, j, k, label, m FROM " + BRIGHT_TABLE);
     while (query_b.executeStep()) {
         this->all_bright_stars.emplace_back(
             Star(query_b.getColumn(0).getDouble(), query_b.getColumn(1).getDouble(), query_b.getColumn(2).getDouble(),
@@ -219,7 +217,7 @@ void Chomp::load_all_stars () {
     
     // Select all for general stars stars, and load this into RAM.
     select_table(HIP_TABLE);
-    SQLite::Statement query_h(*db, "SELECT i, j, k, label, m FROM " + HIP_TABLE);
+    SQLite::Statement query_h(*conn, "SELECT i, j, k, label, m FROM " + HIP_TABLE);
     while (query_h.executeStep()) {
         this->all_hip_stars.emplace_back(
             Star(query_h.getColumn(0).getDouble(), query_h.getColumn(1).getDouble(), query_h.getColumn(2).getDouble(),
@@ -255,8 +253,8 @@ Nibble::tuples_d Chomp::simple_bound_query (const std::string &focus, const std:
 /// @param q Y-Intercept parameter of Z equation.
 /// @return 0 when finished.
 int Chomp::build_k_vector_table (const std::string &focus_column, const double m, const double q) {
-    int s_l = (*db).execAndGet(std::string("SELECT MAX(rowid) FROM ") + table).getInt();
-    SQLite::Transaction table_transaction(*db);
+    int s_l = (*conn).execAndGet(std::string("SELECT MAX(rowid) FROM ") + table).getInt();
+    SQLite::Transaction table_transaction(*conn);
     int k_hat = 0;
     
     // Load the entire table into RAM.
@@ -282,9 +280,9 @@ int Chomp::build_k_vector_table (const std::string &focus_column, const double m
     std::cout << std::endl;
     
     // Index the K-Vector column and the original table.
-    SQLite::Transaction index_transaction(*db);
-    (*db).exec("CREATE INDEX " + table + "_" + focus_column + " ON " + table + "(k_value)");
-    (*db).exec(
+    SQLite::Transaction index_transaction(*conn);
+    (*conn).exec("CREATE INDEX " + table + "_" + focus_column + " ON " + table + "(k_value)");
+    (*conn).exec(
         "CREATE INDEX " + original_table + "_" + focus_column + " ON " + original_table + "(" + focus_column + ")");
     index_transaction.commit();
     
@@ -297,7 +295,7 @@ int Chomp::build_k_vector_table (const std::string &focus_column, const double m
 /// @return 0 when finished.
 int Chomp::create_k_vector (const std::string &focus) {
     sort_table(focus);
-    SQLite::Transaction transaction(*db);
+    SQLite::Transaction transaction(*conn);
     std::string original_table = this->table;
     
     // Search for last and first element of sorted table.

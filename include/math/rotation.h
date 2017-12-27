@@ -54,7 +54,10 @@ class Rotation {
 #endif
     /// Matrix alias, by using a 3-element array of 3D vectors.
     using matrix = std::array<Star, 3>;
-
+    
+    /// Precision default for '==' method.
+    static constexpr double EQUALITY_PRECISION_DEFAULT = 0.000000000001;
+    
 #if !defined ENABLE_TESTING_ACCESS
     private:
 #endif
@@ -63,8 +66,6 @@ class Rotation {
     static Rotation multiply (const Rotation &q_1, const Rotation &q_2);
     static Rotation matrix_to_quaternion (const matrix &r);
     static matrix matrix_multiply_transpose (const matrix &a, const matrix &b);
-    
-    static const double EQUALITY_PRECISION_DEFAULT;
 
 #if !defined ENABLE_TESTING_ACCESS
     private:

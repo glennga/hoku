@@ -6,15 +6,6 @@
 
 #include "storage/quad-node.h"
 
-/// Precision default for '==' method.
-const double QuadNode::EQUALITY_PRECISION_DEFAULT = 0.000000000001;
-
-/// Default local width of a quadrant (w_i).
-const double QuadNode::DEFAULT_LOCAL_WIDTH = 1;
-
-/// Global width of a quadnode root (w_n).
-const double QuadNode::ROOT_GLOBAL_WIDTH = -1;
-
 /// Sets the X and Y coordinates of the node, and the width of the quadrant directly.
 ///
 /// @param x X coordinate of the node to set.

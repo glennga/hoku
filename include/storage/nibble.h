@@ -52,9 +52,15 @@ class Nibble {
     /// Alias for a SQL row of input, provided the results are integers.
     using tuple_i = std::vector<int>;
     
-    /// Open and unique database object. This must be public to work with SQLiteCpp library.
-    std::unique_ptr<SQLite::Database> db;
-  
+    /// Open and unique database connection object. This must be public to work with SQLiteCpp library.
+    std::unique_ptr<SQLite::Database> conn;
+    
+    /// Returned when the result of a search returns no tuples.
+    static constexpr double NO_RESULT_FOUND = 0;
+    
+    /// Returned when a table creation is not successful.
+    static constexpr int TABLE_NOT_CREATED = -1;
+    
   public:
     Nibble ();
     explicit Nibble (const std::string &, const std::string & = "");
@@ -71,9 +77,6 @@ class Nibble {
     int sort_table (const std::string &);
     int polish_table (const std::string &);
     
-    static const int TABLE_NOT_CREATED;
-    static const double NO_RESULT_FOUND;
-  
   public:
     /// Using the currently selected table, insert the set of values in order of the fields given.
     ///
@@ -91,7 +94,7 @@ class Nibble {
         sql.append("?)");
         
         // Bind all the fields to the in values.
-        SQLite::Statement query(*db, sql);
+        SQLite::Statement query(*conn, sql);
         for (unsigned int i = 0; i < in_values.size(); i++) {
             query.bind(i + 1, in_values[i]);
         }

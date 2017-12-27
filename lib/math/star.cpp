@@ -5,15 +5,6 @@
 
 #include "math/star.h"
 
-/// Returned when a user attempts to access an item using the [] operator for n > 1.
-const double Star::INVALID_ELEMENT_ACCESSED = 0;
-
-/// Precision default for is_equal and '==' methods.
-const double Star::STAR_EQUALITY_PRECISION_DEFAULT = std::numeric_limits<double>::epsilon();
-
-/// The default label of all stars.
-const int Star::NO_LABEL = 0;
-
 /// Constructor. Sets the i, j, and k components, as well as the catalog ID of the Star.
 ///
 /// @param i The i'th component from the observer to the star.

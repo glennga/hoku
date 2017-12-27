@@ -40,16 +40,19 @@
 class Chomp : public Nibble {
   public:
     /// Length of the bright stars table. Necessary if loading all stars into RAM.
-    static const unsigned int BRIGHT_TABLE_LENGTH = 4559;
+    static constexpr unsigned int BRIGHT_TABLE_LENGTH = 4559;
     
     /// Length of the general stars table. Necessary if loading all stars into RAM.
-    static const unsigned int HIP_TABLE_LENGTH = 117956;
+    static constexpr unsigned int HIP_TABLE_LENGTH = 117956;
     
     /// Largest catalog ID in the bright stars table.
-    static const unsigned int BRIGHT_TABLE_MAX_LABEL = 117930;
+    static constexpr unsigned int BRIGHT_TABLE_MAX_LABEL = 117930;
     
     /// Smallest catalog ID in the bright stars table.
-    static const unsigned int BRIGHT_TABLE_MIN_LABEL = 88;
+    static constexpr unsigned int BRIGHT_TABLE_MIN_LABEL = 88;
+    
+    /// Returned from table generators when the table already exists in the database.
+    static constexpr int TABLE_EXISTS = -1;
     
   public:
     using Nibble::tuples_d;
@@ -71,7 +74,6 @@ class Chomp : public Nibble {
     Star::list hip_as_list ();
     Star query_hip (int);
     
-    static const int TABLE_EXISTS;
     static const Star NONEXISTENT_STAR;
     static const Star::list NONEXISTENT_STAR_LIST;
 

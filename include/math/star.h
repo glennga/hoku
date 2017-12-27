@@ -39,6 +39,15 @@ class Star {
     /// Pair type, defined as a 2-element array of Stars.
     using pair = std::array<Star, 2>;
     
+    /// Returned when a user attempts to access an item using the [] operator for n > 1.
+    static constexpr double INVALID_ELEMENT_ACCESSED = 0;
+    
+    /// Precision default for is_equal and '==' methods.
+    static constexpr double STAR_EQUALITY_PRECISION_DEFAULT = std::numeric_limits<double>::epsilon();
+    
+    /// The default label of all stars.
+    static constexpr int NO_LABEL = 0;
+    
   public:
     Star (double i, double j, double k, int label = 0, double m = -30.0, bool set_unit = false);
     Star ();
@@ -56,7 +65,6 @@ class Star {
     double norm () const;
     Star as_unit () const;
     
-    static const double STAR_EQUALITY_PRECISION_DEFAULT;
     static bool is_equal (const Star &s_1, const Star &s_2, double epsilon = STAR_EQUALITY_PRECISION_DEFAULT);
     bool operator== (const Star &s) const;
     
@@ -73,10 +81,6 @@ class Star {
     
     static Star reset_label (const Star &s);
     
-    static const double INVALID_ELEMENT_ACCESSED;
-    static const int NO_LABEL;
-    
-
 #if !defined ENABLE_TESTING_ACCESS
     private:
 #endif

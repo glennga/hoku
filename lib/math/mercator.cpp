@@ -6,12 +6,6 @@
 
 #include "math/mercator.h"
 
-/// Returned when a user attempts to access an item using the [] operator for n > 1.
-const double Mercator::INVALID_ELEMENT_ACCESSED = 0;
-
-/// For the label property. Indicates that the label has not been set.
-const int Mercator::NO_LABEL = 0;
-
 /// Constructor. Projects the input star by the given width and records the results.
 ///
 /// @param s Star to project and store.
