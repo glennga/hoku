@@ -15,6 +15,10 @@ const std::vector<Trio::stars> BaseTriangle::NO_CANDIDATE_STARS_FOUND = {{Star::
 /// Returned with an unsuccessful pivoting step.
 const Trio::stars BaseTriangle::NO_CANDIDATE_STAR_SET_FOUND = {Star::zero(), Star::zero(), Star::zero()};
 
+/// Constructor. Initializes our permutation stack.
+BaseTriangle::BaseTriangle () : Identification(), p({}) {
+}
+
 /// Generate the triangle table given the specified FOV and table name. This find the area and polar moment
 /// between each distinct permutation of trios, and only stores them if they fall within the corresponding
 /// field-of-view.
@@ -99,19 +103,24 @@ std::vector<BaseTriangle::label_trio> BaseTriangle::query_for_trio (const double
     return area_moment_match;
 }
 
-/// Return the same index trio, with a new A value such that A exists in space [0, 1, ..., |input|] and A != B, A != C.
-///
-/// @param i_t Current index trio, generates another permutation based off this.
-/// @return Same index trio, with a new A index.
-BaseTriangle::index_trio BaseTriangle::permutate_index (const index_trio &i_t) {
-    index_trio t = i_t;
-    
+/// Generate all distinct index permutations. This solves the problem of generating k distinct combinations for n
+/// items. Solution is found here: https://stackoverflow.com/a/23663373
+void BaseTriangle::generate_permutations () {
+    std::vector<int> selected, selector(input.size());
+    std::fill(selector.begin(), selector.begin() + 3, 1);
     do {
-        t[0]++;
+        for (unsigned int i = 0; i < input.size(); i++) {
+            if (selector[i]) {
+                selected.push_back(i);
+            }
+        }
+        p.push_back(index_trio {selected[0], selected[1], selected[2]});
+        selected.clear();
     }
-    while (t[0] == t[1] || t[0] == t[2]);
+    while (prev_permutation(selector.begin(), selector.end()));
     
-    return t;
+    // Remove the front element of our index queue. We start with this.
+    p.pop_front();
 }
 
 /// Given a trio of body stars, find matching trios of inertial stars using their respective planar areas and polar
@@ -158,7 +167,7 @@ std::vector<Trio::stars> BaseTriangle::m_stars (const index_trio &i_b, area_func
 /// stars to R stars.
 Trio::stars BaseTriangle::pivot (const index_trio &i_b, const std::vector<Trio::stars> &past_set) {
     std::vector<Trio::stars> matches = this->match_stars(i_b);
-    if (matches[0][0] == Star::zero()) {
+    if (std::equal(matches.begin(), matches.end(), NO_CANDIDATE_STARS_FOUND.begin())) {
         matches.clear();
     }
     
@@ -186,7 +195,7 @@ Trio::stars BaseTriangle::pivot (const index_trio &i_b, const std::vector<Trio::
     switch (matches.size()) {
         case 1: return matches[0]; // Only 1 trio exists. This must be the matching trio.
         case 0: return NO_CANDIDATE_STAR_SET_FOUND; // No trios exist. Exit early.
-        default: return pivot(permutate_index(i_b), matches); // 2+ trios exists. Run with different trio and history.
+        default: return pivot(ptop(this->p), matches); // 2+ trios exists. Run with different trio and history.
     }
 }
 

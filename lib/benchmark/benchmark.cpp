@@ -79,7 +79,9 @@ void Benchmark::generate_stars (Chomp &ch, const double m_bar) {
     this->focus = Rotation::rotate(this->focus, this->inertial_to_image);
     
     // Shuffle to maintain randomness.
+#if !defined ENABLE_TESTING_ACCESS
     this->shuffle();
+#endif
 }
 
 /// Return the current star set with all catalog IDs set to Star::NO_LABEL. In practice, the catalog ID of a star set is

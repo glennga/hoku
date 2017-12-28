@@ -14,11 +14,14 @@ const Identification::Parameters Sphere::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUE
 ///
 /// @param input Working Benchmark instance. We are **only** copying the star set and the fov.
 /// @param parameters Parameters to use for identification.
-SphericalTriangle::SphericalTriangle (const Benchmark &input, const Parameters &parameters) {
+SphericalTriangle::SphericalTriangle (const Benchmark &input, const Parameters &parameters) : BaseTriangle() {
     input.present_image(this->input, this->fov);
     this->parameters = parameters;
     
     ch.select_table(this->parameters.table_name);
+    if (!this->input.empty()) {
+        generate_permutations();
+    }
 }
 
 /// Generate the triangle table given the specified FOV and table name. This find the area and polar moment
