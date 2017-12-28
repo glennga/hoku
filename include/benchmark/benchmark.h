@@ -46,35 +46,39 @@ class Benchmark {
         Star::list affected; ///< List of stars affected by the error.
     };
     
-    /// Default constructor must not be generated. User must specify fov, focus, and rotation.
-    Benchmark () = delete;
+    /// Indicates that a given identification object does not have an designated field of view.
+    static constexpr double NO_FOV = -1;
+    
+    /// The default apparent magnitude, minimum brightness from Earth.
+    static constexpr double DEFAULT_M_BAR = 6.0;
   
   public:
-    Benchmark (Chomp &, std::random_device &, double, double = 6.0);
-    Benchmark (Chomp &, std::random_device &, const Star &, const Rotation &, double, double = 6.0);
+    Benchmark (Chomp &ch, std::random_device &seed, double fov, double m_bar = DEFAULT_M_BAR);
+    Benchmark (Chomp &ch, std::random_device &seed, const Star &focus, const Rotation &q, double fov,
+               double m_bar = DEFAULT_M_BAR);
+    static const Benchmark black ();
     
-    void generate_stars (Chomp &, double = 6.0);
+    void generate_stars (Chomp &ch, double m_bar = DEFAULT_M_BAR);
+    void present_image (Star::list &image_s, double &image_fov) const;
     
-    void present_image (Star::list &, double &) const;
+    void record_current_plot ();
+    void display_plot ();
     
-    int record_current_plot ();
-    int display_plot ();
-    
-    void add_extra_light (int, bool = false);
-    void shift_light (int, double, bool = false);
-    void remove_light (int, double);
+    void add_extra_light (unsigned int n, bool cap_error = false);
+    void shift_light (unsigned int n, double sigma, bool cap_error = false);
+    void remove_light (unsigned int n, double psi);
     
     static int compare_stars (const Benchmark &, const Star::list &);
 
-#if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
+#if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
-    Benchmark (std::random_device &, const Star::list &, const Star &, double);
+    Benchmark (std::random_device &seed, const Star::list &s, const Star &focus, double fov);
     
     Star::list clean_stars () const;
     void shuffle ();
 
-#if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
+#if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
     /// String of the HOKU_PROJECT_PATH environment variable.
@@ -87,7 +91,7 @@ class Benchmark {
     const std::string ERROR_TMP = PROJECT_LOCATION + "/data/logs/tmp/errplt.tmp";
     
     /// Location of the Python benchmark plotter.
-    const std::string PLOT_SCRIPT = "\"" + PROJECT_LOCATION + "/script/python/generate-plot.py\"";
+    const std::string PLOT_SCRIPT = "\"" + PROJECT_LOCATION + "/script/python/visualize_image.py\"";
     
     /// Alias for the list (stack) of ErrorModels.
     using model_list = std::vector<ErrorModel>;

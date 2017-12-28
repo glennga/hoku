@@ -3,6 +3,8 @@
 ///
 /// Source file for Benchmark class, which generates the input data for star identification testing.
 
+#include <random>
+
 #include "benchmark/benchmark.h"
 
 /// Constructor. Generate a random focus and rotation. Scale and restrict the image using the given fov and magnitude
@@ -28,8 +30,8 @@ Benchmark::Benchmark (Chomp &ch, std::random_device &seed, const double fov, con
 /// @param q Quaternion to take inertial frame to body frame.
 /// @param fov Limit a star must be separated from the focus by.
 /// @param m_bar Maximum magnitude a star must be within in the given benchmark.
-Benchmark::Benchmark (Chomp &ch, std::random_device &seed, const Star &focus, const Rotation &q,
-                      const double fov, const double m_bar) {
+Benchmark::Benchmark (Chomp &ch, std::random_device &seed, const Star &focus, const Rotation &q, const double fov,
+                      const double m_bar) {
     this->fov = fov, this->focus = focus, this->inertial_to_image = q, this->seed = &seed;
     generate_stars(ch, m_bar);
 }
@@ -38,18 +40,25 @@ Benchmark::Benchmark (Chomp &ch, std::random_device &seed, const Star &focus, co
 /// applied to it.
 ///
 /// @param seed Reference to a random device to use for all future Benchmark methods.
-/// @param stars Star set to give the current benchmark.
+/// @param s Star set to give the current benchmark.
 /// @param focus Focus star of the given star set.
 /// @param fov Field of view (degrees) associated with the given star set.
-Benchmark::Benchmark (std::random_device &seed, const Star::list &stars, const Star &focus,
-                      const double fov) {
-    this->seed = &seed, this->stars = stars, this->focus = focus, this->fov = fov;
+Benchmark::Benchmark (std::random_device &seed, const Star::list &s, const Star &focus, const double fov) : seed(),
+    fov() {
+    this->seed = &seed, this->fov = fov, this->stars = s, this->focus = focus;
+}
+
+/// Dummy image. Holds no image or field of view.
+///
+/// @return A dummy image without stars.
+const Benchmark Benchmark::black () {
+    std::random_device rd;
+    return Benchmark(rd, {}, Star::zero(), 0);
 }
 
 /// Shuffle the current star set. Uses C++11 random library.
 void Benchmark::shuffle () {
     std::mt19937_64 mersenne_twister((*seed)());
-    
     std::shuffle(this->stars.begin(), this->stars.end(), mersenne_twister);
 }
 
@@ -59,7 +68,7 @@ void Benchmark::shuffle () {
 /// @param m_bar Maximum magnitude a star must be within in the given benchmark.
 void Benchmark::generate_stars (Chomp &ch, const double m_bar) {
     // Expected number of stars = fov * 8. Not too concerned with accuracy here.
-    unsigned int expected = (unsigned int) this->fov * 4;
+    auto expected = static_cast<unsigned int>(this->fov * 4);
     
     // Find nearby stars. Rotate these stars and the focus.
     for (const Star &s : ch.nearby_hip_stars(this->focus, this->fov / 2.0, expected)) {
@@ -73,10 +82,10 @@ void Benchmark::generate_stars (Chomp &ch, const double m_bar) {
     this->shuffle();
 }
 
-/// Return the current star set with all catalog ID s set to 0. In practice, the catalog ID of a star set is never
-/// given from the image itself.
+/// Return the current star set with all catalog IDs set to Star::NO_LABEL. In practice, the catalog ID of a star set is
+/// never given from the image itself.
 ///
-/// @return Copy of current star set with catalog IDs set to 0.
+/// @return Copy of current star set with catalog IDs set to Star::NO_LABEL.
 Star::list Benchmark::clean_stars () const {
     // Keep the current star set intact.
     Star::list clean = this->stars;
@@ -99,9 +108,7 @@ void Benchmark::present_image (Star::list &image_s, double &image_fov) const {
 
 /// Write the current data in the star set to two files. This includes the fov, norm, focus, star set, and the
 /// error set.
-///
-/// @return 0 when finished.
-int Benchmark::record_current_plot () {
+void Benchmark::record_current_plot () {
     std::ofstream current(CURRENT_TMP), error(ERROR_TMP);
     std::ostringstream current_record, error_record;
     
@@ -138,14 +145,11 @@ int Benchmark::record_current_plot () {
     
     current.close();
     error.close();
-    return 0;
 }
 
 /// Write the current data in the star set to a file, and let a separate Python script generate the plot. I am most
 /// familiar with Python's MatPlotLib, so this seemed like the most straight-forward approach.
-///
-/// @return 0 when finished.
-int Benchmark::display_plot () {
+void Benchmark::display_plot () {
     std::remove(CURRENT_TMP.c_str());
     std::remove(ERROR_TMP.c_str());
 
@@ -162,7 +166,6 @@ int Benchmark::display_plot () {
     // Record the current instance, and let Python work its magic!
     this->record_current_plot();
     std::system(cmd.c_str());
-    return 0;
 }
 
 /// Compare the number of matching stars that exist between the two stars sets.
@@ -193,8 +196,8 @@ int Benchmark::compare_stars (const Benchmark &b, const Star::list &s_l) {
 ///
 /// @param n Number of extra stars to add.
 /// @param cap_error Flag to move an error star to the front of the star list.
-void Benchmark::add_extra_light (const int n, bool cap_error) {
-    int current_n = 0;
+void Benchmark::add_extra_light (const unsigned int n, bool cap_error) {
+    unsigned int current_n = 0;
     ErrorModel extra_light = {"Extra Light", "r", {Star::zero()}};
     
     while (current_n < n) {
@@ -208,7 +211,8 @@ void Benchmark::add_extra_light (const int n, bool cap_error) {
     
     // Shuffle to maintain randomness. If desired, an error star remains at the front.
     std::iter_swap(this->stars.begin(), this->stars.end() - 1);
-    (!cap_error) ? std::random_shuffle(this->stars.begin() + 1, this->stars.end()) : this->shuffle();
+    (!cap_error) ? std::shuffle(this->stars.begin() + 1, this->stars.end(), std::mt19937(std::random_device()()))
+                 : this->shuffle();
     
     // Remove the first element. Append to error models.
     extra_light.affected.erase(extra_light.affected.begin());
@@ -220,8 +224,8 @@ void Benchmark::add_extra_light (const int n, bool cap_error) {
 ///
 /// @param n Number of blobs to generate.
 /// @param psi Dark spot size (degrees). This is the cone size of the dark spot vectors.
-void Benchmark::remove_light (const int n, const double psi) {
-    int current_n = 0;
+void Benchmark::remove_light (const unsigned int n, const double psi) {
+    unsigned int current_n = 0;
     std::vector<Star> blobs;
     ErrorModel removed_light = {"Removed Light", "0.5", {Star::zero()}};
     bool is_affected = false;
@@ -264,12 +268,12 @@ void Benchmark::remove_light (const int n, const double psi) {
 /// @param n Number of stars to move.
 /// @param sigma Amount to shift stars by, in terms of degrees.
 /// @param cap_error Flag to move an error star to the front of the star list.
-void Benchmark::shift_light (const int n, const double sigma, bool cap_error) {
+void Benchmark::shift_light (const unsigned int n, const double sigma, bool cap_error) {
     ErrorModel shifted_light = {"Shifted Light", "g", {Star::zero()}};
-    int current_n = 0;
+    unsigned int current_n = 0;
     
     // Loop through entire list again if n not met through past run.
-    while (current_n < n || this->stars.size() == (unsigned) current_n + 1) {
+    while (current_n < n || this->stars.size() == current_n + 1) {
         bool n_condition = true;
         
         // Check inside if n is met early, break if met.
@@ -285,13 +289,14 @@ void Benchmark::shift_light (const int n, const double sigma, bool cap_error) {
             }
             
             // If the n-condition is met early, we break.
-            n_condition = (current_n < n || this->stars.size() == (unsigned) current_n + 1);
+            n_condition = (current_n < n || this->stars.size() == current_n + 1);
         }
     }
     
     // Shuffle to maintain randomness. If desired, an error star remains at the front.
     std::iter_swap(this->stars.begin(), this->stars.end() - 1);
-    cap_error ? std::random_shuffle(this->stars.begin() + 1, this->stars.end()) : this->shuffle();
+    cap_error ? std::shuffle(this->stars.begin() + 1, this->stars.end(), std::mt19937(std::random_device()()))
+              : this->shuffle();
     
     // Remove first element. Append this to the error models.
     shifted_light.affected.erase(shifted_light.affected.begin());

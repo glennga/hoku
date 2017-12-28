@@ -51,9 +51,9 @@ void Crown::trial_angle (Chomp &ch, std::ofstream &log) {
     // These are the optimal parameters for the Angle method.
     Angle::Parameters par;
     par.table_name = ANGLE_TABLE;
-    par.match_sigma = SS_MIN + SS_STEP * SS_ITER;
-    par.query_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5);
     par.z_max = 20000;
+    par.match_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5);
+    par.query_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5);
     
     // First run is clean, without shifts. Following are the shift trials.
     for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
@@ -64,7 +64,7 @@ void Crown::trial_angle (Chomp &ch, std::ofstream &log) {
                     Benchmark input(seed, body, focus, WORKING_FOV);
                     
                     // Append our error.
-                    input.shift_light((int) input.stars.size(), SS_MIN + SS_STEP * ss_i);
+                    input.shift_light((int) input.stars.size(), ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)));
                     double p = ES_MIN + ES_STEP * es_i, clean_size = input.stars.size();
                     input.add_extra_light((int) ((p / (1 - p)) * clean_size));
                     
@@ -73,9 +73,10 @@ void Crown::trial_angle (Chomp &ch, std::ofstream &log) {
                     result = Angle::identify(input, par, z);
                     
                     // Log our results. Note that our match and query sigma are fixed.
-                    log << "Angle," << par.match_sigma << "," << par.query_sigma << "," << SS_MIN + SS_STEP * ss_i
-                        << "," << MB_MIN + mb_i * MB_STEP << "," << p << "," << z << "," << input.stars.size() << ","
-                        << result.size() << "," << Benchmark::compare_stars(input, result) / clean_size << '\n';
+                    log << "Angle," << par.match_sigma << "," << par.query_sigma << ","
+                        << ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << "," << p
+                        << "," << z << "," << input.stars.size() << "," << result.size() << ","
+                        << Benchmark::compare_stars(input, result) / clean_size << '\n';
                 }
             }
         }
@@ -95,11 +96,10 @@ void Crown::trial_plane (Chomp &ch, std::ofstream &log) {
     // These are the optimal parameters for the Plane method.
     Plane::Parameters par;
     par.table_name = PLANE_TABLE;
-    par.match_sigma = SS_MIN + SS_STEP * SS_ITER;
-    //    par.match_sigma = 10e-10;
+    par.z_max = 20000;
+    par.match_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5);
     par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 5);
     par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 5);
-    par.z_max = 20000;
     
     // First run is clean, without shifts. Following are the shift trials.
     for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
@@ -110,7 +110,7 @@ void Crown::trial_plane (Chomp &ch, std::ofstream &log) {
                     Benchmark input(seed, body, focus, WORKING_FOV);
                     
                     // Append our error.
-                    input.shift_light((int) input.stars.size(), SS_MIN + SS_STEP * ss_i);
+                    input.shift_light((int) input.stars.size(), ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)));
                     double p = ES_MIN + ES_STEP * es_i, clean_size = input.stars.size();
                     input.add_extra_light((int) ((p / (1 - p)) * clean_size));
                     
@@ -119,9 +119,10 @@ void Crown::trial_plane (Chomp &ch, std::ofstream &log) {
                     result = Plane::identify(input, par, z);
                     
                     // Log our results. Note that our match and query sigma are fixed.
-                    log << "Plane," << par.match_sigma << "," << par.sigma_a << "," << SS_MIN + SS_STEP * ss_i << ","
-                        << MB_MIN + mb_i * MB_STEP << "," << p << "," << z << "," << input.stars.size() << ","
-                        << result.size() << "," << Benchmark::compare_stars(input, result) / clean_size << '\n';
+                    log << "Plane," << par.match_sigma << "," << par.sigma_a << ","
+                        << ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << "," << p
+                        << "," << z << "," << input.stars.size() << "," << result.size() << ","
+                        << Benchmark::compare_stars(input, result) / clean_size << '\n';
                 }
             }
         }
@@ -141,11 +142,10 @@ void Crown::trial_sphere (Chomp &ch, std::ofstream &log) {
     // These are the optimal parameters for the Sphere method.
     Sphere::Parameters par;
     par.table_name = SPHERE_TABLE;
-    par.match_sigma = SS_MIN + SS_STEP * SS_ITER;
-//    par.match_sigma = 10e-10;
-    par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 7);
-    par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 7);
     par.z_max = 20000;
+    par.match_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5);
+    par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 5);
+    par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 5);
     
     // First run is clean, without shifts. Following are the shift trials.
     for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
@@ -156,7 +156,7 @@ void Crown::trial_sphere (Chomp &ch, std::ofstream &log) {
                     Benchmark input(seed, body, focus, WORKING_FOV);
                     
                     // Append our error.
-                    input.shift_light((int) input.stars.size(), SS_MIN + SS_STEP * ss_i);
+                    input.shift_light((int) input.stars.size(), ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)));
                     double p = ES_MIN + ES_STEP * es_i, clean_size = input.stars.size();
                     input.add_extra_light((int) ((p / (1 - p)) * clean_size));
                     
@@ -165,9 +165,10 @@ void Crown::trial_sphere (Chomp &ch, std::ofstream &log) {
                     result = Sphere::identify(input, par, z);
                     
                     // Log our results. Note that our match and query sigma are fixed.
-                    log << "Sphere," << par.match_sigma << "," << par.sigma_a << "," << SS_MIN + SS_STEP * ss_i << ","
-                        << MB_MIN + mb_i * MB_STEP << "," << p << "," << z << "," << input.stars.size() << ","
-                        << result.size() << "," << Benchmark::compare_stars(input, result) / clean_size << '\n';
+                    log << "Sphere," << par.match_sigma << "," << par.sigma_a << ","
+                        << ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << "," << p
+                        << "," << z << "," << input.stars.size() << "," << result.size() << ","
+                        << Benchmark::compare_stars(input, result) / clean_size << '\n';
                 }
             }
         }
@@ -187,10 +188,9 @@ void Crown::trial_pyramid (Chomp &ch, std::ofstream &log) {
     // These are the optimal parameters for the Pyramid method.
     Pyramid::Parameters par;
     par.table_name = PYRAMID_TABLE;
-//    par.match_sigma = 10e-10;
-    par.match_sigma = SS_MIN + SS_STEP * SS_ITER;
-    par.query_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5);
     par.z_max = 20000;
+    par.match_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5);
+    par.query_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5);
     
     // First run is clean, without shifts. Following are the shift trials.
     for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
@@ -201,7 +201,7 @@ void Crown::trial_pyramid (Chomp &ch, std::ofstream &log) {
                     Benchmark input(seed, body, focus, WORKING_FOV);
                     
                     // Append our error.
-                    input.shift_light((int) input.stars.size(), SS_MIN + SS_STEP * ss_i);
+                    input.shift_light((int) input.stars.size(), ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)));
                     double p = ES_MIN + ES_STEP * es_i, clean_size = input.stars.size();
                     input.add_extra_light((int) ((p / (1 - p)) * clean_size));
                     
@@ -210,9 +210,10 @@ void Crown::trial_pyramid (Chomp &ch, std::ofstream &log) {
                     result = Pyramid::identify(input, par, z);
                     
                     // Log our results. Note that our match and query sigma are fixed.
-                    log << "Pyramid," << par.match_sigma << "," << par.query_sigma << "," << SS_MIN + SS_STEP * ss_i
-                        << "," << MB_MIN + mb_i * MB_STEP << "," << p << "," << z << "," << input.stars.size() << ","
-                        << result.size() << "," << Benchmark::compare_stars(input, result) / clean_size << '\n';
+                    log << "Pyramid," << par.match_sigma << "," << par.query_sigma << ","
+                        << ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << "," << p
+                        << "," << z << "," << input.stars.size() << "," << result.size() << ","
+                        << Benchmark::compare_stars(input, result) / clean_size << '\n';
                 }
             }
         }
@@ -232,11 +233,10 @@ void Crown::trial_coin (Chomp &ch, std::ofstream &log) {
     // These are the optimal parameters for the Coin method.
     Coin::Parameters par;
     par.table_name = COIN_TABLE;
-//    par.match_sigma = 10e-10;
-    par.match_sigma = SS_MIN + SS_STEP * SS_ITER;
-    par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 7);
-    par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 7);
     par.z_max = 20000;
+    par.match_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5);
+    par.sigma_a = std::numeric_limits<double>::epsilon() * pow(3, 5);
+    par.sigma_i = std::numeric_limits<double>::epsilon() * pow(3, 5);
     
     // First run is clean, without shifts. Following are the shift trials.
     for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
@@ -247,7 +247,7 @@ void Crown::trial_coin (Chomp &ch, std::ofstream &log) {
                     Benchmark input(seed, body, focus, WORKING_FOV);
                     
                     // Append our error.
-                    input.shift_light((int) input.stars.size(), SS_MIN + SS_STEP * ss_i);
+                    input.shift_light((int) input.stars.size(), ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)));
                     double p = ES_MIN + ES_STEP * es_i, clean_size = input.stars.size();
                     input.add_extra_light((int) ((p / (1 - p)) * clean_size));
                     
@@ -256,9 +256,10 @@ void Crown::trial_coin (Chomp &ch, std::ofstream &log) {
                     result = Coin::identify(input, par, z);
                     
                     // Log our results. Note that our match and query sigma are fixed.
-                    log << "Coin," << par.match_sigma << "," << par.sigma_a << "," << SS_MIN + SS_STEP * ss_i << ","
-                        << MB_MIN + mb_i * MB_STEP << "," << p << "," << z << "," << input.stars.size() << ","
-                        << result.size() << "," << Benchmark::compare_stars(input, result) / clean_size << '\n';
+                    log << "Coin," << par.match_sigma << "," << par.sigma_a << ","
+                        << ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << "," << p
+                        << "," << z << "," << input.stars.size() << "," << result.size() << ","
+                        << Benchmark::compare_stars(input, result) / clean_size << '\n';
                 }
             }
         }

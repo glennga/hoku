@@ -28,12 +28,10 @@ namespace Alignment {
     const double WORKING_FOV = 20; ///< Field of view that all our test stars must be within.
     const int ALIGNMENT_SAMPLES = 1000; ///< Number of samples to retrieve for each individual trial.
     
-    const double MS_MIN = std::numeric_limits<double>::epsilon(); ///< Minimum query sigma (machine epsilon).
-    const double MS_MULT = 3; ///< Query sigma multiplier for each variation.
-    const int MS_ITER = 20; ///< Number of query sigma variations.
+    const double MS_MIN = std::numeric_limits<double>::epsilon() * 3; ///< Minimum match sigma.
     
-    const double SS_MIN = 0; ///< Minimum shift sigma.
-    const double SS_STEP = 0.001; ///< Shift sigma step for each variation.
+    const double SS_MULT = 0.0000001; ///< Shift sigma multiplier for each variation.
+//    const double SS_STEP = 0.001; ///< Shift sigma step for each variation.
     const int SS_ITER = 5; ///< Number of shift sigma variations.
     
     const double MB_MIN = 6.0; ///< Minimum magnitude bound.

@@ -4,12 +4,21 @@
 /// Source file for Angle class, which matches a set of body vectors (stars) to their inertial counter-parts in the
 /// database.
 
+#include <cmath>
+#include <wrl.h>
 #include "identification/angle.h"
+
+/// Default parameters for the angle identification method.
+const Identification::Parameters Angle::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
+    DEFAULT_SIGMA_OVERLAY, DEFAULT_GAMMA, DEFAULT_NU_MAX, DEFAULT_NU, "ANGLE_20"};
+
+/// Returned when no candidate pair is found from a query.
+const Star::pair Angle::NO_CANDIDATE_PAIR_FOUND = {Star::zero(), Star::zero()};
 
 /// Constructor. Sets the benchmark data, fov, parameters, and current working table.
 ///
 /// @param input Working Benchmark instance. We are **only** copying the star set and the fov.
-Angle::Angle (const Benchmark &input, const Parameters &p) {
+Angle::Angle (const Benchmark &input, const Parameters &p) : Identification() {
     input.present_image(this->input, this->fov);
     this->parameters = p;
     
@@ -21,11 +30,15 @@ Angle::Angle (const Benchmark &input, const Parameters &p) {
 ///
 /// @param fov Field of view limit (degrees) that all pairs must be within.
 /// @param table_name Name of the table to generate.
-/// @return 0 when finished.
-int Angle::generate_sep_table (const double fov, const std::string &table_name) {
+/// @return TABLE_ALREADY_EXISTS if the table already exists. Otherwise, 0 when finished.
+int Angle::generate_table (double fov, const std::string &table_name) {
     Chomp ch;
-    SQLite::Transaction transaction(*ch.db);
-    ch.create_table(table_name, "label_a INT, label_b INT, theta FLOAT");
+    SQLite::Transaction transaction(*ch.conn);
+    
+    // Exit early if the table already exists.
+    if (ch.create_table(table_name, "label_a INT, label_b INT, theta FLOAT") == Nibble::TABLE_NOT_CREATED) {
+        return TABLE_ALREADY_EXISTS;
+    }
     ch.select_table(table_name);
     
     // (i, j) are distinct, where no (i, j) = (j, i).
@@ -37,8 +50,9 @@ int Angle::generate_sep_table (const double fov, const std::string &table_name) 
             
             // Only insert if the angle between both stars is less than fov.
             if (theta < fov) {
-                ch.insert_into_table("label_a, label_b, theta", Nibble::tuple_d {(double) all_stars[i].get_label(),
-                    (double) all_stars[j].get_label(), theta});
+                ch.insert_into_table("label_a, label_b, theta",
+                                     Nibble::tuple_d {static_cast<double> (all_stars[i].get_label()),
+                                         static_cast<double>(all_stars[j].get_label()), theta});
             }
         }
     }
@@ -47,93 +61,49 @@ int Angle::generate_sep_table (const double fov, const std::string &table_name) 
     return ch.polish_table("theta");
 }
 
-/// Find the best matching pair using the appropriate SEP table and by comparing separation angles. Assumes noise is
-/// normally distributed, searches using epsilon (3 * query_sigma). Limits the amount returned by the  search using
-/// 'query_limit'.
+/// Find **a** matching pair using the appropriate SEP table and by comparing separation angles. Assumes noise is
+/// normally distributed, searches using epsilon (3 * query_sigma). Limits the amount returned by the search using
+/// 'sql_limit'.
 ///
 /// @param theta Separation angle (degrees) to search with.
-/// @return [-1][-1] if no candidates found. Two element array of the matching catalog IDs otherwise.
-Angle::label_pair Angle::query_for_pair (const double theta) {
+/// @return NO_CANDIDATES_FOUND if no candidates found. Label list of the matching catalog IDs otherwise.
+Identification::labels_list Angle::query_for_pair (const double theta) {
     // Noise is normally distributed. Angle within 3 sigma of theta.
-    double epsilon = 3.0 * this->parameters.query_sigma;
-    unsigned int limit = this->parameters.query_limit;
-    std::ostringstream condition;
+    double epsilon = 3.0 * this->parameters.sigma_query;
     Nibble::tuples_d candidates;
     
-    // Query using theta with epsilon bounds. Return [-1][-1] if nothing is found.
-    ch.select_table(parameters.table_name);
-    condition << "theta BETWEEN " << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed;
-    condition << theta - epsilon << " AND " << theta + epsilon;
-    candidates = ch.search_table("label_a, label_b, theta", condition.str(), limit * 3, limit);
+    // Query using theta with epsilon bounds. Return NO_CANDIDATES_FOUND if nothing is found.
+    candidates = ch.simple_bound_query("theta", "label_a, label_b, theta", theta - epsilon, theta + epsilon,
+                                       this->parameters.sql_limit);
     if (candidates.empty()) {
-        return label_pair {-1, -1};
+        return NO_CANDIDATES_FOUND;
     }
     
-    // Select the candidate pair with the angle closest to theta.
-    Nibble::tuple_d minimum_tuple = {0, 0, this->fov};
-    for (const Nibble::tuple_d &inertial : candidates) {
-        
-        // Update with the correct minimum.
-        if (fabs(inertial[2] - theta) < minimum_tuple[2]) {
-            minimum_tuple = inertial;
-        }
-    }
-    
-    // Return the set with the angle closest to theta.
-    return label_pair {(int) minimum_tuple[0], (int) minimum_tuple[1]};
+    return labels_list{static_cast<int> (candidates[0][0]), static_cast<int> (candidates[0][1])};
 }
 
 /// Given a set of body (frame B) stars, find the matching inertial (frame R) stars.
 ///
 /// @param b_a Star A in frame B to find the match for.
 /// @param b_b Star B in frame B to find the match for.
-/// @return Array of vectors with 0 length if no matching pair is found. Otherwise, two inertial stars that match
+/// @return NO_CANDIDATE_PAIR_FOUND if no matching pair is found. Otherwise, two inertial stars that match
 /// the given body.
 Star::pair Angle::find_candidate_pair (const Star &b_a, const Star &b_b) {
     double theta = Star::angle_between(b_a, b_b);
     
     // If the current angle is greater than the current fov, break early.
     if (theta > this->fov) {
-        return {Star::zero(), Star::zero()};
+        return NO_CANDIDATE_PAIR_FOUND;
     }
     
     // If no candidate is found, break early.
-    label_pair candidates = this->query_for_pair(theta);
-    if (candidates[0] == -1 && candidates[1] == -1) {
-        return {Star::zero(), Star::zero()};
+    labels_list candidates = this->query_for_pair(theta);
+    if (std::equal(candidates.begin(), candidates.end(), NO_CANDIDATES_FOUND.begin())) {
+        return NO_CANDIDATE_PAIR_FOUND;
     }
     
     // Otherwise, obtain and return the inertial vectors for the given candidates.
     return {ch.query_hip(candidates[0]), ch.query_hip(candidates[1])};
-}
-
-/// Rotate every point the given rotation and check if the angle of separation between any two stars is within a
-/// given limit sigma.
-///
-/// @param candidates All stars to check against the body star set.
-/// @param q The rotation to apply to all stars.
-/// @return Set of matching stars found in candidates and the body sets.
-Star::list Angle::find_matches (const Star::list &candidates, const Rotation &q) {
-    Star::list matches, non_matched = this->input;
-    double epsilon = 3.0 * this->parameters.match_sigma;
-    matches.reserve(this->input.size());
-    
-    for (const Star &candidate : candidates) {
-        Star r_prime = Rotation::rotate(candidate, q);
-        for (unsigned int i = 0; i < non_matched.size(); i++) {
-            if (Star::angle_between(r_prime, non_matched[i]) < epsilon) {
-                // Add this match to the list by noting the candidate star's catalog ID.
-                matches.emplace_back(
-                    Star(non_matched[i][0], non_matched[i][1], non_matched[i][2], candidate.get_label()));
-                
-                // Remove the current star from the searching set. End the search for this star.
-                non_matched.erase(non_matched.begin() + i);
-                break;
-            }
-        }
-    }
-    
-    return matches;
 }
 
 /// Find the best fitting match of input stars (frame B) to database stars (frame R) using the given pair as reference.
@@ -161,111 +131,170 @@ Star::list Angle::check_assumptions (const Star::list &candidates, const Star::p
     return matches[0].size() > matches[1].size() ? matches[0] : matches[1];
 }
 
-/// Match the stars found in the given benchmark to those in the Nibble database.
+/// Reproduction of the Angle method's database querying. Input image is not used. We require the following be defined:
 ///
-/// @param input The set of benchmark data to work with.
-/// @param parameters Adjustments to the identification process.
-/// @param z Reference to variable that will hold the input comparison count.
-/// @return Empty list if an image match cannot be found in "time". Otherwise, a vector of body stars with their
-/// inertial catalog IDs that qualify as matches.
-Star::list Angle::identify (const Benchmark &input, const Parameters &parameters, unsigned int &z) {
-    Star::list matches;
-    Angle a(input, parameters);
-    z = 0;
-    
-    // There exists |A_input| choose 2 possibilities.
-    for (int i = 0; i < (signed) a.input.size() - 1; i++) {
-        for (int j = i + 1; j < (signed) a.input.size(); j++) {
-            Star::list candidates;
-            z++;
-            
-            // Narrow down current pair to two stars in catalog. The order is currently unknown.
-            Star::pair candidate_pair = a.find_candidate_pair(a.input[i], a.input[j]);
-            if (Star::is_equal(candidate_pair[0], Star()) && Star::is_equal(candidate_pair[1], Star())) {
-                break;
-            }
-            
-            // Find candidate stars around the candidate pair.
-            candidates = a.ch.nearby_hip_stars(candidate_pair[0], a.fov, 3 * ((unsigned int) a.input.size()));
-            
-            // Check both possible configurations. Return the most likely of the two.
-            matches = a.check_assumptions(candidates, candidate_pair, {a.input[i], a.input[j]});
-
-            // Practical limit: exit early if we have iterated through too many comparisons without match.
-            if (z > a.parameters.z_max) {
-                return {};
-            }
-
-            // Definition of image match: |match| > match minimum OR |match| == |input|.
-            if (matches.size() > a.parameters.match_minimum || matches.size() == a.input.size()) {
-                return matches;
-            }
-        }
+/// @code{.cpp}
+///     - table_name
+///     - sigma_query
+///     - sql_limit
+/// @endcode
+///
+/// @param s Stars to query with. This must be of length = 2.
+/// @return Vector of likely matches found by the angle method.
+std::vector<Identification::labels_list> Angle::experiment_query (const Star::list &s) {
+    if (s.size() != 2) {
+        throw "Input list does not have exactly two stars.";
     }
-    
-    // Return an empty list if no matches found.
-    return matches;
-}
-
-/// Overloaded to not include the comparison count parameter. Match the stars found in the given benchmark to those in
-/// the Nibble database.
-///
-/// @param input The set of benchmark data to work with.
-/// @param parameters Adjustments to the identification process.
-/// @return Vector of body stars with their inertial BSC IDs that qualify as matches.
-Star::list Angle::identify (const Benchmark &input, const Parameters &parameters) {
-    unsigned int z = 0;
-    return Angle::identify(input, parameters, z);
-}
-
-/// Reproduction of the Angle method's Nibble querying. Unlike the one used in identification, this does not restrict
-/// our results (no LIMIT in query) and does not return the most likely match. Messy, but gets the job done. (:
-///
-/// **Need to select the proper table before calling this method.**
-///
-/// @param ch Open Nibble connection with Chomp.
-/// @param s_1 Star one to query with.
-/// @param s_2 Star two to query with.
-/// @param query_sigma Theta must be within 3 * query_sigma to appear in results.
-std::vector<Angle::label_pair> Angle::trial_query (Chomp &ch, const Star &s_1, const Star &s_2,
-                                                   const double query_sigma) {
-    double epsilon = 3.0 * query_sigma, theta = Star::angle_between(s_1, s_2);
-    std::ostringstream condition;
-    std::vector<Angle::label_pair> r_bar;
+    double epsilon = 3.0 * this->parameters.sigma_query, theta = Star::angle_between(s[0], s[1]);
+    std::vector<labels_list> r_bar;
     
     // Query using theta with epsilon bounds.
-    condition << "theta BETWEEN " << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed;
-    condition << theta - epsilon << " AND " << theta + epsilon;
-    Nibble::tuples_d r = ch.search_table("label_a, label_b", condition.str(), 500);
+    ch.select_table(this->parameters.table_name);
+    Nibble::tuples_d r = ch.simple_bound_query("theta", "label_a, label_b", theta - epsilon, theta + epsilon,
+                                               this->parameters.sql_limit);
     
-    // Sort tuple_d into list of catalog ID pairs.
+    // Sort r into list of catalog ID pairs.
     r_bar.reserve(r.size() / 2);
     for (const Nibble::tuple_d &r_t : r) {
-        r_bar.emplace_back(Angle::label_pair {(int) r_t[0], (int) r_t[1]});
+        r_bar.emplace_back(labels_list {static_cast<int>(r_t[0]), static_cast<int>(r_t[1])});
     }
     
     return r_bar;
 }
 
-/// Reproduction of the Angle method's check_assumption. Unlike the method used in identification, this does not
-/// return the larger star list, but rather the resulting attitude.
+/// Reproduction of the Angle method's check_assumption. Input image is used. We require the following be defined:
+///
+/// @code{.cpp}
+///     - sigma_overlay
+/// @endcode
 ///
 /// @param candidates All stars found near the inertial pair.
-/// @param r Inertial (frame R) pair of stars that match the body pair.
-/// @param b Body (frame B) pair of stars that match the inertial pair.
-/// @return The quaternion associated with the largest set of matching stars across the body and inertial in both
-/// pairing configurations.
-Rotation Angle::trial_attitude_determine (const Star::list &candidates, const Star::pair &r, const Star::pair &b) {
-    std::array<Star::pair, 2> assumption_list = {r, {r[1], r[0]}};
-    std::array<Star::list, 2> matches;
-    std::array<Rotation, 2> q;
+/// @param r Inertial (frame R) pair of stars that match the body pair. This must be of length = 2.
+/// @param b Body (frame B) pair of stars that match the inertial pair. This must be of length = 2.
+/// @return Body stars b with the attached labels of the inertial pair r.
+Star::list Angle::experiment_first_alignment (const Star::list &candidates, const Star::list &r, const Star::list &b) {
+    if (r.size() != 2 || b.size() != 2) {
+        throw "Input lists does not have exactly two stars.";
+    }
+    std::array<Star::list, 2> matches = {}, alignments = {};
     
     // Determine the rotation to take frame B to A, find all matches with this rotation.
-    for (unsigned int i = 0; i < assumption_list.size(); i++) {
-        q[i] = Rotation::rotation_across_frames(b, assumption_list[i]);
-        matches[i] = this->find_matches(candidates, q[i]);
+    for (unsigned int i = 0; i < 2; i++) {
+        // We define our alignment 'a' below.
+        std::array<int, 2> a = {(i == 0) ? 0 : 1, (i == 0) ? 1 : 0};
+        
+        matches[i] = find_matches(candidates, Rotation::rotation_across_frames({b[0], b[1]}, {r[a[0]], r[a[1]]}));
+        alignments[i] = {Star::define_label(b[0], r[a[0]].get_label()), Star::define_label(b[1], r[a[1]].get_label())};
     }
     
-    // Return the rotation associated with the largest set of matches.
-    return matches[0].size() > matches[1].size() ? q[0] : q[1];
+    // Return the body pair with the appropriate labels.
+    return (matches[0].size() > matches[1].size()) ? alignments[0] : alignments[1];
+}
+
+/// Reproduction of the Angle method's querying to candidate reduction step. Input image is used.
+/// We require the following be defined:
+///
+/// @code{.cpp}
+///     - table_name
+///     - sigma_query
+///     - sql_limit
+/// @endcode
+///
+/// @return NO_CANDIDATES_FOUND if we cannot query anything. Otherwise, a single match configuration found by the angle
+/// method.
+Angle::labels_list Angle::experiment_reduction () {
+    ch.select_table(parameters.table_name);
+    std::vector<labels_list> p = experiment_query({input[0], input[1]});
+    return p.empty() ? NO_CANDIDATES_FOUND : p[0];
+}
+
+/// Reproduction of the Angle method's process from beginning to the orientation determination. Input image is used.
+/// We require the following be defined:
+///
+/// @code{.cpp}
+///     - table_name
+///     - sigma_overlay
+///     - sql_limit
+///     - sigma_query
+///     - nu
+///     - nu_max
+/// @endcode
+///
+/// @param input The set of benchmark data to work with.
+/// @param p Adjustments to the identification process.
+/// @return NO_CONFIDENT_ALIGNMENT if an alignment cannot be found exhaustively. EXCEEDED_NU_MAX if an alignment
+/// cannot be found within a certain number of query picks. Otherwise, body stars b with the attached labels
+/// of the inertial pair r.
+Star::list Angle::experiment_alignment () {
+    *parameters.nu = 0;
+    
+    // There exists |input| choose 2 possibilities.
+    for (unsigned int i = 0; i < input.size() - 1; i++) {
+        for (unsigned int j = i + 1; j < input.size(); j++) {
+            Star::list candidates;
+            (*parameters.nu)++;
+            
+            // Practical limit: exit early if we have iterated through too many comparisons without match.
+            if (*parameters.nu > parameters.nu_max) {
+                return EXCEEDED_NU_MAX;
+            }
+            
+            // Narrow down current pair to two stars in catalog. The order is currently unknown.
+            Star::pair candidate_pair = find_candidate_pair(input[i], input[j]);
+            if (std::equal(candidate_pair.begin(), candidate_pair.end(), NO_CANDIDATE_PAIR_FOUND.begin())) {
+                break;
+            }
+            
+            // Find candidate stars around the candidate pair.
+            candidates = ch.nearby_hip_stars(candidate_pair[0], fov, static_cast<unsigned int>(3 * input.size()));
+            
+            // Find the most likely pair combination given the two pairs.
+            return experiment_first_alignment(candidates, {candidate_pair[0], candidate_pair[1]}, {input[i], input[j]});
+        }
+    }
+    
+    return NO_CONFIDENT_ALIGNMENT;
+}
+
+/// Match the stars found in the given benchmark to those in the Nibble database. All parameters must be defined.
+///
+/// @return NO_CONFIDENT_ALIGNMENT if an alignment cannot be found exhaustively. EXCEEDED_NU_MAX if an alignment
+/// cannot be found within a certain number of query picks. Otherwise, a vector of body stars with their
+/// inertial catalog IDs that qualify as matches.
+Star::list Angle::experiment_crown () {
+    Star::list matches = NO_CONFIDENT_MATCH_SET;
+    *parameters.nu = 0;
+    
+    // There exists |input| choose 2 possibilities.
+    for (unsigned int i = 0; i < input.size() - 1; i++) {
+        for (unsigned int j = i + 1; j < input.size(); j++) {
+            Star::list candidates;
+            (*parameters.nu)++;
+            
+            // Practical limit: exit early if we have iterated through too many comparisons without match.
+            if (*parameters.nu > parameters.nu_max) {
+                return EXCEEDED_NU_MAX;
+            }
+            
+            // Narrow down current pair to two stars in catalog. The order is currently unknown.
+            Star::pair candidate_pair = find_candidate_pair(input[i], input[j]);
+            if (std::equal(candidate_pair.begin(), candidate_pair.end(), NO_CANDIDATE_PAIR_FOUND.begin())) {
+                break;
+            }
+            
+            // Find candidate stars around the candidate pair.
+            candidates = ch.nearby_hip_stars(candidate_pair[0], fov, 3 * static_cast<unsigned int>(input.size()));
+            
+            // Check both possible configurations. Return the most likely of the two.
+            matches = check_assumptions(candidates, {candidate_pair[0], candidate_pair[1]}, {input[i], input[j]});
+            
+            // Definition of image match: |match| > gamma minimum OR |match| == |input|.
+            if (matches.size() > ceil(matches.size() * parameters.gamma) || matches.size() == input.size()) {
+                return matches;
+            }
+        }
+    }
+    
+    // Return NO_CONFIDENT_MATCH_SET if no matches are found.
+    return matches;
 }

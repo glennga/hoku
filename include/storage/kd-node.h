@@ -32,15 +32,17 @@ class KdNode : public Mercator {
 #endif
   public:
     static KdNode load_tree (const Star::list &, double);
-    
     Star::list nearby_stars (const Star &, double, unsigned int, const Star::list &);
-
+    
+    /// For the origin_index property. This suggests that an origin has not been set (or is a median point).
+    static constexpr int NO_ORIGIN = -1;
+    
+    /// For the label property. This suggests that a given point is the root of the tree.
+    static constexpr int ROOT_LABEL = -1;
+    
 #if !defined ENABLE_TESTING_ACCESS
     private:
 #endif
-    /// Precision default for '==' method.
-    constexpr static double KDNODE_EQUALITY_PRECISION_DEFAULT = 0.000000000001;
-    
     /// Alias for edge to nodes (there should only be a left and right).
     using child_edge = std::shared_ptr<KdNode>;
     
@@ -56,7 +58,10 @@ class KdNode : public Mercator {
     // Inherit Mercator's star projection constructor.
     KdNode (const Star &s, const double w_n) : Mercator(s, w_n) {
     };
-
+    
+    /// Default precision for node component comparisons.
+    static constexpr double EQUALITY_PRECISION_DEFAULT = 0.000000000001;
+    
 #if !defined ENABLE_TESTING_ACCESS
     private:
 #endif
@@ -68,9 +73,8 @@ class KdNode : public Mercator {
     static void box_query (const Mercator::quad &, const KdNode &, KdNode::list &);
     
     std::string str () const override;
-    
     bool operator== (const KdNode &) const;
-
+    
 #if !defined ENABLE_TESTING_ACCESS
     private:
 #endif

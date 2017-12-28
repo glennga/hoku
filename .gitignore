@@ -5,3 +5,5 @@ build/
 *.db
 *.tmp
 *.out
+*.png
+*.pdf

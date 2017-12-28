@@ -27,13 +27,12 @@
 #include "identification/angle.h"
 #include "identification/spherical-triangle.h"
 #include "identification/planar-triangle.h"
-#include "identification/pyramid.h"
-#include "identification/coin.h"
+//#include "identification/pyramid.h"
+//#include "identification/coin.h"
 
 /// Defining characteristics of the Nibble tables generated.
 namespace DCNT {
     static const double FOV = 20; ///< Maximum field-of-view for each generated table.
-    static const int TD_H = 3; ///< Recursion depth maximum (moment calculation) for SphericalTriangle tables.
     
     static const char *BRIGHT_HIP_NAME = "HIP_BRIGHT"; ///< Name of star catalog table w/ magnitude < 6.0 restriction.
     static const char *HIP_NAME = "HIP"; ///< Name of star catalog table w/o magnitude restrictions.
@@ -68,10 +67,12 @@ void remove_table (const int choice) {
     };
     
     Nibble nb;
-    SQLite::Transaction transaction(*nb.db);
-    (*nb.db).exec("DROP TABLE IF EXISTS " + choose_table());
-    (*nb.db).exec("DROP TABLE IF EXISTS " + choose_table() + "_KVEC");
+    SQLite::Transaction transaction(*nb.conn);
+    (*nb.conn).exec("DROP TABLE IF EXISTS " + choose_table());
+    (*nb.conn).exec("DROP TABLE IF EXISTS " + choose_table() + "_KVEC");
     transaction.commit();
+    
+    std::cout << "Table deletion was successful (or table does not exist)." << std::endl;
 }
 
 /// Given the table choice, attempt to generate the specified table. Error handling should occur within the table
@@ -79,14 +80,19 @@ void remove_table (const int choice) {
 ///
 /// @param choice Number associated with the table to generate.
 void generate_table (const int choice) {
+    auto display_result = [] (const int r) -> void {
+        std::cout << ((r == Nibble::TABLE_NOT_CREATED) ? "Table already exists." : "Table was created successfully")
+                  << std::endl;
+    };
+    
     switch (choice) {
-        case 0: return (void) Chomp().generate_bright_table();
-        case 1: return (void) Chomp().generate_hip_table();
-        case 2: return (void) Angle::generate_sep_table(DCNT::FOV, DCNT::ANGLE_NAME);
-        case 3: return (void) Sphere::generate_triangle_table(DCNT::FOV, DCNT::TD_H, DCNT::SPHERE_NAME);
-        case 4: return (void) Plane::generate_triangle_table(DCNT::FOV, DCNT::PLANE_NAME);
-        case 5: return (void) Pyramid::generate_sep_table(DCNT::FOV, DCNT::PYRAMID_NAME);
-        case 6: return (void) Coin::generate_triangle_table(DCNT::FOV, DCNT::COIN_NAME);
+        case 0: return display_result(Chomp().generate_bright_table());
+        case 1: return display_result(Chomp().generate_hip_table());
+        case 2: return display_result(Angle::generate_table(DCNT::FOV, DCNT::ANGLE_NAME));
+        case 3: return display_result(Sphere::generate_table(DCNT::FOV, DCNT::SPHERE_NAME));
+        case 4: return display_result(Plane::generate_table(DCNT::FOV, DCNT::PLANE_NAME));
+            //        case 5: return (void) Pyramid::generate_sep_table(DCNT::FOV, DCNT::PYRAMID_NAME);
+            //        case 6: return (void) Coin::generate_triangle_table(DCNT::FOV, DCNT::COIN_NAME);
         default: throw "Table choice is not within space {0, 1, 2, 3, 4, 5, 6}.";
     }
 }
@@ -101,8 +107,8 @@ void generate_kvec_table (const int choice) {
     auto create_and_polish = [&ch] (const std::string &table, const std::string &focus) -> void {
         ch.select_table(table);
         ch.polish_table(focus);
-        ch.create_k_vector(focus);
-        ch.select_table(table + "_KVEC");
+        std::cout << ((ch.create_k_vector(focus) == Nibble::TABLE_NOT_CREATED) ? "K-Vector table already exists." :
+                      "K-Vector table was created successfully.") << std::endl;
     };
     
     switch (choice) {
@@ -161,16 +167,16 @@ int main (int argc, char *argv[]) {
     
     // If desired, delete all tables related to the specified table.
     if (argc == 3 && std::string(argv[2]) == "d") {
-        remove_table((int) strtol(argv[1], nullptr, 10));
+        remove_table(static_cast<int> (strtol(argv[1], nullptr, 10)));
         return 0;
     }
     
     // Attempt to generate the specified table.
-    generate_table((int) strtol(argv[1], nullptr, 10));
+    generate_table(static_cast<int> (strtol(argv[1], nullptr, 10)));
     
     // If desired, generate the K-Vector for the specified table.
     if (argc == 3 && std::string(argv[2]) == "k") {
-        generate_kvec_table((int) strtol(argv[1], nullptr, 10));
+        generate_kvec_table(static_cast<int> (strtol(argv[1], nullptr, 10)));
     }
     
     return 0;

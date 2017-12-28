@@ -8,12 +8,8 @@
 #define HOKU_PLANAR_TRIANGLE_H
 
 #include "base-triangle.h"
-#include "benchmark/benchmark.h"
-#include "storage/chomp.h"
-#include "storage/quad-node.h"
-#include "math/trio.h"
-#include <iostream>
 
+// TODO: fix the documentation here
 /// The triangle planar class is an implementation of Crassidis and Cole's Planar Triangle Pattern Recognition
 /// Process. This is one of the five star identification procedures being tested.
 ///
@@ -41,22 +37,25 @@
 ///     printf("%s", s.str().c_str());
 /// }
 /// @endcode
-#if defined ENABLE_IDENTIFICATION_ACCESS || defined ENABLE_TESTING_ACCESS
 class PlanarTriangle : public BaseTriangle {
-#else
-    class PlanarTriangle : private BaseTriangle {
-#endif
-
   public:
-    static Star::list identify (const Benchmark &, const Parameters &, unsigned int &);
-    static Star::list identify (const Benchmark &, const Parameters &);
-    static int generate_triangle_table (double, const std::string &);
     using BaseTriangle::Parameters;
+    static const Parameters DEFAULT_PARAMETERS;
+    
+    PlanarTriangle (const Benchmark &, const Parameters &);
+    
+    std::vector<labels_list> experiment_query (const Star::list &s);
+    Star::list experiment_first_alignment (const Star::list &candidates, const Star::list &r,
+                                                  const Star::list &b);
+    labels_list experiment_reduction ();
+    Star::list experiment_alignment ();
+    Star::list experiment_crown ();
+    
+    static int generate_table(double fov, const std::string &table_name);
 
-#if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
+#if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
-    PlanarTriangle (const Benchmark &, const Parameters &);
     std::vector<Trio::stars> match_stars (const index_trio &);
 };
 

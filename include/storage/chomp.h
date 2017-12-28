@@ -40,16 +40,19 @@
 class Chomp : public Nibble {
   public:
     /// Length of the bright stars table. Necessary if loading all stars into RAM.
-    static const unsigned int BRIGHT_TABLE_LENGTH = 4559;
+    static constexpr unsigned int BRIGHT_TABLE_LENGTH = 4559;
     
     /// Length of the general stars table. Necessary if loading all stars into RAM.
-    static const unsigned int HIP_TABLE_LENGTH = 117956;
+    static constexpr unsigned int HIP_TABLE_LENGTH = 117956;
     
     /// Largest catalog ID in the bright stars table.
-    static const unsigned int BRIGHT_TABLE_MAX_LABEL = 117930;
+    static constexpr unsigned int BRIGHT_TABLE_MAX_LABEL = 117930;
     
     /// Smallest catalog ID in the bright stars table.
-    static const unsigned int BRIGHT_TABLE_MIN_LABEL = 88;
+    static constexpr unsigned int BRIGHT_TABLE_MIN_LABEL = 88;
+    
+    /// Returned from table generators when the table already exists in the database.
+    static constexpr int TABLE_EXISTS = -1;
     
   public:
     using Nibble::tuples_d;
@@ -62,18 +65,21 @@ class Chomp : public Nibble {
     int create_k_vector (const std::string &);
     tuples_d k_vector_query (const std::string &, const std::string &, double, double, unsigned int);
     
+    tuples_d simple_bound_query (const std::string &, const std::string &, double, double, unsigned int);
+    
     Star::list nearby_bright_stars (const Star &, double, unsigned int);
     Star::list nearby_hip_stars (const Star &, double, unsigned int);
     
     Star::list bright_as_list ();
     Star::list hip_as_list ();
     Star query_hip (int);
+    
+    static const Star NONEXISTENT_STAR;
+    static const Star::list NONEXISTENT_STAR_LIST;
+
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
-    /// Standard machine epsilon for doubles. This represents the smallest possible change in precision.
-    const double DOUBLE_EPSILON = std::numeric_limits<double>::epsilon();
-    
     /// All stars in the HIP_BRIGHT table, from the 'load_all_stars' method.
     Star::list all_bright_stars;
     
@@ -96,6 +102,7 @@ class Chomp : public Nibble {
     void load_all_stars ();
     
     static std::array<double, 6> components_from_line (const std::string &);
+    static const double DOUBLE_EPSILON;
 };
 
 #endif /* HOKU_CHOMP_H */

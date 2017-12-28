@@ -9,7 +9,7 @@
 /// it is created.
 Nibble::Nibble () {
     const int FLAGS = SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE;
-    this->db = std::make_unique<SQLite::Database>(DATABASE_LOCATION, FLAGS);
+    this->conn = std::make_unique<SQLite::Database>(DATABASE_LOCATION, FLAGS);
 }
 
 /// Overloaded constructor. If a table name is specified, we load this table into memory. Note that ONLY this table
@@ -22,18 +22,19 @@ Nibble::Nibble (const std::string &table_name, const std::string &focus) {
     const int FLAGS = SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE;
     
     // We have two connections: one in memory, and one to our Nibble database on disk.
-    this->db = std::make_unique<SQLite::Database>(":memory:", FLAGS);
+    this->conn = std::make_unique<SQLite::Database>(":memory:", FLAGS);
     Nibble nb;
     
     // Copy the entire table to RAM.
     nb.select_table(table_name, true);
-    const unsigned int CARDINALITY = (*nb.db).execAndGet(std::string("SELECT MAX(rowid) FROM ") + table_name).getUInt();
+    const unsigned int CARDINALITY = (*nb.conn).execAndGet(
+        std::string("SELECT MAX(rowid) FROM ") + table_name).getUInt();
     tuples_d table = nb.search_table("*", CARDINALITY);
     
     // Determine the schema and fields for insertion. Create the table.
     std::string schema, fields;
     nb.find_attributes(schema, fields);
-    if (this->create_table(table_name, schema) == -1) {
+    if (this->create_table(table_name, schema) == TABLE_NOT_CREATED) {
         throw "Unable to create specified table";
     }
     
@@ -56,7 +57,7 @@ Nibble::Nibble (const std::string &table_name, const std::string &focus) {
 /// @param check_existence If desired, can check table existence and throw error if not found.
 void Nibble::select_table (const std::string &table, const bool check_existence) {
     if (check_existence) {
-        SQLite::Statement query(*db, "SELECT name FROM sqlite_master WHERE type='table' AND name='" + table + "\'");
+        SQLite::Statement query(*conn, "SELECT name FROM sqlite_master WHERE type='table' AND name='" + table + "\'");
         while (query.executeStep()) {
             if (query.getColumnCount() == 0) {
                 throw "Table does not exist. 'check_existence' flag raised";
@@ -87,7 +88,7 @@ Nibble::tuples_d Nibble::search_table (const std::string &fields, const std::str
         sql += " LIMIT " + std::to_string(limit);
     }
     
-    SQLite::Statement query(*db, sql);
+    SQLite::Statement query(*conn, sql);
     while (query.executeStep()) {
         tuple_d tup;
         
@@ -119,10 +120,10 @@ Nibble::tuples_d Nibble::search_table (const std::string &fields, const unsigned
         sql += " LIMIT " + std::to_string(limit);
     }
     
-    SQLite::Statement query(*db, sql);
+    SQLite::Statement query(*conn, sql);
     while (query.executeStep()) {
         tuple_d tup;
-    
+        
         for (int i = 0; i < query.getColumnCount(); i++) {
             tup.push_back(query.getColumn(i).getDouble());
         }
@@ -137,35 +138,35 @@ Nibble::tuples_d Nibble::search_table (const std::string &fields, const unsigned
 ///
 /// @param fields The columns to search for in the current table.
 /// @param constraint The SQL string to be used with the WHERE clause.
-/// @return If there exists nothing returned from query, return 0. Otherwise,the first result returned from query.
+/// @return If there exists nothing returned from query, return NO_RESULT_FOUND. Otherwise,the first result returned
+/// from query.
 double Nibble::search_single (const std::string &fields, const std::string &constraint) {
     std::string sql = "SELECT " + fields + " FROM " + table + (constraint.empty() ? "" : " WHERE " + constraint);
     
-    SQLite::Statement query(*db, sql);
+    SQLite::Statement query(*conn, sql);
     while (query.executeStep()) {
         // This should only execute once.
         return query.getColumn(0).getDouble();
     }
-    return 0;
+    return NO_RESULT_FOUND;
 }
-
 
 /// Create a table in the Nibble database with the given schema.
 ///
 /// @param table Name of the table to create.
 /// @param schema Schema for the table.
-/// @return -1 if a table already exists. 0 otherwise.
+/// @return TABLE_NOT_CREATED if a table already exists. 0 otherwise.
 int Nibble::create_table (const std::string &table, const std::string &schema) {
-    SQLite::Statement query(*db, "SELECT name FROM sqlite_master WHERE type='table' AND name='" + table + "\'");
+    SQLite::Statement query(*conn, "SELECT name FROM sqlite_master WHERE type='table' AND name='" + table + "\'");
     
     select_table(table);
     while (query.executeStep()) {
         if (query.getColumnCount() > 0) {
-            return -1;
+            return TABLE_NOT_CREATED;
         }
     }
     
-    (*db).exec("CREATE TABLE " + table + "(" + schema + ")");
+    (*conn).exec("CREATE TABLE " + table + "(" + schema + ")");
     return 0;
 }
 
@@ -178,7 +179,7 @@ int Nibble::find_attributes (std::string &schema, std::string &fields) {
     fields.clear();
     schema.clear();
     
-    SQLite::Statement query(*db, "PRAGMA table_info (" + table + ")");
+    SQLite::Statement query(*conn, "PRAGMA table_info (" + table + ")");
     while (query.executeStep()) {
         fields += query.getColumn(1).getString() + ", ";
         schema += query.getColumn(1).getString() + " " + query.getColumn(2).getString() + ", ";
@@ -198,21 +199,21 @@ int Nibble::find_attributes (std::string &schema, std::string &fields) {
 /// @param focus_column The new table will be sorted and index by this column.
 /// @return 0 when finished.
 int Nibble::sort_table (const std::string &focus_column) {
-    SQLite::Transaction transaction(*db);
+    SQLite::Transaction transaction(*conn);
     std::string fields, schema;
     
     // Grab the fields and schema of the table.
     find_attributes(schema, fields);
     
     // Create temporary table to insert sorted data. Insert the sorted data by focus column.
-    (*db).exec("CREATE TABLE " + table + "_SORTED (" + schema + ")");
-    (*db).exec(
+    (*conn).exec("CREATE TABLE " + table + "_SORTED (" + schema + ")");
+    (*conn).exec(
         "INSERT INTO " + table + "_SORTED (" + fields + ")" + " SELECT " + fields + " FROM " + table + " ORDER BY "
         + focus_column);
     
     // Remove old table. Rename the table to original table name.
-    (*db).exec("DROP TABLE " + table);
-    (*db).exec("ALTER TABLE " + table + "_SORTED RENAME TO " + table);
+    (*conn).exec("DROP TABLE " + table);
+    (*conn).exec("ALTER TABLE " + table + "_SORTED RENAME TO " + table);
     transaction.commit();
     
     return 0;
@@ -226,8 +227,8 @@ int Nibble::polish_table (const std::string &focus_column) {
     sort_table(focus_column);
     
     // Create the index name 'TABLE_FOCUSCOLUMN'.
-    SQLite::Transaction transaction(*db);
-    (*db).exec("CREATE INDEX " + table + "_" + focus_column + " ON " + table + "(" + focus_column + ")");
+    SQLite::Transaction transaction(*conn);
+    (*conn).exec("CREATE INDEX " + table + "_" + focus_column + " ON " + table + "(" + focus_column + ")");
     transaction.commit();
     
     return 0;

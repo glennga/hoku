@@ -19,9 +19,9 @@ Mercator::Mercator (const Star &s, const double w_n) {
 /// @param x X coordinate to store.
 /// @param y Y coordinate to store.
 /// @param w_n Width used to project the given X, Y coordinates.
-/// @param hr Catalog ID to store.
-Mercator::Mercator (const double x, const double y, const double w_n, const int hr) {
-    this->x = x, this->y = y, this->w_n = w_n, this->label = hr;
+/// @param label Catalog ID to store.
+Mercator::Mercator (const double x, const double y, const double w_n, const int label) {
+    this->x = x, this->y = y, this->w_n = w_n, this->label = label;
 }
 
 /// Return a point with coordinates (0, 0) and w_n = 0.
@@ -34,9 +34,9 @@ Mercator Mercator::zero () {
 /// Access method for the x and y components of the star. Overloads the [] operator.
 ///
 /// @param n Index of {x, y to return.
-/// @return 0 if n > 1. Otherwise component at index n of {x, y}.
+/// @return INVALID_ELEMENT_ACCESSED if n > 1. Otherwise component at index n of {x, y}.
 double Mercator::operator[] (const unsigned int n) const {
-    return n > 1 ? 0 : std::array<double, 2> {x, y}[n];
+    return n > 1 ? INVALID_ELEMENT_ACCESSED : std::array<double, 2> {x, y}[n];
 }
 
 /// Determine the length of the line that connects points m_1 and m_2.

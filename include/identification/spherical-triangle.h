@@ -8,20 +8,17 @@
 #define HOKU_SPHERICAL_TRIANGLE_H
 
 #include "base-triangle.h"
-#include "benchmark/benchmark.h"
-#include "storage/chomp.h"
-#include "math/trio.h"
-#include <iostream>
 
+// TODO: fix the documentation here
 /// The triangle spherical class is an implementation of Crassidis and Cole's Spherical Triangle Pattern Recognition
 /// Process. This is one of the five star identification procedures being tested.
 ///
 /// @example
 /// @code{.cpp}
 /// // Populate a table named "SPHERE20" in Nibble.db of all distinct trios of stars whose angle of separation is
-/// // less than 20 degrees of each. The entries stored are the catalog IDs, the spherical area between each star, and
-/// // the spherical polar moment between each star.
-/// SphericalTriangle::generate_triangle_table(20, "SPHERE20");
+/// // less than 20 degrees of each. The entries stored are the BSC5 catalog IDs, the planar area between each star,
+/// // and the planar polar moment between each star.
+/// PlanarTriangle::generate_triangle_table(20, "SPHERE20");
 ///
 /// /* The snippet above should only be run ONCE. The snippet below is run with every different test. */
 ///
@@ -40,22 +37,29 @@
 ///     printf("%s", s.str().c_str());
 /// }
 /// @endcode
-#if defined ENABLE_IDENTIFICATION_ACCESS || defined ENABLE_TESTING_ACCESS
 class SphericalTriangle : public BaseTriangle {
-#else
-class SphericalTriangle : private BaseTriangle {
-#endif
-  
   public:
-    static int generate_triangle_table (double, unsigned int, const std::string &);
-    static Star::list identify (const Benchmark &, const Parameters &, unsigned int &);
-    static Star::list identify (const Benchmark &, const Parameters &);
+    /// Default tree depth for calculating the spherical moment.
+    static constexpr int DEFAULT_TD_H = 3;
+    
+  public:
     using BaseTriangle::Parameters;
+    static const Parameters DEFAULT_PARAMETERS;
+    
+    SphericalTriangle (const Benchmark &, const Parameters &);
+    
+    std::vector<labels_list> experiment_query (const Star::list &s);
+    Star::list experiment_first_alignment (const Star::list &candidates, const Star::list &r,
+                                           const Star::list &b);
+    labels_list experiment_reduction ();
+    Star::list experiment_alignment ();
+    Star::list experiment_crown ();
+    
+    static int generate_table(double fov, const std::string &table_name);
 
-#if !defined ENABLE_IDENTIFICATION_ACCESS && !defined ENABLE_TESTING_ACCESS
+#if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
-    SphericalTriangle (const Benchmark &, const Parameters &);
     std::vector<Trio::stars> match_stars (const index_trio &);
 };
 

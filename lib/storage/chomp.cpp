@@ -6,11 +6,20 @@
 
 #include "storage/chomp.h"
 
+/// Standard machine epsilon for doubles. This represents the smallest possible change in precision.
+const double Chomp::DOUBLE_EPSILON = std::numeric_limits<double>::epsilon();
+
+/// Returned from query method if the specified star does not exist.
+const Star Chomp::NONEXISTENT_STAR = Star::zero();
+
+/// Returned from bound query methods if the stars do not exist.
+const Star::list Chomp::NONEXISTENT_STAR_LIST = Star::list {};
+
 /// Constructor. This dynamically allocates a database connection object to nibble.db. If the database does not exist,
 /// it is created. We then proceed to load all stars into RAM from both tables.
 Chomp::Chomp () {
     const int FLAGS = SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE;
-    this->db = std::make_unique<SQLite::Database>(DATABASE_LOCATION, FLAGS);
+    this->conn = std::make_unique<SQLite::Database>(DATABASE_LOCATION, FLAGS);
     
     generate_hip_table();
     generate_bright_table();
@@ -51,16 +60,16 @@ std::array<double, 6> Chomp::components_from_line (const std::string &entry) {
 /// Parse the right ascension, declination, visual magnitude, and catalog ID for each star. The i, j, and k components
 /// are converted from the star's alpha, delta, and an assumed parallax = 1.
 ///
-/// @return -1 if the bright stars table already exists. 0 otherwise.
+/// @return TABLE_EXISTS if the bright stars table already exists. 0 otherwise.
 int Chomp::generate_bright_table () {
     std::ifstream catalog(HIP_CATALOG_LOCATION);
     if (!catalog.is_open()) {
         throw "Catalog file cannot be opened";
     }
     
-    SQLite::Transaction transaction(*db);
+    SQLite::Transaction transaction(*conn);
     if (create_table(BRIGHT_TABLE, "alpha FLOAT, delta FLOAT, i FLOAT, j FLOAT, k FLOAT, m FLOAT, label INT") == -1) {
-        return -1;
+        return TABLE_EXISTS;
     }
     
     // We skip the header here.
@@ -89,16 +98,17 @@ int Chomp::generate_bright_table () {
 /// Parse the right ascension, declination, visual magnitude, and catalog ID for each star. The i, j, and k components
 /// are converted from the star's alpha, delta, and an assumed parallax = 1.
 ///
-/// @return -1 if the general stars table already exists. 0 otherwise.
+/// @return TABLE_EXISTS if the general stars table already exists. 0 otherwise.
 int Chomp::generate_hip_table () {
     std::ifstream catalog(HIP_CATALOG_LOCATION);
     if (!catalog.is_open()) {
         throw "Catalog file cannot be opened";
     }
     
-    SQLite::Transaction transaction(*db);
-    if (create_table("HIP", "alpha FLOAT, delta FLOAT, i FLOAT, j FLOAT, k FLOAT, m FLOAT, label INT") == -1) {
-        return -1;
+    SQLite::Transaction transaction(*conn);
+    if (create_table("HIP", "alpha FLOAT, delta FLOAT, i FLOAT, j FLOAT, k FLOAT, m FLOAT, label INT")
+        == Nibble::TABLE_NOT_CREATED) {
+        return TABLE_EXISTS;
     }
     
     // We skip the header here.
@@ -124,7 +134,8 @@ int Chomp::generate_hip_table () {
 /// and catalog ID of this search.
 ///
 /// @param label Catalog ID of the star to return.
-/// @return Zero star if the star does not exist. Star with the components of the matching catalog ID entry otherwise.
+/// @return NONEXISTENT_STAR if the star does not exist. Star with the components of the matching catalog ID entry
+/// otherwise.
 Star Chomp::query_hip (int label) {
     std::string t_table = this->table;
     
@@ -133,7 +144,7 @@ Star Chomp::query_hip (int label) {
     
     // Keep our previous table.
     select_table(t_table);
-    return results.empty() ? Star::zero() : Star(results[0][0], results[0][1], results[0][2], label, results[0][3]);
+    return results.empty() ? NONEXISTENT_STAR : Star(results[0][0], results[0][1], results[0][2], label, results[0][3]);
 }
 
 /// Accessor for all_bright_stars list.
@@ -197,7 +208,7 @@ void Chomp::load_all_stars () {
     
     // Select all for bright stars, and load this into RAM.
     select_table(BRIGHT_TABLE);
-    SQLite::Statement query_b(*db, "SELECT i, j, k, label, m FROM " + BRIGHT_TABLE);
+    SQLite::Statement query_b(*conn, "SELECT i, j, k, label, m FROM " + BRIGHT_TABLE);
     while (query_b.executeStep()) {
         this->all_bright_stars.emplace_back(
             Star(query_b.getColumn(0).getDouble(), query_b.getColumn(1).getDouble(), query_b.getColumn(2).getDouble(),
@@ -206,12 +217,31 @@ void Chomp::load_all_stars () {
     
     // Select all for general stars stars, and load this into RAM.
     select_table(HIP_TABLE);
-    SQLite::Statement query_h(*db, "SELECT i, j, k, label, m FROM " + HIP_TABLE);
+    SQLite::Statement query_h(*conn, "SELECT i, j, k, label, m FROM " + HIP_TABLE);
     while (query_h.executeStep()) {
         this->all_hip_stars.emplace_back(
             Star(query_h.getColumn(0).getDouble(), query_h.getColumn(1).getDouble(), query_h.getColumn(2).getDouble(),
                  query_h.getColumn(3).getInt(), query_h.getColumn(4).getDouble()));
     }
+}
+
+/// Search a table for the specified fields given a focus column using a simple bound query. Searches for all results
+/// between y_a and y_b.
+///
+/// @param focus Our search attribute.
+/// @param fields The attributes to search for in the given table.
+/// @param y_a Lower bound of the focus to search for.
+/// @param y_b Upper bound of the focus to search for.
+/// @param limit Maximum number of results to retrieve.
+/// @return A list of results (in form of tuples), in order of that queried from Nibble.
+Nibble::tuples_d Chomp::simple_bound_query (const std::string &focus, const std::string &fields, const double y_a,
+                                            const double y_b, const unsigned int limit) {
+    std::ostringstream condition;
+    
+    select_table(table);
+    condition << focus << " BETWEEN " << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed;
+    condition << y_a << " AND " << y_b;
+    return search_table(fields, condition.str(), limit * 3, limit);
 }
 
 /// A helper method for the create_k_vector function. Build the K-Vector table for the given table using the
@@ -223,12 +253,13 @@ void Chomp::load_all_stars () {
 /// @param q Y-Intercept parameter of Z equation.
 /// @return 0 when finished.
 int Chomp::build_k_vector_table (const std::string &focus_column, const double m, const double q) {
-    int s_l = (*db).execAndGet(std::string("SELECT MAX(rowid) FROM ") + table).getInt();
-    SQLite::Transaction table_transaction(*db);
+    int s_l = (*conn).execAndGet(std::string("SELECT MAX(rowid) FROM ") + table).getInt();
+    SQLite::Transaction table_transaction(*conn);
     int k_hat = 0;
     
     // Load the entire table into RAM.
     tuples_d s_vector = search_table(focus_column, (unsigned) s_l);
+    std::string original_table = table;
     select_table(table + "_KVEC");
     
     // Load K-Vector into table, K(i) = j where s(j) <= z(i) < s(j + 1).
@@ -248,9 +279,11 @@ int Chomp::build_k_vector_table (const std::string &focus_column, const double m
     table_transaction.commit();
     std::cout << std::endl;
     
-    // Index the K-Vector column.
-    SQLite::Transaction index_transaction(*db);
-    (*db).exec("CREATE INDEX " + table + "_" + focus_column + " ON " + table + "(k_value)");
+    // Index the K-Vector column and the original table.
+    SQLite::Transaction index_transaction(*conn);
+    (*conn).exec("CREATE INDEX " + table + "_" + focus_column + " ON " + table + "(k_value)");
+    (*conn).exec(
+        "CREATE INDEX " + original_table + "_" + focus_column + " ON " + original_table + "(" + focus_column + ")");
     index_transaction.commit();
     
     return 0;
@@ -259,10 +292,10 @@ int Chomp::build_k_vector_table (const std::string &focus_column, const double m
 /// Create the K-Vector for the given for the given table using the specified focus column.
 ///
 /// @param focus Name of the column to construct K-Vector with.
-/// @return 0 when finished.
+/// @return TABLE_NOT_CREATED if the table already exists. Otherwise, 0 when finished.
 int Chomp::create_k_vector (const std::string &focus) {
     sort_table(focus);
-    SQLite::Transaction transaction(*db);
+    SQLite::Transaction transaction(*conn);
     std::string original_table = this->table;
     
     // Search for last and first element of sorted table.
@@ -276,13 +309,16 @@ int Chomp::create_k_vector (const std::string &focus) {
     double q = focus_0 - m - DOUBLE_EPSILON;
     
     // Sorted table is s-vector. Create k-vector and build the k-vector table.
-    create_table(table + "_KVEC", "k_value INT");
+    if (create_table(table + "_KVEC", "k_value INT") == TABLE_NOT_CREATED) {
+        return TABLE_NOT_CREATED;
+    }
     transaction.commit();
     
     select_table(original_table);
     return build_k_vector_table(focus, m, q);
 }
 
+// TODO: figure out what is wrong with querying triangle tables here... Switching to normal indexed queries.
 /// Search a table for the specified fields given a focus column using the K-Vector method. Searches for all results
 /// between y_a and y_b.
 ///
@@ -293,40 +329,47 @@ int Chomp::create_k_vector (const std::string &focus) {
 /// @param y_a Lower bound of the focus to search for.
 /// @param y_b Upper bound of the focus to search for.
 /// @param expected Expected number of results to be returned. Better to overshoot.
-/// @return Empty list if k_value does not exist. Otheriwse, an empty list of results (in form of tuples), in order of
+/// @return Empty list if k_value does not exist. Otherwise, an empty list of results (in form of tuples), in order of
 /// that queried from Nibble.
 Nibble::tuples_d Chomp::k_vector_query (const std::string &focus, const std::string &fields, const double y_a,
                                         const double y_b, const unsigned int expected) {
-    tuples_d s_endpoints;
-    std::string sql, s_table = table;
+    std::ostringstream condition;
     
-    // Search for last and first element of sorted table.
-    std::string sql_for_max_id = std::string("(SELECT MAX(rowid) FROM ") + table + ")";
-    double focus_n = search_single(focus, "rowid = " + sql_for_max_id);
-    double focus_0 = search_single(focus, "rowid = 1");
+    select_table(table);
+    condition << focus << " BETWEEN " << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed;
+    condition << y_a << " AND " << y_b;
+    return search_table(fields, condition.str(), expected, expected);
     
-    // Determine Z equation, this creates slightly steeper line.
-    double n = search_single("MAX(rowid)");
-    double m = (focus_n - focus_0 + (2.0 * DOUBLE_EPSILON)) / (int) (n - 1);
-    double q = focus_0 - m - DOUBLE_EPSILON;
-    
-    // Determine indices of search, and perform search.
-    double j_b = floor((y_a - q) / m);
-    double j_t = ceil((y_b - q) / m);
-    
-    // Get index to s-vector (original table).
-    select_table(s_table + "_KVEC");
-    sql = "rowid BETWEEN " + std::to_string((int) j_b) + " AND " + std::to_string((int) j_t);
-    s_endpoints = search_table("k_value", sql, expected / 2);
-    
-    select_table(s_table);
-
-    if (!s_endpoints.empty()) {
-        sql = "rowid BETWEEN " + std::to_string(s_endpoints.front()[0]) + " AND " + std::to_string(
-                s_endpoints.back()[0]);
-        return search_table(fields, sql, expected);
-    }
-    else {
-        return {};
-    }
+    //    tuples_d s_endpoints;
+    //    std::string sql, s_table = table;
+    //
+    //    // Search for last and first element of sorted table.
+    //    std::string sql_for_max_id = std::string("(SELECT MAX(rowid) FROM ") + table + ")";
+    //    double focus_n = search_single(focus, "rowid = " + sql_for_max_id);
+    //    double focus_0 = search_single(focus, "rowid = 1");
+    //
+    //    // Determine Z equation, this creates slightly steeper line.
+    //    double n = search_single("MAX(rowid)");
+    //    double m = (focus_n - focus_0 + (2.0 * DOUBLE_EPSILON)) / (int) (n - 1);
+    //    double q = focus_0 - m - DOUBLE_EPSILON;
+    //
+    //    // Determine indices of search, and perform search.
+    //    double j_b = floor((y_a - q) / m);
+    //    double j_t = ceil((y_b - q) / m);
+    //
+    //    // Get index to s-vector (original table).
+    //    select_table(s_table + "_KVEC");
+    //    sql = "rowid BETWEEN " + std::to_string((int) j_b) + " AND " + std::to_string((int) j_t);
+    //    s_endpoints = search_table("k_value", sql, expected / 2);
+    //
+    //    select_table(s_table);
+    //
+    //    if (!s_endpoints.empty()) {
+    //        sql = "rowid BETWEEN " + std::to_string(s_endpoints.front()[0]) + " AND " + std::to_string(
+    //                s_endpoints.back()[0]);
+    //        return search_table(fields, sql, expected);
+    //    }
+    //    else {
+    //        return {};
+    //    }
 }

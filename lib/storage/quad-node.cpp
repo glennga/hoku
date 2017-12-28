@@ -25,12 +25,12 @@ QuadNode::QuadNode (const Star &s, const double w_n, const double w_i) {
     this->w_i = w_i;
 }
 
-/// Determine if the two QuadNode's **components** are within QUADNODE_EQUALITY_PRECISION_DEFAULT units of each other.
+/// Determine if the two QuadNode's **components** are within QUALITY_PRECISION_DEFAULT units of each other.
 ///
 /// @param q QuadNode to check against the current.
 /// @return True if all components are the same. False otherwise.
 bool QuadNode::operator== (const QuadNode &q) const {
-    const double E = QUADNODE_EQUALITY_PRECISION_DEFAULT;
+    const double E = EQUALITY_PRECISION_DEFAULT;
     return fabs(x - q.x) < E && fabs(y - q.y) < E && fabs(w_i - q.w_i) < E && fabs(w_n - q.w_n) < E;
 }
 
@@ -147,12 +147,12 @@ bool QuadNode::is_dead_child (const int c) const {
     return children[c] == nullptr;
 }
 
-/// Return child "c" of the current node. If no child exists at "c", return a node with w_n = -1.
+/// Return child "c" of the current node. If no child exists at "c", return a node with w_n = ROOT_GLOBAL_WIDTH.
 ///
 /// @param c Number of the current node's children to return.
 /// @return Node to child number c.
 QuadNode QuadNode::to_child (const int c) const {
-    return !is_dead_child(c) ? *children[c] : root(-1);
+    return !is_dead_child(c) ? *children[c] : root(ROOT_GLOBAL_WIDTH);
 }
 
 /// Determine if the current node is a terminal **branch**. This is not a leaf test! This means that there exists one
@@ -160,7 +160,7 @@ QuadNode QuadNode::to_child (const int c) const {
 ///
 /// @return True if the current node is terminal. False otherwise.
 bool QuadNode::is_terminal_branch () {
-    return this->to_child(0).is_green + this->to_child(1).is_green || this->to_child(2).is_green
+    return this->to_child(0).is_green || this->to_child(1).is_green || this->to_child(2).is_green
            || this->to_child(3).is_green;
 }
 

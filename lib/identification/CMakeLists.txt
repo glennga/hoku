@@ -9,6 +9,15 @@ cmake_minimum_required(VERSION 3.7)
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
 ##################################################################
+# Build Library Identification
+##################################################################
+FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/identification.cpp)
+FILE(GLOB INCLUDES ${CMAKE_SOURCE_DIR}/include/identification/identification.h)
+add_library(Identification STATIC ${SOURCES} ${INCLUDES})
+install(TARGETS Identification DESTINATION lib)
+install(FILES ${INCLUDES} DESTINATION include)
+
+##################################################################
 # Build Library Angle
 ##################################################################
 FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/angle.cpp)

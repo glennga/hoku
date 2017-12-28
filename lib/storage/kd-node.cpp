@@ -29,7 +29,7 @@ KdNode::KdNode (const unsigned int i, const unsigned int j, const int depth, con
     
     // Find the median. To create balanced trees, we split by this point. With even indices, select the lower.
     median_index = (j - i) / 2;
-    this->x = t[i + median_index][0], this->y = t[i + median_index][1], this->origin_index = -1;
+    this->x = t[i + median_index][0], this->y = t[i + median_index][1], this->origin_index = NO_ORIGIN;
     this->b_min = b[0], this->b_max = b[1];
     
     // Determine the new bounds. For left children, the maxes are redefined. Vice-versa for right children.
@@ -45,13 +45,13 @@ KdNode::KdNode (const unsigned int i, const unsigned int j, const int depth, con
     this->right_child = std::make_shared<KdNode>(KdNode(i + median_index + 1, j, depth + 1, b_r, t));
 }
 
-/// Determine if the two KdNode's **components** are within KdNode_EQUALITY_PRECISION_DEFAULT units of each other.
+/// Determine if the two KdNode's **components** are within EQUALITY_PRECISION_DEFAULT units of each other.
 /// This does not check if the bounds are equal.
 ///
 /// @param q KdNode to check against the current.
 /// @return True if all components are the same. False otherwise.
 bool KdNode::operator== (const KdNode &q) const {
-    const double E = KDNODE_EQUALITY_PRECISION_DEFAULT;
+    const double E = EQUALITY_PRECISION_DEFAULT;
     return fabs(x - q.x) < E && fabs(y - q.y) < E && fabs(origin_index - q.origin_index) < E && fabs(w_n - q.w_n) < E;
 }
 
@@ -73,7 +73,7 @@ std::string KdNode::str () const {
 /// @param theta Angle to determine width of box from.
 /// @return The width the given angle roughly translates to if this is the root node.
 double KdNode::width_given_angle (const double theta) {
-    if (!(this->origin_index == -1 && this->label == -1)) {
+    if (!(this->origin_index == NO_ORIGIN && this->label == ROOT_LABEL)) {
         throw "\"width_given_angle\" not operating on the root node.";
     }
     
@@ -97,7 +97,7 @@ bool KdNode::does_intersect_quad (const Mercator::quad &q) const {
 /// @param r Reference to a return list. This is where all the results are stored.
 void KdNode::box_query (const Mercator::quad &search, const KdNode &m, KdNode::list &r) {
     // Base case: m is leaf and within our search, append to our return list.
-    if (m.origin_index != -1 && m.is_within_bounds(search)) {
+    if (m.origin_index != NO_ORIGIN && m.is_within_bounds(search)) {
         r.push_back(m);
         return;
     }
@@ -127,7 +127,8 @@ void KdNode::sort_by_dimension (const unsigned int i, const unsigned int j, cons
 }
 
 /// Wrapper for the KdNode recursive constructor. Project all stars in the given list to KdNodes and store the
-/// indices to the original list here. We populate the tree and return the root with the special property that hr = -1.
+/// indices to the original list here. We populate the tree and return the root with the special property that
+/// label = NO_ORIGIN.
 ///
 /// @param v Star list to construct the tree from.
 /// @param w_n Width of square to project all stars in tree to.
@@ -148,16 +149,16 @@ KdNode KdNode::load_tree (const Star::list &v, const double w_n) {
     }
     
     // Populate the tree. The root is the center of projection.
-    KdNode root = KdNode(0, (unsigned) projected.size() - 1, 0, b, projected);
+    KdNode root = KdNode(0, static_cast<unsigned>(projected.size()) - 1, 0, b, projected);
     
-    // The root has the following properties: w_n = w_n, origin_index = -1, label = -1.
-    root.origin_index = -1, root.w_n = w_n, root.label = -1;
+    // The root has the following properties: w_n = w_n, origin_index = NO_ORIGIN, label = NO_INDEX.
+    root.origin_index = NO_ORIGIN, root.w_n = w_n, root.label = ROOT_LABEL;
     
     return root;
 }
 
 /// Wrapper method for box_query. Query the kd-node for nearby stars to focus using the given fov. In theory,
-/// this is a O(lgn) operation as opposed to the regular nearby_stars growth of O(n).
+/// this is an O(lgn) operation as opposed to the regular nearby_stars growth of O(n).
 ///
 /// The node this is operating on **MUST** be the root node itself.
 ///
@@ -172,7 +173,7 @@ Star::list KdNode::nearby_stars (const Star &q, const double fov, const unsigned
     KdNode::list nearby;
     
     // Operating node MUST be the root, with the properties below. If not, stop here.
-    if (!(this->origin_index == -1 && this->label == -1)) {
+    if (!(this->origin_index == NO_ORIGIN && this->label == ROOT_LABEL)) {
         throw "\"nearby_bright_stars\" not operating on root node.";
     }
     

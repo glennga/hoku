@@ -30,21 +30,26 @@ class QuadNode : private Mercator {
 #endif
   public:
     Star::list nearby_stars (const Star &, double, unsigned int);
-    
     static QuadNode load_tree (double, double = 6.0);
-
+    
+    /// Default local width of a quadrant (w_i).
+    static constexpr double DEFAULT_LOCAL_WIDTH = 1;
+    
+    /// Global width of a quadnode root (w_n).
+    static constexpr double ROOT_GLOBAL_WIDTH = -1;
+    
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
-    /// Precision default for '==' method.
-    constexpr static double QUADNODE_EQUALITY_PRECISION_DEFAULT = 0.000000000001;
-    
     /// Alias for a list of QuadNodes (STL vector of QuadNodes).
     using list = std::vector<QuadNode>;
     
     /// Alias for edges to QuadNode's children (4-element STL array of shared pointers).
     using child_edges = std::array<std::shared_ptr<QuadNode>, 4>;
-
+    
+    /// Precision default for '==' method.
+    static constexpr double EQUALITY_PRECISION_DEFAULT = 0.000000000001;
+    
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
@@ -72,7 +77,7 @@ class QuadNode : private Mercator {
     
     QuadNode find_quad_leaves (const QuadNode &, double, const QuadNode::list &);
     Star::list query_quadtree (Chomp &, const QuadNode &, const QuadNode &, Star::list &);
-
+    
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif

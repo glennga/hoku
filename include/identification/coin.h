@@ -103,6 +103,8 @@ class Coin {
     Star::list match_remaining (const Star::list &, const index_quad &, const label_quad &);
     
     Rotation trial_attitude_determine (const std::array<Star, 4> &, const std::array<Star, 4> &);
+    static label_quad trial_reduction (const Benchmark &, const Parameters &);
+    static Rotation trial_semi_crown(const Benchmark &, const Parameters &, unsigned int &);
 };
 
 #endif /* HOKU_COIN_H */
