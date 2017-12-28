@@ -61,7 +61,9 @@ class BaseTriangle : public Identification {
                                         moment_function compute_moment);
     std::vector<Trio::stars> m_stars (const index_trio &i_b, area_function compute_area,
                                       moment_function compute_moment);
+    
     void generate_permutations ();
+    static const index_trio STARTING_INDEX_TRIO;
     
     static const std::vector<BaseTriangle::label_trio> NO_CANDIDATE_TRIOS_FOUND;
     static const std::vector<Trio::stars> NO_CANDIDATE_STARS_FOUND;

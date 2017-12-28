@@ -44,7 +44,7 @@ TEST(PlaneQuery, MatchStarsFOV) {
     a.input[1] = Star::reset_label(ch.query_hip(4));
     a.input[2] = Star::reset_label(ch.query_hip(5));
     
-    std::vector<Trio::stars> b = a.match_stars({0, 1, 2});
+    std::vector<Trio::stars> b = a.match_stars(Plane::STARTING_INDEX_TRIO);
     EXPECT_THAT(b[0], Each(Star::zero()));
 }
 
@@ -59,7 +59,7 @@ TEST(PlaneQuery, MatchStarsNone) {
     a.input[1] = Star(1, 1, 1);
     a.input[2] = Star(1.1, 1, 1);
     
-    std::vector<Trio::stars> b = a.match_stars({0, 1, 2});
+    std::vector<Trio::stars> b = a.match_stars(Plane::STARTING_INDEX_TRIO);
     EXPECT_THAT(b[0], Each(Star::zero()));
 }
 
@@ -70,7 +70,7 @@ TEST(PlaneQuery, MatchStarsResults) {
     Chomp ch;
     Benchmark input(ch, seed, 20);
     Plane a(input, par);
-    std::vector<Trio::stars> b = a.match_stars({0, 1, 2});
+    std::vector<Trio::stars> b = a.match_stars(Plane::STARTING_INDEX_TRIO);
     
     // Check that original input trio exists in search.
     for (const Trio::stars &t : b) {
@@ -89,7 +89,7 @@ TEST(PlaneQuery, PivotResults) {
     Benchmark input(ch, seed, 20);
     Plane a(input, par);
     
-    Trio::stars c = a.pivot({0, 1, 2});
+    Trio::stars c = a.pivot(Plane::STARTING_INDEX_TRIO);
     std::vector<int> c_ell = {c[0].get_label(), c[1].get_label(), c[2].get_label()};
     EXPECT_THAT(c_ell, Contains(input.stars[0].get_label()));
     EXPECT_THAT(c_ell, Contains(input.stars[1].get_label()));

@@ -15,6 +15,9 @@ const std::vector<Trio::stars> BaseTriangle::NO_CANDIDATE_STARS_FOUND = {{Star::
 /// Returned with an unsuccessful pivoting step.
 const Trio::stars BaseTriangle::NO_CANDIDATE_STAR_SET_FOUND = {Star::zero(), Star::zero(), Star::zero()};
 
+/// Starting index trio to perform pivot with.
+const BaseTriangle::index_trio BaseTriangle::STARTING_INDEX_TRIO = {0, 1, 2};
+
 /// Constructor. Initializes our permutation stack.
 BaseTriangle::BaseTriangle () : Identification(), p({}) {
 }
@@ -253,7 +256,7 @@ std::vector<BaseTriangle::label_trio> BaseTriangle::e_query (double a, double i)
 /// @return The quaternion corresponding to largest set of matching stars across the body and inertial in all pairing
 /// configurations.
 Star::list BaseTriangle::e_single_alignment (const Star::list &candidates, const Trio::stars &r, const Trio::stars &b) {
-    std::array<index_trio, 6> order = {{0, 1, 2}};
+    std::array<index_trio, 6> order = {STARTING_INDEX_TRIO};
     std::array<Star::list, 6> matches = {}, alignments = {};
     auto ell = [&r, &b, &order] (const int i, const int j) -> Star {
         return Star::define_label(b[j], r[order[i][j]].get_label());
@@ -284,7 +287,7 @@ Star::list BaseTriangle::e_single_alignment (const Star::list &candidates, const
 ///
 /// @return NO_CANDIDATES_FOUND if no candidates found. Otherwise, a single elements that best meets the criteria.
 Identification::labels_list BaseTriangle::e_reduction () {
-    Trio::stars candidate_trio = pivot({0, 1, 2});
+    Trio::stars candidate_trio = pivot(STARTING_INDEX_TRIO);
     
     if (std::equal(candidate_trio.begin(), candidate_trio.end(), NO_CANDIDATE_STAR_SET_FOUND.begin())) {
         return NO_CANDIDATES_FOUND;
