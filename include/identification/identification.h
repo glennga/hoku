@@ -58,8 +58,6 @@ class Identification {
     virtual Star::list experiment_alignment () = 0;
     virtual Star::list experiment_crown () = 0;
     
-    virtual int generate_table(double fov, const std::string &table_name) = 0;
-    
     static const Star::list NO_CONFIDENT_ALIGNMENT;
     static const labels_list NO_CANDIDATES_FOUND;
     

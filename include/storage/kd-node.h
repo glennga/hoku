@@ -75,8 +75,6 @@ class KdNode : public Mercator {
     std::string str () const override;
     bool operator== (const KdNode &) const;
     
-    static const double EQUALITY_PRECISION_DEFAULT;
-
 #if !defined ENABLE_TESTING_ACCESS
     private:
 #endif

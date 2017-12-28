@@ -4,6 +4,8 @@
 /// Source file for Angle class, which matches a set of body vectors (stars) to their inertial counter-parts in the
 /// database.
 
+#include <cmath>
+#include <wrl.h>
 #include "identification/angle.h"
 
 /// Default parameters for the angle identification method.
@@ -59,7 +61,7 @@ int Angle::generate_table (double fov, const std::string &table_name) {
     return ch.polish_table("theta");
 }
 
-/// Find the best matching pair using the appropriate SEP table and by comparing separation angles. Assumes noise is
+/// Find **a** matching pair using the appropriate SEP table and by comparing separation angles. Assumes noise is
 /// normally distributed, searches using epsilon (3 * query_sigma). Limits the amount returned by the search using
 /// 'sql_limit'.
 ///
@@ -77,18 +79,7 @@ Identification::labels_list Angle::query_for_pair (const double theta) {
         return NO_CANDIDATES_FOUND;
     }
     
-    // Select the candidate pair with the angle closest to theta.
-    Nibble::tuple_d minimum_tuple = {0, 0, this->fov};
-    for (const Nibble::tuple_d &inertial : candidates) {
-        
-        // Update with the correct minimum.
-        if (fabs(inertial[2] - theta) < minimum_tuple[2]) {
-            minimum_tuple = inertial;
-        }
-    }
-    
-    // Return the set with the angle closest to theta.
-    return labels_list {static_cast<int>(minimum_tuple[0]), static_cast<int>(minimum_tuple[1])};
+    return labels_list{static_cast<int> (candidates[0][0]), static_cast<int> (candidates[0][1])};
 }
 
 /// Given a set of body (frame B) stars, find the matching inertial (frame R) stars.
@@ -182,7 +173,7 @@ std::vector<Identification::labels_list> Angle::experiment_query (const Star::li
 /// @param b Body (frame B) pair of stars that match the inertial pair. This must be of length = 2.
 /// @return Body stars b with the attached labels of the inertial pair r.
 Star::list Angle::experiment_first_alignment (const Star::list &candidates, const Star::list &r, const Star::list &b) {
-    if (r.size() != 2 && b.size() != 2) {
+    if (r.size() != 2 || b.size() != 2) {
         throw "Input lists does not have exactly two stars.";
     }
     std::array<Star::list, 2> matches = {}, alignments = {};

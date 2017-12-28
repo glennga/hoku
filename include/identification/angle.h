@@ -48,7 +48,7 @@ class Angle : public Identification {
     Star::list experiment_alignment ();
     Star::list experiment_crown ();
     
-    int generate_table(double fov, const std::string &table_name);
+    static int generate_table(double fov, const std::string &table_name);
     
     static const Parameters DEFAULT_PARAMETERS;
     static const Star::pair NO_CANDIDATE_PAIR_FOUND;

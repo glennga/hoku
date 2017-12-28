@@ -51,7 +51,7 @@ Benchmark::Benchmark (std::random_device &seed, const Star::list &s, const Star 
 /// Dummy image. Holds no image or field of view.
 ///
 /// @return A dummy image without stars.
-Benchmark Benchmark::black () {
+const Benchmark Benchmark::black () {
     std::random_device rd;
     return Benchmark(rd, {}, Star::zero(), 0);
 }

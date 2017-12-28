@@ -9,6 +9,7 @@
 #include "gmock/gmock.h"
 
 // Import several matchers from Google Mock.
+using testing::UnorderedElementsAre;
 using testing::Contains;
 using testing::Not;
 
@@ -24,21 +25,6 @@ TEST(AngleQuery, Pair) {
     std::vector<int> d = {input.stars[0].get_label(), input.stars[1].get_label()};
     EXPECT_THAT(c, Contains(b[0]));
     EXPECT_THAT(d, Contains(b[1]));
-}
-
-/// Check that a theta and epsilon with three choices returns the catalog ID of the correct stars.
-TEST(AngleQuery, MultipleChoice) {
-    Chomp ch;
-    std::random_device seed;
-    Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
-    p.sigma_query = 10e-7;
-    Angle a(Benchmark(ch, seed, 15), p);
-    Star b = ch.query_hip(103215), c = ch.query_hip(103217);
-    Identification::labels_list d = a.query_for_pair(Star::angle_between(b, c));
-    
-    std::vector<int> e = {103215, 103217}, f = {103215, 103217};
-    EXPECT_THAT(e, Contains(d[0]));
-    EXPECT_THAT(f, Contains(d[1]));
 }
 
 /// Check that the zero-length stars are returned wgn theta is greater than the current fov.
@@ -175,7 +161,7 @@ TEST(AngleIdentify, CleanInput) {
     Benchmark input(ch, seed, 10, 6.5);
     Angle::Parameters a = Angle::DEFAULT_PARAMETERS;
     a.sigma_overlay = 0.000001;
-    unsigned int nu;
+    unsigned int nu = 0;
     a.nu = std::make_shared<unsigned int>(nu);
     
     // We define a match as 66% here.
@@ -204,7 +190,7 @@ TEST(AngleIdentify, ErrorInput) {
     Angle::Parameters a = Angle::DEFAULT_PARAMETERS;
     a.sigma_overlay = 0.000001;
     input.add_extra_light(1);
-    unsigned int nu;
+    unsigned int nu = 0;
     a.nu = std::make_shared<unsigned int>(nu);
     
     // We define a match as 66% here.
@@ -232,7 +218,7 @@ TEST(AngleIdentify, SaturationMatch) {
     Benchmark input(ch, seed, 15);
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
     p.sigma_overlay = 0.000001;
-    unsigned int nu;
+    unsigned int nu = 0;
     p.nu = std::make_shared<unsigned int>(nu);
     
     // Some ridiculous number...
@@ -240,6 +226,69 @@ TEST(AngleIdentify, SaturationMatch) {
     
     Star::list a = Angle(input, p).experiment_crown();
     EXPECT_NE(a.size(), 0);
+}
+
+/// Check that a clean input returns the expected query result.
+TEST(AngleTrial, CleanQuery) {
+    Chomp ch;
+    Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
+    p.sigma_query = 10e-7;
+    Angle a(Benchmark::black(), p);
+    Star b = ch.query_hip(103215), c = ch.query_hip(103217);
+    
+    std::vector<Identification::labels_list> d = a.experiment_query({b, c});
+    EXPECT_THAT(d, Contains(Identification::labels_list {103215, 103217}));
+}
+
+/// Check that a clean input returns the expected alignment of stars.
+TEST(AngleTrial, CleanFirstAlignment) {
+    Chomp ch;
+    std::random_device seed;
+    Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
+    p.sigma_overlay = 0.000001;
+    Angle a(Benchmark(ch, seed, 20), p);
+    
+    Rotation q = Rotation::chance(seed);
+    Star b = ch.query_hip(103215), c = ch.query_hip(103217);
+    Star d = Rotation::rotate(b, q), e = Rotation::rotate(c, q);
+    
+    EXPECT_ANY_THROW(a.experiment_first_alignment(ch.nearby_bright_stars(b, 20, 100), {b, c, c}, {d, e}));
+    
+    Star::list f = a.experiment_first_alignment(ch.nearby_bright_stars(b, 20, 100), {b, c}, {d, e});
+    EXPECT_THAT(f, Contains(Star::define_label(d, 103215)));
+    EXPECT_THAT(f, Contains(Star::define_label(e, 103217)));
+}
+
+/// Check that a clean input returns the correct stars from a set of candidates.
+TEST(AngleTrial, CleanReduction) {
+    Chomp ch;
+    Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
+    p.sigma_query = 10e-9;
+    Benchmark i = Benchmark::black();
+    i.stars = {ch.query_hip(103215), ch.query_hip(103217)};
+    
+    Angle a(i, p);
+    EXPECT_THAT(a.experiment_reduction(), UnorderedElementsAre(103215, 103217));
+}
+
+/// Check that a clean input returns the expected alignment of stars.
+TEST(AngleTrial, CleanAlignment) {
+    Chomp ch;
+    std::random_device seed;
+    unsigned int nu;
+    Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
+    p.nu = std::make_shared<unsigned int> (nu);
+    p.sigma_query = 10e-9;
+    p.sigma_overlay = 0.000001;
+    
+    Rotation q = Rotation::chance(seed);
+    Star b = ch.query_hip(103215), c = ch.query_hip(103217);
+    Star d = Rotation::rotate(b, q), e = Rotation::rotate(c, q);
+    
+    Angle a(Benchmark(seed, {d, e}, d, 20), p);
+    Star::list f = a.experiment_alignment();
+    EXPECT_THAT(f, Contains(Star::define_label(d, 103215)));
+    EXPECT_THAT(f, Contains(Star::define_label(e, 103217)));
 }
 
 /// Runs all tests defined in this file.
