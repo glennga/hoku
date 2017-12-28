@@ -56,7 +56,7 @@ class Benchmark {
     Benchmark (Chomp &ch, std::random_device &seed, double fov, double m_bar = DEFAULT_M_BAR);
     Benchmark (Chomp &ch, std::random_device &seed, const Star &focus, const Rotation &q, double fov,
                double m_bar = DEFAULT_M_BAR);
-    static Benchmark black ();
+    static const Benchmark black ();
     
     void generate_stars (Chomp &ch, double m_bar = DEFAULT_M_BAR);
     void present_image (Star::list &image_s, double &image_fov) const;

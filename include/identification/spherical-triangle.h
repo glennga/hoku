@@ -8,11 +8,6 @@
 #define HOKU_SPHERICAL_TRIANGLE_H
 
 #include "base-triangle.h"
-#include "benchmark/benchmark.h"
-#include "storage/chomp.h"
-#include "storage/quad-node.h"
-#include "math/trio.h"
-#include <iostream>
 
 // TODO: fix the documentation here
 /// The triangle spherical class is an implementation of Crassidis and Cole's Spherical Triangle Pattern Recognition
@@ -20,10 +15,10 @@
 ///
 /// @example
 /// @code{.cpp}
-/// // Populate a table named "PLAN20" in Nibble.db of all distinct trios of stars whose angle of separation is
-/// // less than 20 degrees of each. The entries stored are the BSC5 catalog IDs, the spherical area between each star,
-/// // and the spherical polar moment between each star.
-/// SphericalTriangle::generate_triangle_table(20, "PLAN20");
+/// // Populate a table named "SPHERE20" in Nibble.db of all distinct trios of stars whose angle of separation is
+/// // less than 20 degrees of each. The entries stored are the BSC5 catalog IDs, the planar area between each star,
+/// // and the planar polar moment between each star.
+/// PlanarTriangle::generate_triangle_table(20, "SPHERE20");
 ///
 /// /* The snippet above should only be run ONCE. The snippet below is run with every different test. */
 ///
@@ -44,24 +39,27 @@
 /// @endcode
 class SphericalTriangle : public BaseTriangle {
   public:
-    using BaseTriangle::Parameters;
+    /// Default tree depth for calculating the spherical moment.
+    static constexpr int DEFAULT_TD_H = 3;
     
-    static std::vector<label_trio> experiment_query (Chomp &ch, const Star &s_1, const Star &s_2, const Star &s_3,
-                                                     double sigma_query);
-    static Rotation experiment_alignment (Chomp &ch, const Benchmark &input, const Star::list &candidates,
-                                          const Trio::stars &r, const Trio::stars &b, double sigma_query);
-    static label_trio experiment_reduction (const Benchmark &input, const Parameters &p);
-    static Rotation experiment_attitude (const Benchmark &input, const Parameters &p);
-    static Star::list experiment_crown (const Benchmark &input, const Parameters &p);
-    
-    static int generate_sphere_table (double fov, const std::string &table_name);
-  
   public:
-    // We use a recursion level of three for all spherical moment calculations.
-    static const int TREE_DEPTH_MOMENT = 3;
+    using BaseTriangle::Parameters;
+    static const Parameters DEFAULT_PARAMETERS;
     
-  private:
     SphericalTriangle (const Benchmark &, const Parameters &);
+    
+    std::vector<labels_list> experiment_query (const Star::list &s);
+    Star::list experiment_first_alignment (const Star::list &candidates, const Star::list &r,
+                                           const Star::list &b);
+    labels_list experiment_reduction ();
+    Star::list experiment_alignment ();
+    Star::list experiment_crown ();
+    
+    static int generate_table(double fov, const std::string &table_name);
+
+#if !defined ENABLE_TESTING_ACCESS
+  private:
+#endif
     std::vector<Trio::stars> match_stars (const index_trio &);
 };
 

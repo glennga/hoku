@@ -292,7 +292,7 @@ int Chomp::build_k_vector_table (const std::string &focus_column, const double m
 /// Create the K-Vector for the given for the given table using the specified focus column.
 ///
 /// @param focus Name of the column to construct K-Vector with.
-/// @return 0 when finished.
+/// @return TABLE_NOT_CREATED if the table already exists. Otherwise, 0 when finished.
 int Chomp::create_k_vector (const std::string &focus) {
     sort_table(focus);
     SQLite::Transaction transaction(*conn);
@@ -309,7 +309,9 @@ int Chomp::create_k_vector (const std::string &focus) {
     double q = focus_0 - m - DOUBLE_EPSILON;
     
     // Sorted table is s-vector. Create k-vector and build the k-vector table.
-    create_table(table + "_KVEC", "k_value INT");
+    if (create_table(table + "_KVEC", "k_value INT") == TABLE_NOT_CREATED) {
+        return TABLE_NOT_CREATED;
+    }
     transaction.commit();
     
     select_table(original_table);

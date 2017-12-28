@@ -10,8 +10,7 @@
 const Identification::Parameters Plane::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
     DEFAULT_SIGMA_OVERLAY, DEFAULT_GAMMA, DEFAULT_NU_MAX, DEFAULT_NU, "PLANE_20"};
 
-/// Constructor. Sets the benchmark data and fov. Sets the parameters and working table. Constructs the
-/// quadtree and saves the root.
+/// Constructor. Sets the benchmark data and fov. Sets the parameters and working table.
 ///
 /// @param input Working Benchmark instance. We are **only** copying the star set and the fov.
 /// @param parameters Parameters to use for identification.
@@ -81,7 +80,7 @@ std::vector<Identification::labels_list> Plane::experiment_query (const Star::li
 /// @param b Body (frame B) pair of stars that match the inertial pair. This must be of length = 3.
 /// @return Body stars b with the attached labels of the inertial pair r.
 Star::list Plane::experiment_first_alignment (const Star::list &candidates, const Star::list &r, const Star::list &b) {
-    if (r.size() != 3 && b.size() != 3) {
+    if (r.size() != 3 || b.size() != 3) {
         throw "Input lists does not have exactly three stars.";
     }
     return e_single_alignment(candidates, {r[0], r[1], r[2]}, {b[0], b[1], b[2]});

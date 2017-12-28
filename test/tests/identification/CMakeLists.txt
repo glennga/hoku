@@ -27,8 +27,8 @@ target_link_libraries(TestPlanarTriangle gtest gmock PlanarTriangle
 # Link and Create Executable TestSphericalTriangle
 ##################################################################
 add_executable(TestSphericalTriangle test-spherical-triangle.cpp)
-target_link_libraries(TestSphericalTriangle BaseTest SphericalTriangle
-        BaseTriangle Identificaiton Benchmark Rotation Chomp Nibble
+target_link_libraries(TestSphericalTriangle gtest gmock SphericalTriangle
+        BaseTriangle Identification Benchmark Rotation Chomp Nibble
         Trio Star SQLiteCpp Sqlite3)
 
 ##################################################################

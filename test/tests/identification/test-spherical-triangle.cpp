@@ -1,11 +1,11 @@
-/// @file test-planar-triangle.cpp
+/// @file test-spherical-triangle.cpp
 /// @author Glenn Galvizo
 ///
-/// Source file for all PlanarTriangle class unit tests and the test runner.
+/// Source file for all SphericalTriangle class unit tests and the test runner.
 
 #define ENABLE_TESTING_ACCESS
 
-#include "identification/planar-triangle.h"
+#include "identification/spherical-triangle.h"
 #include "gmock/gmock.h"
 
 // Import several matchers from Google Mock.
@@ -13,19 +13,20 @@ using testing::Each;
 using testing::Contains;
 
 /// Check that query_for_trio method returns the catalog ID of the correct stars.
-TEST(PlaneQuery, TrioQuery) {
+TEST(SphereQuery, TrioQuery) {
     std::random_device seed;
     Chomp ch;
     Benchmark input(ch, seed, 15);
-    Plane::Parameters par = Plane::DEFAULT_PARAMETERS;
-    Plane p(input, par);
+    Sphere::Parameters par = Sphere::DEFAULT_PARAMETERS;
+    par.sigma_query = 0.000000001;
+    Sphere p(input, par);
     
-    double a = Trio::planar_area(input.stars[0], input.stars[1], input.stars[2]);
-    double b = Trio::planar_moment(input.stars[0], input.stars[1], input.stars[2]);
-    std::vector<Plane::label_trio> c = p.query_for_trio(a, b);
+    double a = Trio::spherical_area(input.stars[0], input.stars[1], input.stars[2]);
+    double b = Trio::spherical_moment(input.stars[0], input.stars[1], input.stars[2]);
+    std::vector<Sphere::label_trio> c = p.query_for_trio(a, b);
     
     // Check that original input trio exists in search.
-    for (const Plane::label_trio &t : c) {
+    for (const Sphere::label_trio &t : c) {
         for (int i = 0; i < 3; i++) {
             EXPECT_THAT(t, Contains(input.stars[i].get_label()));
         }
@@ -34,11 +35,11 @@ TEST(PlaneQuery, TrioQuery) {
 
 
 /// Check that the zero-length stars are returned when an area between a pair of stars is greater than the current fov.
-TEST(PlaneQuery, MatchStarsFOV) {
+TEST(SphereQuery, MatchStarsFOV) {
     std::random_device seed;
     Chomp ch;
-    Plane::Parameters par = Plane::DEFAULT_PARAMETERS;
-    Plane a(Benchmark(ch, seed, 10), par);
+    Sphere::Parameters par = Sphere::DEFAULT_PARAMETERS;
+    Sphere a(Benchmark(ch, seed, 10), par);
     a.input[0] = Star::reset_label(ch.query_hip(3));
     a.input[1] = Star::reset_label(ch.query_hip(4));
     a.input[2] = Star::reset_label(ch.query_hip(5));
@@ -48,12 +49,12 @@ TEST(PlaneQuery, MatchStarsFOV) {
 }
 
 /// Check that the zero-length stars are returned when no matching trio is found.
-TEST(PlaneQuery, MatchStarsNone) {
-    Plane::Parameters par = Plane::DEFAULT_PARAMETERS;
+TEST(SphereQuery, MatchStarsNone) {
+    Sphere::Parameters par = Sphere::DEFAULT_PARAMETERS;
     par.sigma_query = std::numeric_limits<double>::epsilon();
     std::random_device seed;
     Chomp ch;
-    Plane a(Benchmark(ch, seed, 10), par);
+    Sphere a(Benchmark(ch, seed, 10), par);
     a.input[0] = Star(1, 1, 1.1);
     a.input[1] = Star(1, 1, 1);
     a.input[2] = Star(1.1, 1, 1);
@@ -63,12 +64,12 @@ TEST(PlaneQuery, MatchStarsNone) {
 }
 
 /// Check that the correct stars are returned from the candidate trio query.
-TEST(PlaneQuery, MatchStarsResults) {
-    Plane::Parameters par = Plane::DEFAULT_PARAMETERS;
+TEST(SphereQuery, MatchStarsResults) {
+    Sphere::Parameters par = Sphere::DEFAULT_PARAMETERS;
     std::random_device seed;
     Chomp ch;
     Benchmark input(ch, seed, 20);
-    Plane a(input, par);
+    Sphere a(input, par);
     std::vector<Trio::stars> b = a.match_stars({0, 1, 2});
     
     // Check that original input trio exists in search.
@@ -81,12 +82,12 @@ TEST(PlaneQuery, MatchStarsResults) {
 }
 
 /// Check that the pivot query method returns the correct trio.
-TEST(PlaneQuery, PivotResults) {
-    Plane::Parameters par = Plane::DEFAULT_PARAMETERS;
+TEST(SphereQuery, PivotResults) {
+    Sphere::Parameters par = Sphere::DEFAULT_PARAMETERS;
     std::random_device seed;
     Chomp ch;
     Benchmark input(ch, seed, 20);
-    Plane a(input, par);
+    Sphere a(input, par);
     
     Trio::stars c = a.pivot({0, 1, 2});
     std::vector<int> c_ell = {c[0].get_label(), c[1].get_label(), c[2].get_label()};
@@ -96,8 +97,8 @@ TEST(PlaneQuery, PivotResults) {
 }
 
 /// Check that the rotating match method marks the all stars as matched.
-TEST(PlaneMatch, RotatingCorrectInput) {
-    Plane::Parameters par = Plane::DEFAULT_PARAMETERS;
+TEST(SphereMatch, RotatingCorrectInput) {
+    Sphere::Parameters par = Sphere::DEFAULT_PARAMETERS;
     std::random_device seed;
     Chomp ch;
     Star a = Star::chance(seed), b = Star::chance(seed);
@@ -107,7 +108,7 @@ TEST(PlaneMatch, RotatingCorrectInput) {
     Benchmark input(ch, seed, Star::chance(seed), c, 8);
     std::vector<Star> rev_input;
     par.sigma_overlay = 0.000001;
-    Plane g(input, par);
+    Sphere g(input, par);
     
     // Reverse all input by inverse rotation.
     rev_input.reserve(input.stars.size());
@@ -123,8 +124,8 @@ TEST(PlaneMatch, RotatingCorrectInput) {
 }
 
 /// Check that the rotating match method marks only the correct stars as matched.
-TEST(PlaneMatch, RotatinErrorInput) {
-    Plane::Parameters par = Plane::DEFAULT_PARAMETERS;
+TEST(SphereMatch, RotatinErrorInput) {
+    Sphere::Parameters par = Sphere::DEFAULT_PARAMETERS;
     std::random_device seed;
     Chomp ch;
     Star a = Star::chance(seed), b = Star::chance(seed);
@@ -134,7 +135,7 @@ TEST(PlaneMatch, RotatinErrorInput) {
     Benchmark input(ch, seed, Star::chance(seed), c, 8);
     std::vector<Star> rev_input;
     par.sigma_overlay = 0.000001;
-    Plane g(input, par);
+    Sphere g(input, par);
     
     // Reverse all input by inverse rotation.
     rev_input.reserve(input.stars.size());
@@ -152,8 +153,8 @@ TEST(PlaneMatch, RotatinErrorInput) {
 }
 
 /// Check that the rotating match method marks only the correct stars as matched, not the duplicate as well.
-TEST(PlaneMatch, RotatingDuplicateInput) {
-    Plane::Parameters par = Plane::DEFAULT_PARAMETERS;
+TEST(SphereMatch, RotatingDuplicateInput) {
+    Sphere::Parameters par = Sphere::DEFAULT_PARAMETERS;
     std::random_device seed;
     Chomp ch;
     Star a = Star::chance(seed), b = Star::chance(seed);
@@ -163,7 +164,7 @@ TEST(PlaneMatch, RotatingDuplicateInput) {
     Benchmark input(ch, seed, Star::chance(seed), c, 8);
     std::vector<Star> rev_input;
     par.sigma_overlay = 0.000001;
-    Plane g(input, par);
+    Sphere g(input, par);
     
     // Reverse all input by inverse rotation.
     rev_input.reserve(input.stars.size());
@@ -184,18 +185,18 @@ TEST(PlaneMatch, RotatingDuplicateInput) {
 }
 
 /// Check that correct result is returned with a clean input.
-TEST(PlaneIdentify, CleanInput) {
+TEST(SphereIdentify, CleanInput) {
     std::random_device seed;
     Chomp ch;
     Benchmark input(ch, seed, 8, 6.5);
-    Plane::Parameters a = Plane::DEFAULT_PARAMETERS;
+    Sphere::Parameters a = Sphere::DEFAULT_PARAMETERS;
     unsigned int nu;
     
     // We define a match as 66% here.
     a.gamma = 0.66;
     a.sigma_overlay = 0.000001;
     a.nu = std::make_shared<unsigned int>(nu);
-    Star::list c = Plane(input, a).experiment_crown();
+    Star::list c = Sphere(input, a).experiment_crown();
     ASSERT_GT(c.size(), a.gamma * c.size());
     
     std::string all_input = "";
@@ -214,11 +215,11 @@ TEST(PlaneIdentify, CleanInput) {
 }
 
 /// Check **a** correct result is returned with an error input.
-TEST(PlaneIdentify, ErrorInput) {
+TEST(SphereIdentify, ErrorInput) {
     std::random_device seed;
     Chomp ch;
     Benchmark input(ch, seed, 20);
-    Plane::Parameters a = Plane::DEFAULT_PARAMETERS;
+    Sphere::Parameters a = Sphere::DEFAULT_PARAMETERS;
     input.add_extra_light(1);
     unsigned int nu;
     
@@ -226,7 +227,7 @@ TEST(PlaneIdentify, ErrorInput) {
     a.gamma = 0.25;
     a.sigma_overlay = 0.0001;
     a.nu = std::make_shared<unsigned int>(nu);
-    Star::list c = Plane(input, a).experiment_crown();
+    Star::list c = Sphere(input, a).experiment_crown();
     ASSERT_GT(c.size(), a.gamma * c.size());
     
     if (!c.empty()) {

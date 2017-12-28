@@ -30,7 +30,8 @@ int BaseTriangle::generate_triangle_table (const double fov, const std::string &
     SQLite::Transaction initial_transaction(*ch.conn);
     
     // Exit early if the table already exists.
-    if (ch.create_table(table_name, "label_a INT, label_b INT, theta FLOAT") == Nibble::TABLE_NOT_CREATED) {
+    if (ch.create_table(table_name, "label_a INT, label_b INT, label_c INT, a FLOAT, i FLOAT")
+        == Nibble::TABLE_NOT_CREATED) {
         return TABLE_ALREADY_EXISTS;
     }
     initial_transaction.commit();
@@ -49,10 +50,13 @@ int BaseTriangle::generate_triangle_table (const double fov, const std::string &
                     double a_t = compute_area(all_stars[i], all_stars[j], all_stars[k]);
                     double i_t = compute_moment(all_stars[i], all_stars[j], all_stars[k]);
                     
-                    ch.insert_into_table("label_a, label_b, label_c, a, i",
-                                         Nibble::tuple_d {static_cast<double>(all_stars[i].get_label()),
-                                             static_cast<double>(all_stars[j].get_label()),
-                                             static_cast<double>(all_stars[k].get_label()), a_t, i_t});
+                    // Prevent insertion of trios with non realistic moments/areas.
+                    if (a_t > 0 && !std::isnan(i_t)) {
+                        ch.insert_into_table("label_a, label_b, label_c, a, i",
+                                             Nibble::tuple_d {static_cast<double>(all_stars[i].get_label()),
+                                                 static_cast<double>(all_stars[j].get_label()),
+                                                 static_cast<double>(all_stars[k].get_label()), a_t, i_t});
+                    }
                 }
             }
         }

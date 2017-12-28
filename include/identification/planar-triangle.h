@@ -8,11 +8,6 @@
 #define HOKU_PLANAR_TRIANGLE_H
 
 #include "base-triangle.h"
-#include "benchmark/benchmark.h"
-#include "storage/chomp.h"
-#include "storage/quad-node.h"
-#include "math/trio.h"
-#include <iostream>
 
 // TODO: fix the documentation here
 /// The triangle planar class is an implementation of Crassidis and Cole's Planar Triangle Pattern Recognition
@@ -56,7 +51,7 @@ class PlanarTriangle : public BaseTriangle {
     Star::list experiment_alignment ();
     Star::list experiment_crown ();
     
-    int generate_table(double fov, const std::string &table_name);
+    static int generate_table(double fov, const std::string &table_name);
 
 #if !defined ENABLE_TESTING_ACCESS
   private:

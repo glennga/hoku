@@ -7,7 +7,7 @@
 #ifndef HOKU_BASE_TRIANGLE_H
 #define HOKU_BASE_TRIANGLE_H
 
-#include "identification.h"
+#include "identification/identification.h"
 #include "math/trio.h"
 #include <iostream>
 #include <functional>
