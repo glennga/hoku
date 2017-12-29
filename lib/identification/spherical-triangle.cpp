@@ -135,7 +135,7 @@ Star::list Sphere::experiment_alignment () {
 /// Match the stars found in the current benchmark to those in the Nibble database. The child class should wrap this
 /// function as 'experiment_crown' to mimic the other methods. All parameters must be defined.
 ///
-/// @return NO_CONFIDENT_ALIGNMENT if an alignment cannot be found exhaustively. EXCEEDED_NU_MAX if an alignment
+/// @return NO_CONFIDENT_MATCH_SET if an alignment cannot be found exhaustively. EXCEEDED_NU_MAX if an alignment
 /// cannot be found within a certain number of query picks. Otherwise, a vector of body stars with their
 /// inertial catalog IDs that qualify as matches.
 Star::list Sphere::experiment_crown () {

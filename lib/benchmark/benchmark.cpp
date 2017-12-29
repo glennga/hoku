@@ -3,7 +3,6 @@
 ///
 /// Source file for Benchmark class, which generates the input data for star identification testing.
 
-#include <random>
 
 #include "benchmark/benchmark.h"
 

@@ -9,13 +9,13 @@
 const Identification::labels_list Identification::NO_CANDIDATES_FOUND = {-1, -1};
 
 /// Returned when there exists no confident alignment from an alignment trial.
-const Star::list Identification::NO_CONFIDENT_ALIGNMENT = {};
+const Star::list Identification::NO_CONFIDENT_ALIGNMENT = {Star::define_label(Star::zero(), -1)};
 
 /// Returned when we count past our defined max nu from a crown or alignment trial.
 const Star::list Identification::EXCEEDED_NU_MAX = {Star::zero()};
 
 /// Returned when there exists no confident match set from a crown trial.
-const Star::list Identification::NO_CONFIDENT_MATCH_SET = {};
+const Star::list Identification::NO_CONFIDENT_MATCH_SET = {Star::define_label(Star::zero(), -1)};
 
 /// Constructor. We set our field-of-view to the default here.
 Identification::Identification () : fov(Benchmark::NO_FOV) {

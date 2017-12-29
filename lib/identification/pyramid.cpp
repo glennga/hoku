@@ -161,7 +161,7 @@ Star::list Pyramid::match_remaining (const Star::list &candidates, const star_qu
 /// @param s Stars to query with. This must be of length = 4.
 /// @return Vector of likely matches found by the pyramid method.
 std::vector<Identification::labels_list> Pyramid::experiment_query (const Star::list &s) {
-    if (s.size() != 2) {
+    if (s.size() != 4) {
         throw "Input list does not have exactly four stars.";
     }
     double epsilon = 3.0 * this->parameters.sigma_query, theta = Star::angle_between(s[0], s[1]);
@@ -187,7 +187,6 @@ std::vector<Identification::labels_list> Pyramid::experiment_query (const Star::
 ///     - table_name
 ///     - sigma_query
 ///     - sql_limit
-///     - sigma_overlay
 /// @endcode
 ///
 /// @param candidates All stars found near the inertial pair. This **will not** be used here.
@@ -219,7 +218,6 @@ Star::list Pyramid::experiment_first_alignment (const Star::list &candidates [[m
 ///     - table_name
 ///     - sigma_query
 ///     - sql_limit
-///     - sigma_overlay
 /// @endcode
 ///
 /// @return NO_CANDIDATES_FOUND if a candidate quad cannot be found. Otherwise, a single match configuration found
@@ -237,7 +235,6 @@ Identification::labels_list Pyramid::experiment_reduction () {
 ///
 /// @code{.cpp}
 ///     - table_name
-///     - sigma_overlay
 ///     - sql_limit
 ///     - sigma_query
 ///     - nu
@@ -276,7 +273,10 @@ Star::list Pyramid::experiment_alignment () {
                     continue;
                 }
                 
-                return {r_quad[0], r_quad[1], r_quad[2], r_quad[3]};
+                return {Star::define_label(input[i], r_quad[0].get_label()),
+                    Star::define_label(input[j], r_quad[1].get_label()),
+                    Star::define_label(input[k], r_quad[2].get_label()),
+                    Star::define_label(input[e], r_quad[3].get_label())};
             }
         }
     }
