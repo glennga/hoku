@@ -242,7 +242,7 @@ Star::list Angle::experiment_alignment () {
             // Narrow down current pair to two stars in catalog. The order is currently unknown.
             Star::pair candidate_pair = find_candidate_pair(input[i], input[j]);
             if (std::equal(candidate_pair.begin(), candidate_pair.end(), NO_CANDIDATE_PAIR_FOUND.begin())) {
-                break;
+                continue;
             }
             
             // Find candidate stars around the candidate pair.
@@ -258,7 +258,7 @@ Star::list Angle::experiment_alignment () {
 
 /// Match the stars found in the given benchmark to those in the Nibble database. All parameters must be defined.
 ///
-/// @return NO_CONFIDENT_ALIGNMENT if an alignment cannot be found exhaustively. EXCEEDED_NU_MAX if an alignment
+/// @return NO_CONFIDENT_MATCH_SET if an alignment cannot be found exhaustively. EXCEEDED_NU_MAX if an alignment
 /// cannot be found within a certain number of query picks. Otherwise, a vector of body stars with their
 /// inertial catalog IDs that qualify as matches.
 Star::list Angle::experiment_crown () {
@@ -279,7 +279,7 @@ Star::list Angle::experiment_crown () {
             // Narrow down current pair to two stars in catalog. The order is currently unknown.
             Star::pair candidate_pair = find_candidate_pair(input[i], input[j]);
             if (std::equal(candidate_pair.begin(), candidate_pair.end(), NO_CANDIDATE_PAIR_FOUND.begin())) {
-                break;
+                continue;
             }
             
             // Find candidate stars around the candidate pair.
@@ -289,7 +289,7 @@ Star::list Angle::experiment_crown () {
             matches = check_assumptions(candidates, {candidate_pair[0], candidate_pair[1]}, {input[i], input[j]});
             
             // Definition of image match: |match| > gamma minimum OR |match| == |input|.
-            if (matches.size() > ceil(matches.size() * parameters.gamma) || matches.size() == input.size()) {
+            if (matches.size() > ceil(input.size() * parameters.gamma) || matches.size() == input.size()) {
                 return matches;
             }
         }

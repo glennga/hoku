@@ -322,7 +322,7 @@ Star::list BaseTriangle::e_alignment () {
                 // Find matches of current body trio to catalog. Pivot if necessary.
                 candidate_trio = pivot({i, j, k});
                 if (std::equal(candidate_trio.begin(), candidate_trio.end(), NO_CANDIDATE_STAR_SET_FOUND.begin())) {
-                    break;
+                    continue;
                 }
                 
                 // Find candidate stars around the candidate trio.
@@ -340,12 +340,17 @@ Star::list BaseTriangle::e_alignment () {
 /// Match the stars found in the current benchmark to those in the Nibble database. The child class should wrap this
 /// function as 'experiment_crown' to mimic the other methods.
 ///
-/// @return NO_CONFIDENT_ALIGNMENT if an alignment cannot be found exhaustively. EXCEEDED_NU_MAX if an alignment
+/// @return NO_CONFIDENT_MATCH_SET if an alignment cannot be found exhaustively. EXCEEDED_NU_MAX if an alignment
 /// cannot be found within a certain number of query picks. Otherwise, a vector of body stars with their
 /// inertial catalog IDs that qualify as matches.
 Star::list BaseTriangle::e_crown () {
     Star::list matches;
     *parameters.nu = 0;
+    
+    // This procedure will not work |input| < 3. Exit early with NO_CONFIDENT_MATCH_SET.
+    if (input.size() < 3) {
+        return NO_CONFIDENT_MATCH_SET;
+    }
     
     // There exists |input| choose 3 possibilities.
     for (int i = 0; i < static_cast<signed> (input.size() - 2); i++) {
@@ -364,7 +369,7 @@ Star::list BaseTriangle::e_crown () {
                 // Find matches of current body trio to catalog. Pivot if necessary.
                 candidate_trio = pivot({i, j, k});
                 if (std::equal(candidate_trio.begin(), candidate_trio.end(), NO_CANDIDATE_STAR_SET_FOUND.begin())) {
-                    break;
+                    continue;
                 }
                 
                 // Find candidate stars around the candidate trio.
@@ -373,8 +378,8 @@ Star::list BaseTriangle::e_crown () {
                 // Check all possible configurations. Return the most likely.
                 matches = check_assumptions(candidates, candidate_trio, {i, j, k});
                 
-                // Definition of image match: |match| > gamma. Break early.
-                if (matches.size() > parameters.gamma) {
+                // Definition of image match: |match| > gamma minimum OR |match| == |input|.
+                if (matches.size() > ceil(input.size() * parameters.gamma)) {
                     return matches;
                 }
             }
