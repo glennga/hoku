@@ -15,6 +15,13 @@ const std::vector<Trio::stars> BaseTriangle::NO_CANDIDATE_STARS_FOUND = {{Star::
 /// Returned with an unsuccessful pivoting step.
 const Trio::stars BaseTriangle::NO_CANDIDATE_STAR_SET_FOUND = {Star::zero(), Star::zero(), Star::zero()};
 
+/// Starting index trio to perform pivot with.
+const BaseTriangle::index_trio BaseTriangle::STARTING_INDEX_TRIO = {0, 1, 2};
+
+/// Constructor. Initializes our permutation stack.
+BaseTriangle::BaseTriangle () : Identification(), p({}) {
+}
+
 /// Generate the triangle table given the specified FOV and table name. This find the area and polar moment
 /// between each distinct permutation of trios, and only stores them if they fall within the corresponding
 /// field-of-view.
@@ -99,19 +106,24 @@ std::vector<BaseTriangle::label_trio> BaseTriangle::query_for_trio (const double
     return area_moment_match;
 }
 
-/// Return the same index trio, with a new A value such that A exists in space [0, 1, ..., |input|] and A != B, A != C.
-///
-/// @param i_t Current index trio, generates another permutation based off this.
-/// @return Same index trio, with a new A index.
-BaseTriangle::index_trio BaseTriangle::permutate_index (const index_trio &i_t) {
-    index_trio t = i_t;
-    
+/// Generate all distinct index permutations. This solves the problem of generating k distinct combinations for n
+/// items. Solution is found here: https://stackoverflow.com/a/23663373
+void BaseTriangle::generate_permutations () {
+    std::vector<int> selected, selector(input.size());
+    std::fill(selector.begin(), selector.begin() + 3, 1);
     do {
-        t[0]++;
+        for (unsigned int i = 0; i < input.size(); i++) {
+            if (selector[i]) {
+                selected.push_back(i);
+            }
+        }
+        p.push_back(index_trio {selected[0], selected[1], selected[2]});
+        selected.clear();
     }
-    while (t[0] == t[1] || t[0] == t[2]);
+    while (prev_permutation(selector.begin(), selector.end()));
     
-    return t;
+    // Remove the front element of our index queue. We start with this.
+    p.pop_front();
 }
 
 /// Given a trio of body stars, find matching trios of inertial stars using their respective planar areas and polar
@@ -158,7 +170,7 @@ std::vector<Trio::stars> BaseTriangle::m_stars (const index_trio &i_b, area_func
 /// stars to R stars.
 Trio::stars BaseTriangle::pivot (const index_trio &i_b, const std::vector<Trio::stars> &past_set) {
     std::vector<Trio::stars> matches = this->match_stars(i_b);
-    if (matches[0][0] == Star::zero()) {
+    if (std::equal(matches.begin(), matches.end(), NO_CANDIDATE_STARS_FOUND.begin())) {
         matches.clear();
     }
     
@@ -186,7 +198,7 @@ Trio::stars BaseTriangle::pivot (const index_trio &i_b, const std::vector<Trio::
     switch (matches.size()) {
         case 1: return matches[0]; // Only 1 trio exists. This must be the matching trio.
         case 0: return NO_CANDIDATE_STAR_SET_FOUND; // No trios exist. Exit early.
-        default: return pivot(permutate_index(i_b), matches); // 2+ trios exists. Run with different trio and history.
+        default: return pivot(ptop(this->p), matches); // 2+ trios exists. Run with different trio and history.
     }
 }
 
@@ -244,7 +256,7 @@ std::vector<BaseTriangle::label_trio> BaseTriangle::e_query (double a, double i)
 /// @return The quaternion corresponding to largest set of matching stars across the body and inertial in all pairing
 /// configurations.
 Star::list BaseTriangle::e_single_alignment (const Star::list &candidates, const Trio::stars &r, const Trio::stars &b) {
-    std::array<index_trio, 6> order = {{0, 1, 2}};
+    std::array<index_trio, 6> order = {STARTING_INDEX_TRIO};
     std::array<Star::list, 6> matches = {}, alignments = {};
     auto ell = [&r, &b, &order] (const int i, const int j) -> Star {
         return Star::define_label(b[j], r[order[i][j]].get_label());
@@ -275,7 +287,7 @@ Star::list BaseTriangle::e_single_alignment (const Star::list &candidates, const
 ///
 /// @return NO_CANDIDATES_FOUND if no candidates found. Otherwise, a single elements that best meets the criteria.
 Identification::labels_list BaseTriangle::e_reduction () {
-    Trio::stars candidate_trio = pivot({0, 1, 2});
+    Trio::stars candidate_trio = pivot(STARTING_INDEX_TRIO);
     
     if (std::equal(candidate_trio.begin(), candidate_trio.end(), NO_CANDIDATE_STAR_SET_FOUND.begin())) {
         return NO_CANDIDATES_FOUND;
@@ -310,7 +322,7 @@ Star::list BaseTriangle::e_alignment () {
                 // Find matches of current body trio to catalog. Pivot if necessary.
                 candidate_trio = pivot({i, j, k});
                 if (std::equal(candidate_trio.begin(), candidate_trio.end(), NO_CANDIDATE_STAR_SET_FOUND.begin())) {
-                    break;
+                    continue;
                 }
                 
                 // Find candidate stars around the candidate trio.
@@ -328,12 +340,17 @@ Star::list BaseTriangle::e_alignment () {
 /// Match the stars found in the current benchmark to those in the Nibble database. The child class should wrap this
 /// function as 'experiment_crown' to mimic the other methods.
 ///
-/// @return NO_CONFIDENT_ALIGNMENT if an alignment cannot be found exhaustively. EXCEEDED_NU_MAX if an alignment
+/// @return NO_CONFIDENT_MATCH_SET if an alignment cannot be found exhaustively. EXCEEDED_NU_MAX if an alignment
 /// cannot be found within a certain number of query picks. Otherwise, a vector of body stars with their
 /// inertial catalog IDs that qualify as matches.
 Star::list BaseTriangle::e_crown () {
     Star::list matches;
     *parameters.nu = 0;
+    
+    // This procedure will not work |input| < 3. Exit early with NO_CONFIDENT_MATCH_SET.
+    if (input.size() < 3) {
+        return NO_CONFIDENT_MATCH_SET;
+    }
     
     // There exists |input| choose 3 possibilities.
     for (int i = 0; i < static_cast<signed> (input.size() - 2); i++) {
@@ -352,7 +369,7 @@ Star::list BaseTriangle::e_crown () {
                 // Find matches of current body trio to catalog. Pivot if necessary.
                 candidate_trio = pivot({i, j, k});
                 if (std::equal(candidate_trio.begin(), candidate_trio.end(), NO_CANDIDATE_STAR_SET_FOUND.begin())) {
-                    break;
+                    continue;
                 }
                 
                 // Find candidate stars around the candidate trio.
@@ -361,8 +378,8 @@ Star::list BaseTriangle::e_crown () {
                 // Check all possible configurations. Return the most likely.
                 matches = check_assumptions(candidates, candidate_trio, {i, j, k});
                 
-                // Definition of image match: |match| > gamma. Break early.
-                if (matches.size() > parameters.gamma) {
+                // Definition of image match: |match| > gamma minimum OR |match| == |input|.
+                if (matches.size() > ceil(input.size() * parameters.gamma)) {
                     return matches;
                 }
             }

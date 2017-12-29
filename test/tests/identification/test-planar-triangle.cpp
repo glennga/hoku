@@ -9,6 +9,7 @@
 #include "gmock/gmock.h"
 
 // Import several matchers from Google Mock.
+using testing::UnorderedElementsAre;
 using testing::Each;
 using testing::Contains;
 
@@ -43,7 +44,7 @@ TEST(PlaneQuery, MatchStarsFOV) {
     a.input[1] = Star::reset_label(ch.query_hip(4));
     a.input[2] = Star::reset_label(ch.query_hip(5));
     
-    std::vector<Trio::stars> b = a.match_stars({0, 1, 2});
+    std::vector<Trio::stars> b = a.match_stars(Plane::STARTING_INDEX_TRIO);
     EXPECT_THAT(b[0], Each(Star::zero()));
 }
 
@@ -58,7 +59,7 @@ TEST(PlaneQuery, MatchStarsNone) {
     a.input[1] = Star(1, 1, 1);
     a.input[2] = Star(1.1, 1, 1);
     
-    std::vector<Trio::stars> b = a.match_stars({0, 1, 2});
+    std::vector<Trio::stars> b = a.match_stars(Plane::STARTING_INDEX_TRIO);
     EXPECT_THAT(b[0], Each(Star::zero()));
 }
 
@@ -69,7 +70,7 @@ TEST(PlaneQuery, MatchStarsResults) {
     Chomp ch;
     Benchmark input(ch, seed, 20);
     Plane a(input, par);
-    std::vector<Trio::stars> b = a.match_stars({0, 1, 2});
+    std::vector<Trio::stars> b = a.match_stars(Plane::STARTING_INDEX_TRIO);
     
     // Check that original input trio exists in search.
     for (const Trio::stars &t : b) {
@@ -88,7 +89,7 @@ TEST(PlaneQuery, PivotResults) {
     Benchmark input(ch, seed, 20);
     Plane a(input, par);
     
-    Trio::stars c = a.pivot({0, 1, 2});
+    Trio::stars c = a.pivot(Plane::STARTING_INDEX_TRIO);
     std::vector<int> c_ell = {c[0].get_label(), c[1].get_label(), c[2].get_label()};
     EXPECT_THAT(c_ell, Contains(input.stars[0].get_label()));
     EXPECT_THAT(c_ell, Contains(input.stars[1].get_label()));
@@ -123,7 +124,7 @@ TEST(PlaneMatch, RotatingCorrectInput) {
 }
 
 /// Check that the rotating match method marks only the correct stars as matched.
-TEST(PlaneMatch, RotatinErrorInput) {
+TEST(PlaneMatch, RotatingErrorInput) {
     Plane::Parameters par = Plane::DEFAULT_PARAMETERS;
     std::random_device seed;
     Chomp ch;
@@ -189,11 +190,12 @@ TEST(PlaneIdentify, CleanInput) {
     Chomp ch;
     Benchmark input(ch, seed, 8, 6.5);
     Plane::Parameters a = Plane::DEFAULT_PARAMETERS;
-    unsigned int nu;
+    unsigned int nu = 0;
     
     // We define a match as 66% here.
     a.gamma = 0.66;
     a.sigma_overlay = 0.000001;
+    a.sigma_query = 10e-9;
     a.nu = std::make_shared<unsigned int>(nu);
     Star::list c = Plane(input, a).experiment_crown();
     ASSERT_GT(c.size(), a.gamma * c.size());
@@ -220,11 +222,12 @@ TEST(PlaneIdentify, ErrorInput) {
     Benchmark input(ch, seed, 20);
     Plane::Parameters a = Plane::DEFAULT_PARAMETERS;
     input.add_extra_light(1);
-    unsigned int nu;
+    unsigned int nu = 0;
     
     // We define a match as 25% here.
     a.gamma = 0.25;
     a.sigma_overlay = 0.0001;
+    a.sigma_query = 10e-9;
     a.nu = std::make_shared<unsigned int>(nu);
     Star::list c = Plane(input, a).experiment_crown();
     ASSERT_GT(c.size(), a.gamma * c.size());
@@ -242,6 +245,87 @@ TEST(PlaneIdentify, ErrorInput) {
             EXPECT_NE(std::find_if(input.stars.begin(), input.stars.end(), match), input.stars.end());
         }
     }
+}
+
+/// Check that a clean input returns the expected query result.
+TEST(PlaneTrial, CleanQuery) {
+    std::random_device seed;
+    Chomp ch;
+    Plane::Parameters p = Plane::DEFAULT_PARAMETERS;
+    p.sigma_query = 10e-9;
+    Benchmark input(ch, seed, 15);
+    Plane a(Benchmark::black(), p);
+    
+    std::vector<Identification::labels_list> d = a.experiment_query({input.stars[0], input.stars[1], input.stars[2]});
+    Identification::labels_list ell = {input.stars[0].get_label(), input.stars[1].get_label(),
+        input.stars[2].get_label()};
+    
+    std::sort(ell.begin(), ell.end());
+    EXPECT_THAT(d, Contains(ell));
+}
+
+/// Check that a clean input returns the expected alignment of stars.
+TEST(PlaneTrial, CleanFirstAlignment) {
+    std::random_device seed;
+    Chomp ch;
+    Rotation q = Rotation::chance(seed);
+    Star focus = Star::chance(seed);
+    Plane::Parameters p = Plane::DEFAULT_PARAMETERS;
+    p.sigma_overlay = 0.000001;
+    Benchmark input(ch, seed, focus, q, 15, 6.0);
+    Plane a(input, p);
+    
+    Star::list b = {a.input[0], a.input[1], a.input[2]}, d = {a.input[0], a.input[1]};
+    Star::list c = {ch.query_hip(input.stars[0].get_label()), ch.query_hip(input.stars[1].get_label()),
+        ch.query_hip(input.stars[2].get_label())};
+    
+    EXPECT_ANY_THROW(a.experiment_first_alignment(ch.nearby_bright_stars(focus, 20, 100), c, d));
+    
+    Star::list f = a.experiment_first_alignment(ch.nearby_bright_stars(focus, 20, 100), c, b);
+    EXPECT_THAT(f, Contains(Star::define_label(b[0], c[0].get_label())));
+    EXPECT_THAT(f, Contains(Star::define_label(b[1], c[1].get_label())));
+    EXPECT_THAT(f, Contains(Star::define_label(b[2], c[2].get_label())));
+}
+
+/// Check that a clean input returns the correct stars from a set of candidates.
+TEST(PlaneTrial, CleanReduction) {
+    std::random_device seed;
+    Chomp ch;
+    Plane::Parameters p = Plane::DEFAULT_PARAMETERS;
+    p.sigma_query = 10e-10;
+    p.sigma_overlay = 0.0001;
+    Benchmark input(ch, seed, 15);
+    Plane a(input, p);
+    Identification::labels_list ell = {input.stars[0].get_label(), input.stars[1].get_label(),
+        input.stars[2].get_label()};
+    
+    std::sort(ell.begin(), ell.end());
+    EXPECT_THAT(a.experiment_reduction(), UnorderedElementsAre(ell[0], ell[1], ell[2]));
+}
+
+/// Check that a clean input returns the expected alignment of stars.
+TEST(PlaneTrial, CleanAlignment) {
+    std::random_device seed;
+    Chomp ch;
+    Rotation q = Rotation::chance(seed);
+    Star focus = Star::chance(seed);
+    unsigned int nu;
+    Plane::Parameters p = Plane::DEFAULT_PARAMETERS;
+    p.sigma_query = 10e-9;
+    p.sigma_overlay = 0.000001;
+    p.nu = std::make_shared<unsigned int>(nu);
+    Benchmark input(ch, seed, focus, q, 15, 6.0);
+    
+    Star::list b = {Rotation::rotate(input.stars[0], q), Rotation::rotate(input.stars[1], q),
+        Rotation::rotate(input.stars[2], q)};
+    Star::list c = {ch.query_hip(input.stars[0].get_label()), ch.query_hip(input.stars[1].get_label()),
+        ch.query_hip(input.stars[2].get_label())};
+    
+    Plane a(Benchmark(seed, b, Rotation::rotate(focus, q), 20), p);
+    Star::list f = a.experiment_alignment();
+    EXPECT_THAT(f, Contains(Star::define_label(b[0], c[0].get_label())));
+    EXPECT_THAT(f, Contains(Star::define_label(b[1], c[1].get_label())));
+    EXPECT_THAT(f, Contains(Star::define_label(b[2], c[2].get_label())));
 }
 
 /// Runs all tests defined in this file.

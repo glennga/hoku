@@ -35,5 +35,5 @@ target_link_libraries(TestSphericalTriangle gtest gmock SphericalTriangle
 # Link and Create Executable TestPyramid
 ##################################################################
 add_executable(TestPyramid test-pyramid.cpp)
-target_link_libraries(TestPyramid gtest Pyramid Angle Identification
+target_link_libraries(TestPyramid gtest gmock Pyramid Angle Identification
         Chomp Benchmark Rotation Nibble Star SQLiteCpp Sqlite3)

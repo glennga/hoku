@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <algorithm>
 #include <sstream>
+#include <random>
 #include <iomanip>
 #include "math/star.h"
 #include "math/rotation.h"

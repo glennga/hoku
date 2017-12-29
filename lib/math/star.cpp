@@ -27,8 +27,7 @@ Star::Star (const double i, const double j, const double k, const int label, con
 }
 
 /// Overloaded constructor. Sets the i, j, k, magnitude, and catalog ID of a star to 0.
-[[deprecated]]
-Star::Star () {
+[[deprecated]] Star::Star () {
     this->i = this->j = this->k = this->m = this->label = 0;
 }
 
@@ -220,7 +219,7 @@ bool Star::within_angle (const list &s_l, const double theta) {
 /// @param s Star to attach a new catalog ID to.
 /// @param label New label to attach to the star.
 /// @return Same star with the given label.
-Star Star::define_label(const Star &s, int label) {
+Star Star::define_label (const Star &s, int label) {
     return {s.i, s.j, s.k, label, s.m};
 }
 

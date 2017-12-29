@@ -10,15 +10,18 @@
 const Identification::Parameters Plane::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
     DEFAULT_SIGMA_OVERLAY, DEFAULT_GAMMA, DEFAULT_NU_MAX, DEFAULT_NU, "PLANE_20"};
 
-/// Constructor. Sets the benchmark data and fov. Sets the parameters and working table.
+/// Constructor. Sets the benchmark data and fov. Sets the parameters, working table, and our index permutations.
 ///
 /// @param input Working Benchmark instance. We are **only** copying the star set and the fov.
 /// @param parameters Parameters to use for identification.
-PlanarTriangle::PlanarTriangle (const Benchmark &input, const Parameters &parameters) {
+PlanarTriangle::PlanarTriangle (const Benchmark &input, const Parameters &parameters) : BaseTriangle() {
     input.present_image(this->input, this->fov);
     this->parameters = parameters;
     
     ch.select_table(this->parameters.table_name);
+    if (!this->input.empty()) {
+        generate_permutations();
+    }
 }
 
 /// Generate the triangle table given the specified FOV and table name. This find the area and polar moment
@@ -126,7 +129,7 @@ Star::list Plane::experiment_alignment () {
 /// Match the stars found in the current benchmark to those in the Nibble database. The child class should wrap this
 /// function as 'experiment_crown' to mimic the other methods. All parameters must be defined.
 ///
-/// @return NO_CONFIDENT_ALIGNMENT if an alignment cannot be found exhaustively. EXCEEDED_NU_MAX if an alignment
+/// @return NO_CONFIDENT_MATCH_SET if an alignment cannot be found exhaustively. EXCEEDED_NU_MAX if an alignment
 /// cannot be found within a certain number of query picks. Otherwise, a vector of body stars with their
 /// inertial catalog IDs that qualify as matches.
 Star::list Plane::experiment_crown () {

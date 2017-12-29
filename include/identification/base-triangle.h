@@ -9,8 +9,10 @@
 
 #include "identification/identification.h"
 #include "math/trio.h"
+#include <deque>
 #include <iostream>
 #include <functional>
+#include <iterator>
 
 /// The base triangle class is a base class for Crassidis and Cole's Planar and Spherical Pattern Recognition Process.
 /// These are two of the five star identification procedures being tested.
@@ -18,9 +20,12 @@ class BaseTriangle : public Identification {
   public:
     /// Alias for a trio of catalog IDs (3-element STL array of doubles).
     using label_trio = std::array<int, 3>;
+  
+  public:
+    BaseTriangle ();
 
 #if !defined ENABLE_TESTING_ACCESS
-  protected:
+    protected:
 #endif
     /// Alias for a trio of index numbers for the input star list (3-element STL array of integers).
     using index_trio = std::array<int, 3>;
@@ -30,9 +35,21 @@ class BaseTriangle : public Identification {
     
     /// Alias for a moment function in the Trio class.
     using moment_function = std::function<double (const Star &, const Star &, const Star &)>;
+    
+    /// Return the first element, and deque the first element.
+    ///
+    /// @tparam T Type of the stack.
+    /// @param p Reference to the stack to operate on.
+    /// @return The top element of p.
+    template <typename T>
+    T ptop (std::deque<T> &p) {
+        T t = p.front();
+        p.pop_front();
+        return t;
+    }
 
 #if !defined ENABLE_TESTING_ACCESS
-  protected:
+    protected:
 #endif
     std::vector<label_trio> e_query (double a, double i);
     Star::list e_single_alignment (const Star::list &candidates, const Trio::stars &r, const Trio::stars &b);
@@ -45,16 +62,24 @@ class BaseTriangle : public Identification {
     std::vector<Trio::stars> m_stars (const index_trio &i_b, area_function compute_area,
                                       moment_function compute_moment);
     
+    void generate_permutations ();
+    static const index_trio STARTING_INDEX_TRIO;
+    
     static const std::vector<BaseTriangle::label_trio> NO_CANDIDATE_TRIOS_FOUND;
     static const std::vector<Trio::stars> NO_CANDIDATE_STARS_FOUND;
     static const Trio::stars NO_CANDIDATE_STAR_SET_FOUND;
 
 #if !defined ENABLE_TESTING_ACCESS
-  private:
+    protected:
+#endif
+    /// All distinct index permutations of our input vector.
+    std::deque<index_trio> p;
+
+#if !defined ENABLE_TESTING_ACCESS
+    private:
 #endif
     std::vector<label_trio> query_for_trio (double a, double i);
     virtual std::vector<Trio::stars> match_stars (const index_trio &) = 0;
-    index_trio permutate_index (const index_trio &);
     Trio::stars pivot (const index_trio &, const std::vector<Trio::stars> & = {});
     Star::list check_assumptions (const Star::list &, const Trio::stars &, const index_trio &);
     

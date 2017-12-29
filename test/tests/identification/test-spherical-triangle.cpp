@@ -9,6 +9,7 @@
 #include "gmock/gmock.h"
 
 // Import several matchers from Google Mock.
+using testing::UnorderedElementsAre;
 using testing::Each;
 using testing::Contains;
 
@@ -44,7 +45,7 @@ TEST(SphereQuery, MatchStarsFOV) {
     a.input[1] = Star::reset_label(ch.query_hip(4));
     a.input[2] = Star::reset_label(ch.query_hip(5));
     
-    std::vector<Trio::stars> b = a.match_stars({0, 1, 2});
+    std::vector<Trio::stars> b = a.match_stars(Sphere::STARTING_INDEX_TRIO);
     EXPECT_THAT(b[0], Each(Star::zero()));
 }
 
@@ -59,18 +60,19 @@ TEST(SphereQuery, MatchStarsNone) {
     a.input[1] = Star(1, 1, 1);
     a.input[2] = Star(1.1, 1, 1);
     
-    std::vector<Trio::stars> b = a.match_stars({0, 1, 2});
+    std::vector<Trio::stars> b = a.match_stars(Sphere::STARTING_INDEX_TRIO);
     EXPECT_THAT(b[0], Each(Star::zero()));
 }
 
 /// Check that the correct stars are returned from the candidate trio query.
 TEST(SphereQuery, MatchStarsResults) {
     Sphere::Parameters par = Sphere::DEFAULT_PARAMETERS;
+    par.sigma_query = 10e-9;
     std::random_device seed;
     Chomp ch;
     Benchmark input(ch, seed, 20);
     Sphere a(input, par);
-    std::vector<Trio::stars> b = a.match_stars({0, 1, 2});
+    std::vector<Trio::stars> b = a.match_stars(Sphere::STARTING_INDEX_TRIO);
     
     // Check that original input trio exists in search.
     for (const Trio::stars &t : b) {
@@ -84,12 +86,14 @@ TEST(SphereQuery, MatchStarsResults) {
 /// Check that the pivot query method returns the correct trio.
 TEST(SphereQuery, PivotResults) {
     Sphere::Parameters par = Sphere::DEFAULT_PARAMETERS;
+    par.sigma_query = 10e-9;
+    par.sigma_overlay = 0.000001;
     std::random_device seed;
     Chomp ch;
     Benchmark input(ch, seed, 20);
     Sphere a(input, par);
     
-    Trio::stars c = a.pivot({0, 1, 2});
+    Trio::stars c = a.pivot(Sphere::STARTING_INDEX_TRIO);
     std::vector<int> c_ell = {c[0].get_label(), c[1].get_label(), c[2].get_label()};
     EXPECT_THAT(c_ell, Contains(input.stars[0].get_label()));
     EXPECT_THAT(c_ell, Contains(input.stars[1].get_label()));
@@ -190,7 +194,7 @@ TEST(SphereIdentify, CleanInput) {
     Chomp ch;
     Benchmark input(ch, seed, 8, 6.5);
     Sphere::Parameters a = Sphere::DEFAULT_PARAMETERS;
-    unsigned int nu;
+    unsigned int nu = 0;
     
     // We define a match as 66% here.
     a.gamma = 0.66;
@@ -221,7 +225,7 @@ TEST(SphereIdentify, ErrorInput) {
     Benchmark input(ch, seed, 20);
     Sphere::Parameters a = Sphere::DEFAULT_PARAMETERS;
     input.add_extra_light(1);
-    unsigned int nu;
+    unsigned int nu = 0;
     
     // We define a match as 25% here.
     a.gamma = 0.25;
@@ -243,6 +247,87 @@ TEST(SphereIdentify, ErrorInput) {
             EXPECT_NE(std::find_if(input.stars.begin(), input.stars.end(), match), input.stars.end());
         }
     }
+}
+
+/// Check that a clean input returns the expected query result.
+TEST(SphereTrial, CleanQuery) {
+    std::random_device seed;
+    Chomp ch;
+    Sphere::Parameters p = Sphere::DEFAULT_PARAMETERS;
+    p.sigma_query = 10e-9;
+    Benchmark input(ch, seed, 15);
+    Sphere a(Benchmark::black(), p);
+    
+    std::vector<Identification::labels_list> d = a.experiment_query({input.stars[0], input.stars[1], input.stars[2]});
+    Identification::labels_list ell = {input.stars[0].get_label(), input.stars[1].get_label(),
+        input.stars[2].get_label()};
+    
+    std::sort(ell.begin(), ell.end());
+    EXPECT_THAT(d, Contains(ell));
+}
+
+/// Check that a clean input returns the expected alignment of stars.
+TEST(SphereTrial, CleanFirstAlignment) {
+    std::random_device seed;
+    Chomp ch;
+    Rotation q = Rotation::chance(seed);
+    Star focus = Star::chance(seed);
+    Sphere::Parameters p = Sphere::DEFAULT_PARAMETERS;
+    p.sigma_overlay = 0.000001;
+    Benchmark input(ch, seed, focus, q, 15, 6.0);
+    Sphere a(input, p);
+    
+    Star::list b = {a.input[0], a.input[1], a.input[2]}, d = {a.input[0], a.input[1]};
+    Star::list c = {ch.query_hip(input.stars[0].get_label()), ch.query_hip(input.stars[1].get_label()),
+        ch.query_hip(input.stars[2].get_label())};
+    
+    EXPECT_ANY_THROW(a.experiment_first_alignment(ch.nearby_bright_stars(focus, 20, 100), c, d));
+    
+    Star::list f = a.experiment_first_alignment(ch.nearby_bright_stars(focus, 20, 100), c, b);
+    EXPECT_THAT(f, Contains(Star::define_label(b[0], c[0].get_label())));
+    EXPECT_THAT(f, Contains(Star::define_label(b[1], c[1].get_label())));
+    EXPECT_THAT(f, Contains(Star::define_label(b[2], c[2].get_label())));
+}
+
+/// Check that a clean input returns the correct stars from a set of candidates.
+TEST(SphereTrial, CleanReduction) {
+    std::random_device seed;
+    Chomp ch;
+    Sphere::Parameters p = Sphere::DEFAULT_PARAMETERS;
+    p.sigma_query = 10e-10;
+    p.sigma_overlay = 0.0001;
+    Benchmark input(ch, seed, 15);
+    Sphere a(input, p);
+    Identification::labels_list ell = {input.stars[0].get_label(), input.stars[1].get_label(),
+        input.stars[2].get_label()};
+    
+    std::sort(ell.begin(), ell.end());
+    EXPECT_THAT(a.experiment_reduction(), UnorderedElementsAre(ell[0], ell[1], ell[2]));
+}
+
+/// Check that a clean input returns the expected alignment of stars.
+TEST(SphereTrial, CleanAlignment) {
+    std::random_device seed;
+    Chomp ch;
+    Rotation q = Rotation::chance(seed);
+    Star focus = Star::chance(seed);
+    unsigned int nu = 0;
+    Sphere::Parameters p = Sphere::DEFAULT_PARAMETERS;
+    p.sigma_query = 10e-9;
+    p.sigma_overlay = 0.000001;
+    p.nu = std::make_shared<unsigned int>(nu);
+    Benchmark input(ch, seed, focus, q, 15, 6.0);
+    
+    Star::list b = {Rotation::rotate(input.stars[0], q), Rotation::rotate(input.stars[1], q),
+        Rotation::rotate(input.stars[2], q)};
+    Star::list c = {ch.query_hip(input.stars[0].get_label()), ch.query_hip(input.stars[1].get_label()),
+        ch.query_hip(input.stars[2].get_label())};
+    
+    Sphere a(Benchmark(seed, b, Rotation::rotate(focus, q), 20), p);
+    Star::list f = a.experiment_alignment();
+    EXPECT_THAT(f, Contains(Star::define_label(b[0], c[0].get_label())));
+    EXPECT_THAT(f, Contains(Star::define_label(b[1], c[1].get_label())));
+    EXPECT_THAT(f, Contains(Star::define_label(b[2], c[2].get_label())));
 }
 
 /// Runs all tests defined in this file.
