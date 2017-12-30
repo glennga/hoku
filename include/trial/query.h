@@ -34,7 +34,7 @@ namespace Query {
     const std::string PLANE_TABLE = "PLANE_20"; ///< Name of table generated for Plane method.
     const std::string SPHERE_TABLE = "SPHERE_20"; ///< Name of table generated for Sphere method.
     const std::string PYRAMID_TABLE = "PYRA_20"; ///< Name of table generated for Pyramid method.
-    const std::string COIN_TABLE = "COIN_20"; ///< Name of the table generated for the Coin method.
+    const std::string COIN_TABLE = "COIN_20"; ///< Name of the table generated for the Summer method.
     
     Star::list generate_n_stars (Chomp &, unsigned int, std::random_device &);
     

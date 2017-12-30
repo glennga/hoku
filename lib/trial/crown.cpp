@@ -220,7 +220,7 @@ void Crown::trial_pyramid (Chomp &ch, std::ofstream &log) {
     }
 }
 
-/// Record the results of Coin's identification process.
+/// Record the results of Summer's identification process.
 ///
 /// @param ch Open Nibble connection using Chomp method.
 /// @param log Open stream to log file.
@@ -230,8 +230,8 @@ void Crown::trial_coin (Chomp &ch, std::ofstream &log) {
     Star::list result, body;
     Star focus;
     
-    // These are the optimal parameters for the Coin method.
-    Coin::Parameters par;
+    // These are the optimal parameters for the Summer method.
+    Summer::Parameters par;
     par.table_name = COIN_TABLE;
     par.z_max = 20000;
     par.match_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5);
@@ -253,10 +253,10 @@ void Crown::trial_coin (Chomp &ch, std::ofstream &log) {
                     
                     // Find our result set. Run the identification.
                     z = 0;
-                    result = Coin::identify(input, par, z);
+                    result = Summer::identify(input, par, z);
                     
                     // Log our results. Note that our match and query sigma are fixed.
-                    log << "Coin," << par.match_sigma << "," << par.sigma_a << ","
+                    log << "Summer," << par.match_sigma << "," << par.sigma_a << ","
                         << ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << "," << p
                         << "," << z << "," << input.stars.size() << "," << result.size() << ","
                         << Benchmark::compare_stars(input, result) / clean_size << '\n';

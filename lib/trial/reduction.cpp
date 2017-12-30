@@ -196,7 +196,7 @@ void Reduction::trial_pyramid (Chomp &ch, std::ofstream &log) {
     }
 }
 
-/// Record the results of Coin's identification process.
+/// Record the results of Summer's identification process.
 ///
 /// @param ch Open Nibble connection using Chomp method.
 /// @param log Open stream to log file.
@@ -205,8 +205,8 @@ void Reduction::trial_coin (Chomp &ch, std::ofstream &log) {
     Star::list body;
     Star focus;
     
-    // These are the optimal parameters for the Coin method.
-    Coin::Parameters par;
+    // These are the optimal parameters for the Summer method.
+    Summer::Parameters par;
     par.table_name = COIN_TABLE;
     par.z_max = 20000;
     par.match_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5);
@@ -224,10 +224,10 @@ void Reduction::trial_coin (Chomp &ch, std::ofstream &log) {
                 input.shift_light((int) input.stars.size(), ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)));
                 
                 // Find the resulting pair.
-                Coin::label_quad p = Coin::trial_reduction(input, par);
+                Summer::label_quad p = Summer::trial_reduction(input, par);
                 
                 // Log our results.
-                log << "Coin," << par.match_sigma << "," << par.sigma_a << ","
+                log << "Summer," << par.match_sigma << "," << par.sigma_a << ","
                     << ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << ","
                     << is_correctly_identified({input.stars[0], input.stars[1], input.stars[2], input.stars[3]}, p)
                     << "\n";

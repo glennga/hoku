@@ -11,7 +11,7 @@
 #include "identification/spherical-triangle.h"
 #include "identification/planar-triangle.h"
 #include "identification/pyramid.h"
-#include "identification/coin.h"
+#include "identification/summer.h"
 
 /// Contains constants and functions to test various attitude determination functions.
 ///
@@ -42,7 +42,7 @@ namespace Alignment {
     const std::string PLANE_TABLE = "PLANE_20"; ///< Name of table generated for Plane method.
     const std::string SPHERE_TABLE = "SPHERE_20"; ///< Name of table generated for Sphere method.
     const std::string PYRAMID_TABLE = "PYRA_20"; ///< Name of table generated for Pyramid method.
-    const std::string COIN_TABLE = "COIN_20"; ///< Name of the table generated for the Coin method.
+    const std::string COIN_TABLE = "COIN_20"; ///< Name of the table generated for the Summer method.
     
     void present_stars (Chomp &, std::random_device &, Star::list &, Star::list &, Rotation &, const double);
     void shift_body (std::random_device &, Star::list &, const double, const int);
