@@ -203,7 +203,7 @@ void Alignment::trial_pyramid (Chomp &ch, std::ofstream &log) {
     }
 }
 
-/// Record the results of Coin's attitude determination process. We note that a correct star configuration is
+/// Record the results of Summer's attitude determination process. We note that a correct star configuration is
 /// assumed to be found prior to determining the attitude for this specific method.
 ///
 /// @param nb Open Nibble connection.
@@ -212,12 +212,12 @@ void Alignment::trial_coin (Chomp &ch, std::ofstream &log) {
     Rotation q, qe_optimal, qe_not_optimal;
     std::random_device seed;
     Star::list inertial;
-    Coin::Parameters par;
+    Summer::Parameters par;
     par.table_name = PYRAMID_TABLE;
     par.match_sigma = std::numeric_limits<double>::epsilon() * pow(3, 5);
     
     // First run is clean, without shifts. Following are shift trials.
-    Coin c(Benchmark(ch, seed, WORKING_FOV), par);
+    Summer c(Benchmark(ch, seed, WORKING_FOV), par);
     for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
         for (int mb_i = 0; mb_i < MB_ITER; mb_i++) {
             for (int i = 0; i < ALIGNMENT_SAMPLES; i++) {
@@ -230,7 +230,7 @@ void Alignment::trial_coin (Chomp &ch, std::ofstream &log) {
                 qe_not_optimal = qe_optimal;
                 
                 // Log our results.
-                log << "Coin," << MS_MIN + ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)) << ","
+                log << "Summer," << MS_MIN + ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)) << ","
                     << ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)) << "," << MB_MIN + mb_i * MB_STEP << ","
                     << Rotation::angle_between(q, qe_optimal) << "," << Rotation::angle_between(q, qe_not_optimal)
                     << "," << Rotation::rotation_difference(q, qe_optimal, inertial[4]).norm() << ","

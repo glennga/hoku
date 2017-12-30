@@ -15,7 +15,7 @@ add_executable(GenerateN generate-n.cpp)
 target_link_libraries(GenerateN PlanarTriangle
         SphericalTriangle Angle BaseTriangle Identification Benchmark Rotation QuadNode
         KdNode Chomp Nibble Asterism Mercator Trio Star SQLiteCpp Sqlite3)
-#target_link_libraries(GenerateN Coin Pyramid PlanarTriangle
+#target_link_libraries(GenerateN Summer Pyramid PlanarTriangle
 #        SphericalTriangle Angle BaseTriangle Identification Benchmark
 #        Rotation QuadNode KdNode Chomp Nibble Asterism Mercator Trio
 #        Star SQLiteCpp Sqlite3)
@@ -25,6 +25,6 @@ target_link_libraries(GenerateN PlanarTriangle
 ##################################################################
 add_executable(RunTrial run-trial.cpp)
 target_link_libraries(RunTrial SemiCrown Reduction Alignment Query Crown
-        Pyramid Coin PlanarTriangle SphericalTriangle Angle BaseTriangle
+        Pyramid Summer PlanarTriangle SphericalTriangle Angle BaseTriangle
         Identification Benchmark Rotation QuadNode KdNode Chomp Nibble
         Asterism Mercator Trio Star SQLiteCpp Sqlite3)

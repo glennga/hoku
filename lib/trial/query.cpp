@@ -6,7 +6,7 @@
 // Give us access to everything in identification.
 #define ENABLE_IDENTIFICATION_ACCESS
 
-#include <identification/coin.h>
+#include <identification/summer.h>
 #include "trial/query.h"
 
 /// Generate N random stars that fall within the specified field-of-view. Rotate this result by some random quaternion.
@@ -169,7 +169,7 @@ void Query::trial_pyramid(Chomp &ch, std::ofstream &log) {
     }
 }
 
-/// Record the results of querying Nibble for nearby stars as the Coin method does (this is identical to the Planar
+/// Record the results of querying Nibble for nearby stars as the Summer method does (this is identical to the Planar
 /// Triangles method).
 ///
 /// @param ch Open Nibble connection.
@@ -177,7 +177,7 @@ void Query::trial_pyramid(Chomp &ch, std::ofstream &log) {
 void Query::trial_coin(Chomp &ch, std::ofstream &log) {
     std::random_device seed;
     Benchmark beta(ch, seed, WORKING_FOV);
-    Coin::Parameters p;
+    Summer::Parameters p;
     p.table_name = COIN_TABLE;
     p.query_expected = 10000;
 
@@ -192,13 +192,13 @@ void Query::trial_coin(Chomp &ch, std::ofstream &log) {
             p.sigma_i = QS_MIN;
 
             // Log our label values, and get our result set.
-            Coin::label_trio b = {beta.stars[0].get_label(), beta.stars[1].get_label(), beta.stars[2].get_label()};
+            Summer::label_trio b = {beta.stars[0].get_label(), beta.stars[1].get_label(), beta.stars[2].get_label()};
             double a_i = Trio::planar_area(beta.stars[0], beta.stars[1], beta.stars[2]);
             double i_i = Trio::planar_moment(beta.stars[0], beta.stars[1], beta.stars[2]);
-            std::vector<Coin::label_trio> r = Coin(beta, p).query_for_trios(a_i, i_i);
+            std::vector<Summer::label_trio> r = Summer(beta, p).query_for_trios(a_i, i_i);
 
             // Log our results.
-            log << "Coin," << QS_MIN << "," << ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)) << "," << r.size() << ","
+            log << "Summer," << QS_MIN << "," << ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)) << "," << r.size() << ","
                 << set_existence(r, b) << '\n';
         }
     }

@@ -12,7 +12,7 @@
 /// - 3 -> Produce table for SphericalTriangle method.
 /// - 4 -> Produce table for PlanarTriangle method.
 /// - 5 -> Produce table for Pyramid method.
-/// - 6 -> Produce table for Coin method.
+/// - 6 -> Produce table for Summer method.
 ///
 /// - x k -> Produce K-Vector table for the given method (valid above 1).
 /// - x d -> Delete all tables for the given method.
@@ -92,7 +92,7 @@ void generate_table (const int choice) {
         case 3: return display_result(Sphere::generate_table(DCNT::FOV, DCNT::SPHERE_NAME));
         case 4: return display_result(Plane::generate_table(DCNT::FOV, DCNT::PLANE_NAME));
             //        case 5: return (void) Pyramid::generate_sep_table(DCNT::FOV, DCNT::PYRAMID_NAME);
-            //        case 6: return (void) Coin::generate_triangle_table(DCNT::FOV, DCNT::COIN_NAME);
+            //        case 6: return (void) Summer::generate_triangle_table(DCNT::FOV, DCNT::COIN_NAME);
         default: throw "Table choice is not within space {0, 1, 2, 3, 4, 5, 6}.";
     }
 }
