@@ -1,9 +1,9 @@
-\documentclass[]{article} 
+\documentclass[conference]{IEEEtran} 
 
 \usepackage{graphicx} \usepackage{url} 
 \usepackage{amsmath} \usepackage{amssymb}
 \usepackage{listings} \usepackage{color} \usepackage{textcomp}
-\usepackage[utf8]{inputenc}
+\usepackage[utf8]{inputenc} \usepackage{cite}
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 \DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{8} % for bold
@@ -17,27 +17,22 @@
 \linespread{1.5}
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
-\title{Development of a More Optimal Lost-in-Space Star Identification Algorithm} \author{Glenn Galvizo} 
+\title{Analysis of Lost-in-Space Star Identification Algorithms} \author{Glenn Galvizo} 
 
 \begin{document}
 \maketitle
-	
-% paper's table of contents
-\newpage \tableofcontents
 
-% paper's abstract in abstract.tex
-\newpage \include{abstract}
+% Abstract.
+\input{abstract}
 
-% project motivation in motivation.tex
-\newpage \include{motivation}
+% Background.
 
-% project background and previous work in background.tex
-% \newpage \include{background} % not including this for now...
+% Existing Solutions.
 
-% benchmark data generation in inpd.tex
-\newpage \include{inpd}
+% Evaluation.
 
-% tappe's angle method implementation in tam.tex
-\newpage \include{tam}
+% Conclusion.
+
+% References. 
 
 \end{document}
