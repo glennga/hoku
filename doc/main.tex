@@ -1,0 +1,43 @@
+\documentclass[]{article} 
+
+\usepackage{graphicx} \usepackage{url} 
+\usepackage{amsmath} \usepackage{amssymb}
+\usepackage{listings} \usepackage{color} \usepackage{textcomp}
+\usepackage[utf8]{inputenc}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{8} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{8}  % for normal
+\definecolor{deepblue}{rgb}{0,0,0.5} \definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0} \lstdefinestyle{code-s}{
+    keywordstyle=\ttb\color{deepblue}, emphstyle=\ttb\color{deepred},
+    stringstyle=\color{deepgreen}, commentstyle=\color{deepgreen},
+    showstringspaces=false, breaklines=true, showspaces=false, showtabs=false,
+    basicstyle=\footnotesize, literate={\ \ }{{\ }}1 }
+\linespread{1.5}
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+\title{Development of a More Optimal Lost-in-Space Star Identification Algorithm} \author{Glenn Galvizo} 
+
+\begin{document}
+\maketitle
+	
+% paper's table of contents
+\newpage \tableofcontents
+
+% paper's abstract in abstract.tex
+\newpage \include{abstract}
+
+% project motivation in motivation.tex
+\newpage \include{motivation}
+
+% project background and previous work in background.tex
+% \newpage \include{background} % not including this for now...
+
+% benchmark data generation in inpd.tex
+\newpage \include{inpd}
+
+% tappe's angle method implementation in tam.tex
+\newpage \include{tam}
+
+\end{document}

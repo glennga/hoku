@@ -1,0 +1,35 @@
+\tikzstyle{process} = [rectangle, rounded corners, text width=6em, minimum width=1.5cm,
+minimum height=2cm,text centered, draw=black, fill=orange!30]
+\tikzstyle{terminal} = [rectangle, rounded corners, text width=6em, minimum width=1.5cm, 
+minimum height=2cm,text centered, draw=black, fill=red!30]
+\tikzstyle{decision} = [diamond, rounded corners, text width=5em, minimum width=2.9cm, 
+minimum height=2.9cm,text centered, draw=black, fill=green!30, inner sep=-10pt]
+\tikzstyle{line} = [draw, -latex']
+
+\begin{tikzpicture}[node distance=2cm]
+\node[scale=0.7] (start) [terminal] {Given Camera Input $\beta$};
+\node[scale=0.7] (hash) [process, right of=start, xshift=1.1cm] {Compute 
+$h_{1-4}$ for $\beta_i, \beta_j, \beta_k, \beta_m$};
+\node[scale=0.7]  (query) [process, right of=hash, xshift=1.1cm] {Query with $h_{1-4}$ for 
+Matches $m_t$};
+\node[scale=0.7] (propose) [process, right of=query, xshift=1.1cm] {Find Rotation $q$ from Image to Catalog};
+\node[scale=0.7]  (pivot) [decision, right of=propose, xshift=1.1cm] {Only one match found?};
+\node[scale=0.7]  (findrotate) [process, below of=pivot, yshift=-0.8cm] {Find Rotation $q$ from Image to Catalog};
+\node[scale=0.7] (rotate) [process, left of=findrotate, xshift=-1.1cm] {Rotate All Nearby Stars $R$ with $q \rightarrow R^\star$};
+\node[scale=0.7] (countmatch) [process, left of=rotate, xshift=-1.1cm] {Find Stars $b$ in $R^\star$ That Overlay with $R$};
+\node[scale=0.7] (matchdecide) [decision, left of=countmatch, xshift=-1.1cm] {Size of $b$ Defines Match?};
+\node[scale=0.7] (end) [terminal, left of=matchdecide, xshift=-1.1cm] {Return $\beta$ with Catalog Labels from $b$};
+
+\path [line] (start) -- (hash);
+\path [line] (hash) -- (query);
+\path [line] (query) -- (propose);
+\path [line] (propose) -- (pivot);
+\path [line] (pivot.north) |- ++(0cm, 0.3cm) node[anchor=south, scale=0.7]{No} -- ++(-3.5cm, 0cm) 
+node[anchor=south, scale=0.7]{Approach with Previous $m_t = m_{t-1}$}  -| (hash.north);
+\path [line] (pivot.south) -- ++(0cm, 0cm) node[anchor=east, scale=0.7]{Yes} -- (findrotate.north);
+\path [line] (findrotate) -- (rotate);
+\path [line] (rotate) -- (countmatch);
+\path [line] (countmatch) -- (matchdecide);
+\path [line] (matchdecide) -- ++ (0cm,1cm) node[anchor=west, scale=0.7]{No} -| (hash.south);
+\path [line] (matchdecide)  |- ++ (0cm, -1.3cm) node[anchor=west, scale=0.7]{Yes} -| (end.south);
+\end{tikzpicture}
