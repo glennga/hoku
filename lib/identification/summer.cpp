@@ -168,14 +168,14 @@ Star::list Summer::match_remaining (const Star::list &candidates, const star_qua
 ///     - sql_limit
 /// @endcode
 ///
-/// @param s Stars to query with. This must be of length = 4.
+/// @param s Stars to query with. This must be of length = QUERY_STAR_SET_SIZE.
 /// @return A vector of likely matches found by the pyramid method.
 std::vector<Identification::labels_list> Summer::experiment_query (const Star::list &s) {
-    if (s.size() != 4) {
-        throw "Input list does not have exactly four stars.";
+    if (s.size() != QUERY_STAR_SET_SIZE) {
+        throw "Input list does not have exactly three stars.";
     }
     
-    double epsilon = 3.0 * this->parameters.sigma_query, a = Trio::planar_area(s[0], s[1], s[3]);
+    double epsilon = 3.0 * this->parameters.sigma_query, a = Trio::planar_area(s[0], s[1], s[2]);
     std::vector<labels_list> h_bar = {};
     Nibble::tuples_d area_match;
     
@@ -184,7 +184,7 @@ std::vector<Identification::labels_list> Summer::experiment_query (const Star::l
                                        this->parameters.sql_limit);
     
     // Next, search this trio for stars matching the moment condition.
-    double i = Trio::planar_moment(s[0], s[1], s[3]);
+    double i = Trio::planar_moment(s[0], s[1], s[2]);
     h_bar.reserve(area_match.size() / 4);
     for (Chomp::tuple_d t : area_match) {
         if (t[3] >= i - epsilon && t[3] < i + epsilon) {
@@ -206,12 +206,13 @@ std::vector<Identification::labels_list> Summer::experiment_query (const Star::l
 ///
 /// @param candidates All stars found near the inertial pair. This **will not** be used here.
 /// @param r Inertial (frame R) pair of stars that match the body pair. This **will not** be used here.
-/// @param b Body (frame B) pair of stars that match the inertial pair. This must be of length = 4.
+/// @param b Body (frame B) pair of stars that match the inertial pair. This must be of length =
+/// FIRST_ALIGNMENT_STAR_SET_SIZE.
 /// @return NO_CONFIDENT_ALIGNMENT if an alignment quad cannot be found. Otherwise, body stars b with the attached
 /// labels of the inertial pair r.
 Star::list Summer::experiment_first_alignment (const Star::list &candidates [[maybe_unused]],
                                                const Star::list &r [[maybe_unused]], const Star::list &b) {
-    if (b.size() != 4) {
+    if (b.size() != FIRST_ALIGNMENT_STAR_SET_SIZE) {
         throw "Input list does not have exactly four stars.";
     }
     

@@ -13,7 +13,7 @@
 /// This namespace holds all namespaces and functions used to conduct every experiment with.
 namespace Experiment {
     const double WORKING_FOV = 20; ///< Field of view that all our test stars must be within.
-    const int SAMPLES = 50; ///< Number of samples to retrieve for each individual trial.
+    const int SAMPLES = 25; ///< Number of samples to retrieve for each individual trial.
     
     void present_benchmark (Chomp &, std::random_device &, Star::list &, Star &, double = 0);
     
@@ -64,8 +64,7 @@ namespace Experiment {
                     }
                     
                     // Log the results of the trial.
-                    lu.log_trial(
-                        {SQ_MIN, ss, static_cast<double> (r.size()), (set_existence(r, w) ? 1.0 : 0)});
+                    lu.log_trial({SQ_MIN, ss, static_cast<double> (r.size()), (set_existence(r, w) ? 1.0 : 0)});
                 }
             }
         }
@@ -100,8 +99,11 @@ namespace Experiment {
         void trial (Chomp &ch, Lumberjack &lu, const std::string &table_name) {
             Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
             std::random_device seed;
-            Star::list inertial, body;
+            Star::list inertial, inertial_j, body, body_j;
             Rotation q;
+            
+            inertial_j.reserve(T::FIRST_ALIGNMENT_STAR_SET_SIZE);
+            body_j.reserve(T::FIRST_ALIGNMENT_STAR_SET_SIZE);
             
             // Define our hyperparameters.
             p.sigma_overlay = FirstAlignment::SO_MIN, p.sigma_query = FirstAlignment::SQ_MIN, p.table_name = table_name;
@@ -116,9 +118,18 @@ namespace Experiment {
                         shift_body(seed, body, ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)),
                                    static_cast<signed> (body.size()));
                         
+                        // Construct our inertial and body subsets.
+                        inertial_j.clear(), body_j.clear();
+                        for (unsigned int j = 0; j < T::FIRST_ALIGNMENT_STAR_SET_SIZE; j++) {
+                            inertial_j.emplace_back(inertial[j]), body_j.emplace_back(body[j]);
+                        }
+                        
+                        // TODO: figure out what is wrong with this
                         // Perform a single trial.
                         Star::list w = T(Benchmark(seed, body, body[0], WORKING_FOV), p).experiment_first_alignment(
-                            inertial, {inertial[0], inertial[1]}, {body[0], body[1]});
+                            inertial, inertial_j, body_j);
+                        std::sort(w.begin(), w.end(), w.begin());
+                        std::sort(inertial.begin(), inertial.end(), inertial.begin());
                         
                         // Log the results of the trial.
                         lu.log_trial({FirstAlignment::SO_MIN, FirstAlignment::SQ_MIN,

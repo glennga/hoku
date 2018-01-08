@@ -42,8 +42,11 @@ class SphericalTriangle : public BaseTriangle {
     /// Default tree depth for calculating the spherical moment.
     static constexpr int DEFAULT_TD_H = 3;
     
-    /// Exact number of query stars required.
+    /// Exact number of query stars required for query experiment.
     static constexpr unsigned int QUERY_STAR_SET_SIZE = 3;
+    
+    /// Number of stars required for first alignment experiment.
+    static constexpr unsigned int FIRST_ALIGNMENT_STAR_SET_SIZE = 3;
   
   public:
     using BaseTriangle::Parameters;

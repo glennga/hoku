@@ -48,8 +48,11 @@ class Pyramid : public Identification {
     static const Parameters DEFAULT_PARAMETERS;
   
   public:
-    /// Exact number of query stars required.
-    static constexpr unsigned int QUERY_STAR_SET_SIZE = 3;
+    /// Exact number of query stars required for query experiment.
+    static constexpr unsigned int QUERY_STAR_SET_SIZE = 2;
+    
+    /// Number of stars required for first alignment experiment.
+    static constexpr unsigned int FIRST_ALIGNMENT_STAR_SET_SIZE = 4;
     
 #if !defined ENABLE_TESTING_ACCESS
   private:

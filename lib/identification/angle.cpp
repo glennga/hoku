@@ -139,10 +139,10 @@ Star::list Angle::check_assumptions (const Star::list &candidates, const Star::p
 ///     - sql_limit
 /// @endcode
 ///
-/// @param s Stars to query with. This must be of length = 2.
+/// @param s Stars to query with. This must be of length = QUERY_STAR_SET_SIZE.
 /// @return Vector of likely matches found by the angle method.
 std::vector<Identification::labels_list> Angle::experiment_query (const Star::list &s) {
-    if (s.size() != 2) {
+    if (s.size() != QUERY_STAR_SET_SIZE) {
         throw "Input list does not have exactly two stars.";
     }
     double epsilon = 3.0 * this->parameters.sigma_query, theta = Star::angle_between(s[0], s[1]);
@@ -169,11 +169,11 @@ std::vector<Identification::labels_list> Angle::experiment_query (const Star::li
 /// @endcode
 ///
 /// @param candidates All stars found near the inertial pair.
-/// @param r Inertial (frame R) pair of stars that match the body pair. This must be of length = 2.
-/// @param b Body (frame B) pair of stars that match the inertial pair. This must be of length = 2.
+/// @param r Inertial (frame R) pair of stars that match body pair. This must be length = FIRST_ALIGNMENT_STAR_SET_SIZE.
+/// @param b Body (frame B) pair of stars that match inertial pair. This must be length = FIRST_ALIGNMENT_STAR_SET_SIZE.
 /// @return Body stars b with the attached labels of the inertial pair r.
 Star::list Angle::experiment_first_alignment (const Star::list &candidates, const Star::list &r, const Star::list &b) {
-    if (r.size() != 2 || b.size() != 2) {
+    if (r.size() != FIRST_ALIGNMENT_STAR_SET_SIZE || b.size() != FIRST_ALIGNMENT_STAR_SET_SIZE) {
         throw "Input lists does not have exactly two stars.";
     }
     std::array<Star::list, 2> matches = {}, alignments = {};

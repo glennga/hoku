@@ -55,8 +55,11 @@ class Summer : public Identification {
     static const Parameters DEFAULT_PARAMETERS;
   
   public:
-    /// Exact number of query stars required.
+    /// Exact number of query stars required for query experiment.
     static constexpr unsigned int QUERY_STAR_SET_SIZE = 3;
+    
+    /// Number of stars required for first alignment experiment.
+    static constexpr unsigned int FIRST_ALIGNMENT_STAR_SET_SIZE = 4;
 
 #if !defined ENABLE_TESTING_ACCESS
   private:
