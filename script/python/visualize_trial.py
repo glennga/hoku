@@ -22,7 +22,7 @@ import sys
 import numpy as np
 import visualize_base_trial as v
 
-# Points per variation, defined in each trial's header file.
+# Points per variation, defined in each experiment's header file.
 qu_ppv, al_ppv, r_ppv, sc_ppv, cr_ppv = 1000, 1000, 1000, 1000, 1000
 
 # Plot parameters for query trials.
@@ -114,6 +114,6 @@ def visualize_trial(angle_log, sphere_log, plane_log, pyramid_log, coin_log):
 
 # Perform the trials!
 if len(sys.argv) is not 6:
-    print('Usage: visualize-trial [angle-log] [sphere-log] [plane-log] [pyramid-log] [coin-log]')
+    print('Usage: visualize-experiment [angle-log] [sphere-log] [plane-log] [pyramid-log] [coin-log]')
 else:
     visualize_trial(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])

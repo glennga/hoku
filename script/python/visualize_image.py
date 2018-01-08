@@ -1,5 +1,5 @@
 """"
-This file is used to read the temporary files data/***.tmp and plot the stars with the id numbers as annotations. 
+This file is used to read the temporary files data/tmp/***.tmp and plot the stars with the id numbers as annotations. 
 This is visualized as a translucent 3D sphere cap (representing the Celestial sphere) with the current star vector 
 endpoints projected onto it. 
 
@@ -20,8 +20,6 @@ affected_1.i affected_1.j affected_1.k affected_1.bsc_id affected_1.plot_color
 .
 affected_n.i affected_n.j affected_n.k affected_n.bsc_id affected_n.plot_color
 """""
-
-
 
 import matplotlib.pyplot as plt
 import matplotlib
@@ -44,7 +42,7 @@ focus, stars, errors = [], [], []
 fov, norm = 0, 0
 
 # Parse the plot file.
-with open(os.environ['HOKU_PROJECT_PATH'] + '/data/logs/tmp/cuplt.tmp') as current_plot:
+with open(os.environ['HOKU_PROJECT_PATH'] + '/data/tmp/cuplt.tmp') as current_plot:
     # First, record the fov and norm.
     fov = float(current_plot.readline())
     norm = float(current_plot.readline())
@@ -61,7 +59,7 @@ with open(os.environ['HOKU_PROJECT_PATH'] + '/data/logs/tmp/cuplt.tmp') as curre
         stars.append(star)
 
 # Parse the error file.
-with open(os.environ['HOKU_PROJECT_PATH'] + '/data/logs/tmp/errplt.tmp') as error_plot:
+with open(os.environ['HOKU_PROJECT_PATH'] + '/data/tmp/errplt.tmp') as error_plot:
     for line in error_plot:
         error = []
 
@@ -84,7 +82,7 @@ sphere_x = np.outer(np.cos(u), np.sin(v))
 sphere_y = np.outer(np.sin(u), np.sin(v))
 sphere_z = np.outer(np.ones(np.size(u)), np.cos(v))
 # ax.plot_surface(sphere_x, sphere_y, sphere_z, color='b', alpha='0.1')
-ax.plot_wireframe(sphere_x, sphere_y, sphere_z, alpha='0.1' )
+ax.plot_wireframe(sphere_x, sphere_y, sphere_z, alpha='0.1')
 
 # Draw origin (if desired).
 if SHOW_QUIVER:
