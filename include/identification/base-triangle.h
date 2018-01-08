@@ -25,7 +25,7 @@ class BaseTriangle : public Identification {
     BaseTriangle ();
 
 #if !defined ENABLE_TESTING_ACCESS
-    protected:
+  protected:
 #endif
     /// Alias for a trio of index numbers for the input star list (3-element STL array of integers).
     using index_trio = std::array<int, 3>;
@@ -49,7 +49,7 @@ class BaseTriangle : public Identification {
     }
 
 #if !defined ENABLE_TESTING_ACCESS
-    protected:
+  protected:
 #endif
     std::vector<label_trio> e_query (double a, double i);
     Star::list e_single_alignment (const Star::list &candidates, const Trio::stars &r, const Trio::stars &b);
@@ -70,13 +70,13 @@ class BaseTriangle : public Identification {
     static const Trio::stars NO_CANDIDATE_STAR_SET_FOUND;
 
 #if !defined ENABLE_TESTING_ACCESS
-    protected:
+  protected:
 #endif
     /// All distinct index permutations of our input vector.
     std::deque<index_trio> p;
 
 #if !defined ENABLE_TESTING_ACCESS
-    private:
+  private:
 #endif
     std::vector<label_trio> query_for_trio (double a, double i);
     virtual std::vector<Trio::stars> match_stars (const index_trio &) = 0;

@@ -47,9 +47,9 @@ class Identification {
     
     /// Indicates that a table already exists upon a table creation attempt.
     static constexpr int TABLE_ALREADY_EXISTS = -1;
-    
+  
   public:
-    Identification();
+    Identification ();
     
     virtual std::vector<labels_list> experiment_query (const Star::list &s) = 0;
     virtual Star::list experiment_first_alignment (const Star::list &candidates, const Star::list &r,
@@ -63,14 +63,15 @@ class Identification {
     
     static const Star::list EXCEEDED_NU_MAX;
     static const Star::list NO_CONFIDENT_MATCH_SET;
+    static const Parameters DEFAULT_PARAMETERS;
 
 #if !defined ENABLE_TESTING_ACCESS
-    protected:
+  protected:
 #endif
     Star::list find_matches (const Star::list &candidates, const Rotation &q);
-    
+
 #if !defined ENABLE_TESTING_ACCESS
-    protected:
+  protected:
 #endif
     /// The star set we are working with. The catalog ID values are all set to 0 here.
     Star::list input;
