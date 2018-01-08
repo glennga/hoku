@@ -17,8 +17,14 @@ const Star::list Identification::EXCEEDED_NU_MAX = {Star::zero()};
 /// Returned when there exists no confident match set from a crown trial.
 const Star::list Identification::NO_CONFIDENT_MATCH_SET = {Star::define_label(Star::zero(), -1)};
 
+/// Default parameters for a general identification object.
+const Identification::Parameters Identification::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
+    DEFAULT_SIGMA_OVERLAY, DEFAULT_GAMMA, DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_TABLE_NAME};
+
 /// Constructor. We set our field-of-view to the default here.
-Identification::Identification () : fov(Benchmark::NO_FOV) {
+Identification::Identification () {
+    this->parameters = DEFAULT_PARAMETERS;
+    this->fov = Benchmark::NO_FOV;
 }
 
 /// Rotate every point the given rotation and check if the angle of separation between any two stars is within a

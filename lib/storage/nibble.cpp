@@ -5,6 +5,12 @@
 
 #include "storage/nibble.h"
 
+/// String of the HOKU_PROJECT_PATH environment variable.
+const std::string Nibble::PROJECT_LOCATION = std::getenv("HOKU_PROJECT_PATH");
+
+// Path of the Nibble database file.
+const std::string Nibble::DATABASE_LOCATION = PROJECT_LOCATION + "/data/nibble.db";
+
 /// Constructor. This dynamically allocates a database connection object to nibble.db. If the database does not exist,
 /// it is created.
 Nibble::Nibble () {

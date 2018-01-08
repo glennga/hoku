@@ -46,7 +46,11 @@ class Pyramid : public Identification {
     static int generate_table(double fov, const std::string &table_name);
     
     static const Parameters DEFAULT_PARAMETERS;
-
+  
+  public:
+    /// Exact number of query stars required.
+    static constexpr unsigned int QUERY_STAR_SET_SIZE = 3;
+    
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
