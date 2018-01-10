@@ -22,9 +22,10 @@ void Experiment::present_benchmark (Chomp &ch, std::random_device &seed, Star::l
     // We require at-least five stars to exist here.
     do {
         focus = Star::chance(seed);
-        body.clear(), body.reserve((unsigned int) WORKING_FOV * 4);
+        body.clear(), body.reserve(static_cast<unsigned int> (WORKING_FOV * 4));
         
-        for (const Star &s : ch.nearby_hip_stars(focus, WORKING_FOV / 2.0, (unsigned int) WORKING_FOV * 4)) {
+        for (const Star &s : ch.nearby_hip_stars(focus, WORKING_FOV / 2.0,
+                                                 static_cast<unsigned int> (WORKING_FOV * 4))) {
             if (s.get_magnitude() < m_bar) {
                 body.emplace_back(Rotation::rotate(s, q));
             }
@@ -67,7 +68,7 @@ Star::list Experiment::Query::generate_n_stars (Chomp &ch, const unsigned int n,
     
     // Find all stars near some random focus.
     focus = Star::chance(seed);
-    Star::list s_c = ch.nearby_bright_stars(focus, WORKING_FOV / 2.0, (unsigned int) WORKING_FOV * 4), s;
+    Star::list s_c = ch.nearby_bright_stars(focus, WORKING_FOV / 2.0, static_cast<unsigned int> (WORKING_FOV * 4)), s;
     std::shuffle(s_c.begin(), s_c.end(), mersenne_twister);
     
     // Insert n stars to s.
@@ -94,17 +95,20 @@ Star::list Experiment::Query::generate_n_stars (Chomp &ch, const unsigned int n,
 /// @param body Reference to the location to store the body list.
 /// @param inertial Reference to the location to store the inertial set of stars.
 /// @param q Reference to the location to store the rotation.
+/// @param focus Reference to the location to store the focus star.
 /// @param m_bar Minimum magnitude that all stars must be under.
 void Experiment::FirstAlignment::present_stars (Chomp &ch, std::random_device &seed, Star::list &body,
-                                                Star::list &inertial, Rotation &q, const double m_bar) {
+                                                Star::list &inertial, Rotation &q, Star &focus, const double m_bar) {
     std::mt19937_64 mersenne_twister(seed());
     q = Rotation::chance(seed);
     
     // We require at-least five stars to exist here.
     do {
-        inertial.clear(), inertial.reserve((unsigned int) WORKING_FOV * 4);
-        for (const Star &s : ch.nearby_hip_stars(Star::chance(seed), WORKING_FOV / 2.0,
-                                                 (unsigned int) WORKING_FOV * 4)) {
+        focus = Star::chance(seed);
+        
+        inertial.clear(), inertial.reserve(static_cast<unsigned int>(WORKING_FOV * 4));
+        for (const Star &s : ch.nearby_hip_stars(focus, WORKING_FOV / 2.0,
+                                                 static_cast<unsigned int>(WORKING_FOV * 4))) {
             if (s.get_magnitude() < m_bar) {
                 inertial.emplace_back(s);
             }
@@ -134,6 +138,21 @@ void Experiment::FirstAlignment::shift_body (std::random_device &seed, Star::lis
             candidates[i] = Rotation::shake(candidates[i], shift_sigma, seed);
         }
     }
+}
+
+/// Determine if the stars returned by a first alignment experiment have the correct labels.
+///
+/// @param w Reference to the location of our predicated body set.
+/// @param body_j Reference to our ground truth, our actual body subset (subset of the complete body set).
+/// @return True if body_j shares mutual information with w. False otherwise.
+bool Experiment::FirstAlignment::is_correctly_aligned (Star::list &w, Star::list &body_j) {
+    auto compare_labels = [] (const Star &s_1, const Star &s_2) -> bool {
+        return s_1.get_label() < s_2.get_label();
+    };
+    
+    // Sort each list by their labels, and determine if they are equal.
+    std::sort(w.begin(), w.end(), compare_labels), std::sort(body_j.begin(), body_j.end(), compare_labels);
+    return std::equal(w.begin(), w.end(), body_j.begin());
 }
 
 /// Determine if the stars a body subset matches the given inertial labels.
