@@ -158,11 +158,11 @@ Star::list Pyramid::match_remaining (const Star::list &candidates, const star_qu
 ///     - sql_limit
 /// @endcode
 ///
-/// @param s Stars to query with. This must be of length = 4.
+/// @param s Stars to query with. This must be of length = QUERY_STAR_SET_SIZE.
 /// @return Vector of likely matches found by the pyramid method.
 std::vector<Identification::labels_list> Pyramid::experiment_query (const Star::list &s) {
-    if (s.size() != 4) {
-        throw "Input list does not have exactly four stars.";
+    if (s.size() != QUERY_STAR_SET_SIZE) {
+        throw "Input list does not have exactly two stars.";
     }
     double epsilon = 3.0 * this->parameters.sigma_query, theta = Star::angle_between(s[0], s[1]);
     std::vector<labels_list> r_bar;
@@ -191,12 +191,13 @@ std::vector<Identification::labels_list> Pyramid::experiment_query (const Star::
 ///
 /// @param candidates All stars found near the inertial pair. This **will not** be used here.
 /// @param r Inertial (frame R) pair of stars that match the body pair. This **will not** be used here.
-/// @param b Body (frame B) pair of stars that match the inertial pair. This must be of length = 4.
+/// @param b Body (frame B) pair of stars that match the inertial pair. This must be of length =
+/// FIRST_ALIGNMENT_STAR_SET_SIZE.
 /// @return NO_CONFIDENT_ALIGNMENT if an alignment quad cannot be found. Otherwise, body stars b with the attached
 /// labels of the inertial pair r.
 Star::list Pyramid::experiment_first_alignment (const Star::list &candidates [[maybe_unused]],
                                                 const Star::list &r [[maybe_unused]], const Star::list &b) {
-    if (b.size() != 4) {
+    if (b.size() != FIRST_ALIGNMENT_STAR_SET_SIZE) {
         throw "Input list does not have exactly four stars.";
     }
     

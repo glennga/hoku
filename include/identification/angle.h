@@ -53,8 +53,11 @@ class Angle : public Identification {
     static const Star::pair NO_CANDIDATE_PAIR_FOUND;
   
   public:
-    /// Exact number of query stars required.
+    /// Exact number of query stars required for query experiment.
     static constexpr unsigned int QUERY_STAR_SET_SIZE = 2;
+    
+    /// Number of stars required for first alignment experiment.
+    static constexpr unsigned int FIRST_ALIGNMENT_STAR_SET_SIZE = 2;
 
 #if !defined ENABLE_TESTING_ACCESS
   private:

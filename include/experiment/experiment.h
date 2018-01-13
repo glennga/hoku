@@ -13,7 +13,7 @@
 /// This namespace holds all namespaces and functions used to conduct every experiment with.
 namespace Experiment {
     const double WORKING_FOV = 20; ///< Field of view that all our test stars must be within.
-    const int SAMPLES = 50; ///< Number of samples to retrieve for each individual trial.
+    const int SAMPLES = 10; ///< Number of samples to retrieve for each individual trial.
     
     void present_benchmark (Chomp &, std::random_device &, Star::list &, Star &, double = 0);
     
@@ -64,8 +64,7 @@ namespace Experiment {
                     }
                     
                     // Log the results of the trial.
-                    lu.log_trial(
-                        {SQ_MIN, ss, static_cast<double> (r.size()), (set_existence(r, w) ? 1.0 : 0)});
+                    lu.log_trial({SQ_MIN, ss, static_cast<double> (r.size()), (set_existence(r, w) ? 1.0 : 0)});
                 }
             }
         }
@@ -82,12 +81,13 @@ namespace Experiment {
         const double SS_MULT = 0.0000001; ///< Shift sigma multiplier for each variation.
         const int SS_ITER = 5; ///< Number of shift sigma variations.
         
-        const double MB_MIN = 6.0; ///< Minimum magnitude bound.
+        const double MB_MIN = 5.0; ///< Minimum magnitude bound.
         const double MB_STEP = 0.25; ///< Step to increment magnitude bound with for each variation.
         const int MB_ITER = 5; ///< Number of magnitude bound variations.
         
-        void present_stars (Chomp &, std::random_device &, Star::list &, Star::list &, Rotation &, double);
+        void present_stars (Chomp &, std::random_device &, Star::list &, Star::list &, Rotation &, Star &, double);
         void shift_body (std::random_device &, Star::list &, double, int);
+        bool is_correctly_aligned(Star::list &, Star::list &);
         
         /// Generic experiment function for the first alignment trials. Performs a first alignment trial and records
         /// the experiment in the lumberjack. The provided Nibble connection is used for generating the input image.
@@ -100,8 +100,12 @@ namespace Experiment {
         void trial (Chomp &ch, Lumberjack &lu, const std::string &table_name) {
             Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
             std::random_device seed;
-            Star::list inertial, body;
+            Star::list inertial, inertial_j, body, body_j;
             Rotation q;
+            Star focus;
+            
+            inertial_j.reserve(T::FIRST_ALIGNMENT_STAR_SET_SIZE);
+            body_j.reserve(T::FIRST_ALIGNMENT_STAR_SET_SIZE);
             
             // Define our hyperparameters.
             p.sigma_overlay = FirstAlignment::SO_MIN, p.sigma_query = FirstAlignment::SQ_MIN, p.table_name = table_name;
@@ -112,18 +116,24 @@ namespace Experiment {
                     
                     // Repeat each trial n = SAMPLES times.
                     for (int i = 0; i < SAMPLES; i++) {
-                        present_stars(ch, seed, body, inertial, q, (MB_MIN + mb_i * MB_STEP));
+                        present_stars(ch, seed, body, inertial, q, focus, (MB_MIN + mb_i * MB_STEP));
                         shift_body(seed, body, ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)),
                                    static_cast<signed> (body.size()));
                         
+                        // Construct our inertial and body subsets.
+                        inertial_j.clear(), body_j.clear();
+                        for (unsigned int j = 0; j < T::FIRST_ALIGNMENT_STAR_SET_SIZE; j++) {
+                            inertial_j.emplace_back(inertial[j]), body_j.emplace_back(body[j]);
+                        }
+                        
                         // Perform a single trial.
-                        Star::list w = T(Benchmark(seed, body, body[0], WORKING_FOV), p).experiment_first_alignment(
-                            inertial, {inertial[0], inertial[1]}, {body[0], body[1]});
+                        Star::list w = T(Benchmark(seed, body, focus, WORKING_FOV), p).experiment_first_alignment(
+                            inertial, inertial_j, body_j);
                         
                         // Log the results of the trial.
                         lu.log_trial({FirstAlignment::SO_MIN, FirstAlignment::SQ_MIN,
                                          ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)), MB_MIN + mb_i * MB_STEP,
-                                         (std::equal(w.begin(), w.end(), inertial.begin()) ? 1.0 : 0)});
+                                         (is_correctly_aligned(w, body_j) ? 1.0 : 0)});
                     }
                 }
             }
@@ -159,7 +169,7 @@ namespace Experiment {
             Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
             std::random_device seed;
             Star::list body;
-            unsigned int nu;
+            unsigned int nu = 0;
             Star focus;
             
             // Define our hyperparameters.
@@ -223,7 +233,7 @@ namespace Experiment {
             Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
             std::random_device seed;
             Star::list body;
-            unsigned int nu;
+            unsigned int nu = 0;
             Star focus;
             
             // Define our hyperparameters.
@@ -292,7 +302,7 @@ namespace Experiment {
             Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
             std::random_device seed;
             Star::list body;
-            unsigned int nu;
+            unsigned int nu = 0;
             Star focus;
             
             // Define our hyperparameters.

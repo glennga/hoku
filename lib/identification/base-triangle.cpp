@@ -373,7 +373,7 @@ Star::list BaseTriangle::e_crown () {
                 }
                 
                 // Find candidate stars around the candidate trio.
-                candidates = ch.nearby_hip_stars(candidate_trio[0], fov, (unsigned int) (3.0 * input.size()));
+                candidates = ch.nearby_hip_stars(candidate_trio[0], fov, static_cast<unsigned int>(3.0 * input.size()));
                 
                 // Check all possible configurations. Return the most likely.
                 matches = check_assumptions(candidates, candidate_trio, {i, j, k});

@@ -188,7 +188,7 @@ int main (int argc, char *argv[]) {
         }
     }
     
-    // Create the desired table if specified. Capitalize our identifier name.
+    // Create the desired table if specified. Capitalize our trial name.
     std::string arg_1 = std::string(argv[1]), trial_name = std::string(argv[1]);
     if (arg_1 == "create-table") {
         return create_lumberjack_table(trial_name);

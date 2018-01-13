@@ -54,10 +54,10 @@ std::vector<Trio::stars> Plane::match_stars (const index_trio &i_b) {
 ///     - sql_limit
 /// @endcode
 ///
-/// @param s Stars to query with. This must be of length = 3.
+/// @param s Stars to query with. This must be of length = QUERY_STAR_SET_SIZE.
 /// @return Vector of likely matches found by the planar triangle method.
 std::vector<Identification::labels_list> Plane::experiment_query (const Star::list &s) {
-    if (s.size() != 3) {
+    if (s.size() != QUERY_STAR_SET_SIZE) {
         throw "Input list does not have exactly three stars.";
     }
     
@@ -79,11 +79,11 @@ std::vector<Identification::labels_list> Plane::experiment_query (const Star::li
 /// @endcode
 ///
 /// @param candidates All stars found near the inertial pair.
-/// @param r Inertial (frame R) pair of stars that match the body pair. This must be of length = 3.
-/// @param b Body (frame B) pair of stars that match the inertial pair. This must be of length = 3.
+/// @param r Inertial (frame R) pair of stars that match body pair. This must be length = FIRST_ALIGNMENT_STAR_SET_SIZE.
+/// @param b Body (frame B) pair of stars that match inertial pair. This must be length = FIRST_ALIGNMENT_STAR_SET_SIZE.
 /// @return Body stars b with the attached labels of the inertial pair r.
 Star::list Plane::experiment_first_alignment (const Star::list &candidates, const Star::list &r, const Star::list &b) {
-    if (r.size() != 3 || b.size() != 3) {
+    if (r.size() != FIRST_ALIGNMENT_STAR_SET_SIZE || b.size() != FIRST_ALIGNMENT_STAR_SET_SIZE) {
         throw "Input lists does not have exactly three stars.";
     }
     return e_single_alignment(candidates, {r[0], r[1], r[2]}, {b[0], b[1], b[2]});

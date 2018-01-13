@@ -1,1 +1,26 @@
-\section{
+\section{Introduction}
+Ancient mariners could look up the night sky, point out what stars they were looking at, and navigate across the globe with precision. \textit{Star identification algorithm} refers to a computational approach to pointing out which stars are in the sky. If we take an image of the sky, star identification is matching the bright spots in an image, to stars in an astronomical catalog. The device that performs these computations is the star tracker, much like the navigators on the ship. \textit{Lost-in-space} refers to an additional constraint on the problem: the absence of knowing where we took the picture and how we pointed the camera.
+
+This problem is most prevalent in designing  LEO (low Earth orbit) spacecraft. In order for a craft to point a payload, direct thrusters, or orient it's solar panels, an accurate attitude must be known. There are a few known landmarks in space where some attitude can be extracted (the Earth, the Sun), but this requires constant direction towards just these objects. Star trackers do not limit themselves to a single object, rather they use the entire sky of stars to determine it's orientation. 
+
+Most lost in space star identification methods involve the following process:
+\begin{enumerate}
+\item Given an image of stars.
+\item Identify a select few stars in the image.
+\item Guess how we are oriented.
+\item Identify the rest of the stars in the image.
+\item Finalize and determine our orientation.
+\end{enumerate}
+
+We have compared four existing identification methods, and their feature uniqueness, permutation order, candidate reduction, and alignment determination under the presence of various types of noise. 
+
+We have compared four existing identification methods, as well ...
+
+\subsection{Motivation}
+There has been an increasing number of approaches toward stellar attitude determination, but little comparison between each of these methods. 
+
+
+
+Lost-in-space star identification 
+
+has the most application in LEO (low Earth orbit) spacecraft attitude determination. 
