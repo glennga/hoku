@@ -309,7 +309,7 @@ TEST(PlaneTrial, CleanAlignment) {
     Chomp ch;
     Rotation q = Rotation::chance(seed);
     Star focus = Star::chance(seed);
-    unsigned int nu;
+    unsigned int nu = 0;
     Plane::Parameters p = Plane::DEFAULT_PARAMETERS;
     p.sigma_query = 10e-9;
     p.sigma_overlay = 0.000001;

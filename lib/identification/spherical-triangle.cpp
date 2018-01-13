@@ -19,9 +19,6 @@ SphericalTriangle::SphericalTriangle (const Benchmark &input, const Parameters &
     this->parameters = parameters;
     
     ch.select_table(this->parameters.table_name);
-    if (!this->input.empty()) {
-        generate_permutations();
-    }
 }
 
 /// Generate the triangle table given the specified FOV and table name. This find the area and polar moment
