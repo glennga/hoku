@@ -1,0 +1,30 @@
+\section{Popular Approaches}
+
+\subsection{Gottlieb's Polygon Angular Matching Method}
+% QUESTION: do I cite https://digitalcommons.usu.edu/cgi/viewcontent.cgi?article=2723&context=etd for 
+% giving the overview, or Gottlieb's entry in the book (their reference) ?
+In 1978, Gottlieb (citation here) developed the Polygon Angular Matching method. Starting with an image, two stars $I_1 = (S_1, S_2)$ are selected arbitrarily. The corresponding angular separation between each of these stars from a defined observer is computed, which is denoted as $\theta^{12}$. All pairs in the catalog $C = (C_{11}, C_{12}), (C_{11}, C_{13}), ..., (C_i, C_j)$ are then selected such that:
+\begin{equation}
+| \theta(i, j) - \theta^{12} | < 3 \sigma
+\end{equation}
+where $\sigma$ represents the deviation of the uncertainty between the star sensor measurements and the points defined in the catalog. Assuming the noise follows a Gaussian distribution, it follows that 99.7\% of all true pairs will be within this range.
+
+If there exists more than one $(C_i, C_j)$ pair, then this process is repeated for $\theta^{13}, \theta^{14}, ...$ and so on until a unique pair is found.
+
+\subsection{Cole and Crassidus's Spherical Triangle Method}
+In 2004, Cole and Crassidus (citation here) developed the Spherical Triangle method. Starting with an image, three stars $I_1 = (S_1, S_2, S_3)$ are selected arbitrarily. Treating the trio as a spherical triangle, the spherical area and moment are computed. This is denoted as $a^{123}, \imath^{123}$. Similar to Gottlieb's method, star trios $C_1 = (C_{11}, C_{12}), C_{11}, C_{13}), ..., (C_i, C_j, C_k)$ are selected from the catalog such that the conditions hold:
+\begin{equation}
+| a(i, j, k) - a^{123} | < 3 \sigma_a
+\end{equation}
+\begin{equation}
+| \imath(i, j, k) - \imath^{123} | < 3\sigma_{\imath}
+\end{equation}
+where $\sigma_a$ and $\sigma_{\imath}$ represent the deviation of measurement-catalog uncertainty for the spherical area and moment respectively. 
+
+If there exists more than one $(C_i, C_j, C_k)$ pair, then a \textit{pivot} is performed to find $a^{124}$ and $\imath^{124}$. Catalog star trios $C_2$ are retrieved, and we find the all sets $C_m$ where at least two stars in $C_1$ exist in 
+
+\subsection{Cole and Crassidus's Planar Triangle Method}
+In 2006, Cole and Crassidus (citation here) developed the Planar Triangle method. 
+
+\subsection{Motari's Pyramid Star Identification Method}
+
