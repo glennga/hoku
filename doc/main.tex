@@ -3,7 +3,7 @@
 \usepackage{graphicx} \usepackage{url} 
 \usepackage{amsmath} \usepackage{amssymb}
 \usepackage{listings} \usepackage{color} \usepackage{textcomp}
-\usepackage[utf8]{inputenc} \usepackage{cite}
+\usepackage[utf8]{inputenc} \usepackage{natbib}
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 \DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{8} % for bold
@@ -14,7 +14,6 @@
     stringstyle=\color{deepgreen}, commentstyle=\color{deepgreen},
     showstringspaces=false, breaklines=true, showspaces=false, showtabs=false,
     basicstyle=\footnotesize, literate={\ \ }{{\ }}1 }
-\linespread{1.5}
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
 \title{Analysis of Lost-in-Space Star Identification Algorithms} \author{Glenn Galvizo} 
@@ -26,13 +25,18 @@
 \input{abstract}
 
 % Background.
+\input{background}
 
 % Existing Solutions.
+\input{existing}
 
 % Evaluation.
 
 % Conclusion.
 
 % References. 
+\nocite{*}
+\bibliographystyle{unsrt}
+\bibliography{references} 
 
 \end{document}
