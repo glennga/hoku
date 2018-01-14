@@ -1,9 +1,10 @@
 \documentclass[conference]{IEEEtran} 
 
-\usepackage{graphicx} \usepackage{url} 
+\usepackage{graphicx} \usepackage{url} \usepackage{hyperref} 
 \usepackage{amsmath} \usepackage{amssymb}
 \usepackage{listings} \usepackage{color} \usepackage{textcomp}
-\usepackage[utf8]{inputenc} \usepackage{natbib}
+\usepackage[utf8]{inputenc} \usepackage{natbib} \usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 \DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{8} % for bold
@@ -29,6 +30,9 @@
 
 % Existing Solutions.
 \input{existing}
+
+% Methodology
+\input{methods}
 
 % Evaluation.
 

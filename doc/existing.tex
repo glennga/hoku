@@ -11,8 +11,26 @@ where $\sigma$ represents the deviation of the uncertainty between the star sens
 
 If there exists more than one $(C_i, C_j)$ pair, then this process is repeated for $\theta^{13}, \theta^{14}, ...$ and so on until a unique pair is found.
 
+\begin{algorithm}
+\caption{Reduction for Angle Method}\label{Angle Reduction}
+\begin{algorithmic}[1]
+
+\Procedure{Catalog Search}{}
+\State $I \gets \text{all stars from image}$
+\For{$i \gets 1 \text{\textbf{ to }} |I|$}
+\For{$j \gets i + 1 \text{\textbf{ to }} |I| - 1$}
+\State $C \gets \text{catalog stars s.t. } |\theta(\bar{i}, \bar{j}) - \theta^{ij}| < 3\sigma$
+\If{$|C| = 1$}
+\State \textbf{return} $C$
+\EndIf
+\EndFor
+\EndFor
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
 \subsection{Cole and Crassidus's Spherical Triangle Method}
-In 2004, Cole and Crassidus (citation here) developed the Spherical Triangle method. Starting with an image, three stars $I_1 = (S_1, S_2, S_3)$ are selected arbitrarily. Treating the trio as a spherical triangle, the spherical area and moment are computed. This is denoted as $a^{123}, \imath^{123}$. Similar to Gottlieb's method, star trios $C_1 = (C_{11}, C_{12}), C_{11}, C_{13}), ..., (C_i, C_j, C_k)$ are selected from the catalog such that the conditions hold:
+In 2004, Cole and Crassidus (citation here) developed the Spherical Triangle method. Starting with an image, three stars $I_1 = (S_1, S_2, S_3)$ are selected arbitrarily. Treating the trio as a spherical triangle, the spherical area and moment are computed. This is denoted as $a^{123}, \imath^{123}$. Similar to Gottlieb's method, star trios $C = (C_{11}, C_{12}), C_{11}, C_{13}), ..., (C_i, C_j, C_k)$ are selected from the catalog such that the conditions hold:
 \begin{equation}
 | a(i, j, k) - a^{123} | < 3 \sigma_a
 \end{equation}
@@ -21,10 +39,67 @@ In 2004, Cole and Crassidus (citation here) developed the Spherical Triangle met
 \end{equation}
 where $\sigma_a$ and $\sigma_{\imath}$ represent the deviation of measurement-catalog uncertainty for the spherical area and moment respectively. 
 
-If there exists more than one $(C_i, C_j, C_k)$ pair, then a \textit{pivot} is performed to find $a^{124}$ and $\imath^{124}$. Catalog star trios $C_2$ are retrieved, and we find the all sets $C_m$ where at least two stars in $C_1$ exist in 
+If there exists more than one $(C_i, C_j, C_k)$ pair, then a \textit{pivot} is performed to find $a^{124}$ and $\imath^{124}$. Catalog star trios $C_2$ are retrieved, and we find the all sets $P_1$ where at least two stars in $C_1$ exist in $C_2$. This process is repeated for $C_3, C_4, ..., C_N$ until a unique trio is found. 
+\begin{algorithm}
+\caption{Pivot Reduction for Triangle Methods}\label{Pivot}
+\begin{algorithmic}[1]
+
+% Return only elements in C, reduce using C_p
+\Function{PartialMatch}{$C, C_p$}
+\State $C_m \gets \emptyset$
+\For{$\bar{C} \text{\textbf{ in }} C$}
+\For{$\bar{C_p} \text{\textbf{ in }} C_p$}
+\If{two elements in $\bar{C}$ exist in $\bar{C_p}$} 
+\State $C_m \gets C_m || \bar{C}$
+\State \textbf{break}
+\EndIf
+\EndFor
+\EndFor
+\State \textbf{return} $C_m$
+\EndFunction
+\\
+
+\Function{Pivot}{$I_i, I_j, I_k, C_p$}
+%\State $a^{ijk} \gets \text{area of} (I_i, I_j, I_k)$
+%\State $i^{ijk} \gets \text{moment of} (I_i, I_j, I_k)$
+%\\
+\State $C_a \gets \text{catalog stars s.t. } |a(\bar{i}, \bar{j}, \bar{k}) - a^{ijk}| < 3 \sigma_a$
+\State $C_{\imath} \gets \text{catalog stars s.t. } |\imath(\bar{i}, \bar{j}, \bar{k}) - \imath^{ijk}| < 3 \sigma_{\imath}$
+\State $C \gets $ \Call{PartialMatch}{$(C_a \cap C_{\imath}), C_p$}
+\\
+
+\If{$|C| = 1$}
+\State \textbf{return} $C$
+\ElsIf{$|C| = 0$}
+\State \textbf{return} $\emptyset$
+\Else
+\State $\hat{I_k} \gets \text{an unused index of } I$
+\State \textbf{return} \Call{Pivot}{$I_i, I_j, \hat{I_k}$}
+\EndIf
+\EndFunction
+\\
+
+\Procedure{Catalog Search}{}
+\State $I \gets \text{all stars from image}$
+\For{$i \gets 1 \text{\textbf{ to }} |I|$}
+\For{$j \gets i + 1 \text{\textbf{ to }} |I| - 1$}
+\For{$k \gets j + 1\text{\textbf{ to }} |I| - 2$}
+\State $M \gets$ \Call{Pivot}{$I_i, I_j, I_k, I$}
+\If{$M \neq \emptyset$}
+\State \textbf{return} $M$
+\EndIf
+\EndFor
+\EndFor
+\EndFor
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
 
 \subsection{Cole and Crassidus's Planar Triangle Method}
-In 2006, Cole and Crassidus (citation here) developed the Planar Triangle method. 
+In 2006, Cole and Crassidus (citation here) developed the Planar Triangle method. This is identical to their Spherical Triangle method, with the exception that each image trio $I = (S_i, S_j, S_k)$ is represented as a planar triangle instead of a spherical one. 
+
+Computing the spherical moment requires the use of recursion, which could be costly in slower hardware to obtain more precision. The Planar Triangle method avoids this by computing the planar area and moment instead, which do not require this recursive step.
 
 \subsection{Motari's Pyramid Star Identification Method}
+In 2004, Motari (citation here) developed the Pyramid method. 
 
