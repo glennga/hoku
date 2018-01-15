@@ -42,6 +42,12 @@ class SphericalTriangle : public BaseTriangle {
     /// Default tree depth for calculating the spherical moment.
     static constexpr int DEFAULT_TD_H = 3;
     
+    /// Exact number of query stars required for query experiment.
+    static constexpr unsigned int QUERY_STAR_SET_SIZE = 3;
+    
+    /// Number of stars required for first alignment experiment.
+    static constexpr unsigned int FIRST_ALIGNMENT_STAR_SET_SIZE = 3;
+  
   public:
     using BaseTriangle::Parameters;
     static const Parameters DEFAULT_PARAMETERS;
@@ -49,13 +55,12 @@ class SphericalTriangle : public BaseTriangle {
     SphericalTriangle (const Benchmark &, const Parameters &);
     
     std::vector<labels_list> experiment_query (const Star::list &s);
-    Star::list experiment_first_alignment (const Star::list &candidates, const Star::list &r,
-                                           const Star::list &b);
+    Star::list experiment_first_alignment (const Star::list &candidates, const Star::list &r, const Star::list &b);
     labels_list experiment_reduction ();
     Star::list experiment_alignment ();
     Star::list experiment_crown ();
     
-    static int generate_table(double fov, const std::string &table_name);
+    static int generate_table (double fov, const std::string &table_name);
 
 #if !defined ENABLE_TESTING_ACCESS
   private:

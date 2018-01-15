@@ -52,7 +52,14 @@ class PlanarTriangle : public BaseTriangle {
     Star::list experiment_crown ();
     
     static int generate_table(double fov, const std::string &table_name);
-
+  
+  public:
+    /// Exact number of query stars required for query experiment.
+    static constexpr unsigned int QUERY_STAR_SET_SIZE = 3;
+    
+    /// Number of stars required for first alignment experiment.
+    static constexpr unsigned int FIRST_ALIGNMENT_STAR_SET_SIZE = 3;
+    
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif

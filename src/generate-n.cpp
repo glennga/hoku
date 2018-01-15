@@ -6,29 +6,29 @@
 /// produce.
 ///
 /// @code{.cpp}
-/// - 0 -> Produce the bright stars (< 6.0) table from the Hipparcos catalog.
-/// - 1 -> Produce the hip stars (no magnitude restriction) table from the Hipparcos catalog.
-/// - 2 -> Produce table for Angle method.
-/// - 3 -> Produce table for SphericalTriangle method.
-/// - 4 -> Produce table for PlanarTriangle method.
-/// - 5 -> Produce table for Pyramid method.
-/// - 6 -> Produce table for Summer method.
+/// - bright -> Produce the bright stars (< 6.0) table from the Hipparcos catalog.
+/// - hip -> Produce the hip stars (no magnitude restriction) table from the Hipparcos catalog.
+/// - angle -> Produce table for Angle method.
+/// - sphere -> Produce table for SphericalTriangle method.
+/// - plane -> Produce table for PlanarTriangle method.
+/// - pyramid -> Produce table for Pyramid method.
+/// - summer -> Produce table for Summer method.
 ///
 /// - x k -> Produce K-Vector table for the given method (valid above 1).
 /// - x d -> Delete all tables for the given method.
 /// @endcode
 /// @example
 /// @code{.cpp}
-/// # Produce the SEP table for the Angle method. After this is done, produce the K-Vector table for SEP.
-/// GenerateN 2 k
+/// # Produce the table for the Angle method. After this is done, produce the K-Vector table for SEP.
+/// GenerateN angle k
 /// @endcode
 
 #include <iostream>
 #include "identification/angle.h"
 #include "identification/spherical-triangle.h"
 #include "identification/planar-triangle.h"
-//#include "identification/pyramid.h"
-//#include "identification/coin.h"
+#include "identification/pyramid.h"
+#include "identification/summer.h"
 
 /// Defining characteristics of the Nibble tables generated.
 namespace DCNT {
@@ -36,32 +36,50 @@ namespace DCNT {
     
     static const char *BRIGHT_HIP_NAME = "HIP_BRIGHT"; ///< Name of star catalog table w/ magnitude < 6.0 restriction.
     static const char *HIP_NAME = "HIP"; ///< Name of star catalog table w/o magnitude restrictions.
-    static const char *ANGLE_NAME = "ANG_20"; ///< Name of table generated for Angle method.
+    static const char *ANGLE_NAME = "ANGLE_20"; ///< Name of table generated for Angle method.
     static const char *SPHERE_NAME = "SPHERE_20"; ///< Name of table generated for SphericalTriangle method.
     static const char *PLANE_NAME = "PLANE_20"; ///< Name of table generated for PlanarTriangle method.
-    static const char *PYRAMID_NAME = "PYRA_20"; ///< Name of table generated for Pyramid method.
-    static const char *COIN_NAME = "HOKU_20"; ///< Name of table generated for Hoku method.
+    static const char *PYRAMID_NAME = "PYRAMID_20"; ///< Name of table generated for Pyramid method.
+    static const char *SUMMER_NAME = "SUMMER_20"; ///< Name of table generated for Summer method.
     
     static const char *KVEC_ANGLE_FOCUS = "theta"; ///< Focus attribute for K-Vector Angle table.
     static const char *KVEC_SPHERE_FOCUS = "a"; ///< Focus attribute for K-Vector SphericalTriangle table.
     static const char *KVEC_PLANE_FOCUS = "a"; ///< Focus attribute for K-Vector PlanarTriangle table.
     static const char *KVEC_PYRAMID_FOCUS = "theta"; ///< Focus attribute for K-Vector Pyramid table.
-    static const char *KVEC_HOKU_FOCUS = "cx"; ///< Focus attribute for K-Vector Hoku table.
+    static const char *KVEC_SUMMER_FOCUS = "a"; ///< Focus attribute for K-Vector Summer table.
+    
+    static const int BRIGHT_TABLE_HASH = 0; ///< Index of bright table choice in choice space.
+    static const int HIP_TABLE_HASH = 1; ///< Index of hip table choice in choice space.
+    static const int ANGLE_TABLE_HASH = 2; ///< Index of angle table choice in choice space.
+    static const int SPHERE_TABLE_HASH = 3; ///< Index of sphere table choice in choice space.
+    static const int PLANE_TABLE_HASH = 4; ///< Index of plane table choice in choice space.
+    static const int PYRAMID_TABLE_HASH = 5; ///< Index of pyramid table choice in choice space.
+    static const int SUMMER_TABLE_HASH = 6; ///< Index of summer table choice in choice space.
+}
+
+/// Convert our choice string into an integer for the switch statements.
+///
+/// @param choice Name associated with table to hash for.
+/// @return Unique integer associated with the choice.
+int choice_hash (const std::string &choice) {
+    std::array<std::string, 7> choice_space = {"bright", "hip", "angle", "sphere", "plane", "pyramid", "summer"};
+    return static_cast<int> (std::distance(choice_space.begin(),
+                                           std::find(choice_space.begin(), choice_space.end(), choice)));
 }
 
 /// Given the table choice, remove the given table and the K-Vector table if they exist.
 ///
-/// @param choice Number associated with the table to remove.
-void remove_table (const int choice) {
+/// @param choice Name associated with the table to remove.
+void remove_table (const std::string &choice) {
     auto choose_table = [&choice] () -> std::string {
-        switch (choice) {
-            case 0: return DCNT::BRIGHT_HIP_NAME;
-            case 1: return DCNT::HIP_NAME;
-            case 2: return DCNT::ANGLE_NAME;
-            case 3: return DCNT::SPHERE_NAME;
-            case 4: return DCNT::PLANE_NAME;
-            case 5: return DCNT::PYRAMID_NAME;
-            case 6: return DCNT::COIN_NAME;
+        switch (choice_hash(choice)) {
+            case DCNT::BRIGHT_TABLE_HASH: return DCNT::BRIGHT_HIP_NAME;
+            case DCNT::HIP_TABLE_HASH: return DCNT::HIP_NAME;
+            case DCNT::ANGLE_TABLE_HASH: return DCNT::ANGLE_NAME;
+            case DCNT::SPHERE_TABLE_HASH: return DCNT::SPHERE_NAME;
+            case DCNT::PLANE_TABLE_HASH: return DCNT::PLANE_NAME;
+            case DCNT::PYRAMID_TABLE_HASH: return DCNT::PYRAMID_NAME;
+            case DCNT::SUMMER_TABLE_HASH: return DCNT::SUMMER_NAME;
             default: throw "Table choice is not within space {0, 1, 2, 3, 4, 5, 6}.";
         }
     };
@@ -78,47 +96,50 @@ void remove_table (const int choice) {
 /// Given the table choice, attempt to generate the specified table. Error handling should occur within the table
 /// generation functions themselves.
 ///
-/// @param choice Number associated with the table to generate.
-void generate_table (const int choice) {
+/// @param choice Name associated with the table to generate.
+void generate_table (const std::string &choice) {
     auto display_result = [] (const int r) -> void {
-        std::cout << ((r == Nibble::TABLE_NOT_CREATED) ? "Table already exists." : "Table was created successfully")
+        std::cout << ((r == Nibble::TABLE_NOT_CREATED) ? "Table already exists." : "Table was created successfully.")
                   << std::endl;
     };
     
-    switch (choice) {
-        case 0: return display_result(Chomp().generate_bright_table());
-        case 1: return display_result(Chomp().generate_hip_table());
-        case 2: return display_result(Angle::generate_table(DCNT::FOV, DCNT::ANGLE_NAME));
-        case 3: return display_result(Sphere::generate_table(DCNT::FOV, DCNT::SPHERE_NAME));
-        case 4: return display_result(Plane::generate_table(DCNT::FOV, DCNT::PLANE_NAME));
-            //        case 5: return (void) Pyramid::generate_sep_table(DCNT::FOV, DCNT::PYRAMID_NAME);
-            //        case 6: return (void) Summer::generate_triangle_table(DCNT::FOV, DCNT::COIN_NAME);
+    switch (choice_hash(choice)) {
+        case DCNT::BRIGHT_TABLE_HASH: return display_result(Chomp().generate_bright_table());
+        case DCNT::HIP_TABLE_HASH: return display_result(Chomp().generate_hip_table());
+        case DCNT::ANGLE_TABLE_HASH: return display_result(Angle::generate_table(DCNT::FOV, DCNT::ANGLE_NAME));
+        case DCNT::SPHERE_TABLE_HASH: return display_result(Sphere::generate_table(DCNT::FOV, DCNT::SPHERE_NAME));
+        case DCNT::PLANE_TABLE_HASH: return display_result(Plane::generate_table(DCNT::FOV, DCNT::PLANE_NAME));
+        case DCNT::PYRAMID_TABLE_HASH: return display_result(Pyramid::generate_table(DCNT::FOV, DCNT::PYRAMID_NAME));
+        case DCNT::SUMMER_TABLE_HASH: return display_result(Summer::generate_table(DCNT::FOV, DCNT::SUMMER_NAME));
         default: throw "Table choice is not within space {0, 1, 2, 3, 4, 5, 6}.";
     }
 }
 
 /// Given the table choice, attempt to generate the K-Vector for the specified table and the predefined focus attribute.
 ///
-/// @param choice Number associated with the table to generate.
-void generate_kvec_table (const int choice) {
+/// @param choice Name associated with the table to generate.
+void generate_kvec_table (const std::string &choice) {
     Chomp ch;
     
     // Polish the selected table. Create the K-Vector for the given table using the given focus.
     auto create_and_polish = [&ch] (const std::string &table, const std::string &focus) -> void {
         ch.select_table(table);
         ch.polish_table(focus);
-        std::cout << ((ch.create_k_vector(focus) == Nibble::TABLE_NOT_CREATED) ? "K-Vector table already exists." :
-                      "K-Vector table was created successfully.") << std::endl;
+        
+        auto response = (ch.create_k_vector(focus) == Nibble::TABLE_NOT_CREATED) ? "K-Vector table already exists."
+                                                                                 : "K-Vector table was created "
+                            "successfully.";
+        std::cout << response << std::endl;
     };
     
-    switch (choice) {
-        case 0: throw "Cannot generate KVEC table for star catalog table.";
-        case 1: throw "Cannot generate KVEC table for star catalog table.";
-        case 2: return create_and_polish(DCNT::ANGLE_NAME, DCNT::KVEC_ANGLE_FOCUS);
-        case 3: return create_and_polish(DCNT::SPHERE_NAME, DCNT::KVEC_SPHERE_FOCUS);
-        case 4: return create_and_polish(DCNT::PLANE_NAME, DCNT::KVEC_PLANE_FOCUS);
-        case 5: return create_and_polish(DCNT::PYRAMID_NAME, DCNT::KVEC_PYRAMID_FOCUS);
-        case 6: return create_and_polish(DCNT::COIN_NAME, DCNT::KVEC_HOKU_FOCUS);
+    switch (choice_hash(choice)) {
+        case DCNT::BRIGHT_TABLE_HASH: throw "Cannot generate KVEC table for star catalog table.";
+        case DCNT::HIP_TABLE_HASH: throw "Cannot generate KVEC table for star catalog table.";
+        case DCNT::ANGLE_TABLE_HASH: return create_and_polish(DCNT::ANGLE_NAME, DCNT::KVEC_ANGLE_FOCUS);
+        case DCNT::SPHERE_TABLE_HASH: return create_and_polish(DCNT::SPHERE_NAME, DCNT::KVEC_SPHERE_FOCUS);
+        case DCNT::PLANE_TABLE_HASH: return create_and_polish(DCNT::PLANE_NAME, DCNT::KVEC_PLANE_FOCUS);
+        case DCNT::PYRAMID_TABLE_HASH: return create_and_polish(DCNT::PYRAMID_NAME, DCNT::KVEC_PYRAMID_FOCUS);
+        case DCNT::SUMMER_TABLE_HASH: return create_and_polish(DCNT::SUMMER_NAME, DCNT::KVEC_SUMMER_FOCUS);
         default: throw "Table choice is not within space {0, 1, 2, 3, 4, 5, 6}.";
     }
 }
@@ -128,21 +149,21 @@ void generate_kvec_table (const int choice) {
 /// argument.
 ///
 /// @code{.cpp}
-/// - 0 -> Produce the bright stars (< 6.0) table from the Hipparcos catalog.
-/// - 1 -> Produce the hip stars (no magnitude restriction) table from the Hipparcos catalog.
-/// - 2 -> Produce table for Angle method.
-/// - 3 -> Produce table for SphericalTriangle method.
-/// - 4 -> Produce table for PlanarTriangle method.
-/// - 5 -> Produce table for Pyramid method.
-/// - 6 -> Produce table for Hoku method.
+/// - bright -> Produce the bright stars (< 6.0) table from the Hipparcos catalog.
+/// - hip -> Produce the hip stars (no magnitude restriction) table from the Hipparcos catalog.
+/// - angle -> Produce table for Angle method.
+/// - sphere -> Produce table for SphericalTriangle method.
+/// - plane -> Produce table for PlanarTriangle method.
+/// - pyramid -> Produce table for Pyramid method.
+/// - summer -> Produce table for Summer method.
 ///
 /// - x k -> Produce K-Vector table for the given method (valid above 1).
 /// - x d -> Delete all tables for the given method.
 /// @endcode
 /// @example
 /// @code{.cpp}
-/// # Produce the SEP table for the Angle method. After this is done, produce the K-Vector table for SEP.
-/// GenerateN 2 k
+/// # Produce the table for the Angle method. After this is done, produce the K-Vector table for SEP.
+/// GenerateN angle k
 /// @endcode
 ///
 /// @param argc Argument count. Domain is [2, 3].
@@ -159,24 +180,25 @@ int main (int argc, char *argv[]) {
         std::cout << "Usage: GenerateN [TableSpecification] [GenerateKVector/DeleteTable]" << std::endl;
         return -1;
     }
-    if ((argc >= 2 && !is_valid_arg(argv[1], {"0", "1", "2", "3", "4", "5", "6"}))
+    if ((argc >= 2 && !is_valid_arg(argv[1], {"bright", "hip", "angle", "sphere", "plane", "pyramid", "summer"}))
         || (argc == 3 && !is_valid_arg(argv[2], {"k", "d"}))) {
-        std::cout << "Usage: GenerateN [0 - 6] ['k', 'd']" << std::endl;
+        std::cout << "Usage: GenerateN ['bright', 'hip', 'angle', 'sphere', 'plane', 'pyramid', 'summer'] ['k', 'd']"
+                  << std::endl;
         return -1;
     }
     
     // If desired, delete all tables related to the specified table.
-    if (argc == 3 && std::string(argv[2]) == "d") {
-        remove_table(static_cast<int> (strtol(argv[1], nullptr, 10)));
+    if (argc == 3 && strcmp(argv[2], "d") == 0) {
+        remove_table(std::string(argv[1]));
         return 0;
     }
     
     // Attempt to generate the specified table.
-    generate_table(static_cast<int> (strtol(argv[1], nullptr, 10)));
+    generate_table(std::string(argv[1]));
     
     // If desired, generate the K-Vector for the specified table.
-    if (argc == 3 && std::string(argv[2]) == "k") {
-        generate_kvec_table(static_cast<int> (strtol(argv[1], nullptr, 10)));
+    if (argc == 3 && strcmp(argv[2], "k") == 0) {
+        generate_kvec_table(std::string(argv[1]));
     }
     
     return 0;

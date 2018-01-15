@@ -3,8 +3,20 @@
 ///
 /// Source file for Benchmark class, which generates the input data for star identification testing.
 
-
+#include <math.h>
 #include "benchmark/benchmark.h"
+
+/// String of HOKU_PROJECT_PATH environment variable.
+const std::string Benchmark::PROJECT_LOCATION = std::getenv("HOKU_PROJECT_PATH");
+
+/// String of the current plot temp file.
+const std::string Benchmark::CURRENT_TMP = PROJECT_LOCATION + "/data/tmp/cuplt.tmp";
+
+/// String of the error plot temp file.
+const std::string Benchmark::ERROR_TMP = PROJECT_LOCATION + "/data/tmp/errplt.tmp";
+
+/// Location of the Python benchmark plotter.
+const std::string Benchmark::PLOT_SCRIPT = "\"" + PROJECT_LOCATION + "/script/python/visualize_image.py\"";
 
 /// Constructor. Generate a random focus and rotation. Scale and restrict the image using the given fov and magnitude
 /// sensitivity (m_bar).
@@ -20,7 +32,7 @@ Benchmark::Benchmark (Chomp &ch, std::random_device &seed, const double fov, con
     generate_stars(ch, m_bar);
 }
 
-/// Overloaded constructor. Uses a user defined focus and rotation. Scal and restrict the image using the given fov
+/// Overloaded constructor. Uses a user defined focus and rotation. Scale and restrict the image using the given fov
 /// and magnitude sensitivity (m_bar).
 ///
 /// @param ch Open connection to Nibble, using Chomp tables.
@@ -42,8 +54,7 @@ Benchmark::Benchmark (Chomp &ch, std::random_device &seed, const Star &focus, co
 /// @param s Star set to give the current benchmark.
 /// @param focus Focus star of the given star set.
 /// @param fov Field of view (degrees) associated with the given star set.
-Benchmark::Benchmark (std::random_device &seed, const Star::list &s, const Star &focus, const double fov) : seed(),
-    fov() {
+Benchmark::Benchmark (std::random_device &seed, const Star::list &s, const Star &focus, const double fov) {
     this->seed = &seed, this->fov = fov, this->stars = s, this->focus = focus;
 }
 
@@ -151,8 +162,7 @@ void Benchmark::record_current_plot () {
 /// Write the current data in the star set to a file, and let a separate Python script generate the plot. I am most
 /// familiar with Python's MatPlotLib, so this seemed like the most straight-forward approach.
 void Benchmark::display_plot () {
-    std::remove(CURRENT_TMP.c_str());
-    std::remove(ERROR_TMP.c_str());
+    std::remove(CURRENT_TMP.c_str()), std::remove(ERROR_TMP.c_str());
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
     std::string cmd = std::string("python ") + PLOT_SCRIPT;
@@ -167,6 +177,8 @@ void Benchmark::display_plot () {
     // Record the current instance, and let Python work its magic!
     this->record_current_plot();
     std::system(cmd.c_str());
+    
+    std::remove(CURRENT_TMP.c_str()), std::remove(ERROR_TMP.c_str());
 }
 
 /// Compare the number of matching stars that exist between the two stars sets.
@@ -302,4 +314,25 @@ void Benchmark::shift_light (const unsigned int n, const double sigma, bool cap_
     // Remove first element. Append this to the error models.
     shifted_light.affected.erase(shifted_light.affected.begin());
     this->error_models.push_back(shifted_light);
+}
+
+// TODO: this function does not work, MAKE IT >:(
+/// Simulate barrel distortion using the equation r_d = r_u(1 - alpha|r_u|^2. This distorts the entire image. Source
+/// found here: https://stackoverflow.com/a/34743020
+///
+/// @param alpha Distortion parameter associated with the barrel.
+void Benchmark::barrel_light (double alpha) {
+    ErrorModel barreled_light = {"Barreled Light", "y", {}};
+    
+    for (unsigned int i = 0; i < this->stars.size(); i++) {
+        // Determine the distance our current star must be from the focus.
+        double u = Star::angle_between(this->stars[i], this->focus);
+        double d = u * (1 - alpha * u * u);
+        
+        this->stars.push_back(Rotation::push(this->stars[i], this->focus, d));
+        this->stars.erase(this->stars.begin() + i);
+    }
+    
+    // Append to our error models.
+    this->error_models.push_back(barreled_light);
 }

@@ -53,9 +53,16 @@ class Summer : public Identification {
     static int generate_table (double fov, const std::string &table_name);
     
     static const Parameters DEFAULT_PARAMETERS;
+  
+  public:
+    /// Exact number of query stars required for query experiment.
+    static constexpr unsigned int QUERY_STAR_SET_SIZE = 3;
+    
+    /// Number of stars required for first alignment experiment.
+    static constexpr unsigned int FIRST_ALIGNMENT_STAR_SET_SIZE = 4;
 
 #if !defined ENABLE_TESTING_ACCESS
-    private:
+  private:
 #endif
     /// Alias for a pair of catalog IDs (3-element STL array of integers).
     using label_trio = std::array<int, 3>;
@@ -65,9 +72,9 @@ class Summer : public Identification {
     
     /// Alias for a quad of stars (4-element STL array of stars).
     using star_quad = std::array<Star, 4>;
-    
+
 #if !defined ENABLE_TESTING_ACCESS
-    private:
+  private:
 #endif
     static const star_quad NO_CANDIDATE_QUAD_FOUND;
     static const label_list_trio NO_CANDIDATE_TRIOS_FOUND;

@@ -87,7 +87,7 @@ def query_trial_plot(ppv, log_sets, plot_params):
     The following plots are displayed: ShiftSigma vs. P(SExistence)
                                        ShiftSigma vs. CandidateSetSize
 
-    :param ppv: The number of points per variation of each trial.
+    :param ppv: The number of points per variation of each experiment.
     :param log_sets: List of list of lists representing the contents of the several log files.
     :param plot_params: The variables that determine how to decorate the plot.
     :return: None.
@@ -112,7 +112,7 @@ def alignment_trial_plot(ppv, log_sets, plot_params):
     The following plots are displayed: Camera Sensitivity vs. ||Original Star - Estimated Star||
                                        ShiftSigma vs. ||Original Star - Estimate Star||
 
-    :param ppv: The number of points per variation of each trial.
+    :param ppv: The number of points per variation of each experiment.
     :param log_sets: List of list of lists representing the contents of the several log files.
     :param plot_params: The variables that determine how to decorate the plot.
     :return: None.
@@ -138,7 +138,7 @@ def reduction_trial_plot(ppv, log_sets, plot_params):
     The following plots are displayed: Shift Sigma vs. P(Correctly Identified Star Set)
                                        Camera Sensitivity vs. P(Correctly Identified Star Set)
 
-    :param ppv: The number of points per variation of each trial.
+    :param ppv: The number of points per variation of each experiment.
     :param log_sets: List of list of lists representing the contents of the several log files.
     :param plot_params: The variables that determine how to decorate the plot.
     :return: None.
@@ -166,7 +166,7 @@ def semi_crown_trial_plot(ppv, log_sets, plot_params):
                                        False Stars vs. Number of Star Sets Exhausted
                                        Shift Sigma vs. Number of Star Sets Exhausted
 
-    :param ppv: The number of points per variation of each trial.
+    :param ppv: The number of points per variation of each experiment.
     :param log_sets: List of list of lists representing the contents of the several log files.
     :param plot_params: The variables that determine how to decorate the plot.
     :return: None.
@@ -203,7 +203,7 @@ def crown_trial_plot(ppv, log_sets, plot_params):
                                        Shift Sigma vs. |Correct Stars| / |Total Number of True Stars|
                                        Shift Sigma vs. Number of Star Sets Exhausted
 
-    :param ppv: The number of points per variation of each trial.
+    :param ppv: The number of points per variation of each experiment.
     :param log_sets: List of list of lists representing the contents of the several log files.
     :param plot_params: The variables that determine how to decorate the plot.
     :return: None.

@@ -102,18 +102,18 @@ class Nibble {
         
         return 0;
     }
+    
+#if !defined ENABLE_TESTING_ACCESS
+  protected:
+#endif
+    static const std::string PROJECT_LOCATION;
+    static const std::string DATABASE_LOCATION;
 
 #if !defined ENABLE_TESTING_ACCESS
     protected:
 #endif
     /// Current table being operated on.
     std::string table;
-    
-    /// String of the HOKU_PROJECT_PATH environment variable.
-    const std::string PROJECT_LOCATION = std::string(std::getenv("HOKU_PROJECT_PATH"));
-    
-    // Path of the Nibble database file.
-    const std::string DATABASE_LOCATION = PROJECT_LOCATION + "/data/nibble.db";
 };
 
 #endif /* HOKU_NIBBLE_H */

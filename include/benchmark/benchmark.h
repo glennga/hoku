@@ -57,6 +57,7 @@ class Benchmark {
     Benchmark (Chomp &ch, std::random_device &seed, double fov, double m_bar = DEFAULT_M_BAR);
     Benchmark (Chomp &ch, std::random_device &seed, const Star &focus, const Rotation &q, double fov,
                double m_bar = DEFAULT_M_BAR);
+    Benchmark (std::random_device &seed, const Star::list &s, const Star &focus, double fov);
     static const Benchmark black ();
     
     void generate_stars (Chomp &ch, double m_bar = DEFAULT_M_BAR);
@@ -68,32 +69,24 @@ class Benchmark {
     void add_extra_light (unsigned int n, bool cap_error = false);
     void shift_light (unsigned int n, double sigma, bool cap_error = false);
     void remove_light (unsigned int n, double psi);
+    void barrel_light (double alpha);
     
     static int compare_stars (const Benchmark &, const Star::list &);
 
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
-    Benchmark (std::random_device &seed, const Star::list &s, const Star &focus, double fov);
-    
     Star::list clean_stars () const;
     void shuffle ();
 
+    static const std::string PROJECT_LOCATION;
+    static const std::string CURRENT_TMP;
+    static const std::string ERROR_TMP;
+    static const std::string PLOT_SCRIPT;
+
 #if !defined ENABLE_TESTING_ACCESS
-  private:
+    private:
 #endif
-    /// String of the HOKU_PROJECT_PATH environment variable.
-    const std::string PROJECT_LOCATION = std::string(std::getenv("HOKU_PROJECT_PATH"));
-    
-    /// String of the current plot temp file.
-    const std::string CURRENT_TMP = PROJECT_LOCATION + "/data/logs/tmp/cuplt.tmp";
-    
-    /// String of the error plot temp file.
-    const std::string ERROR_TMP = PROJECT_LOCATION + "/data/logs/tmp/errplt.tmp";
-    
-    /// Location of the Python benchmark plotter.
-    const std::string PLOT_SCRIPT = "\"" + PROJECT_LOCATION + "/script/python/visualize_image.py\"";
-    
     /// Alias for the list (stack) of ErrorModels.
     using model_list = std::vector<ErrorModel>;
     

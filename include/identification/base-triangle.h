@@ -25,7 +25,7 @@ class BaseTriangle : public Identification {
     BaseTriangle ();
 
 #if !defined ENABLE_TESTING_ACCESS
-    protected:
+  protected:
 #endif
     /// Alias for a trio of index numbers for the input star list (3-element STL array of integers).
     using index_trio = std::array<int, 3>;
@@ -49,7 +49,7 @@ class BaseTriangle : public Identification {
     }
 
 #if !defined ENABLE_TESTING_ACCESS
-    protected:
+  protected:
 #endif
     std::vector<label_trio> e_query (double a, double i);
     Star::list e_single_alignment (const Star::list &candidates, const Trio::stars &r, const Trio::stars &b);
@@ -62,7 +62,6 @@ class BaseTriangle : public Identification {
     std::vector<Trio::stars> m_stars (const index_trio &i_b, area_function compute_area,
                                       moment_function compute_moment);
     
-    void generate_permutations ();
     static const index_trio STARTING_INDEX_TRIO;
     
     static const std::vector<BaseTriangle::label_trio> NO_CANDIDATE_TRIOS_FOUND;
@@ -70,14 +69,15 @@ class BaseTriangle : public Identification {
     static const Trio::stars NO_CANDIDATE_STAR_SET_FOUND;
 
 #if !defined ENABLE_TESTING_ACCESS
-    protected:
+  private:
 #endif
-    /// All distinct index permutations of our input vector.
-    std::deque<index_trio> p;
+    /// Our index series that we pivot with. Set before each pivot call.
+    std::deque<int> p;
 
 #if !defined ENABLE_TESTING_ACCESS
-    private:
+  private:
 #endif
+    void generate_pivot_list (const index_trio &);
     std::vector<label_trio> query_for_trio (double a, double i);
     virtual std::vector<Trio::stars> match_stars (const index_trio &) = 0;
     Trio::stars pivot (const index_trio &, const std::vector<Trio::stars> & = {});

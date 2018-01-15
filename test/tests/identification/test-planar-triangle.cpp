@@ -206,7 +206,7 @@ TEST(PlaneIdentify, CleanInput) {
     }
     
     if (!c.empty()) {
-        for (int q = 0; q < (signed) (c.size() - 1); q++) {
+        for (int q = 0; q < static_cast<signed>(c.size() - 1); q++) {
             auto match = [&c, q] (const Star &b) -> bool {
                 return b.get_label() == c[q].get_label();
             };
@@ -309,7 +309,7 @@ TEST(PlaneTrial, CleanAlignment) {
     Chomp ch;
     Rotation q = Rotation::chance(seed);
     Star focus = Star::chance(seed);
-    unsigned int nu;
+    unsigned int nu = 0;
     Plane::Parameters p = Plane::DEFAULT_PARAMETERS;
     p.sigma_query = 10e-9;
     p.sigma_overlay = 0.000001;

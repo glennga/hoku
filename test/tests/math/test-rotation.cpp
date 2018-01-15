@@ -97,6 +97,7 @@ TEST(RotationLogic, Rotate) {
     EXPECT_EQ(d, c);
 }
 
+// TODO: there is something funky going on with the equality... need to check it out.
 /// Check the TRIAD property that the resultant quaternion rotates both star pairs across frames correctly with the
 /// simple case of axis vectors.
 TEST(RotationTRIAD, Simple) {
