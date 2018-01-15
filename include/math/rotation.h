@@ -39,6 +39,7 @@ class Rotation {
     bool operator== (const Rotation &q) const;
     
     static Star rotate (const Star &s, const Rotation &q);
+    static Star push (const Star &s, const Star &f, double d);
     static Star shake (const Star &s, double sigma, std::random_device &seed);
     
     static double angle_between (const Rotation &q_1, const Rotation &q_2);

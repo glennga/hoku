@@ -5,7 +5,7 @@
 
 #include "math/rotation.h"
 
-const double Rotation::EQUALITY_PRECISION_DEFAULT ;
+const double Rotation::EQUALITY_PRECISION_DEFAULT;
 
 /// Private constructor. Sets the individual components.
 ///
@@ -27,7 +27,7 @@ Rotation::Rotation (const double w, const Star &v, const bool as_unit) {
 /// @param q Quaternion to compare with.
 /// @return True if all components are the same. False otherwise.
 bool Rotation::operator== (const Rotation &q) const {
-    return fabs(w - q.w) < EQUALITY_PRECISION_DEFAULT && fabs(i - q.i) < EQUALITY_PRECISION_DEFAULT
+    return fabs(w - q.w) < EQUALITY_PRECISION_DEFAULT && fabs(i - q.i) < EQUALITY_PRECISION_DEFAULT 
            && fabs(j - q.j) < EQUALITY_PRECISION_DEFAULT && fabs(k - q.k) < EQUALITY_PRECISION_DEFAULT;
 }
 
@@ -116,6 +116,24 @@ Star Rotation::rotate (const Star &s, const Rotation &q) {
     return {Star::dot(s, a_1n), Star::dot(s, a_2n), Star::dot(s, a_3n), s.get_label(), s.get_magnitude()};
 }
 
+/// Rotate a star 'away' from another star by a given d parameter.
+///
+/// @param s Star to push away from f.
+/// @param f Star to be pushed away from.
+/// @param d Angle to push s away from f.
+/// @return The star S "pushed away" from f.
+Star Rotation::push (const Star &s, const Star &f, const double d) {
+    // Our axis of rotation is perpendicular to our current star and the focus.
+    Star axis = Star::cross(s, f);
+    
+    // Determine our cosine component, and scale our axis vector.
+    double c_a = cos(d * (M_PI / 180.0));
+    axis = axis * (sqrt((1.0 - c_a) / 2.0) / sqrt(Star::dot(axis, axis)));
+    
+    // Return the rotated star s by our axis quaternion.
+    return rotate(s, Rotation(sqrt((1.0 + c_a) / 2.0), axis)).as_unit();
+}
+
 /// Rotate the given star s in a random direction, by a random theta who's distribution is varied by the given sigma.
 /// Followed answer given here: https://stackoverflow.com/a/7583931
 ///
@@ -128,14 +146,9 @@ Star Rotation::shake (const Star &s, const double sigma, std::random_device &see
     
     // We define a random direction 'axis', as well as a random theta.
     double theta = dist(mersenne_twister);
-    Star axis = Star::chance(seed);
     
-    // Determine our cosine component, and scale our axis vector.
-    double c_a = cos(theta * (M_PI / 180.0));
-    axis = axis * (sqrt((1.0 - c_a) / 2.0) / sqrt(Star::dot(axis, axis)));
-    
-    // Return the rotated star s by our axis quaternion.
-    return rotate(s, Rotation(sqrt((1.0 + c_a) / 2.0), axis)).as_unit();
+    // Push our star in some random direction.
+    return push(s, Star::chance(seed), theta);
 }
 
 /// Get a scalar quantity for how 'close' two quaternions are. We find the quaternion from q_1 to q_2, and return the

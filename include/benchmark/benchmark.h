@@ -69,6 +69,7 @@ class Benchmark {
     void add_extra_light (unsigned int n, bool cap_error = false);
     void shift_light (unsigned int n, double sigma, bool cap_error = false);
     void remove_light (unsigned int n, double psi);
+    void barrel_light (double alpha);
     
     static int compare_stars (const Benchmark &, const Star::list &);
 

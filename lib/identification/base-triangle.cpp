@@ -106,26 +106,6 @@ std::vector<BaseTriangle::label_trio> BaseTriangle::query_for_trio (const double
     return area_moment_match;
 }
 
-/// Generate all distinct index permutations. This solves the problem of generating k distinct combinations for n
-/// items. Solution is found here: https://stackoverflow.com/a/23663373
-void BaseTriangle::generate_permutations () {
-    std::vector<int> selected, selector(input.size());
-    std::fill(selector.begin(), selector.begin() + 3, 1);
-    do {
-        for (unsigned int i = 0; i < input.size(); i++) {
-            if (selector[i]) {
-                selected.push_back(i);
-            }
-        }
-        p.push_back(index_trio {selected[0], selected[1], selected[2]});
-        selected.clear();
-    }
-    while (prev_permutation(selector.begin(), selector.end()));
-    
-    // Remove the front element of our index queue. We start with this.
-    p.pop_front();
-}
-
 /// Given a trio of body stars, find matching trios of inertial stars using their respective planar areas and polar
 /// moments.
 ///
@@ -161,6 +141,19 @@ std::vector<Trio::stars> BaseTriangle::m_stars (const index_trio &i_b, area_func
     return matched_stars;
 }
 
+/// Generate a series of indices to iterate through as we perform the pivot operation. Store the results in the p stack.
+///
+/// @param i_b Index trio of stars in the body (B) frame that are 'removed' from this series.
+void BaseTriangle::generate_pivot_list (const index_trio &i_b) {
+    p.clear();
+    
+    for (unsigned int j = 0; j < input.size(); j++) {
+        if (std::find(i_b.begin(), i_b.end(), j) == i_b.end()) {
+            p.push_back(j);
+        }
+    }
+}
+
 /// Match the stars in the given set {B_1, B_2, B_3} to a trio in the database. If a past_set is given, then remove
 /// all stars found matching the B trio that aren't found in the past set. Recurse until one definitive trio exists.
 ///
@@ -181,8 +174,8 @@ Trio::stars BaseTriangle::pivot (const index_trio &i_b, const std::vector<Trio::
             
             for (const Trio::stars &past : past_set) {
                 // We do not need to check all permutations. Break early and advance to next star.
-                if ((past[1] == matches[i][0] || past[1] == matches[i][1] || past[1] == matches[i][2])
-                    && (past[2] == matches[i][0] || past[2] == matches[i][1] || past[2] == matches[i][2])) {
+                if ((past[0] == matches[i][0] || past[0] == matches[i][1] || past[0] == matches[i][2])
+                    && (past[1] == matches[i][0] || past[1] == matches[i][1] || past[1] == matches[i][2])) {
                     match_found = true;
                     break;
                 }
@@ -198,7 +191,8 @@ Trio::stars BaseTriangle::pivot (const index_trio &i_b, const std::vector<Trio::
     switch (matches.size()) {
         case 1: return matches[0]; // Only 1 trio exists. This must be the matching trio.
         case 0: return NO_CANDIDATE_STAR_SET_FOUND; // No trios exist. Exit early.
-        default: return pivot(ptop(this->p), matches); // 2+ trios exists. Run with different trio and history.
+            // 2+ trios exists. Run with different 3rd element and history.
+        default: return pivot(index_trio {i_b[0], i_b[1], ptop(this->p)}, matches);
     }
 }
 
@@ -287,6 +281,7 @@ Star::list BaseTriangle::e_single_alignment (const Star::list &candidates, const
 ///
 /// @return NO_CANDIDATES_FOUND if no candidates found. Otherwise, a single elements that best meets the criteria.
 Identification::labels_list BaseTriangle::e_reduction () {
+    generate_pivot_list(STARTING_INDEX_TRIO);
     Trio::stars candidate_trio = pivot(STARTING_INDEX_TRIO);
     
     if (std::equal(candidate_trio.begin(), candidate_trio.end(), NO_CANDIDATE_STAR_SET_FOUND.begin())) {
@@ -320,6 +315,7 @@ Star::list BaseTriangle::e_alignment () {
                 }
                 
                 // Find matches of current body trio to catalog. Pivot if necessary.
+                generate_pivot_list({i, j, k});
                 candidate_trio = pivot({i, j, k});
                 if (std::equal(candidate_trio.begin(), candidate_trio.end(), NO_CANDIDATE_STAR_SET_FOUND.begin())) {
                     continue;
@@ -367,6 +363,7 @@ Star::list BaseTriangle::e_crown () {
                 }
                 
                 // Find matches of current body trio to catalog. Pivot if necessary.
+                generate_pivot_list({i, j, k});
                 candidate_trio = pivot({i, j, k});
                 if (std::equal(candidate_trio.begin(), candidate_trio.end(), NO_CANDIDATE_STAR_SET_FOUND.begin())) {
                     continue;

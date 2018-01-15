@@ -132,6 +132,26 @@ TEST(BenchmarkError, ShiftedLightMoved) {
     EXPECT_EQ(a.size() * input.stars.size(), b + a.size() - 3);
 }
 
+// Check that stars have been shifted in light barrel method.
+TEST(BenchmarkError, BarreledLightMoved) {
+    std::random_device seed;
+    Chomp ch;
+    Benchmark input(ch, seed, 15);
+    std::vector<Star> a = input.stars;
+    input.barrel_light(0.00001);
+    int b = 0;
+    
+    // All stars should be modified.
+    for (Star original : a) {
+        for (Star modified : input.stars) {
+            if (original == modified) {
+                b++;
+            }
+        }
+    }
+    EXPECT_EQ(0, b);
+}
+
 /// Check that the catalog ID numbers of all stars are equal to 0.
 TEST(BenchmarkImage, LabelClear) {
     std::random_device seed;
@@ -146,13 +166,25 @@ TEST(BenchmarkImage, LabelClear) {
 
 /// We are not checking anything here- this is where the user visually checks and ensures that the plot is displayed
 /// properly.
-TEST(BenchmarkImage, DisplayPlot) {
+TEST(BenchmarkImage, DisplayExtraShifted) {
     std::random_device seed;
     Chomp ch;
     Benchmark input(ch, seed, 15);
     input.add_extra_light(2);
     input.shift_light(2, 10);
     
+    input.display_plot();
+}
+
+/// We are not checking anything here- this is where the user visually checks and ensures that the barrel distortion
+/// is working as intended.
+TEST(BenchmarkImage, DisplayBarreled) {
+    std::random_device seed;
+    Chomp ch;
+    Benchmark input(ch, seed, 15);
+    
+    input.display_plot();
+    input.barrel_light(0.000000000000001);
     input.display_plot();
 }
 
