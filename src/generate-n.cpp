@@ -12,7 +12,6 @@
 /// - sphere -> Produce table for SphericalTriangle method.
 /// - plane -> Produce table for PlanarTriangle method.
 /// - pyramid -> Produce table for Pyramid method.
-/// - summer -> Produce table for Summer method.
 ///
 /// - x k -> Produce K-Vector table for the given method (valid above 1).
 /// - x d -> Delete all tables for the given method.
@@ -28,7 +27,6 @@
 #include "identification/spherical-triangle.h"
 #include "identification/planar-triangle.h"
 #include "identification/pyramid.h"
-#include "identification/summer.h"
 
 /// Defining characteristics of the Nibble tables generated.
 namespace DCNT {
@@ -40,13 +38,11 @@ namespace DCNT {
     static const char *SPHERE_NAME = "SPHERE_20"; ///< Name of table generated for SphericalTriangle method.
     static const char *PLANE_NAME = "PLANE_20"; ///< Name of table generated for PlanarTriangle method.
     static const char *PYRAMID_NAME = "PYRAMID_20"; ///< Name of table generated for Pyramid method.
-    static const char *SUMMER_NAME = "SUMMER_20"; ///< Name of table generated for Summer method.
     
     static const char *KVEC_ANGLE_FOCUS = "theta"; ///< Focus attribute for K-Vector Angle table.
     static const char *KVEC_SPHERE_FOCUS = "a"; ///< Focus attribute for K-Vector SphericalTriangle table.
     static const char *KVEC_PLANE_FOCUS = "a"; ///< Focus attribute for K-Vector PlanarTriangle table.
     static const char *KVEC_PYRAMID_FOCUS = "theta"; ///< Focus attribute for K-Vector Pyramid table.
-    static const char *KVEC_SUMMER_FOCUS = "a"; ///< Focus attribute for K-Vector Summer table.
     
     static const int BRIGHT_TABLE_HASH = 0; ///< Index of bright table choice in choice space.
     static const int HIP_TABLE_HASH = 1; ///< Index of hip table choice in choice space.
@@ -54,7 +50,6 @@ namespace DCNT {
     static const int SPHERE_TABLE_HASH = 3; ///< Index of sphere table choice in choice space.
     static const int PLANE_TABLE_HASH = 4; ///< Index of plane table choice in choice space.
     static const int PYRAMID_TABLE_HASH = 5; ///< Index of pyramid table choice in choice space.
-    static const int SUMMER_TABLE_HASH = 6; ///< Index of summer table choice in choice space.
 }
 
 /// Convert our choice string into an integer for the switch statements.
@@ -62,7 +57,7 @@ namespace DCNT {
 /// @param choice Name associated with table to hash for.
 /// @return Unique integer associated with the choice.
 int choice_hash (const std::string &choice) {
-    std::array<std::string, 7> choice_space = {"bright", "hip", "angle", "sphere", "plane", "pyramid", "summer"};
+    std::array<std::string, 6> choice_space = {"bright", "hip", "angle", "sphere", "plane", "pyramid"};
     return static_cast<int> (std::distance(choice_space.begin(),
                                            std::find(choice_space.begin(), choice_space.end(), choice)));
 }
@@ -79,8 +74,7 @@ void remove_table (const std::string &choice) {
             case DCNT::SPHERE_TABLE_HASH: return DCNT::SPHERE_NAME;
             case DCNT::PLANE_TABLE_HASH: return DCNT::PLANE_NAME;
             case DCNT::PYRAMID_TABLE_HASH: return DCNT::PYRAMID_NAME;
-            case DCNT::SUMMER_TABLE_HASH: return DCNT::SUMMER_NAME;
-            default: throw "Table choice is not within space {0, 1, 2, 3, 4, 5, 6}.";
+            default: throw "Table choice is not within space {0, 1, 2, 3, 4, 5}.";
         }
     };
     
@@ -110,8 +104,7 @@ void generate_table (const std::string &choice) {
         case DCNT::SPHERE_TABLE_HASH: return display_result(Sphere::generate_table(DCNT::FOV, DCNT::SPHERE_NAME));
         case DCNT::PLANE_TABLE_HASH: return display_result(Plane::generate_table(DCNT::FOV, DCNT::PLANE_NAME));
         case DCNT::PYRAMID_TABLE_HASH: return display_result(Pyramid::generate_table(DCNT::FOV, DCNT::PYRAMID_NAME));
-        case DCNT::SUMMER_TABLE_HASH: return display_result(Summer::generate_table(DCNT::FOV, DCNT::SUMMER_NAME));
-        default: throw "Table choice is not within space {0, 1, 2, 3, 4, 5, 6}.";
+        default: throw "Table choice is not within space {0, 1, 2, 3, 4, 5}.";
     }
 }
 
@@ -139,8 +132,7 @@ void generate_kvec_table (const std::string &choice) {
         case DCNT::SPHERE_TABLE_HASH: return create_and_polish(DCNT::SPHERE_NAME, DCNT::KVEC_SPHERE_FOCUS);
         case DCNT::PLANE_TABLE_HASH: return create_and_polish(DCNT::PLANE_NAME, DCNT::KVEC_PLANE_FOCUS);
         case DCNT::PYRAMID_TABLE_HASH: return create_and_polish(DCNT::PYRAMID_NAME, DCNT::KVEC_PYRAMID_FOCUS);
-        case DCNT::SUMMER_TABLE_HASH: return create_and_polish(DCNT::SUMMER_NAME, DCNT::KVEC_SUMMER_FOCUS);
-        default: throw "Table choice is not within space {0, 1, 2, 3, 4, 5, 6}.";
+        default: throw "Table choice is not within space {0, 1, 2, 3, 4, 5}.";
     }
 }
 
@@ -180,9 +172,9 @@ int main (int argc, char *argv[]) {
         std::cout << "Usage: GenerateN [TableSpecification] [GenerateKVector/DeleteTable]" << std::endl;
         return -1;
     }
-    if ((argc >= 2 && !is_valid_arg(argv[1], {"bright", "hip", "angle", "sphere", "plane", "pyramid", "summer"}))
+    if ((argc >= 2 && !is_valid_arg(argv[1], {"bright", "hip", "angle", "sphere", "plane", "pyramid"}))
         || (argc == 3 && !is_valid_arg(argv[2], {"k", "d"}))) {
-        std::cout << "Usage: GenerateN ['bright', 'hip', 'angle', 'sphere', 'plane', 'pyramid', 'summer'] ['k', 'd']"
+        std::cout << "Usage: GenerateN ['bright', 'hip', 'angle', ...] ['k', 'd']"
                   << std::endl;
         return -1;
     }

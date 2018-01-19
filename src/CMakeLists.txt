@@ -12,7 +12,7 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 # Link and Create Executable GenerateN
 ##################################################################
 add_executable(GenerateN generate-n.cpp)
-target_link_libraries(GenerateN Summer Pyramid PlanarTriangle
+target_link_libraries(GenerateN Pyramid PlanarTriangle
         SphericalTriangle Angle BaseTriangle Identification Benchmark
         Rotation QuadNode KdNode Chomp Nibble Asterism Mercator Trio
         Star SQLiteCpp Sqlite3)
@@ -21,7 +21,7 @@ target_link_libraries(GenerateN Summer Pyramid PlanarTriangle
 # Link and Create Executable PerformE
 ##################################################################
 add_executable(PerformE perform-e.cpp)
-target_link_libraries(PerformE Experiment Lumberjack Summer Pyramid
+target_link_libraries(PerformE Experiment Lumberjack Pyramid
         PlanarTriangle SphericalTriangle Angle BaseTriangle
         Identification Benchmark Rotation QuadNode KdNode Chomp
         Nibble Mercator Trio Star SQLiteCpp Sqlite3)
