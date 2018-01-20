@@ -5,5 +5,12 @@ build/
 *.db
 *.tmp
 *.out
-*.png
+
+# Latex files to ignore.
 *.pdf
+*.bak
+*.synctex.gz
+*.log
+*.bbl
+*.aux
+*.blg
