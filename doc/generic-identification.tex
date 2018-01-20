@@ -1,0 +1,39 @@
+% \tikzstyle{emphasizeprocess} = [rectangle, rounded corners, text width=3cm, minimum width=3cm, 
+% minimum height=1cm, text centered, draw=black, fill=orange!100, font=\bf]
+\tikzstyle{process} = [rectangle, text width=3cm, minimum width=3cm, 
+minimum height=1cm,text centered, draw=black, fill=orange!30]
+\tikzstyle{terminal} = [rectangle, text width=1.7cm, minimum width=1.7cm, 
+minimum height=1.7cm,text centered, draw=black, fill=red!30]
+\tikzstyle{decision} = [diamond, text width=2cm, minimum width=2.5cm, 
+minimum height=2.5cm,text centered, draw=black, fill=green!30, inner sep=-10pt]
+% \tikzstyle{emphasizedecision} =[diamond, rounded corners, text width=5em, minimum width=2.9cm, 
+% minimum height=2.9cm,text centered, draw=black, fill=green!100, inner sep=-10pt, font=\bf]
+\tikzstyle{line} = [draw, -latex']
+
+\def\nolinedistance{-1.1cm}
+\def\terminalblockdistance{1.7cm}
+
+\begin{tikzpicture}[node distance=1.8cm]
+\node[scale=1](getimage)[terminal]{Get Camera Image};
+\node[scale=1](pickquerystars) [process, left of=getimage, xshift = -\terminalblockdistance] {Pick $k$ Image Stars};
+\node[scale=1](searchcatalog)[process, below of=pickquerystars] {Search Catalog}; 
+\node[scale=1](confidentincatalog)[decision, below of=searchcatalog, yshift=-0.5cm] {$|R| > 0$?};
+\node[scale=1](filtercandidates)[process, below of=confidentincatalog, yshift=-0.5cm] {Filter Candidates};
+\node[scale=1](isequalone)[decision, below of=filtercandidates, yshift=-0.5cm] {Confident in $r$?};
+\node[scale=1](findalignment)[process, below of=isequalone, yshift=-0.5cm]{Find Alignment};
+\node[scale=1](findorientation)[decision, below of=findalignment, yshift=-0.5cm] {Confident in $a$?};
+\node[scale=1](returnmatches)[terminal, right of=findorientation, xshift = \terminalblockdistance] {Return Alignment};
+
+\draw[->,>=stealth](getimage) -- node[scale=1.3, yshift=-0.3cm]{$I$}(pickquerystars);
+\draw[->,>=stealth] (pickquerystars) -- node[scale=1.3, xshift=0.5cm]{$b$}(searchcatalog);
+\draw[->, >=stealth] (searchcatalog) -- node[scale=1.3, xshift=0.5cm, yshift=-0.15cm]{$R$}(confidentincatalog);
+\draw[->, >=stealth] (confidentincatalog) -- node[anchor=east, yshift=0.1cm]{Yes}(filtercandidates);
+\draw[->, >=stealth] (confidentincatalog.west) -- ++(\nolinedistance, 0cm) node[anchor=south, xshift=0.5cm]{No} |- (pickquerystars.west);
+\draw[->, >=stealth] (filtercandidates) -- node[scale=1.3, xshift=0.5cm, yshift=-0.15cm]{$r$}(isequalone);
+\draw[->, >=stealth] (isequalone.west) -- ++(\nolinedistance, 0cm) node[anchor=south, xshift=0.5cm]{No} |- (pickquerystars.west);
+\draw[->, >=stealth] (findorientation) -- node[xshift=-0.05cm, yshift=0.2cm]{Yes}(returnmatches);
+
+\draw[->, >=stealth] (isequalone) -- node[anchor=east, yshift=0.1cm]{Yes} (findalignment);
+\draw[->, >=stealth] (findalignment) -- node[scale=1.3, xshift=0.5cm, yshift=-0.15cm]{$a$}(findorientation);
+\draw[->, >=stealth](findorientation.west) -- ++(\nolinedistance, 0cm) node[anchor=south, xshift=0.5cm]{No} |- (pickquerystars.west);
+\end{tikzpicture}
