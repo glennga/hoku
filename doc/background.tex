@@ -21,10 +21,11 @@ On Earth, "up" and "down" mean "up from the center of the Earth" and "down towar
 
 In space there is no "up" or "down" as the Earth's gravitational presence is severely diminished, meaning that the acceleration sensors used on Earth cannot be used to determine one's attitude in space. Spacecraft instead use other objects to build an attitude from. The visual position of the Sun and the Earth's magnetic field are common choices for reference points, but the most popular are the visual positions of various stars in the sky. 
 
-Once some known object is found by the sensor, these measurements exists in a \textit{body reference frame}. This reference frame reveals the position of objects with respect to the sensor, but is not fixed to any point. There exists a separate, fixed frame with which these known objects are recorded in prior to the start of the mission. This is known as an \textit{inertial reference frame}. Attitude determination involves taking inertial frame object observations in the body frame, and figuring out how the spacecraft is oriented in this inertial frame. 
+Once some known object is found by the sensor, these measurements exists in a \textit{body reference frame}. This reference frame reveals the position of objects with respect to the sensor, but is not fixed to any point. There exists a separate, fixed frame with which these known objects are recorded in prior to the start of the mission. This is known as an \textit{inertial reference frame}. Figure \eqref{coordinatesystems} depicts the relation between both frames. Attitude determination involves taking inertial frame object observations in the body frame, and figuring out how the spacecraft is oriented in this inertial frame. 
 
 % https://commons.wikimedia.org/wiki/File:Moving_coordinate_system.PNG
-\begin{figure}[H]
+\begin{figure}
+\label{coordinatesystems}
 \centering{
 \includegraphics[scale=0.23]{images/moving-coordinate-systems.png} 
 \caption{
