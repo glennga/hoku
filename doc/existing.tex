@@ -161,7 +161,7 @@ To more closely follow the generic star identification flow, $P$ will not be sto
 \end{algorithm}
 
 \subsection{Cole and Crassidus's Spherical Triangle Method}
-In 2004, Cole and Crassidus (citation here) developed the Spherical Triangle method. Starting with an image $I$, three stars $b = b_1, b_2, b_3)$ are selected arbitrarily. Treating the trio as a spherical triangle, the spherical area and moment are computed. This is denoted as $a^{123}, \imath^{123}$ respectively. Similar to Gottlieb's method, star \textit{trios} $R$ are selected from the catalog such that the all of condition \eqref{trianglerequirement} hold:
+In 2004, Cole and Crassidus (citation here) developed the Spherical Triangle method. Starting with an image $I$, three stars $b = b_1, b_2, b_3)$ are selected arbitrarily. Treating the trio as a spherical triangle, the spherical area and moment are computed. This is denoted as $a^{123}$ and $\imath^{123}$ respectively. Similar to Gottlieb's method, star \textit{trios} $R$ are selected from the catalog such that the all of condition \eqref{trianglerequirement} hold:
 \begin{align}
 \begin{split}
 \label{trianglerequirement}
@@ -260,7 +260,7 @@ Computing the spherical moment requires the use of recursion, which could be cos
 
 % Mortari introduced the use of \textit{search-less} catalog access using the $k$-vector approach, but this will not be discussed in this paper. 
 \subsection{Mortari's Pyramid Star Identification Method}
-In 2004, Mortari (citation here) developed the Pyramid method. Starting with an image $I$, three stars $b = (b_1, b_2, b_3)$ are selected arbitrarily. The corresponding angular separation between each distinct permutation of the three is computed, denoted as $\theta^{12}, \theta^{13}, \theta^{23}$. All possible \textit{pair sets} $R^{12}, R^{13}, R^{23}$ are selected from the catalog such that condition \eqref{anglerequirement} holds for each respective $\theta$. The common stars between each of these $R$ sets is then determined, yielding $T^1, T^2, $ and $T^3$. If there exists a sole element inside each $T$, then a secondary verification involving guessing a nearby star is performed. Once this verification step is past, an alignment is then returned. This entire process is described in algorithm \eqref{Pyramid Star Identification}.
+In 2004, Mortari (citation here) developed the Pyramid method. Starting with an image $I$, three stars $b = (b_1, b_2, b_3)$ are selected to avoid the persistence of false stars. This is specified in lines 19 to 23 in algorithm \eqref{Triangle Method}. The corresponding angular separation between each distinct permutation of the three is computed, denoted as $\theta^{12}, \theta^{13}, \theta^{23}$. All possible \textit{pair sets} $R^{12}, R^{13}, R^{23}$ are selected from the catalog such that condition \eqref{anglerequirement} holds for each respective $\theta$. The common stars between each of these $R$ sets is then determined, yielding $T^1, T^2, $ and $T^3$. If there exists a sole element inside each $T$, then a secondary verification involving guessing a nearby star is performed. Once this verification step is past, an alignment is then returned. This entire process is described in algorithm \eqref{Pyramid Star Identification}.
 
 \begin{algorithm}
 \caption{Pyramid Identification Method}
@@ -279,15 +279,21 @@ In 2004, Mortari (citation here) developed the Pyramid method. Starting with an 
 \State $r \gets $ singular stars in $T_i, T_j, T_k$ 
 \If{\Call{Verification}{$r, b, I$} is \textbf{true}}
 \State \textbf{return} $r$
+\Else
+\State \textbf{return} $\emptyset$
 \EndIf
 \EndIf
 \EndFunction
 \\
 \Procedure{Identify}{}
 \State $I \gets \text{all stars } s \text{ from image}$
-\For{$i \gets 1 \text{\textbf{ to }} |I|$}
-\For{$j \gets i + 1 \text{\textbf{ to }} |I| - 1$}
-\For{$k \gets j + 1\text{\textbf{ to }} |I| - 2$}
+\For{$dj \gets 1 \text{\textbf{ to }} |I| - 2$}
+\For{$dk \gets 1 \text{\textbf{ to }} |I| - 1 - dj$}
+\For{$k \gets i \text{\textbf{ to }} |I| - dj - dk$}
+\State $j \gets i + dj$
+\State $k \gets j + dk$
+\\
+\State $b \gets (b_i, b_j, b_k)$
 \State $r \gets$ \Call{FindCatalogStars}{$b, I$}
 \If{$r \neq \emptyset$}
 \State $a \gets (b_i \rightarrow r_i, b_j \rightarrow r_j, b_k \rightarrow r_k)$
@@ -315,7 +321,7 @@ The second verification step is denoted as \Call{Verification}{$r, b, I$} in alg
 \\
 \Function{Verification}{$r, b, I$}
 \State $e \gets $ nearby star in catalog close to $r$
-\State $a \gets (b_i \rightarrow r_i, b_j \rightarrow r_j, b_k \rightarrow r_k)$
+\State $\alpha \gets (b_i \rightarrow r_i, b_j \rightarrow r_j, b_k \rightarrow r_k)$
 \State $q \gets $ \Call{TRIAD}{$a$}
 \State $b^{\star} \gets e \text{ rotated by } q$
 \\
@@ -329,6 +335,8 @@ The second verification step is denoted as \Call{Verification}{$r, b, I$} in alg
 \end{algorithm}
 
 \subsection{Toloei's Composite Pyramid Method}
-In 2014, Toloei (citation here) developed the Novel Stars ID method, which retains all of the key aspects of Motari's Pyramid method but uses the features from Cole and Crassidus's Planar Triangle method for the query and reference steps instead of angles. Starting with an image 
+In 2014, Toloei (citation here) developed the Novel Stars ID method, which retains all of the key aspects of Motari's Pyramid method but uses the features from Cole and Crassidus's Planar Triangle method for the query and reference steps instead of angles. Starting with an image $I$, three stars $b = (b_1, b_2, b_3)$ are selected arbitrarily. Treating the trio as a planar triangle, the planar area and moment are computed. This is denoted as $a^{123}$ and $\imath^{123}$ respectively. Similar to the Planar Triangle method, star \textit{trios} $R$ are selected from the catalog such that condition \eqref{trianglerequirement} hold.
+
+Unlike the triangle methods, no pivot is performed. This searching process is repeated until a unique $R$ is found. A similar verification process to the Pyramid method is then performed for all possible alignments ...
 
 % maybe try a summary table
