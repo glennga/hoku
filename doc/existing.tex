@@ -6,7 +6,7 @@
 \subsection{Generic Identification Method}
 Each identification method is presented with an image $I$ of all the stars in the image reference frame. The goal of each method is to find some mapping between the \textit{subset} of the image star vectors $b$ and a subset of the catalog star vectors $r$. This mapping will be denoted as $a$, for alignment. Complete identification of the all stars in each image is not the focus.
 
-Every algorithm starts with some combination $c$ from all possible $k$ combinations of $|I|$ stars $r_k^{|I|}$, where $k = $ the size of the image subset that specific identification method uses. A set of stars from the image $b$ is selected using the current combination $c$. 
+Every algorithm starts with some combination $c$ from all possible $k$ combinations of $|I|$ stars $C_k^{|I|}$, where $k = $ the size of the image subset that specific identification method uses. A set of stars from the image $b$ is selected using the current combination $c$. 
 
 Using certain features of $b$, a set of catalog star sets $R$ is obtained. $R$ is a list of catalog star candidates as to which $b$ could map to. Through some filter process, a single set $r$ from $R$ is then selected. The alignment $a$ is then determined between $r$ and $b$. If all of these steps are successful, then this alignment is returned. Otherwise, a new combination $c$ is selected and the entire process is repeated. This process is detailed in figure \eqref{genidentification}.
 
@@ -308,7 +308,7 @@ In 2004, Mortari (citation here) developed the Pyramid method. Starting with an 
 
 To find the common stars between two sets of \textit{pairs} $R^{ab}$ and $R^{ac}$, they must be flattened into a single dimensional set. These new sets are denoted as $\bar{R}^{ab}$ and $\bar{R}^{ac}$ respectively. The function \Call{CommonStars}{$R^{ab}, R^{ac}, E$} in algorithm \eqref{Pyramid Helpers} also specifies an $E$ parameter, which acts as a "exclusion" set. Once a common star is found (e.g. $T^i$), it follows that the next common star to be found (e.g. $T^j$) should not include this previously found star. 
 
-The second verification step is denoted as \Call{Verification}{$r, b, I$} in algorithm \eqref{Pyramid Helpers}. This function starts by selecting a nearby star to $r$ in the catalog $e$. Using the current alignment $\alpha$ between $b$ and $r$, an attitude $q$ is determined. If rotating $e$ with $q$ does not align with a star in $I$, then this test fails. Otherwise, this test passes.
+The second verification step is denoted as \Call{Verification}{$r, b, I$} in algorithm \eqref{Pyramid Helpers}. This function starts by selecting a nearby star to $b$ in the image $b_e$. The angular separation between each star in $b$ is computed, generating $\theta^{ie}, \theta^{je}, \theta^{ke}$. Again, three sets of catalog pairs $R^{ie}, R^{je}, R^{ke}$ are selected such that condition \eqref{anglerequirement} holds for each respective $\theta$. If the common star between all $R$ sets exists near the given $r$ set, then the test past. Otherwise, the test fails.
 
 \begin{algorithm}
 \caption{Functions for Pyramid Alignment Determination} \label{Pyramid Helpers}
@@ -320,13 +320,20 @@ The second verification step is denoted as \Call{Verification}{$r, b, I$} in alg
 \EndFunction
 \\
 \Function{Verification}{$r, b, I$}
-\State $e \gets $ nearby star in catalog close to $r$
-\State $\alpha \gets (b_i \rightarrow r_i, b_j \rightarrow r_j, b_k \rightarrow r_k)$
-\State $q \gets $ \Call{TRIAD}{$a$}
-\State $b^{\star} \gets e \text{ rotated by } q$
+\State $b_e \gets $ star in image $I$ not in $b$
+\State $R^{ie} \gets$ catalog pairs that meet \eqref{anglerequirement} with $(b_i, b_e)$
+\State $R^{je} \gets$ catalog pairs that meet \eqref{anglerequirement} with $(b_j, b_e)$
+\State $R^{ke} \gets$ catalog pairs that meet \eqref{anglerequirement} with $(b_k, b_e)$
 \\
-\If{$b^{\star}$ aligns with star in $I$}
+\State $\bar{T}^e \gets $ \Call{CommonStars}{$R^{je}, R^{ke}$}
+\State $T^e \gets $ \Call{CommonStars}{$R^{ie}, \bar{T}^e, \emptyset$}
+\If{$|T^e| = 1$}
+\State $r_e \gets $ singular star in $T^e$
+\If{$r_e$ is near $r$ in catalog}
 \State \textbf{return true}
+\Else
+\State \textbf{return false}
+\EndIf
 \Else
 \State \textbf{return false}
 \EndIf
