@@ -184,69 +184,6 @@ TEST(PlaneMatch, RotatingDuplicateInput) {
     }
 }
 
-/// Check that correct result is returned with a clean input.
-TEST(PlaneIdentify, CleanInput) {
-    std::random_device seed;
-    Chomp ch;
-    Benchmark input(ch, seed, 8, 6.5);
-    Plane::Parameters a = Plane::DEFAULT_PARAMETERS;
-    unsigned int nu = 0;
-    
-    // We define a match as 66% here.
-    a.gamma = 0.66;
-    a.sigma_overlay = 0.000001;
-    a.sigma_query = 10e-9;
-    a.nu = std::make_shared<unsigned int>(nu);
-    Star::list c = Plane(input, a).experiment_crown();
-    ASSERT_GT(c.size(), a.gamma * c.size());
-    
-    std::string all_input = "";
-    for (const Star &s : input.stars) {
-        all_input += !(s == input.stars[input.stars.size() - 1]) ? s.str() + "," : s.str();
-    }
-    
-    if (!c.empty()) {
-        for (int q = 0; q < static_cast<signed>(c.size() - 1); q++) {
-            auto match = [&c, q] (const Star &b) -> bool {
-                return b.get_label() == c[q].get_label();
-            };
-            EXPECT_NE(std::find_if(input.stars.begin(), input.stars.end(), match), input.stars.end());
-        }
-    }
-}
-
-/// Check **a** correct result is returned with an error input.
-TEST(PlaneIdentify, ErrorInput) {
-    std::random_device seed;
-    Chomp ch;
-    Benchmark input(ch, seed, 20);
-    Plane::Parameters a = Plane::DEFAULT_PARAMETERS;
-    input.add_extra_light(1);
-    unsigned int nu = 0;
-    
-    // We define a match as 25% here.
-    a.gamma = 0.25;
-    a.sigma_overlay = 0.0001;
-    a.sigma_query = 10e-9;
-    a.nu = std::make_shared<unsigned int>(nu);
-    Star::list c = Plane(input, a).experiment_crown();
-    ASSERT_GT(c.size(), a.gamma * c.size());
-    
-    if (!c.empty()) {
-        std::string all_input = "";
-        for (const Star &s : input.stars) {
-            all_input += !(s == input.stars[input.stars.size() - 1]) ? s.str() + "," : s.str();
-        }
-        
-        for (unsigned int q = 0; q < c.size() - 1; q++) {
-            auto match = [&c, q] (const Star &b) -> bool {
-                return b.get_label() == c[q].get_label();
-            };
-            EXPECT_NE(std::find_if(input.stars.begin(), input.stars.end(), match), input.stars.end());
-        }
-    }
-}
-
 /// Check that a clean input returns the expected query result.
 TEST(PlaneTrial, CleanQuery) {
     std::random_device seed;
@@ -262,29 +199,6 @@ TEST(PlaneTrial, CleanQuery) {
     
     std::sort(ell.begin(), ell.end());
     EXPECT_THAT(d, Contains(ell));
-}
-
-/// Check that a clean input returns the expected alignment of stars.
-TEST(PlaneTrial, CleanFirstAlignment) {
-    std::random_device seed;
-    Chomp ch;
-    Rotation q = Rotation::chance(seed);
-    Star focus = Star::chance(seed);
-    Plane::Parameters p = Plane::DEFAULT_PARAMETERS;
-    p.sigma_overlay = 0.000001;
-    Benchmark input(ch, seed, focus, q, 15, 6.0);
-    Plane a(input, p);
-    
-    Star::list b = {a.input[0], a.input[1], a.input[2]}, d = {a.input[0], a.input[1]};
-    Star::list c = {ch.query_hip(input.stars[0].get_label()), ch.query_hip(input.stars[1].get_label()),
-        ch.query_hip(input.stars[2].get_label())};
-    
-    EXPECT_ANY_THROW(a.experiment_first_alignment(ch.nearby_bright_stars(focus, 20, 100), c, d));
-    
-    Star::list f = a.experiment_first_alignment(ch.nearby_bright_stars(focus, 20, 100), c, b);
-    EXPECT_THAT(f, Contains(Star::define_label(b[0], c[0].get_label())));
-    EXPECT_THAT(f, Contains(Star::define_label(b[1], c[1].get_label())));
-    EXPECT_THAT(f, Contains(Star::define_label(b[2], c[2].get_label())));
 }
 
 /// Check that a clean input returns the correct stars from a set of candidates.

@@ -14,9 +14,6 @@ const Star::list Identification::NO_CONFIDENT_ALIGNMENT = {Star::define_label(St
 /// Returned when we count past our defined max nu from a crown or alignment trial.
 const Star::list Identification::EXCEEDED_NU_MAX = {Star::zero()};
 
-/// Returned when there exists no confident match set from a crown trial.
-const Star::list Identification::NO_CONFIDENT_MATCH_SET = {Star::define_label(Star::zero(), -1)};
-
 /// Default parameters for a general identification object.
 const Identification::Parameters Identification::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
     DEFAULT_SIGMA_OVERLAY, DEFAULT_GAMMA, DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_TABLE_NAME};

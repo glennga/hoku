@@ -231,16 +231,6 @@ Star::list BaseTriangle::check_assumptions (const Star::list &candidates, const 
     })[0];
 }
 
-/// Find the matching pairs using the appropriate triangle table and by comparing areas and polar moments. This is
-/// just a wrapper for query_for_trio.
-///
-/// @param a Area (planar or spherical) to search with.
-/// @param i_t Polar moment (planar or spherical) to search with.
-/// @return NO_CANDIDATE_TRIOS_FOUND if no candidates found. Otherwise, all elements that met the criteria.
-std::vector<BaseTriangle::label_trio> BaseTriangle::e_query (double a, double i) {
-    return query_for_trio(a, i);
-}
-
 /// Check all possible configuration of star trios and return quaternion corresponding to the set with the largest
 /// number of reference to body matches.
 ///
@@ -249,7 +239,7 @@ std::vector<BaseTriangle::label_trio> BaseTriangle::e_query (double a, double i)
 /// @param b Body (frame B) Trio of stars to check against the inertial trio.
 /// @return The quaternion corresponding to largest set of matching stars across the body and inertial in all pairing
 /// configurations.
-Star::list BaseTriangle::e_single_alignment (const Star::list &candidates, const Trio::stars &r, const Trio::stars &b) {
+Star::list BaseTriangle::singular_alignment (const Star::list &candidates, const Trio::stars &r, const Trio::stars &b) {
     std::array<index_trio, 6> order = {STARTING_INDEX_TRIO};
     std::array<Star::list, 6> matches = {}, alignments = {};
     auto ell = [&r, &b, &order] (const int i, const int j) -> Star {
@@ -274,6 +264,16 @@ Star::list BaseTriangle::e_single_alignment (const Star::list &candidates, const
         std::max_element(matches.begin(), matches.end(), [] (const Star::list &lhs, const Star::list &rhs) {
             return lhs.size() < rhs.size();
         }) - matches.begin()];
+}
+
+/// Find the matching pairs using the appropriate triangle table and by comparing areas and polar moments. This is
+/// just a wrapper for query_for_trio.
+///
+/// @param a Area (planar or spherical) to search with.
+/// @param i_t Polar moment (planar or spherical) to search with.
+/// @return NO_CANDIDATE_TRIOS_FOUND if no candidates found. Otherwise, all elements that met the criteria.
+std::vector<BaseTriangle::label_trio> BaseTriangle::e_query (double a, double i) {
+    return query_for_trio(a, i);
 }
 
 /// Find the **best** matching pair to the first three stars in our benchmark using the appropriate triangle table.
@@ -326,63 +326,9 @@ Star::list BaseTriangle::e_alignment () {
                                                  static_cast<unsigned int> (3.0 * input.size()));
                 
                 // Find the most likely alignment given the two pairs.
-                return e_single_alignment(candidates, candidate_trio, {input[i], input[j], input[k]});
+                return singular_alignment(candidates, candidate_trio, {input[i], input[j], input[k]});
             }
         }
     }
     return NO_CONFIDENT_ALIGNMENT;
-}
-
-/// Match the stars found in the current benchmark to those in the Nibble database. The child class should wrap this
-/// function as 'experiment_crown' to mimic the other methods.
-///
-/// @return NO_CONFIDENT_MATCH_SET if an alignment cannot be found exhaustively. EXCEEDED_NU_MAX if an alignment
-/// cannot be found within a certain number of query picks. Otherwise, a vector of body stars with their
-/// inertial catalog IDs that qualify as matches.
-Star::list BaseTriangle::e_crown () {
-    Star::list matches;
-    *parameters.nu = 0;
-    
-    // This procedure will not work |input| < 3. Exit early with NO_CONFIDENT_MATCH_SET.
-    if (input.size() < 3) {
-        return NO_CONFIDENT_MATCH_SET;
-    }
-    
-    // There exists |input| choose 3 possibilities.
-    for (int i = 0; i < static_cast<signed> (input.size() - 2); i++) {
-        for (int j = i + 1; j < static_cast<signed> (input.size() - 1); j++) {
-            for (int k = j + 1; k < static_cast<signed> (input.size()); k++) {
-                std::vector<Trio::stars> candidate_trios;
-                Trio::stars candidate_trio;
-                Star::list candidates;
-                (*parameters.nu)++;
-                
-                // Practical limit: exit early if we have iterated through too many comparisons without match.
-                if (*parameters.nu > parameters.nu_max) {
-                    return EXCEEDED_NU_MAX;
-                }
-                
-                // Find matches of current body trio to catalog. Pivot if necessary.
-                generate_pivot_list({i, j, k});
-                candidate_trio = pivot({i, j, k});
-                if (std::equal(candidate_trio.begin(), candidate_trio.end(), NO_CANDIDATE_STAR_SET_FOUND.begin())) {
-                    continue;
-                }
-                
-                // Find candidate stars around the candidate trio.
-                candidates = ch.nearby_hip_stars(candidate_trio[0], fov, static_cast<unsigned int>(3.0 * input.size()));
-                
-                // Check all possible configurations. Return the most likely.
-                matches = check_assumptions(candidates, candidate_trio, {i, j, k});
-                
-                // Definition of image match: |match| > gamma minimum OR |match| == |input|.
-                if (matches.size() > ceil(input.size() * parameters.gamma)) {
-                    return matches;
-                }
-            }
-        }
-    }
-    
-    // Return an empty list if nothing is found.
-    return NO_CONFIDENT_MATCH_SET;
 }

@@ -59,7 +59,6 @@ class Identification {
     static const labels_list NO_CANDIDATES_FOUND;
     
     static const Star::list EXCEEDED_NU_MAX;
-    static const Star::list NO_CONFIDENT_MATCH_SET;
     static const Parameters DEFAULT_PARAMETERS;
 
 #if !defined ENABLE_TESTING_ACCESS
