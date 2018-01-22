@@ -9,6 +9,7 @@
 
 #include "storage/nibble.h"
 
+// TODO: finish documentation with examples
 /// The lumberjack class is used to log the results of all trials.
 class Lumberjack : private Nibble {
   public:

@@ -1,27 +1,25 @@
 ##################################################################
-# Binary Directory = bin Folder
-##################################################################
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
-
-##################################################################
-# Include Directory for Header Files
+# Include Directory for Header Files (Source)
 ##################################################################
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
 ##################################################################
-# Link and Create Executable GenerateN
+# Include Directory for Header Files
 ##################################################################
-add_executable(GenerateN generate-n.cpp)
-target_link_libraries(GenerateN Pyramid PlanarTriangle
-        SphericalTriangle Angle BaseTriangle Identification Benchmark
-        Rotation QuadNode KdNode Chomp Nibble Asterism Mercator Trio
+include_directories(${CMAKE_SOURCE_DIR}/test/include)
+
+##################################################################
+# Link and Create Executable TestLumberjack
+##################################################################
+add_executable(TestLumberjack test-lumberjack.cpp)
+target_link_libraries(TestLumberjack gtest Lumberjack Chomp Nibble
         Star SQLiteCpp Sqlite3 RandomDraw)
 
 ##################################################################
-# Link and Create Executable PerformE
+# Link and Create Executable TestExperiment
 ##################################################################
-add_executable(PerformE perform-e.cpp)
-target_link_libraries(PerformE Experiment Lumberjack Pyramid
+add_executable(TestExperiment test-experiment.cpp)
+target_link_libraries(TestExperiment Experiment Lumberjack Pyramid
         PlanarTriangle SphericalTriangle Angle BaseTriangle
         Identification Benchmark Rotation QuadNode KdNode Chomp
         Nibble Mercator Trio Star SQLiteCpp Sqlite3 RandomDraw)
