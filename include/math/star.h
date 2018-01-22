@@ -44,7 +44,7 @@ class Star {
     static constexpr double INVALID_ELEMENT_ACCESSED = 0;
     
     /// Precision default for is_equal and '==' methods.
-    static constexpr double STAR_EQUALITY_PRECISION_DEFAULT = std::numeric_limits<double>::epsilon();
+    static constexpr double STAR_EQUALITY_PRECISION_DEFAULT = std::numeric_limits<double>::epsilon() * 10;
     
     /// The default label of all stars.
     static constexpr int NO_LABEL = 0;

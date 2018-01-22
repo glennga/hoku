@@ -16,8 +16,7 @@ using testing::Not;
 /// Check that query_for_pair method returns the catalog ID of the correct stars.
 TEST(AngleQuery, Pair) {
     Chomp ch;
-    std::random_device seed;
-    Benchmark input(ch, seed, 15);
+    Benchmark input(ch, 15);
     
     double a = Star::angle_between(input.stars[0], input.stars[1]);
     Identification::labels_list b = Angle(input, Angle::DEFAULT_PARAMETERS).query_for_pair(a);
@@ -30,8 +29,7 @@ TEST(AngleQuery, Pair) {
 /// Check that the zero-length stars are returned wgn theta is greater than the current fov.
 TEST(AngleQuery, FOV) {
     Chomp ch;
-    std::random_device seed;
-    Angle a(Benchmark(ch, seed, 10), Angle::DEFAULT_PARAMETERS);
+    Angle a(Benchmark(ch, 10), Angle::DEFAULT_PARAMETERS);
     Star b(0.928454687492219, 0.132930961972911, 0.346844709665121);
     Star c(0.998078771188383, -0.0350062881876723, 0.0511207031486225);
     
@@ -43,8 +41,7 @@ TEST(AngleQuery, FOV) {
 /// Check that the zero-length stars are returned when no matching theta is found.
 TEST(AngleQuery, None) {
     Chomp ch;
-    std::random_device seed;
-    Angle a(Benchmark(ch, seed, 10), Angle::DEFAULT_PARAMETERS);
+    Angle a(Benchmark(ch, 10), Angle::DEFAULT_PARAMETERS);
     
     std::array<Star, 2> b = a.find_candidate_pair(Star(1, 1, 1), Star(1.1, 1, 1));
     EXPECT_EQ(b[0], Star::zero());
@@ -54,8 +51,7 @@ TEST(AngleQuery, None) {
 /// Check that the correct stars are returned from the candidate pair query.
 TEST(AngleResults, Query) {
     Chomp ch;
-    std::random_device seed;
-    Benchmark input(ch, seed, 15);
+    Benchmark input(ch, 15);
     Angle b(input, Angle::DEFAULT_PARAMETERS);
     
     std::array<Star, 2> c = b.find_candidate_pair(input.stars[0], input.stars[1]);
@@ -68,12 +64,11 @@ TEST(AngleResults, Query) {
 /// Check that the rotating match method marks the all stars as matched.
 TEST(AngleMatch, CorrectInput) {
     Chomp ch;
-    std::random_device seed;
-    Star a = Star::chance(seed), b = Star::chance(seed);
-    Rotation c = Rotation::chance(seed);
+    Star a = Star::chance(), b = Star::chance();
+    Rotation c = Rotation::chance();
     Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
     Rotation f = Rotation::rotation_across_frames({a, b}, {d, e});
-    Benchmark input(ch, seed, Star::chance(seed), c, 8);
+    Benchmark input(ch, Star::chance(), c, 8);
     std::vector<Star> rev_input;
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
     p.sigma_overlay = 0.000001;
@@ -95,12 +90,11 @@ TEST(AngleMatch, CorrectInput) {
 /// Check that the rotating match method marks only the correct stars as matched.
 TEST(AngleMatch, ErrorInput) {
     Chomp ch;
-    std::random_device seed;
-    Star a = Star::chance(seed), b = Star::chance(seed);
-    Rotation c = Rotation::chance(seed);
+    Star a = Star::chance(), b = Star::chance();
+    Rotation c = Rotation::chance();
     Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
     Rotation f = Rotation::rotation_across_frames({a, b}, {d, e});
-    Benchmark input(ch, seed, Star::chance(seed), c, 8);
+    Benchmark input(ch, Star::chance(), c, 8);
     std::vector<Star> rev_input;
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
     p.sigma_overlay = 0.000001;
@@ -125,12 +119,11 @@ TEST(AngleMatch, ErrorInput) {
 /// Check that the rotating match method marks only the correct stars as matched, not the duplicate as well.
 TEST(AngleMatch, RotatingDuplicateInput) {
     Chomp ch;
-    std::random_device seed;
-    Star a = Star::chance(seed), b = Star::chance(seed);
-    Rotation c = Rotation::chance(seed);
+    Star a = Star::chance(), b = Star::chance();
+    Rotation c = Rotation::chance();
     Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
     Rotation f = Rotation::rotation_across_frames({a, b}, {d, e});
-    Benchmark input(ch, seed, Star::chance(seed), c, 8);
+    Benchmark input(ch, Star::chance(), c, 8);
     std::vector<Star> rev_input;
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
     p.sigma_overlay = 0.000001;
@@ -184,15 +177,15 @@ TEST(AngleTrial, CleanAlignment) {
     std::random_device seed;
     unsigned int nu;
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
-    p.nu = std::make_shared<unsigned int> (nu);
+    p.nu = std::make_shared<unsigned int>(nu);
     p.sigma_query = 10e-9;
     p.sigma_overlay = 0.000001;
     
-    Rotation q = Rotation::chance(seed);
+    Rotation q = Rotation::chance();
     Star b = ch.query_hip(103215), c = ch.query_hip(103217);
     Star d = Rotation::rotate(b, q), e = Rotation::rotate(c, q);
     
-    Angle a(Benchmark(seed, {d, e}, d, 20), p);
+    Angle a(Benchmark({d, e}, d, 20), p);
     Star::list f = a.experiment_alignment();
     EXPECT_THAT(f, Contains(Star::define_label(d, 103215)));
     EXPECT_THAT(f, Contains(Star::define_label(e, 103217)));

@@ -15,9 +15,8 @@ using testing::Contains;
 
 /// Check that query_for_trio method returns the catalog ID of the correct stars.
 TEST(SphereQuery, TrioQuery) {
-    std::random_device seed;
     Chomp ch;
-    Benchmark input(ch, seed, 15);
+    Benchmark input(ch, 15);
     Sphere::Parameters par = Sphere::DEFAULT_PARAMETERS;
     par.sigma_query = 0.000000001;
     Sphere p(input, par);
@@ -37,10 +36,9 @@ TEST(SphereQuery, TrioQuery) {
 
 /// Check that the zero-length stars are returned when an area between a pair of stars is greater than the current fov.
 TEST(SphereQuery, MatchStarsFOV) {
-    std::random_device seed;
     Chomp ch;
     Sphere::Parameters par = Sphere::DEFAULT_PARAMETERS;
-    Sphere a(Benchmark(ch, seed, 10), par);
+    Sphere a(Benchmark(ch, 10), par);
     a.input[0] = Star::reset_label(ch.query_hip(3));
     a.input[1] = Star::reset_label(ch.query_hip(4));
     a.input[2] = Star::reset_label(ch.query_hip(5));
@@ -53,9 +51,8 @@ TEST(SphereQuery, MatchStarsFOV) {
 TEST(SphereQuery, MatchStarsNone) {
     Sphere::Parameters par = Sphere::DEFAULT_PARAMETERS;
     par.sigma_query = std::numeric_limits<double>::epsilon();
-    std::random_device seed;
     Chomp ch;
-    Sphere a(Benchmark(ch, seed, 10), par);
+    Sphere a(Benchmark(ch, 10), par);
     a.input[0] = Star(1, 1, 1.1);
     a.input[1] = Star(1, 1, 1);
     a.input[2] = Star(1.1, 1, 1);
@@ -68,9 +65,8 @@ TEST(SphereQuery, MatchStarsNone) {
 TEST(SphereQuery, MatchStarsResults) {
     Sphere::Parameters par = Sphere::DEFAULT_PARAMETERS;
     par.sigma_query = 10e-9;
-    std::random_device seed;
     Chomp ch;
-    Benchmark input(ch, seed, 20);
+    Benchmark input(ch, 20);
     Sphere a(input, par);
     std::vector<Trio::stars> b = a.match_stars(Sphere::STARTING_INDEX_TRIO);
     
@@ -88,9 +84,8 @@ TEST(SphereQuery, PivotResults) {
     Sphere::Parameters par = Sphere::DEFAULT_PARAMETERS;
     par.sigma_query = 10e-9;
     par.sigma_overlay = 0.000001;
-    std::random_device seed;
     Chomp ch;
-    Benchmark input(ch, seed, 20);
+    Benchmark input(ch, 20);
     Sphere a(input, par);
     
     Trio::stars c = a.pivot(Sphere::STARTING_INDEX_TRIO);
@@ -103,13 +98,12 @@ TEST(SphereQuery, PivotResults) {
 /// Check that the rotating match method marks the all stars as matched.
 TEST(SphereMatch, RotatingCorrectInput) {
     Sphere::Parameters par = Sphere::DEFAULT_PARAMETERS;
-    std::random_device seed;
     Chomp ch;
-    Star a = Star::chance(seed), b = Star::chance(seed);
-    Rotation c = Rotation::chance(seed);
+    Star a = Star::chance(), b = Star::chance();
+    Rotation c = Rotation::chance();
     Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
     Rotation f = Rotation::rotation_across_frames({a, b}, {d, e});
-    Benchmark input(ch, seed, Star::chance(seed), c, 8);
+    Benchmark input(ch, Star::chance(), c, 8);
     std::vector<Star> rev_input;
     par.sigma_overlay = 0.000001;
     Sphere g(input, par);
@@ -128,15 +122,14 @@ TEST(SphereMatch, RotatingCorrectInput) {
 }
 
 /// Check that the rotating match method marks only the correct stars as matched.
-TEST(SphereMatch, RotatinErrorInput) {
+TEST(SphereMatch, RotatingErrorInput) {
     Sphere::Parameters par = Sphere::DEFAULT_PARAMETERS;
-    std::random_device seed;
     Chomp ch;
-    Star a = Star::chance(seed), b = Star::chance(seed);
-    Rotation c = Rotation::chance(seed);
+    Star a = Star::chance(), b = Star::chance();
+    Rotation c = Rotation::chance();
     Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
     Rotation f = Rotation::rotation_across_frames({a, b}, {d, e});
-    Benchmark input(ch, seed, Star::chance(seed), c, 8);
+    Benchmark input(ch, Star::chance(), c, 8);
     std::vector<Star> rev_input;
     par.sigma_overlay = 0.000001;
     Sphere g(input, par);
@@ -159,13 +152,12 @@ TEST(SphereMatch, RotatinErrorInput) {
 /// Check that the rotating match method marks only the correct stars as matched, not the duplicate as well.
 TEST(SphereMatch, RotatingDuplicateInput) {
     Sphere::Parameters par = Sphere::DEFAULT_PARAMETERS;
-    std::random_device seed;
     Chomp ch;
-    Star a = Star::chance(seed), b = Star::chance(seed);
-    Rotation c = Rotation::chance(seed);
+    Star a = Star::chance(), b = Star::chance();
+    Rotation c = Rotation::chance();
     Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
     Rotation f = Rotation::rotation_across_frames({a, b}, {d, e});
-    Benchmark input(ch, seed, Star::chance(seed), c, 8);
+    Benchmark input(ch, Star::chance(), c, 8);
     std::vector<Star> rev_input;
     par.sigma_overlay = 0.000001;
     Sphere g(input, par);
@@ -190,11 +182,10 @@ TEST(SphereMatch, RotatingDuplicateInput) {
 
 /// Check that a clean input returns the expected query result.
 TEST(SphereTrial, CleanQuery) {
-    std::random_device seed;
     Chomp ch;
     Sphere::Parameters p = Sphere::DEFAULT_PARAMETERS;
     p.sigma_query = 10e-9;
-    Benchmark input(ch, seed, 15);
+    Benchmark input(ch, 15);
     Sphere a(Benchmark::black(), p);
     
     std::vector<Identification::labels_list> d = a.experiment_query({input.stars[0], input.stars[1], input.stars[2]});
@@ -207,12 +198,11 @@ TEST(SphereTrial, CleanQuery) {
 
 /// Check that a clean input returns the correct stars from a set of candidates.
 TEST(SphereTrial, CleanReduction) {
-    std::random_device seed;
     Chomp ch;
     Sphere::Parameters p = Sphere::DEFAULT_PARAMETERS;
     p.sigma_query = 10e-10;
     p.sigma_overlay = 0.0001;
-    Benchmark input(ch, seed, 15);
+    Benchmark input(ch, 15);
     Sphere a(input, p);
     Identification::labels_list ell = {input.stars[0].get_label(), input.stars[1].get_label(),
         input.stars[2].get_label()};
@@ -223,23 +213,22 @@ TEST(SphereTrial, CleanReduction) {
 
 /// Check that a clean input returns the expected alignment of stars.
 TEST(SphereTrial, CleanAlignment) {
-    std::random_device seed;
     Chomp ch;
-    Rotation q = Rotation::chance(seed);
-    Star focus = Star::chance(seed);
+    Rotation q = Rotation::chance();
+    Star focus = Star::chance();
     unsigned int nu = 0;
     Sphere::Parameters p = Sphere::DEFAULT_PARAMETERS;
     p.sigma_query = 10e-9;
     p.sigma_overlay = 0.000001;
     p.nu = std::make_shared<unsigned int>(nu);
-    Benchmark input(ch, seed, focus, q, 15, 6.0);
+    Benchmark input(ch, focus, q, 15, 6.0);
     
     Star::list b = {Rotation::rotate(input.stars[0], q), Rotation::rotate(input.stars[1], q),
         Rotation::rotate(input.stars[2], q)};
     Star::list c = {ch.query_hip(input.stars[0].get_label()), ch.query_hip(input.stars[1].get_label()),
         ch.query_hip(input.stars[2].get_label())};
     
-    Sphere a(Benchmark(seed, b, Rotation::rotate(focus, q), 20), p);
+    Sphere a(Benchmark( b, Rotation::rotate(focus, q), 20), p);
     Star::list f = a.experiment_alignment();
     EXPECT_THAT(f, Contains(Star::define_label(b[0], c[0].get_label())));
     EXPECT_THAT(f, Contains(Star::define_label(b[1], c[1].get_label())));
