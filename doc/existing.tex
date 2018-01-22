@@ -313,10 +313,10 @@ The second verification step is denoted as \Call{Verification}{$r, b, I$} in alg
 \begin{algorithm}
 \caption{Functions for Pyramid Alignment Determination} \label{Pyramid Helpers}
 \begin{algorithmic}[1]
-\Function{CommonStars}{$R^{ab}, R^{ac}, E$}
+\Function{CommonStars}{$R^{ab}, R^{ac}, F$}
 \State $\bar{R}^{ab} \gets $ \Call{Flatten}{$R^{ab}$} \Comment set of pairs (2D) to 1D set
 \State $\bar{R}^{ac} \gets $ \Call{Flatten}{$R^{ac}$}
-\State \textbf{return} $(\bar{R}^{ab} \cap \bar{R}^{ac}) - E$
+\State \textbf{return} $(\bar{R}^{ab} \cap \bar{R}^{ac}) - F$
 \EndFunction
 \\
 \Function{Verification}{$r, b, I$}
@@ -325,8 +325,7 @@ The second verification step is denoted as \Call{Verification}{$r, b, I$} in alg
 \State $R^{je} \gets$ catalog pairs that meet \eqref{anglerequirement} with $(b_j, b_e)$
 \State $R^{ke} \gets$ catalog pairs that meet \eqref{anglerequirement} with $(b_k, b_e)$
 \\
-\State $\bar{T}^e \gets $ \Call{CommonStars}{$R^{je}, R^{ke}$}
-\State $T^e \gets $ \Call{CommonStars}{$R^{ie}, \bar{T}^e, \emptyset$}
+\State $T^e \gets $ \Call{CommonStars}{$R^{je}, R^{ke} \cup R^{ie}, \emptyset$}
 \If{$|T^e| = 1$}
 \State $r_e \gets $ singular star in $T^e$
 \If{$r_e$ is near $r$ in catalog}

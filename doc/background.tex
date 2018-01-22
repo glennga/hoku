@@ -21,8 +21,6 @@ On Earth, "up" and "down" mean "up from the center of the Earth" and "down towar
 
 In space, distinguishing "up from Earth" from "down toward Earth" is different as the Earth's gravitational presence is severely diminished. This means that the acceleration sensors used here cannot be used to determine one's attitude in space. Spacecraft instead use other objects to build an attitude from. The visual position of the Sun and the Earth's magnetic field are common choices for reference points, but the most popular are the visual positions of various stars in the sky. 
 
-Once some known object is found by the sensor, these measurements exists in a \textit{body reference frame}. This reference frame reveals the position of objects with respect to the sensor, but is not fixed to any point. There exists a separate, fixed frame with which these known objects are recorded in prior to the start of the mission. This is known as an \textit{inertial reference frame}. Figure \eqref{coordinatesystems} depicts the relation between both frames. Attitude determination involves taking inertial frame object observations in the body frame, and figuring out how the spacecraft is oriented in this inertial frame. 
-
 % https://commons.wikimedia.org/wiki/File:Moving_coordinate_system.PNG
 \begin{figure}
 \label{coordinatesystems}
@@ -33,6 +31,8 @@ Visual of two coordinate frames: the inertial frame $A$, and the body frame $B$ 
     }
 }
 \end{figure}
+
+Once some known object is found by the sensor, these measurements exists in a \textit{body reference frame}. This reference frame reveals the position of objects with respect to the sensor, but is not fixed to any point. There exists a separate, fixed frame with which these known objects are recorded in prior to the start of the mission. This is known as an \textit{inertial reference frame}. Figure \eqref{coordinatesystems} depicts the relation between both frames. Attitude determination involves taking inertial frame object observations in the body frame, and figuring out how the spacecraft is oriented in this inertial frame. 
 
 From here, the problem becomes aligning vector observations in the body frame with another set of vectors in the inertial frame. This is known as \textit{Wahba's problem}, and is a form of an optimization problem. A popular and simple method to extract an attitude from two vectors in both the inertial and body frame is the \textit{TRIAD method}. For all instances where Wahba's problem was present, the TRIAD method was used to extract an orientation. 
 
