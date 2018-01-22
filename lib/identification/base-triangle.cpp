@@ -135,7 +135,8 @@ std::vector<Trio::stars> BaseTriangle::m_stars (const index_trio &i_b, area_func
     // Grab stars themselves from catalog IDs found in matches. Return these matches.
     matched_stars.reserve(match_hr.size());
     for (const label_trio &t : match_hr) {
-        matched_stars.push_back({ch.query_hip((int) t[0]), ch.query_hip((int) t[1]), ch.query_hip((int) t[2])});
+        matched_stars.push_back({ch.query_hip(static_cast<int> (t[0])), ch.query_hip(static_cast<int> (t[1])),
+                                    ch.query_hip(static_cast<int> (t[2]))});
     }
     
     return matched_stars;
@@ -194,41 +195,6 @@ Trio::stars BaseTriangle::pivot (const index_trio &i_b, const std::vector<Trio::
             // 2+ trios exists. Run with different 3rd element and history.
         default: return pivot(index_trio {i_b[0], i_b[1], ptop(this->p)}, matches);
     }
-}
-
-/// Check all possible configuration of star trios and return the set with the largest number of reference to body
-/// matches.
-///
-/// @param candidates All stars to check against the body star set.
-/// @param r Inertial (frame R) trio of stars to check against the body trio.
-/// @param b_labels Body (frame B) Catalog IDs for the trio of stars to check against the inertial trio.
-/// @return The largest set of matching stars across the body and inertial in all pairing configurations.
-Star::list BaseTriangle::check_assumptions (const Star::list &candidates, const Trio::stars &r,
-                                            const index_trio &b_labels) {
-    index_trio current_order = {0, 1, 2};
-    std::array<Trio::stars, 6> r_assumption_list;
-    std::array<Star::list, 6> matches;
-    int current_assumption = 0;
-    
-    // Generate unique permutations using previously generated trio.
-    r_assumption_list[0] = {r[current_order[0]], r[current_order[1]], r[current_order[2]]};
-    for (int i = 1; i < 6; i++) {
-        // Given i, swap elements 2 and 3 if even, or 1 and 3 if odd.
-        current_order = (i % 2) == 0 ? index_trio {0, 2, 1} : index_trio {2, 1, 0};
-        r_assumption_list[i] = {r[current_order[0]], r[current_order[1]], r[current_order[2]]};
-    }
-    
-    // Determine the rotation to take frame R to B. Only use r_1 and r_2 to get rotation.
-    for (const Trio::stars &assumption : r_assumption_list) {
-        Rotation q = Rotation::rotation_across_frames({this->input[b_labels[0]], this->input[b_labels[1]]},
-                                                      {assumption[0], assumption[1]});
-        matches[current_assumption++] = find_matches(candidates, q);
-    }
-    
-    // Return the larger of the six matches.
-    return std::max_element(matches.begin(), matches.end(), [] (const Star::list &lhs, const Star::list &rhs) {
-        return lhs.size() < rhs.size();
-    })[0];
 }
 
 /// Check all possible configuration of star trios and return quaternion corresponding to the set with the largest

@@ -18,6 +18,7 @@ class Identification {
         double gamma; ///< The minimum percentage of body-inertial matches.
         unsigned int nu_max; ///< Maximum number of query star comparisons before returning an empty list.
         std::shared_ptr<unsigned int> nu; ///< Pointer to the location to hold the count of query star comparisons.
+        std::random_device *seed; ///< Pointer to the location of the random seed. Used as source of randomness.
         std::string table_name; ///< Name of the Nibble database table created with 'generate_sep_table'.
     };
     
@@ -35,6 +36,9 @@ class Identification {
     
     /// Default nu max (comparison counts) for all identification methods.
     static constexpr unsigned int DEFAULT_NU_MAX = 50000;
+    
+    /// Default seed for all identification methods.
+    static constexpr std::random_device *DEFAULT_SEED = nullptr;
     
     /// Default pointer to nu (comparison count) for all identification methods.
     static constexpr auto DEFAULT_NU = nullptr;

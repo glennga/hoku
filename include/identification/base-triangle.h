@@ -80,7 +80,6 @@ class BaseTriangle : public Identification {
     virtual std::vector<Trio::stars> match_stars (const index_trio &) = 0;
     Trio::stars pivot (const index_trio &, const std::vector<Trio::stars> & = {});
     Star::list singular_alignment (const Star::list &candidates, const Trio::stars &r, const Trio::stars &b);
-    Star::list check_assumptions (const Star::list &, const Trio::stars &, const index_trio &);
     
 };
 
