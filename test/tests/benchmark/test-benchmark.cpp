@@ -10,9 +10,8 @@
 
 /// Check that the stars are not in the same order after shuffling.
 TEST(BenchmarkImage, StarShuffle) {
-    std::random_device seed;
     Chomp ch;
-    Benchmark input(ch, seed, 15);
+    Benchmark input(ch, 15);
     Star a = input.stars[0], b(0, 0, 0);
     
     input.shuffle();
@@ -24,11 +23,10 @@ TEST(BenchmarkImage, StarShuffle) {
 
 /// Check that the file current_plot log file is formatted correctly.
 TEST(BenchmarkLog, CurrentPlotFile) {
-    std::random_device seed;
     Chomp ch;
-    Star a = Star::chance(seed);
-    Rotation b = Rotation::chance(seed);
-    Benchmark input(ch, seed, a, b, 15);
+    Star a = Star::chance();
+    Rotation b = Rotation::chance();
+    Benchmark input(ch, a, b, 15);
     Star c = Rotation::rotate(a, b);
     std::string d;
     char e[200];
@@ -56,9 +54,8 @@ TEST(BenchmarkLog, CurrentPlotFile) {
 
 /// Check that the file error_plot log file is formatted correctly.
 TEST(BenchmarkLog, ErrorPlotFile) {
-    std::random_device seed;
     Chomp ch;
-    Benchmark input(ch, seed, 15);
+    Benchmark input(ch, 15);
     std::string a;
     char b[200];
     
@@ -80,10 +77,9 @@ TEST(BenchmarkLog, ErrorPlotFile) {
 
 /// Check that all error models place stars near focus.
 TEST(BenchmarkError, NearFocus) {
-    std::random_device seed;
     Chomp ch;
     
-    Benchmark input(ch, seed, 15);
+    Benchmark input(ch, 15);
     input.add_extra_light(3);
     input.remove_light(3, 4);
     input.shift_light(3, 1);
@@ -94,9 +90,8 @@ TEST(BenchmarkError, NearFocus) {
 
 /// Check that extra stars exist in the light adding method.
 TEST(BenchmarkError, ExtraLightAdded) {
-    std::random_device seed;
     Chomp ch;
-    Benchmark input(ch, seed, 15);
+    Benchmark input(ch, 15);
     unsigned long long a = input.stars.size();
     input.add_extra_light(3);
     EXPECT_EQ(input.stars.size(), a + 3);
@@ -104,9 +99,8 @@ TEST(BenchmarkError, ExtraLightAdded) {
 
 /// Check that stars have been removed in light removal method.
 TEST(BenchmarkError, RemovedLightRemoved) {
-    std::random_device seed;
     Chomp ch;
-    Benchmark input(ch, seed, 15);
+    Benchmark input(ch, 15);
     unsigned long long a = input.stars.size();
     input.remove_light(3, 15);
     EXPECT_LT(input.stars.size(), a);
@@ -114,9 +108,8 @@ TEST(BenchmarkError, RemovedLightRemoved) {
 
 // Check that stars have been shifted in light shift method.
 TEST(BenchmarkError, ShiftedLightMoved) {
-    std::random_device seed;
     Chomp ch;
-    Benchmark input(ch, seed, 15);
+    Benchmark input(ch, 15);
     std::vector<Star> a = input.stars;
     input.shift_light(3, 0.1);
     int b = 0;
@@ -134,9 +127,8 @@ TEST(BenchmarkError, ShiftedLightMoved) {
 
 // Check that stars have been shifted in light barrel method.
 TEST(BenchmarkError, BarreledLightMoved) {
-    std::random_device seed;
     Chomp ch;
-    Benchmark input(ch, seed, 15);
+    Benchmark input(ch, 15);
     std::vector<Star> a = input.stars;
     input.barrel_light(0.00001);
     int b = 0;
@@ -154,9 +146,8 @@ TEST(BenchmarkError, BarreledLightMoved) {
 
 /// Check that the catalog ID numbers of all stars are equal to 0.
 TEST(BenchmarkImage, LabelClear) {
-    std::random_device seed;
     Chomp ch;
-    Benchmark input(ch, seed, 15);
+    Benchmark input(ch, 15);
     std::vector<Star> a = input.clean_stars();
     
     for (int q = 0; q < 3; q++) {
@@ -167,9 +158,8 @@ TEST(BenchmarkImage, LabelClear) {
 /// We are not checking anything here- this is where the user visually checks and ensures that the plot is displayed
 /// properly.
 TEST(BenchmarkImage, DisplayExtraShifted) {
-    std::random_device seed;
     Chomp ch;
-    Benchmark input(ch, seed, 15);
+    Benchmark input(ch, 15);
     input.add_extra_light(2);
     input.shift_light(2, 10);
     
@@ -179,9 +169,8 @@ TEST(BenchmarkImage, DisplayExtraShifted) {
 /// We are not checking anything here- this is where the user visually checks and ensures that the barrel distortion
 /// is working as intended.
 TEST(BenchmarkImage, DisplayBarreled) {
-    std::random_device seed;
     Chomp ch;
-    Benchmark input(ch, seed, 15);
+    Benchmark input(ch, 15);
     
     input.display_plot();
     input.barrel_light(0.000000000000001);
@@ -190,9 +179,8 @@ TEST(BenchmarkImage, DisplayBarreled) {
 
 /// Check that the correct number of stars are returned from the "compare" function.
 TEST(BenchmarkImage, Compare) {
-    std::random_device seed;
     Chomp ch;
-    Benchmark a(ch, seed, 15);
+    Benchmark a(ch, 15);
     Star::list b = a.stars;
     
     // Erase two stars from set B.
@@ -205,9 +193,8 @@ TEST(BenchmarkImage, Compare) {
 
 /// Check that an error star exists at the front of the stars vector when cap_error is raised.
 TEST(BenchmarkError, CapError) {
-    std::random_device seed;
     Chomp ch;
-    Benchmark input(ch, seed, 15);
+    Benchmark input(ch, 15);
     std::vector<Star> a = input.stars;
     input.shift_light(1, 0.1, true);
     bool error_star_at_front = true;

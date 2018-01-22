@@ -17,10 +17,10 @@ namespace RandomDraw {
     namespace {
         /// Random device used to seed mersenne twister.
         std::random_device seed;
-        
-        /// Mersenne twister used for all random distributions.
-        std::mt19937_64 mersenne_twister (seed());
     }
+    
+    /// Mersenne twister used for all random distributions.
+    static std::mt19937_64 mersenne_twister (seed());
 }
 
 #endif /* HOKU_RANDOM_DRAW_H */
