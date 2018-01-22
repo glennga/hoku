@@ -13,26 +13,26 @@ include_directories(${CMAKE_SOURCE_DIR}/test/include)
 ##################################################################
 add_executable(TestNibble test-nibble.cpp)
 target_link_libraries(TestNibble gtest Chomp Nibble Star SQLiteCpp
-        Sqlite3)
+        Sqlite3 RandomDraw)
 
 ##################################################################
 # Link and Create Executable TestChomp
 ##################################################################
 add_executable(TestChomp test-chomp.cpp)
 target_link_libraries(TestChomp gtest gmock Chomp Nibble Star
-        SQLiteCpp Sqlite3)
+        SQLiteCpp Sqlite3 RandomDraw)
 
 ##################################################################
 # Link and Create Executable TestKdNode
 ##################################################################
 add_executable(TestKdNode test-kd-node.cpp)
 target_link_libraries(TestKdNode gtest KdNode Chomp Nibble Mercator
-        Star SQLiteCpp Sqlite3)
+        Star SQLiteCpp Sqlite3 RandomDraw)
 
 ##################################################################
 # Link and Create Executable TestQuadNode
 ##################################################################
 add_executable(TestQuadNode test-quad-node.cpp)
 target_link_libraries(TestQuadNode gtest QuadNode Chomp Nibble
-        Mercator Star SQLiteCpp Sqlite3)
+        Mercator Star SQLiteCpp Sqlite3 RandomDraw)
 

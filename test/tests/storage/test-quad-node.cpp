@@ -10,8 +10,7 @@
 
 /// Check that the QuadNode star constructor has the correct components.
 TEST(QuadNodeConstructor, StarConstructor) {
-    std::random_device seed;
-    QuadNode b(Star::chance(seed), 1000, 1);
+    QuadNode b(Star::chance(), 1000, 1);
     EXPECT_DOUBLE_EQ(b.w_i, QuadNode::DEFAULT_LOCAL_WIDTH);
     EXPECT_DOUBLE_EQ(b.w_n, 1000);
     EXPECT_EQ(b.label, Mercator::NO_LABEL);
@@ -28,8 +27,7 @@ TEST(QuadNodeProperty, Root) {
 
 /// Check that the branch method for QuadNode operates as intended.
 TEST(QuadNodeBranch, Branch) {
-    std::random_device seed;
-    QuadNode a(Star::chance(seed), 1000, 1);
+    QuadNode a(Star::chance(), 1000, 1);
     QuadNode::child_edges b = {std::make_shared<QuadNode>(QuadNode(-5, 5, 1000)), nullptr, nullptr, nullptr};
     QuadNode c = QuadNode::branch(a, b);
     
@@ -148,16 +146,15 @@ TEST(QuadNodeTree, PartitionForLeaves) {
 /// Check that the nearby stars method operates as intended.
 TEST(QuadNodeNearby, NearbyStars) {
     QuadNode q = QuadNode::load_tree(10000, 6.0);
-    std::random_device seed;
-    Star a = Star::chance(seed);
+    Star a = Star::chance();
     Star::list b = Chomp().nearby_hip_stars(a, 10, 90), c = q.nearby_stars(a, 10, 90);
     std::vector<double> d, e;
     EXPECT_NE(b.size(), 0);
     EXPECT_NE(c.size(), 0);
     
-    // Adding 3 degrees to fov... B and C are both defined by different definitions of "nearby".
+    // Adding 10 degrees to fov... B and C are both defined by different definitions of "nearby".
     for (const Star &s : c) {
-        EXPECT_LT(Star::angle_between(s, a), 10 + 3);
+        EXPECT_LT(Star::angle_between(s, a), 10 + 10);
     }
 }
 
