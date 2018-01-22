@@ -138,7 +138,6 @@ Star Star::zero () {
 
 /// Generate a random star with normalized components. Using C++11 random functions.
 ///
-/// @param seed Random device to use when generating star.
 /// @return Star with random, normalized components and a catalog ID = NO_LABEL.
 Star Star::chance () {
     return Star(RandomDraw::draw_real(-1.0, 1.0), RandomDraw::draw_real(-1.0, 1.0), RandomDraw::draw_real(-1.0, 1.0),
@@ -148,7 +147,6 @@ Star Star::chance () {
 /// Generate a random star with normalized components. Using C++11 random functions. Instead of assigning a catalog ID
 /// of 0, the user can assign one of their own.
 ///
-/// @param seed Random device to use when generating star.
 /// @param label Catalog ID to use with the randomized star.
 /// @return Star with random, normalized components and a catalog ID = 0.
 Star Star::chance (const int label) {

@@ -14,8 +14,7 @@ using testing::Not;
 
 /// Check that stars A, B, C, and D are found correctly.
 TEST(AsterismProperty, ABCDStarFind) {
-    std::random_device seed;
-    Asterism::stars m = {Star::chance(seed, 1), Star::chance(seed, 2), Star::chance(seed, 3), Star::chance(seed, 4)};
+    Asterism::stars m = {Star::chance(1), Star::chance(2), Star::chance(3), Star::chance(4)};
     Asterism::points n = {Mercator(m[0], 1), Mercator(m[1], 1), Mercator(m[2], 1), Mercator(m[3], 1)};
     Asterism p(m);
     double d_max = 0;
@@ -36,12 +35,11 @@ TEST(AsterismProperty, ABCDStarFind) {
 
 /// Local coordinates returned should be inside [-1, 1]. Run this test 50 times.
 TEST(AsterismProperty, HashNormalized) {
-    std::random_device seed;
     bool is_not_normal = false;
     
     for (int i = 0; i < 50; i++) {
         Asterism::points_cd m = Asterism::hash(
-            {Star::chance(seed), Star::chance(seed), Star::chance(seed), Star::chance(seed)});
+            {Star::chance(), Star::chance(), Star::chance(), Star::chance()});
         if (fabs(m[0]) > 1 || fabs(m[1]) > 1 || fabs(m[2]) > 1 || fabs(m[3]) > 1) {
             is_not_normal = true;
         }
@@ -52,11 +50,10 @@ TEST(AsterismProperty, HashNormalized) {
 /// Ensure the conditions x_c <= x_d and x_c + x_d <= 1 hold true. Run test 50 times.
 TEST(AsterismProperty, CDSymmetry) {
     bool is_not_symmetrical = false;
-    std::random_device seed;
     
     for (int i = 0; i < 50; i++) {
         Asterism::points_cd m = Asterism::hash(
-            {Star::chance(seed), Star::chance(seed), Star::chance(seed), Star::chance(seed)});
+            {Star::chance(), Star::chance(), Star::chance(), Star::chance()});
         if ((m[0] < m[2] || m[0] + m[2] > 1) && m[0] + m[1] + m[2] + m[3] != 0) {
             is_not_symmetrical = true;
         }
@@ -67,11 +64,10 @@ TEST(AsterismProperty, CDSymmetry) {
 /// Ensure that the center of a n=4 group of stars is **unique**. The fact that the stars actually lie dead in the
 /// center of the asterism isn't important.
 TEST(AsterimProperty, UniqueCenter) {
-    std::random_device seed;
     Star::list a;
     a.reserve(10000);
     for (int i = 0; i < 10000; i++) {
-        Asterism::stars b = {Star::chance(seed), Star::chance(seed), Star::chance(seed), Star::chance(seed)};
+        Asterism::stars b = {Star::chance(), Star::chance(), Star::chance(), Star::chance()};
         a.push_back(Asterism::center(b));
     }
     

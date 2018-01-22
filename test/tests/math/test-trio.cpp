@@ -59,10 +59,9 @@ TEST(TrioPlanar, MomentComputation) {
 /// Check the spherical_area method. We are only checking if this function returns the same result for different
 /// triangle configurations.
 TEST(TrioSpherical, AreaComputation) {
-    std::random_device seed;
     double epsilon = 0.00000000001;
     for (int i = 0; i < 10; i++) {
-        std::array<Star, 3> t = {Star::chance(seed), Star::chance(seed), Star::chance(seed)};
+        std::array<Star, 3> t = {Star::chance(), Star::chance(), Star::chance()};
         EXPECT_NEAR(Trio::spherical_area(t[0], t[1], t[2]), Trio::spherical_area(t[1], t[2], t[0]), epsilon);
         EXPECT_NEAR(Trio::spherical_area(t[0], t[1], t[2]), Trio::spherical_area(t[2], t[1], t[0]), epsilon);
         EXPECT_NEAR(Trio::spherical_area(t[0], t[1], t[2]), Trio::spherical_area(t[1], t[0], t[2]), epsilon);
@@ -83,10 +82,9 @@ TEST(TrioCommon, PlanarCentroidComputation) {
 /// Check the spherical_moment method. We are only checking if this function returns the same result for different
 /// triangle configurations.
 TEST(TrioSpherical, MomentComputation) {
-    std::random_device seed;
-    double epsilon = 0.00000000001;
+    double epsilon = 0.0000000001;
     for (int i = 0; i < 10; i++) {
-        std::array<Star, 3> t = {Star::chance(seed), Star::chance(seed), Star::chance(seed)};
+        std::array<Star, 3> t = {Star::chance(), Star::chance(), Star::chance()};
         
         EXPECT_NEAR(Trio::spherical_moment(t[0], t[1], t[2]), Trio::spherical_moment(t[1], t[2], t[0]), epsilon);
         EXPECT_NEAR(Trio::spherical_moment(t[0], t[1], t[2]), Trio::spherical_moment(t[2], t[1], t[0]), epsilon);
@@ -97,12 +95,10 @@ TEST(TrioSpherical, MomentComputation) {
 
 /// This is not a test. We just want to see the effect of shifting stars on the planar area and moment.
 TEST(TrioPlanar, TriangleShifts) {
-    std::random_device seed;
-    
     for (int i = 0; i < 100; i++) {
         std::array<Star, 3> t_original = {Star(1 - 0.001, 0, 0), Star(0, 1 - 0.001, 0), Star(0, 0, 1 - 0.001)};
-        std::array<Star, 3> t_shaken = {Rotation::shake(t_original[0], 0.001, seed),
-            Rotation::shake(t_original[1], 0.001, seed), Rotation::shake(t_original[2], 0.001, seed)};
+        std::array<Star, 3> t_shaken = {Rotation::shake(t_original[0], 0.001), Rotation::shake(t_original[1], 0.001),
+            Rotation::shake(t_original[2], 0.001)};
         
         double a_original = Trio::planar_area(t_original[0], t_original[1], t_original[2]);
         double i_original = Trio::planar_moment(t_original[0], t_original[1], t_original[2]);
@@ -115,12 +111,10 @@ TEST(TrioPlanar, TriangleShifts) {
 
 /// This is not a test. We just want to see the effect of shifting stars on the spherical area and moment.
 TEST(TrioSpherical, TriangleShifts) {
-    std::random_device seed;
-    
     for (int i = 0; i < 100; i++) {
         std::array<Star, 3> t_original = {Star(1 - 0.001, 0, 0), Star(0, 1 - 0.001, 0), Star(0, 0, 1 - 0.001)};
-        std::array<Star, 3> t_shaken = {Rotation::shake(t_original[0], 0.001, seed),
-            Rotation::shake(t_original[1], 0.001, seed), Rotation::shake(t_original[2], 0.001, seed)};
+        std::array<Star, 3> t_shaken = {Rotation::shake(t_original[0], 0.001), Rotation::shake(t_original[1], 0.001),
+            Rotation::shake(t_original[2], 0.001)};
         
         double a_original = Trio::spherical_area(t_original[0], t_original[1], t_original[2]);
         double i_original = Trio::spherical_moment(t_original[0], t_original[1], t_original[2]);

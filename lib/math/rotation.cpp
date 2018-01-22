@@ -140,15 +140,12 @@ Star Rotation::push (const Star &s, const Star &f, const double d) {
 /// @param s Star to rotate randomly.
 /// @param sigma Standard deviation of the angle to rotate by, in degrees.
 /// @return The star S "shaken".
-Star Rotation::shake (const Star &s, const double sigma, std::random_device &seed) {
-    std::mt19937_64 mersenne_twister(seed());
-    std::normal_distribution<double> dist(0, sigma);
-    
+Star Rotation::shake (const Star &s, const double sigma) {
     // We define a random direction 'axis', as well as a random theta.
-    double theta = dist(mersenne_twister);
+    double theta = RandomDraw::draw_normal(0, sigma);
     
     // Push our star in some random direction.
-    return push(s, Star::chance(seed), theta);
+    return push(s, Star::chance(), theta);
 }
 
 /// Get a scalar quantity for how 'close' two quaternions are. We find the quaternion from q_1 to q_2, and return the
@@ -190,9 +187,8 @@ Rotation Rotation::identity () {
 /// Return a unit quaternion with random components. Achieved by find the rotation from one random star to another
 /// random star.
 ///
-/// @param seed Random device to use when generating random star.
 /// @return Random quaternion.
-Rotation Rotation::chance (std::random_device &seed) {
-    Star p = Star::chance(seed), q = Star::chance(seed);
+Rotation Rotation::chance () {
+    Star p = Star::chance(), q = Star::chance();
     return {sqrt(1.0 + Star::dot(p, q)), Star::cross(p, q), true};
 }

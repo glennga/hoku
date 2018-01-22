@@ -9,6 +9,15 @@ cmake_minimum_required(VERSION 3.7)
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
 ##################################################################
+# Build Library RandomDraw
+##################################################################
+FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/random-draw.cpp)
+FILE(GLOB INCLUDES ${CMAKE_SOURCE_DIR}/include/math/random-draw.h)
+add_library(RandomDraw STATIC ${SOURCES} ${INCLUDES})
+install(TARGETS RandomDraw DESTINATION lib)
+install(FILES ${INCLUDES} DESTINATION include)
+
+##################################################################
 # Build Library Star
 ##################################################################
 FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/star.cpp)
