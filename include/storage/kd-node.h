@@ -11,6 +11,7 @@
 #include <memory>
 #include <algorithm>
 
+// TODO: fix these docs
 /// The KdNode represents a node for the Mercator kd-tree, a structure for spatial indexing. This structure is
 /// currently being used by the Astrometry.net and Pyramid identification methods.
 ///

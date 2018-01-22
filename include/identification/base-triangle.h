@@ -52,10 +52,8 @@ class BaseTriangle : public Identification {
   protected:
 #endif
     std::vector<label_trio> e_query (double a, double i);
-    Star::list e_single_alignment (const Star::list &candidates, const Trio::stars &r, const Trio::stars &b);
     labels_list e_reduction ();
     Star::list e_alignment ();
-    Star::list e_crown ();
     
     static int generate_triangle_table (double fov, const std::string &table_name, area_function compute_area,
                                         moment_function compute_moment);
@@ -81,7 +79,7 @@ class BaseTriangle : public Identification {
     std::vector<label_trio> query_for_trio (double a, double i);
     virtual std::vector<Trio::stars> match_stars (const index_trio &) = 0;
     Trio::stars pivot (const index_trio &, const std::vector<Trio::stars> & = {});
-    Star::list check_assumptions (const Star::list &, const Trio::stars &, const index_trio &);
+    Star::list singular_alignment (const Star::list &candidates, const Trio::stars &r, const Trio::stars &b);
     
 };
 

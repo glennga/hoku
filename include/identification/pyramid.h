@@ -38,44 +38,40 @@ class Pyramid : public Identification {
     explicit Pyramid (const Benchmark &input, const Parameters &p);
     
     std::vector<labels_list> experiment_query (const Star::list &s);
-    Star::list experiment_first_alignment (const Star::list &candidates, const Star::list &r, const Star::list &b);
     labels_list experiment_reduction ();
     Star::list experiment_alignment ();
-    Star::list experiment_crown ();
     
-    static int generate_table(double fov, const std::string &table_name);
+    static int generate_table (double fov, const std::string &table_name);
     
     static const Parameters DEFAULT_PARAMETERS;
   
   public:
     /// Exact number of query stars required for query experiment.
     static constexpr unsigned int QUERY_STAR_SET_SIZE = 2;
-    
-    /// Number of stars required for first alignment experiment.
-    static constexpr unsigned int FIRST_ALIGNMENT_STAR_SET_SIZE = 4;
-    
+
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
     /// Alias for a pair of catalog IDs (2-element STL array of integers).
     using label_pair = std::array<int, 2>;
-
+    
     /// Alias for a list of catalog ID pairs (STL vector of 2-element arrays of integers).
     using label_list_pair = std::vector<label_pair>;
-
-    /// Alias for a quad of stars (4-element STL array of stars).
-    using star_quad = std::array<Star, 4>;
+    
+    /// Alias for a quad of stars (3-element STL array of stars).
+    using star_trio = std::array<Star, 3>;
 
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
-    static const Star NO_REFERENCE_FOUND;
-    static const star_quad NO_CANDIDATE_QUAD_FOUND;
-
-    Star find_reference (const label_list_pair &, const label_list_pair &, const label_list_pair &);
+    static const Star::list NO_COMMON_FOUND;
+    static const star_trio NO_CANDIDATE_TRIANGLE_FOUND;
+    
     label_list_pair query_for_pairs (double);
-    star_quad find_candidate_quad (const star_quad &);
-    Star::list match_remaining (const Star::list &, const star_quad &, const star_quad &);
+    Star::list common_stars (const label_list_pair &r_ab, const label_list_pair &r_ac, const Star::list &f);
+    bool verification (const star_trio &r, const star_trio &b_f);
+    star_trio find_candidate_trio (const star_trio &);
+    Star::list singular_alignment (const Star::list &b);
 };
 
 #endif /* HOKU_PYRAMID_H */

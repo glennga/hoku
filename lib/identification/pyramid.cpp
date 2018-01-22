@@ -8,13 +8,13 @@
 
 /// Default parameters for the pyramid identification method.
 const Identification::Parameters Pyramid::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
-    DEFAULT_SIGMA_OVERLAY, DEFAULT_GAMMA, DEFAULT_NU_MAX, DEFAULT_NU, "PYRAMID_20"};
+    DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU, "PYRAMID_20"};
 
 /// Returned when there exists no common stars between the label list pairs.
-const Star Pyramid::NO_REFERENCE_FOUND = Star::zero();
+const Star::list Pyramid::NO_COMMON_FOUND = {Star::zero()};
 
-/// Returned when there exists no candidate quad to be found for the given four stars.
-const Pyramid::star_quad Pyramid::NO_CANDIDATE_QUAD_FOUND = {Star::zero(), Star::zero(), Star::zero(), Star::zero()};
+/// Returned when there exists no candidate triangle to be found for the given three stars.
+const Pyramid::star_trio Pyramid::NO_CANDIDATE_TRIANGLE_FOUND = {Star::zero(), Star::zero(), Star::zero()};
 
 /// Constructor. Sets the benchmark data, fov, parameters, and current working table.
 ///
@@ -59,13 +59,14 @@ Pyramid::label_list_pair Pyramid::query_for_pairs (const double theta) {
     return candidates;
 }
 
-/// Given three lists of pairs (E-I, E-J, E-K), return the first common star we find.
+/// Given two list of labels, determine the common stars that exist in both lists. Remove all stars "F" in this
+/// "intersection" if there exist any.
 ///
-/// @param ei List of catalog ID pairs for potential candidates of stars E and I.
-/// @param ej List of catalog ID pairs for potential candidates of stars E and J.
-/// @param ek List of catalog ID pairs for potential candidates of stars E and K.
-/// @return NO_REFERENCE_FOUND if no common star is found. Otherwise, the first common star found in all pair lists.
-Star Pyramid::find_reference (const label_list_pair &ei, const label_list_pair &ej, const label_list_pair &ek) {
+/// @param r_ab List of AB star pairs. We are trying to determine A.
+/// @param r_ac List of AC star pairs. We are trying to determine A.
+/// @param f Our "removed" list. Remove any labels in the "intersection" that exist in this set's labels.
+/// @return All common stars between AB and AC, with F removed.
+Star::list Pyramid::common_stars (const label_list_pair &r_ab, const label_list_pair &r_ac, const Star::list &f) {
     auto flatten_pairs = [] (const label_list_pair &candidates, labels_list &out_list) -> void {
         out_list.reserve(candidates.size() * 2);
         for (const label_pair &candidate : candidates) {
@@ -76,77 +77,108 @@ Star Pyramid::find_reference (const label_list_pair &ei, const label_list_pair &
     };
     
     // Flatten our list of pairs.
-    labels_list ei_list, ej_list, ek_list, eij_common, candidates;
-    flatten_pairs(ei, ei_list), flatten_pairs(ej, ej_list), flatten_pairs(ek, ek_list);
+    labels_list ab_list, ac_list, i, i_r;
+    flatten_pairs(r_ab, ab_list), flatten_pairs(r_ac, ac_list);
     
-    // Find the intersection between lists EI and EJ.
-    std::set_intersection(ei_list.begin(), ei_list.end(), ej_list.begin(), ej_list.end(),
-                          std::back_inserter(eij_common));
+    // Find the intersection between lists AB and AC.
+    std::set_intersection(ab_list.begin(), ab_list.end(), ac_list.begin(), ac_list.end(), std::back_inserter(i));
     
-    // Find the intersection between our previous intersection and EK.
-    std::set_intersection(eij_common.begin(), eij_common.end(), ek_list.begin(), ek_list.end(),
-                          std::back_inserter(candidates));
+    // Remove any stars in I that exist in F.
+    labels_list r_f;
+    for (const Star &s : f) {
+        r_f.push_back(s.get_label());
+    }
+    std::set_difference(i.begin(), i.end(), r_f.begin(), r_f.end(), std::back_inserter(i_r));
     
-    return candidates.empty() ? NO_REFERENCE_FOUND : ch.query_hip(static_cast<int> (candidates[0]));
+    // For each common label, retrieve the star from Nibble.
+    Star::list common;
+    for (const int &ell : i_r) {
+        common.push_back(ch.query_hip(static_cast<int> (ell)));
+    }
+    return common.empty() ? NO_COMMON_FOUND : common;
 }
 
-/// Given a quad of indices from the input set, determine the matching catalog IDs that correspond to each star. We
-/// return the first match that we find here- there may exist better solutions past our initial find.
+/// Given the current alignment pair, select a random star in the image and verify that the alignment is correct.
 ///
-/// @param b_f Quad of stars in our body frame.
-/// @return NO_CANDIDATE_QUAD_FOUND if no quad can be found. Otherwise, the catalog IDs of stars from the inertial
-/// frame.
-Pyramid::star_quad Pyramid::find_candidate_quad (const star_quad &b_f) {
-    auto find_pairs = [this, &b_f] (const int triangle_index) -> label_list_pair {
-        return this->query_for_pairs(Star::angle_between(b_f[triangle_index], b_f[3]));
-    };
-    label_list_pair ei_pairs = find_pairs(0), ej_pairs = find_pairs(1), ek_pairs = find_pairs(2);
-    
-    // Find a candidate for the star E (reference star). Break if no reference star exists.
-    Star e_candidate = find_reference(ei_pairs, ej_pairs, ek_pairs);
-    if (e_candidate == NO_REFERENCE_FOUND) {
-        return NO_CANDIDATE_QUAD_FOUND;
+/// @param r Current reference star trio.
+/// @param b Current body star trio.
+/// @return True if the verification has passed. Otherwise, false.
+bool Pyramid::verification (const star_trio &r, const star_trio &b_f) {
+    // Select a random star E. This must not exist in the current body trio.
+    Star e;
+    do {
+        e = input[RandomDraw::draw_integer(0, b_f.size())];
     }
-    auto choose_not_e = [&e_candidate] (const label_pair &pair) -> int {
-        return (pair[0] == e_candidate.get_label()) ? pair[1] : pair[0];
-    };
+    while (std::find(b_f.begin(), b_f.end(), e) != b_f.end());
     
-    // Remove all pairs that don't contain our reference star.
-    auto e_nonexistence = [&e_candidate] (const label_pair &pair) -> bool {
-        return std::find(pair.begin(), pair.end(), e_candidate.get_label()) == pair.end();
+    // Find all star pairs between IE, JE, and KE.
+    auto find_pairs = [this, &e, &b_f] (const int a) -> label_list_pair {
+        return this->query_for_pairs(Star::angle_between(b_f[a], e));
     };
-    ei_pairs.erase(std::remove_if(ei_pairs.begin(), ei_pairs.end(), e_nonexistence), ei_pairs.end());
-    ej_pairs.erase(std::remove_if(ej_pairs.begin(), ej_pairs.end(), e_nonexistence), ej_pairs.end());
-    ek_pairs.erase(std::remove_if(ek_pairs.begin(), ek_pairs.end(), e_nonexistence), ek_pairs.end());
+    label_list_pair r_ie = find_pairs(0), r_je = find_pairs(1), r_ke = find_pairs(2), h;
     
-    // Return the first match we find that falls within the field-of-view.
-    for (const label_pair &p_i : ei_pairs) {
-        for (const label_pair &p_j : ej_pairs) {
-            for (const label_pair &p_k : ek_pairs) {
-                Star i = ch.query_hip(choose_not_e(p_i)), j = ch.query_hip(choose_not_e(p_j)), k = ch.query_hip(
-                    choose_not_e(p_k));
-                
-                if (Star::within_angle({i, j, k}, fov)) {
-                    return {i, j, k, e_candidate};
-                }
-            }
-        }
+    // Determine the star E in the catalog using common stars.
+    std::set_union(r_ie.begin(), r_ie.end(), r_je.begin(), r_je.end(), std::back_inserter(h));
+    Star::list t_e = common_stars(r_ke, h, Star::list {});
+    
+    // If there isn't exactly one star, exit here.
+    if (t_e.size() != 1) {
+        return false;
     }
     
-    // Otherwise, there exists no match. Return with catalog ID quad of NO_CANDIDATE_QUAD_FOUND.
-    return NO_CANDIDATE_QUAD_FOUND;
+    // If this star is near our R set in the catalog, then this test has passed.
+    return Star::within_angle({r[0], r[1], r[2], t_e[0]}, fov);
 }
 
-/// Given our list of inertial candidates and a quad of body stars that map to the inertial frame, return all stars in
-/// our input that can be mapped back to the catalog.
+/// Given a trio of indices from the input set, determine the matching catalog IDs that correspond to each star.
+/// Two verification steps occur: the singular element test and the fourth star test. If these are not met, then the
+/// error trio is returned.
 ///
-/// @param candidates List of stars from the inertial frame.
-/// @param b Body stars from out input. These represent the body frame anchors.
-/// @param r Inertial stars from the catalog. These represent the inertial frame anchors.
-/// @return Set of matching stars found in candidates and the body sets.
-Star::list Pyramid::match_remaining (const Star::list &candidates, const star_quad &b, const star_quad &r) {
-    // Find rotation between the stars I and E. Use this to find the matches.
-    return this->find_matches(candidates, Rotation::rotation_across_frames({b[0], b[3]}, {r[0], r[3]}));
+/// @param b_f Trio of stars in our body frame.
+/// @return NO_CANDIDATE_TRIANGLE_FOUND if no triangle can be found. Otherwise, the catalog IDs of stars from the
+/// inertial frame.
+Pyramid::star_trio Pyramid::find_candidate_trio (const star_trio &b_f) {
+    auto find_pairs = [this, &b_f] (const int a, const int b) -> label_list_pair {
+        return this->query_for_pairs(Star::angle_between(b_f[a], b_f[b]));
+    };
+    label_list_pair r_ij = find_pairs(0, 1), r_ik = find_pairs(0, 2), r_jk = find_pairs(1, 2);
+    
+    // Determine the star I, J, and K in the catalog using common stars.
+    Star::list t_i = common_stars(r_ij, r_ik, Star::list {});
+    Star::list t_j = common_stars(r_ij, r_jk, t_i), h = t_i;
+    h.insert(h.end(), t_j.begin(), t_j.end());
+    Star::list t_k = common_stars(r_ik, r_jk, h);
+    
+    // If these lists do not contain exactly one element, break.
+    if (t_i.size() + t_j.size() + t_k.size() != 3) {
+        return NO_CANDIDATE_TRIANGLE_FOUND;
+    }
+    
+    // Otherwise, attempt to verify the triangle.
+    star_trio r = {t_i[0], t_j[0], t_k[0]};
+    if (!verification(r, b_f)) {
+        return NO_CANDIDATE_TRIANGLE_FOUND;
+    }
+    
+    return r;
+}
+
+/// Alignment determination process for a single reference star and alignment trio.
+///
+/// @param b Body (frame B) pair of stars that match the inertial pair. This must be of length =
+/// FIRST_ALIGNMENT_STAR_SET_SIZE.
+/// @return NO_CONFIDENT_ALIGNMENT if an alignment quad cannot be found. Otherwise, body stars b with the attached
+/// labels of the inertial pair r.
+Star::list Pyramid::singular_alignment (const Star::list &b) {
+    star_trio r_quad = find_candidate_trio({b[0], b[1], b[2]});
+    if (std::equal(r_quad.begin(), r_quad.end(), NO_CANDIDATE_TRIANGLE_FOUND.begin())) {
+        return NO_CONFIDENT_ALIGNMENT;
+    }
+    
+    auto attach_label = [&b, &r_quad] (const int i) -> Star {
+        return Star::define_label(b[i], r_quad[i].get_label());
+    };
+    return {attach_label(0), attach_label(1), attach_label(2), attach_label(3)};
 }
 
 /// Reproduction of the Pyramid method's database querying. Input image is not used. We require the following be
@@ -180,38 +212,6 @@ std::vector<Identification::labels_list> Pyramid::experiment_query (const Star::
     return r_bar;
 }
 
-/// Reproduction of the Pyramid method's alignment determination process for a single reference star and alignment
-/// trio. Input image is used. We require the following be defined:
-///
-/// @code{.cpp}
-///     - table_name
-///     - sigma_query
-///     - sql_limit
-/// @endcode
-///
-/// @param candidates All stars found near the inertial pair. This **will not** be used here.
-/// @param r Inertial (frame R) pair of stars that match the body pair. This **will not** be used here.
-/// @param b Body (frame B) pair of stars that match the inertial pair. This must be of length =
-/// FIRST_ALIGNMENT_STAR_SET_SIZE.
-/// @return NO_CONFIDENT_ALIGNMENT if an alignment quad cannot be found. Otherwise, body stars b with the attached
-/// labels of the inertial pair r.
-Star::list Pyramid::experiment_first_alignment (const Star::list &candidates [[maybe_unused]],
-                                                const Star::list &r [[maybe_unused]], const Star::list &b) {
-    if (b.size() != FIRST_ALIGNMENT_STAR_SET_SIZE) {
-        throw "Input list does not have exactly four stars.";
-    }
-    
-    star_quad r_quad = find_candidate_quad({b[0], b[1], b[2], b[3]});
-    if (std::equal(r_quad.begin(), r_quad.end(), NO_CANDIDATE_QUAD_FOUND.begin())) {
-        return NO_CONFIDENT_ALIGNMENT;
-    }
-    
-    auto attach_label = [&b, &r_quad] (const int i) -> Star {
-        return Star::define_label(b[i], r_quad[i].get_label());
-    };
-    return {attach_label(0), attach_label(1), attach_label(2), attach_label(3)};
-}
-
 /// Finds the single, most likely result for the first four stars in our current benchmark. This trial is
 /// basically the same as the first alignment trials. Input image is used. We require the following to be defined:
 ///
@@ -224,11 +224,11 @@ Star::list Pyramid::experiment_first_alignment (const Star::list &candidates [[m
 /// @return NO_CANDIDATES_FOUND if a candidate quad cannot be found. Otherwise, a single match configuration found
 /// by the angle method.
 Identification::labels_list Pyramid::experiment_reduction () {
-    Star::list c = experiment_first_alignment({}, {}, {input[0], input[1], input[2], input[3]});
+    Star::list c = singular_alignment({input[0], input[1], input[2]});
     if (std::equal(c.begin(), c.end(), NO_CONFIDENT_ALIGNMENT.begin())) {
         return NO_CANDIDATES_FOUND;
     }
-    return labels_list {c[0].get_label(), c[1].get_label(), c[2].get_label(), c[3].get_label()};
+    return labels_list {c[0].get_label(), c[1].get_label(), c[2].get_label()};
 }
 
 /// Reproduction of the Pyramid method's process from beginning to the orientation determination. Input image is used.
@@ -255,11 +255,11 @@ Star::list Pyramid::experiment_alignment () {
         return NO_CONFIDENT_ALIGNMENT;
     }
     
-    // Otherwise, there exists |input| choose 4 possibilities. Looping specified in paper. E chosen after K.
+    // Otherwise, there exists |input| choose 3 possibilities. Looping specified in paper.
     for (unsigned int dj = 1; dj < input.size() - 1; dj++) {
         for (unsigned int dk = 1; dk < input.size() - dj - 1; dk++) {
             for (unsigned int di = 0; di < input.size() - dj - dk - 1; di++) {
-                int i = di, j = di + dj, k = j + dk, e = k + 1;
+                int i = di, j = di + dj, k = j + dk;
                 Star::list candidates, matches;
                 (*parameters.nu)++;
                 
@@ -268,69 +268,18 @@ Star::list Pyramid::experiment_alignment () {
                     return EXCEEDED_NU_MAX;
                 }
                 
-                // Given four stars in our catalog, find their catalog IDs in the catalog.
-                star_quad r_quad = find_candidate_quad(star_quad {input[i], input[j], input[k], input[e]});
-                if (std::equal(r_quad.begin(), r_quad.end(), NO_CANDIDATE_QUAD_FOUND.begin())) {
+                // Given three stars in our catalog, find their catalog IDs in the catalog.
+                star_trio r_quad = find_candidate_trio(star_trio {input[i], input[j], input[k]});
+                if (std::equal(r_quad.begin(), r_quad.end(), NO_CANDIDATE_TRIANGLE_FOUND.begin())) {
                     continue;
                 }
                 
                 return {Star::define_label(input[i], r_quad[0].get_label()),
                     Star::define_label(input[j], r_quad[1].get_label()),
-                    Star::define_label(input[k], r_quad[2].get_label()),
-                    Star::define_label(input[e], r_quad[3].get_label())};
+                    Star::define_label(input[k], r_quad[2].get_label())};
             }
         }
     }
     
     return NO_CONFIDENT_ALIGNMENT;
-}
-
-/// Match the stars found in the given benchmark to those in the Nibble database. All parameters must be defined.
-///
-/// @return NO_CONFIDENT_MATCH_SET if an alignment cannot be found exhaustively. EXCEEDED_NU_MAX if an alignment
-/// cannot be found within a certain number of query picks. Otherwise, a vector of body stars with their
-/// inertial catalog IDs that qualify as matches.
-Star::list Pyramid::experiment_crown () {
-    *parameters.nu = 0;
-    
-    // This procedure will not work |input| < 4. Exit early with NO_CONFIDENT_MATCH_SET.
-    if (input.size() < 4) {
-        return NO_CONFIDENT_MATCH_SET;
-    }
-    
-    // Otherwise, there exists |input| choose 4 possibilities. Looping specified in paper. E chosen after K.
-    for (unsigned int dj = 1; dj < input.size() - 1; dj++) {
-        for (unsigned int dk = 1; dk < input.size() - dj - 1; dk++) {
-            for (unsigned int di = 0; di < input.size() - dj - dk - 1; di++) {
-                int i = di, j = di + dj, k = j + dk, e = k + 1;
-                Star::list candidates, matches;
-                (*parameters.nu)++;
-                
-                // Practical limit: exit early if we have iterated through too many comparisons without match.
-                if (*parameters.nu > parameters.nu_max) {
-                    return EXCEEDED_NU_MAX;
-                }
-                
-                // Given four stars in our catalog, find their catalog IDs in the catalog.
-                star_quad b_quad = {input[i], input[j], input[k], input[e]};
-                star_quad r_quad = find_candidate_quad(b_quad);
-                if (std::equal(r_quad.begin(), r_quad.end(), NO_CANDIDATE_QUAD_FOUND.begin())) {
-                    continue;
-                }
-                
-                // Find candidate stars around the reference star.
-                candidates = ch.nearby_hip_stars(r_quad[3], fov, static_cast<unsigned int> (3 * (input.size())));
-                
-                // Return all stars from our input that match the candidates. Append the appropriate catalog IDs.
-                matches = match_remaining(candidates, b_quad, r_quad);
-                
-                // Definition of image match: |match| > gamma minimum OR |match| == |input|.
-                if (matches.size() > ceil(input.size() * parameters.gamma)) {
-                    return matches;
-                }
-            }
-        }
-    }
-    
-    return NO_CONFIDENT_MATCH_SET;
 }

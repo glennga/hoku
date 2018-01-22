@@ -10,7 +10,7 @@
 
 /// Default parameters for the angle identification method.
 const Identification::Parameters Angle::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
-    DEFAULT_SIGMA_OVERLAY, DEFAULT_GAMMA, DEFAULT_NU_MAX, DEFAULT_NU, "ANGLE_20"};
+    DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU, "ANGLE_20"};
 
 /// Returned when no candidate pair is found from a query.
 const Star::pair Angle::NO_CANDIDATE_PAIR_FOUND = {Star::zero(), Star::zero()};
@@ -107,28 +107,31 @@ Star::pair Angle::find_candidate_pair (const Star &b_a, const Star &b_b) {
 }
 
 /// Find the best fitting match of input stars (frame B) to database stars (frame R) using the given pair as reference.
-/// Both possible configurations are searched for:
-///
+////
 /// Assumption One: B_a = R_a, B_b = R_b
 /// Assumption Two: B_a = R_b, B_b = R_a
 ///
 /// @param candidates All stars found near the inertial pair.
-/// @param r Inertial (frame R) pair of stars that match the body pair.
-/// @param b Body (frame B) pair of stars that match the inertial pair.
-/// @return The largest set of matching stars across the body and inertial in both pairing configurations.
-Star::list Angle::check_assumptions (const Star::list &candidates, const Star::pair &r, const Star::pair &b) {
-    std::array<Star::pair, 2> assumption_list = {r, {r[1], r[0]}};
-    std::array<Star::list, 2> matches;
-    int current_assumption = 0;
+/// @param r Inertial (frame R) pair of stars that match body pair. This must be length = 2.
+/// @param b Body (frame B) pair of stars that match inertial pair. This must be length = 2.
+/// @return Body stars b with the attached labels of the inertial pair r.
+Star::list Angle::singular_alignment (const Star::list &candidates, const Star::list &r, const Star::list &b) {
+    if (r.size() != 2 || b.size() != 2) {
+        throw "Input lists does not have exactly two stars.";
+    }
+    std::array<Star::list, 2> matches = {}, alignments = {};
     
     // Determine the rotation to take frame B to A, find all matches with this rotation.
-    for (const Star::pair &assumption : assumption_list) {
-        Rotation q = Rotation::rotation_across_frames(b, assumption);
-        matches[current_assumption++] = this->find_matches(candidates, q);
+    for (unsigned int i = 0; i < 2; i++) {
+        // We define our alignment 'a' below.
+        std::array<int, 2> a = {(i == 0) ? 0 : 1, (i == 0) ? 1 : 0};
+        
+        matches[i] = find_matches(candidates, Rotation::rotation_across_frames({b[0], b[1]}, {r[a[0]], r[a[1]]}));
+        alignments[i] = {Star::define_label(b[0], r[a[0]].get_label()), Star::define_label(b[1], r[a[1]].get_label())};
     }
     
-    // Return the larger of the two matches.
-    return matches[0].size() > matches[1].size() ? matches[0] : matches[1];
+    // Return the body pair with the appropriate labels.
+    return (matches[0].size() > matches[1].size()) ? alignments[0] : alignments[1];
 }
 
 /// Reproduction of the Angle method's database querying. Input image is not used. We require the following be defined:
@@ -162,36 +165,7 @@ std::vector<Identification::labels_list> Angle::experiment_query (const Star::li
     return r_bar;
 }
 
-/// Reproduction of the Angle method's check_assumption. Input image is used. We require the following be defined:
-///
-/// @code{.cpp}
-///     - sigma_overlay
-/// @endcode
-///
-/// @param candidates All stars found near the inertial pair.
-/// @param r Inertial (frame R) pair of stars that match body pair. This must be length = FIRST_ALIGNMENT_STAR_SET_SIZE.
-/// @param b Body (frame B) pair of stars that match inertial pair. This must be length = FIRST_ALIGNMENT_STAR_SET_SIZE.
-/// @return Body stars b with the attached labels of the inertial pair r.
-Star::list Angle::experiment_first_alignment (const Star::list &candidates, const Star::list &r, const Star::list &b) {
-    if (r.size() != FIRST_ALIGNMENT_STAR_SET_SIZE || b.size() != FIRST_ALIGNMENT_STAR_SET_SIZE) {
-        throw "Input lists does not have exactly two stars.";
-    }
-    std::array<Star::list, 2> matches = {}, alignments = {};
-    
-    // Determine the rotation to take frame B to A, find all matches with this rotation.
-    for (unsigned int i = 0; i < 2; i++) {
-        // We define our alignment 'a' below.
-        std::array<int, 2> a = {(i == 0) ? 0 : 1, (i == 0) ? 1 : 0};
-        
-        matches[i] = find_matches(candidates, Rotation::rotation_across_frames({b[0], b[1]}, {r[a[0]], r[a[1]]}));
-        alignments[i] = {Star::define_label(b[0], r[a[0]].get_label()), Star::define_label(b[1], r[a[1]].get_label())};
-    }
-    
-    // Return the body pair with the appropriate labels.
-    return (matches[0].size() > matches[1].size()) ? alignments[0] : alignments[1];
-}
-
-/// Reproduction of the Angle method's querying to candidate reduction step. Input image is used.
+/// Reproduction of the Angle method's querying to candidate reduction step (i.e. none). Input image is used.
 /// We require the following be defined:
 ///
 /// @code{.cpp}
@@ -200,12 +174,12 @@ Star::list Angle::experiment_first_alignment (const Star::list &candidates, cons
 ///     - sql_limit
 /// @endcode
 ///
-/// @return NO_CANDIDATES_FOUND if we cannot query anything. Otherwise, a single match configuration found by the angle
-/// method.
+/// @return NO_CANDIDATES_FOUND if there does not exist exactly one image star. Otherwise, a single match configuration
+/// found by the angle method.
 Angle::labels_list Angle::experiment_reduction () {
     ch.select_table(parameters.table_name);
     std::vector<labels_list> p = experiment_query({input[0], input[1]});
-    return p.empty() ? NO_CANDIDATES_FOUND : p[0];
+    return (p.size() != 1) ? NO_CANDIDATES_FOUND : p[0];
 }
 
 /// Reproduction of the Angle method's process from beginning to the orientation determination. Input image is used.
@@ -249,52 +223,9 @@ Star::list Angle::experiment_alignment () {
             candidates = ch.nearby_hip_stars(candidate_pair[0], fov, static_cast<unsigned int>(3 * input.size()));
             
             // Find the most likely pair combination given the two pairs.
-            return experiment_first_alignment(candidates, {candidate_pair[0], candidate_pair[1]}, {input[i], input[j]});
+            return singular_alignment(candidates, {candidate_pair[0], candidate_pair[1]}, {input[i], input[j]});
         }
     }
     
     return NO_CONFIDENT_ALIGNMENT;
-}
-
-/// Match the stars found in the given benchmark to those in the Nibble database. All parameters must be defined.
-///
-/// @return NO_CONFIDENT_MATCH_SET if an alignment cannot be found exhaustively. EXCEEDED_NU_MAX if an alignment
-/// cannot be found within a certain number of query picks. Otherwise, a vector of body stars with their
-/// inertial catalog IDs that qualify as matches.
-Star::list Angle::experiment_crown () {
-    Star::list matches = NO_CONFIDENT_MATCH_SET;
-    *parameters.nu = 0;
-    
-    // There exists |input| choose 2 possibilities.
-    for (unsigned int i = 0; i < input.size() - 1; i++) {
-        for (unsigned int j = i + 1; j < input.size(); j++) {
-            Star::list candidates;
-            (*parameters.nu)++;
-            
-            // Practical limit: exit early if we have iterated through too many comparisons without match.
-            if (*parameters.nu > parameters.nu_max) {
-                return EXCEEDED_NU_MAX;
-            }
-            
-            // Narrow down current pair to two stars in catalog. The order is currently unknown.
-            Star::pair candidate_pair = find_candidate_pair(input[i], input[j]);
-            if (std::equal(candidate_pair.begin(), candidate_pair.end(), NO_CANDIDATE_PAIR_FOUND.begin())) {
-                continue;
-            }
-            
-            // Find candidate stars around the candidate pair.
-            candidates = ch.nearby_hip_stars(candidate_pair[0], fov, 3 * static_cast<unsigned int>(input.size()));
-            
-            // Check both possible configurations. Return the most likely of the two.
-            matches = check_assumptions(candidates, {candidate_pair[0], candidate_pair[1]}, {input[i], input[j]});
-            
-            // Definition of image match: |match| > gamma minimum OR |match| == |input|.
-            if (matches.size() > ceil(input.size() * parameters.gamma) || matches.size() == input.size()) {
-                return matches;
-            }
-        }
-    }
-    
-    // Return NO_CONFIDENT_MATCH_SET if no matches are found.
-    return matches;
 }

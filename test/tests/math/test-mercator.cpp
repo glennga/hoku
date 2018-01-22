@@ -17,8 +17,7 @@ MATCHER_P2(IsBetween, a, b,
 
 /// Check that the conversion from cartesian to mercator is one that produces coordinates with bounds of w.
 TEST(MeractorProperty, ProjectionWithinBounds) {
-    std::random_device seed;
-    Star a(3, 4, 5), b = Star::chance(seed);
+    Star a(3, 4, 5), b = Star::chance();
     EXPECT_THAT(Mercator(a, 200).x, IsBetween(-100, 100));
     EXPECT_THAT(Mercator(a, 200).y, IsBetween(-100, 100));
     EXPECT_THAT(Mercator(b, 500).x, IsBetween(-250, 250));
@@ -27,8 +26,7 @@ TEST(MeractorProperty, ProjectionWithinBounds) {
 
 /// Check that the corners returned actually form a box.
 TEST(MercatorProperty, CornersFormBox) {
-    std::random_device seed;
-    Mercator a(Star::chance(seed), 1000);
+    Mercator a(Star::chance(), 1000);
     Mercator::quad b = a.find_corners(100);
     EXPECT_DOUBLE_EQ(b[0].y, b[1].y);
     EXPECT_DOUBLE_EQ(b[2].y, b[3].y);

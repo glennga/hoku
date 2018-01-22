@@ -11,6 +11,7 @@
 #include "storage/chomp.h"
 #include <memory>
 
+// TODO: fix these docs
 /// The QuadNode represents a node for the Mercator quadtree, a structure for spatial indexing. 
 ///
 /// @example

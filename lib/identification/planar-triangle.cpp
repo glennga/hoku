@@ -8,7 +8,7 @@
 
 /// Default parameters for the planar triangle identification method.
 const Identification::Parameters Plane::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
-    DEFAULT_SIGMA_OVERLAY, DEFAULT_GAMMA, DEFAULT_NU_MAX, DEFAULT_NU, "PLANE_20"};
+    DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU, "PLANE_20"};
 
 /// Constructor. Sets the benchmark data and fov. Sets the parameters, working table, and our index permutations.
 ///
@@ -68,24 +68,6 @@ std::vector<Identification::labels_list> Plane::experiment_query (const Star::li
     return h_bar;
 }
 
-/// Check all possible configuration of star trios and return quaternion corresponding to the set with the largest
-/// number of reference to body matches. Input image is used. We require the following be defined:
-///
-/// @code{.cpp}
-///     - sigma_overlay
-/// @endcode
-///
-/// @param candidates All stars found near the inertial pair.
-/// @param r Inertial (frame R) pair of stars that match body pair. This must be length = FIRST_ALIGNMENT_STAR_SET_SIZE.
-/// @param b Body (frame B) pair of stars that match inertial pair. This must be length = FIRST_ALIGNMENT_STAR_SET_SIZE.
-/// @return Body stars b with the attached labels of the inertial pair r.
-Star::list Plane::experiment_first_alignment (const Star::list &candidates, const Star::list &r, const Star::list &b) {
-    if (r.size() != FIRST_ALIGNMENT_STAR_SET_SIZE || b.size() != FIRST_ALIGNMENT_STAR_SET_SIZE) {
-        throw "Input lists does not have exactly three stars.";
-    }
-    return e_single_alignment(candidates, {r[0], r[1], r[2]}, {b[0], b[1], b[2]});
-}
-
 /// Find the **best** matching pair to the first three stars in our benchmark using the appropriate triangle table.
 /// Assumes noise is normally distributed, searches using epsilon (3 * sigma_a) and a basic bounded query. Input image
 /// is used. We require the following be defined:
@@ -121,14 +103,4 @@ Identification::labels_list Plane::experiment_reduction () {
 /// of the inertial pair r.
 Star::list Plane::experiment_alignment () {
     return e_alignment();
-}
-
-/// Match the stars found in the current benchmark to those in the Nibble database. The child class should wrap this
-/// function as 'experiment_crown' to mimic the other methods. All parameters must be defined.
-///
-/// @return NO_CONFIDENT_MATCH_SET if an alignment cannot be found exhaustively. EXCEEDED_NU_MAX if an alignment
-/// cannot be found within a certain number of query picks. Otherwise, a vector of body stars with their
-/// inertial catalog IDs that qualify as matches.
-Star::list Plane::experiment_crown () {
-    return e_crown();
 }
