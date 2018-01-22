@@ -34,18 +34,16 @@ TEST(RotationConstructor, PrivateComponentSet) {
 
 /// Check that the property v * <w, i, j, k> = v * <-w, -i, -j, -k> holds.
 TEST(RotationQuaternion, DoubleCoverProperty) {
-    std::random_device seed;
-    Rotation a = Rotation::chance(seed);
+    Rotation a = Rotation::chance();
     Rotation b(-a.w, Star(-a.i, -a.j, -a.k));
-    Star c = Star::chance(seed);
+    Star c = Star::chance();
     Star d = Rotation::rotate(c, a), e = Rotation::rotate(c, b);
     EXPECT_EQ(d, e);
 }
 
 /// Check that the resultant rotation is always normalized.
 TEST(RotationQuaternion, UnitProperty) {
-    std::random_device seed;
-    Rotation a = Rotation::chance(seed);
+    Rotation a = Rotation::chance();
     double b = sqrt(a.w * a.w + a.i * a.i + a.j * a.j + a.k * a.k);
     EXPECT_DOUBLE_EQ(b, 1);
 }
@@ -61,8 +59,7 @@ TEST(RotationQuaternion, MatrixToQuarternion) {
 
 /// Check that rotation with the identity matrix yields the same vector.
 TEST(RotationIdentity, Identity) {
-    std::random_device seed;
-    Star a = Star::chance(seed);
+    Star a = Star::chance();
     Star b = Rotation::rotate(a, Rotation::identity());
     EXPECT_EQ(a, b);
 }
@@ -97,7 +94,6 @@ TEST(RotationLogic, Rotate) {
     EXPECT_EQ(d, c);
 }
 
-// TODO: there is something funky going on with the equality... need to check it out.
 /// Check the TRIAD property that the resultant quaternion rotates both star pairs across frames correctly with the
 /// simple case of axis vectors.
 TEST(RotationTRIAD, Simple) {
@@ -105,48 +101,45 @@ TEST(RotationTRIAD, Simple) {
     std::array<Star, 2> b = {Star(0, 0, 1), Star(0, 1, 0)};
     Rotation c = Rotation::rotation_across_frames(a, b);
     Star d = Rotation::rotate(b[0], c), e = Rotation::rotate(b[1], c);
-    EXPECT_EQ(d, a[0]);
-    EXPECT_EQ(e, a[1]);
+    EXPECT_TRUE(Star::is_equal(d, a[0], 0.0000000001));
+    EXPECT_TRUE(Star::is_equal(e, a[1], 0.0000000001));
 }
 
 /// Check the TRIAD property that the resultant quaternion rotates both star pairs across frames correctly with
 /// random vectors.
 TEST(RotationTRIAD, Chance) {
-    std::random_device seed;
-    Rotation a = Rotation::chance(seed);
-    std::array<Star, 2> b = {Star::chance(seed), Star::chance(seed)};
+    Rotation a = Rotation::chance();
+    std::array<Star, 2> b = {Star::chance(), Star::chance()};
     std::array<Star, 2> c = {Rotation::rotate(b[0], a), Rotation::rotate(b[1], a)};
     Rotation d = Rotation::rotation_across_frames(b, c);
     Star e = Rotation::rotate(c[0], d), f = Rotation::rotate(c[1], d);
-    EXPECT_EQ(e, b[0]);
-    EXPECT_EQ(f, b[1]);
+    EXPECT_TRUE(Star::is_equal(e, b[0], 0.0000000001));
+    EXPECT_TRUE(Star::is_equal(f, b[1], 0.0000000001));
 }
 
 /// Check that for each star in set A and the same rotated set B, there exists a quaternion H such that A = HB.
 TEST(RotationTRIAD, MultipleStars) {
-    std::random_device seed;
-    Rotation a = Rotation::chance(seed), d;
+    Rotation a = Rotation::chance(), d;
     std::vector<Star> b, c;
     b.reserve(5), c.reserve(5);
     
     for (int q = 0; q < 5; q++) {
-        b.push_back(Star::chance(seed));
+        b.push_back(Star::chance());
         c.push_back(Rotation::rotate(b[q], a));
     }
     d = Rotation::rotation_across_frames({b[0], b[1]}, {c[0], c[1]});
     
     for (int q = 0; q < 5; q++) {
         Star e = Rotation::rotate(c[q], d);
-        EXPECT_EQ(e, b[q]);
+        EXPECT_TRUE(Star::is_equal(e, b[q], 0.0000000001));
     }
 }
 
 /// Check that the shake method doesn't shake with the deviation is 0, and returns a unique star when the deviation
 /// is non-zero.
 TEST(RotationChance, Shake) {
-    std::random_device seed;
-    Star a = Star::chance(seed), b = Rotation::shake(a, 0, seed);
-    Star c = Rotation::shake(a, 30, seed);
+    Star a = Star::chance(), b = Rotation::shake(a, 0);
+    Star c = Rotation::shake(a, 30);
     EXPECT_EQ(a, b);
     EXPECT_FALSE(a == c);
     EXPECT_GT(Star::angle_between(a, c), 1.0);

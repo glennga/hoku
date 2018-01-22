@@ -31,9 +31,8 @@ TEST(ChompLists, BrightStarGrab) {
 
 /// Check that the first 10 bright stars returned are all nearby the focus.
 TEST(ChompLists, NearbyBrightStars) {
-    std::random_device seed;
     Chomp ch;
-    Star focus = Star::chance(seed);
+    Star focus = Star::chance();
     std::vector<Star> nearby = ch.nearby_bright_stars(focus, 7.5, 30);
     for (int q = 0; q < 10; q++) {
         EXPECT_TRUE(Star::within_angle(nearby[q], focus, 7.5));
@@ -42,9 +41,8 @@ TEST(ChompLists, NearbyBrightStars) {
 
 /// Check that the first 10 stars returned are all nearby the focus.
 TEST(ChompLists, NearbyHipStars) {
-    std::random_device seed;
     Chomp ch;
-    Star focus = Star::chance(seed);
+    Star focus = Star::chance();
     std::vector<Star> nearby = ch.nearby_hip_stars(focus, 5, 100);
     for (int q = 0; q < 10; q++) {
         EXPECT_TRUE(Star::within_angle(nearby[q], focus, 5));
@@ -89,7 +87,7 @@ TEST(ChompQuery, Hip) {
 /// query time.
 TEST(ChompQuery, SimpleBound) {
     Chomp ch;
-    ch.select_table("PYRA_20");
+    ch.select_table("ANGLE_20");
     Nibble::tuples_d a = ch.simple_bound_query("theta", "theta", 5.004, 5.005, 90);
     for (Nibble::tuple_d &q : a) {
         EXPECT_THAT(q[0], IsBetween(5.003, 5.006));
@@ -99,7 +97,7 @@ TEST(ChompQuery, SimpleBound) {
 /// Check that the k-vector query returns the correct results.
 TEST(ChompQuery, KVector) {
     Chomp ch;
-    ch.select_table("PYRA_20");
+    ch.select_table("ANGLE_20");
     Nibble::tuples_d a = ch.k_vector_query("theta", "theta", 5.004, 5.005, 90);
     for (Nibble::tuple_d &q : a) {
         EXPECT_THAT(q[0], IsBetween(5.003, 5.006));
