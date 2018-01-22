@@ -10,8 +10,7 @@
 
 /// Check that the KdNode star constructor has the correct components.
 TEST(KdNodeConstructor, StarConstructor) {
-    std::random_device seed;
-    KdNode b(Star::chance(seed), 1000);
+    KdNode b(Star::chance(), 1000);
     EXPECT_EQ(b.origin_index, KdNode::NO_ORIGIN);
     EXPECT_DOUBLE_EQ(b.w_n, 1000);
     EXPECT_EQ(b.label, Mercator::NO_LABEL);
@@ -19,10 +18,9 @@ TEST(KdNodeConstructor, StarConstructor) {
 
 /// Check that a list is sorted by the correct dimension.
 TEST(KdNodeProperty, DimensionSort) {
-    std::random_device seed;
     KdNode::list a;
     for (int i = 0; i < 20; i++) {
-        a.emplace_back(Star::chance(seed), 1000);
+        a.emplace_back(Star::chance(), 1000);
     }
     KdNode::list b = a;
     KdNode::sort_by_dimension(0, (unsigned) a.size() - 3, 0, a);
@@ -37,8 +35,7 @@ TEST(KdNodeProperty, DimensionSort) {
 
 /// Check that the "==" operator works as intended.
 TEST(KdNodeOperator, Equality) {
-    std::random_device seed;
-    Star a = Star::chance(seed);
+    Star a = Star::chance();
     KdNode b = KdNode(a, 1000);
     EXPECT_TRUE(b == KdNode(a, 1000));
 }
@@ -100,8 +97,7 @@ TEST(KdNodeTree, Simple) {
 TEST(KdNodeNearby, NearbyStars) {
     Star::list a = Chomp().bright_as_list();
     KdNode q = KdNode::load_tree(a, 1000);
-    std::random_device seed;
-    Star b = Star::chance(seed);
+    Star b = Star::chance();
     Star::list c = Chomp().nearby_bright_stars(b, 10, 90), d = q.nearby_stars(b, 10, 90, a);
     std::vector<double> e, f;
     

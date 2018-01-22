@@ -3,7 +3,6 @@
 ///
 /// Source file for Benchmark class, which generates the input data for star identification testing.
 
-#include <math.h>
 #include "benchmark/benchmark.h"
 
 /// String of HOKU_PROJECT_PATH environment variable.
@@ -22,12 +21,10 @@ const std::string Benchmark::PLOT_SCRIPT = "\"" + PROJECT_LOCATION + "/script/py
 /// sensitivity (m_bar).
 ///
 /// @param ch Open connection to Nibble, using Chomp tables.
-/// @param seed Reference to a random device to use for all future Benchmark methods.
 /// @param fov Limit a star must be separated from the focus by.
 /// @param m_bar Maximum magnitude a star must be within in the given benchmark.
-Benchmark::Benchmark (Chomp &ch, std::random_device &seed, const double fov, const double m_bar) {
-    this->fov = fov, this->focus = Star::chance(seed), this->inertial_to_image = Rotation::chance(seed);
-    this->seed = &seed;
+Benchmark::Benchmark (Chomp &ch, const double fov, const double m_bar) {
+    this->fov = fov, this->focus = Star::chance(), this->inertial_to_image = Rotation::chance();
     
     generate_stars(ch, m_bar);
 }
@@ -36,40 +33,35 @@ Benchmark::Benchmark (Chomp &ch, std::random_device &seed, const double fov, con
 /// and magnitude sensitivity (m_bar).
 ///
 /// @param ch Open connection to Nibble, using Chomp tables.
-/// @param seed Pointer to a random device to use for all future Benchmark methods.
 /// @param focus Focus star of the given star set.
 /// @param q Quaternion to take inertial frame to body frame.
 /// @param fov Limit a star must be separated from the focus by.
 /// @param m_bar Maximum magnitude a star must be within in the given benchmark.
-Benchmark::Benchmark (Chomp &ch, std::random_device &seed, const Star &focus, const Rotation &q, const double fov,
-                      const double m_bar) {
-    this->fov = fov, this->focus = focus, this->inertial_to_image = q, this->seed = &seed;
+Benchmark::Benchmark (Chomp &ch, const Star &focus, const Rotation &q, const double fov, const double m_bar) {
+    this->fov = fov, this->focus = focus, this->inertial_to_image = q;
     generate_stars(ch, m_bar);
 }
 
 /// Private constructor. Directly sets the star set, fov, and focus. The rotation is unknown, as well as the errors
 /// applied to it.
 ///
-/// @param seed Reference to a random device to use for all future Benchmark methods.
 /// @param s Star set to give the current benchmark.
 /// @param focus Focus star of the given star set.
 /// @param fov Field of view (degrees) associated with the given star set.
-Benchmark::Benchmark (std::random_device &seed, const Star::list &s, const Star &focus, const double fov) {
-    this->seed = &seed, this->fov = fov, this->stars = s, this->focus = focus;
+Benchmark::Benchmark (const Star::list &s, const Star &focus, const double fov) {
+    this->fov = fov, this->stars = s, this->focus = focus;
 }
 
 /// Dummy image. Holds no image or field of view.
 ///
 /// @return A dummy image without stars.
 const Benchmark Benchmark::black () {
-    std::random_device rd;
-    return Benchmark(rd, {}, Star::zero(), 0);
+    return Benchmark({}, Star::zero(), 0);
 }
 
 /// Shuffle the current star set. Uses C++11 random library.
 void Benchmark::shuffle () {
-    std::mt19937_64 mersenne_twister((*seed)());
-    std::shuffle(this->stars.begin(), this->stars.end(), mersenne_twister);
+    std::shuffle(this->stars.begin(), this->stars.end(), RandomDraw::mersenne_twister);
 }
 
 /// Obtain a set of stars around the current focus vector. This is the 'clean' star set, meaning that all stars in
@@ -214,7 +206,7 @@ void Benchmark::add_extra_light (const unsigned int n, bool cap_error) {
     ErrorModel extra_light = {"Extra Light", "r", {Star::zero()}};
     
     while (current_n < n) {
-        Star generated = Star::chance(*seed, -current_n - 1);
+        Star generated = Star::chance(-current_n - 1);
         if (Star::within_angle(generated, this->focus, this->fov / 2.0)) {
             this->stars.emplace_back(generated);
             extra_light.affected.emplace_back(generated);
@@ -246,7 +238,7 @@ void Benchmark::remove_light (const unsigned int n, const double psi) {
     while (!is_affected) {
         // First, generate the light blocking blobs.
         while (current_n < n) {
-            Star generated = Star::chance(*seed);
+            Star generated = Star::chance();
             if (Star::within_angle(generated, this->focus, this->fov / 2.0)) {
                 blobs.emplace_back(generated);
                 current_n++;
@@ -291,7 +283,7 @@ void Benchmark::shift_light (const unsigned int n, const double sigma, bool cap_
         
         // Check inside if n is met early, break if met.
         for (unsigned int i = 0; i < this->stars.size() && n_condition; i++) {
-            Star candidate = Rotation::shake(this->stars[i], sigma, *seed);
+            Star candidate = Rotation::shake(this->stars[i], sigma);
             
             // If shifted star is near focus, add the shifted star and remove the old.
             if (Star::within_angle(candidate, this->focus, this->fov / 2.0)) {

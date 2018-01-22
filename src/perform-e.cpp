@@ -10,7 +10,6 @@
 /// - sphere a -> Run trial A with the SphericalTriangle method.
 /// - plane a -> Run trial A with the PlanarTriangle method.
 /// - pyramid a -> Run trial A with the Pyramid method.
-/// - summer a -> Run trial A with the Summer method.
 ///
 /// - b query -> Run the query trials with the B method.
 /// - b first-alignment -> Run the first alignment trials with the B method.
@@ -36,7 +35,6 @@
 #include "identification/spherical-triangle.h"
 #include "identification/planar-triangle.h"
 #include "identification/pyramid.h"
-#include "identification/summer.h"
 #include "experiment/experiment.h"
 
 /// Convert the given user argument specifying the experiment name, to its appropriate hash.
@@ -68,7 +66,7 @@ std::string experiment_table (const std::string &experiment_in) {
 /// @param identifier_in Input given by the user, to identify the type of experiment table.
 /// @return Index of the name space below. 5 is given if the given input is not in the name space.
 int identifier_hash (const std::string &identifier_in) {
-    std::array<std::string, 5> space = {"angle", "sphere", "plane", "pyramid", "summer"};
+    std::array<std::string, 5> space = {"angle", "sphere", "plane", "pyramid"};
     return static_cast<int> (std::distance(space.begin(), std::find(space.begin(), space.end(), identifier_in)));
 }
 
@@ -95,7 +93,7 @@ int create_lumberjack_table (const std::string &experiment_in) {
 /// @param identifier_in Input given by the user, to identify the type of experiment table to log to.
 /// @param experiment_in Input given by the user, to identify the type of identifier to use for the experiment.
 void perform_trial (Lumberjack &lu, const std::string &identifier_in, const std::string &experiment_in) {
-    std::array<std::string, 5> table_names = {"ANGLE_20", "SPHERE_20", "PLANE_20", "PYRAMID_20", "SUMMER_20"};
+    std::array<std::string, 5> table_names = {"ANGLE_20", "SPHERE_20", "PLANE_20", "PYRAMID_20"};
     Chomp ch;
     
     switch ((identifier_hash(identifier_in) * 5) + experiment_hash(experiment_in)) {
@@ -123,12 +121,6 @@ void perform_trial (Lumberjack &lu, const std::string &identifier_in, const std:
         case 18: return Experiment::Alignment::trial<Pyramid>(ch, lu, table_names[3]);
         case 19: return Experiment::Crown::trial<Pyramid>(ch, lu, table_names[3]);
         
-        case 20: return Experiment::Query::trial<Summer>(ch, lu, table_names[4]);
-        case 21: return Experiment::FirstAlignment::trial<Summer>(ch, lu, table_names[4]);
-        case 22: return Experiment::Reduction::trial<Summer>(ch, lu, table_names[4]);
-        case 23: return Experiment::Alignment::trial<Summer>(ch, lu, table_names[4]);
-        case 24: return Experiment::Crown::trial<Summer>(ch, lu, table_names[4]);
-        
         default: throw "Choices not in appropriate spaces or test does not exist.";
     }
 }
@@ -142,7 +134,6 @@ void perform_trial (Lumberjack &lu, const std::string &identifier_in, const std:
 /// - sphere a -> Run trial A with the SphericalTriangle method.
 /// - plane a -> Run trial A with the PlanarTriangle method.
 /// - pyramid a -> Run trial A with the Pyramid method.
-/// - summer a -> Run trial A with the Summer method.
 ///
 /// - b query -> Run the query trials with the B method.
 /// - b first-alignment -> Run the first alignment trials with the B method.
@@ -181,7 +172,7 @@ int main (int argc, char *argv[]) {
             return std::find(input_space.begin(), input_space.end(), a) != input_space.end();
         };
         
-        if (!is_valid_arg(argv[1], {"angle", "sphere", "plane", "pyramid", "summer", "create-table"})
+        if (!is_valid_arg(argv[1], {"angle", "sphere", "plane", "pyramid", "create-table"})
             || !is_valid_arg(argv[2], {"query", "first-alignment", "reduction", "alignment", "crown"})) {
             std::cout << "Usage: RunTrial ['angle', ... , 'create-table'] ['query', ... , 'crown']" << std::endl;
             return -1;

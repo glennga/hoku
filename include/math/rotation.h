@@ -8,6 +8,7 @@
 
 #include "math/star.h"
 
+// TODO: fix these docs
 /// The rotation class uses the vector functions in the star class to form quaternions. Rotations allow us to
 /// simulate a true lost-in-space condition.
 ///
@@ -40,13 +41,13 @@ class Rotation {
     
     static Star rotate (const Star &s, const Rotation &q);
     static Star push (const Star &s, const Star &f, double d);
-    static Star shake (const Star &s, double sigma, std::random_device &seed);
+    static Star shake (const Star &s, double sigma);
     
     static double angle_between (const Rotation &q_1, const Rotation &q_2);
     static Star rotation_difference (const Rotation &q_1, const Rotation &q_2, const Star &s);
     
     static Rotation identity ();
-    static Rotation chance (std::random_device &seed);
+    static Rotation chance ();
     
     static Rotation rotation_across_frames (const Star::pair &r, const Star::pair &b);
 

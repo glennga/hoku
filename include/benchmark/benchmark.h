@@ -54,10 +54,9 @@ class Benchmark {
     static constexpr double DEFAULT_M_BAR = 6.0;
   
   public:
-    Benchmark (Chomp &ch, std::random_device &seed, double fov, double m_bar = DEFAULT_M_BAR);
-    Benchmark (Chomp &ch, std::random_device &seed, const Star &focus, const Rotation &q, double fov,
-               double m_bar = DEFAULT_M_BAR);
-    Benchmark (std::random_device &seed, const Star::list &s, const Star &focus, double fov);
+    Benchmark (Chomp &ch, double fov, double m_bar = DEFAULT_M_BAR);
+    Benchmark (Chomp &ch, const Star &focus, const Rotation &q, double fov, double m_bar = DEFAULT_M_BAR);
+    Benchmark (const Star::list &s, const Star &focus, double fov);
     static const Benchmark black ();
     
     void generate_stars (Chomp &ch, double m_bar = DEFAULT_M_BAR);
@@ -78,20 +77,17 @@ class Benchmark {
 #endif
     Star::list clean_stars () const;
     void shuffle ();
-
+    
     static const std::string PROJECT_LOCATION;
     static const std::string CURRENT_TMP;
     static const std::string ERROR_TMP;
     static const std::string PLOT_SCRIPT;
 
 #if !defined ENABLE_TESTING_ACCESS
-    private:
+  private:
 #endif
     /// Alias for the list (stack) of ErrorModels.
     using model_list = std::vector<ErrorModel>;
-    
-    /// Random device pointer, used as source of randomness.
-    std::random_device *seed;
     
     /// Current list of stars. All stars must be near the focus.
     Star::list stars;

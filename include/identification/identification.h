@@ -15,23 +15,19 @@ class Identification {
         double sigma_query; ///< Query must be within 3 * sigma_query.
         unsigned int sql_limit; ///< While performing a SQL query, limit results by this number.
         double sigma_overlay; ///< Resultant of inertial->body rotation must within 3 * sigma_overlay of *a* body.
-        double gamma; ///< The minimum percentage of body-inertial matches.
         unsigned int nu_max; ///< Maximum number of query star comparisons before returning an empty list.
         std::shared_ptr<unsigned int> nu; ///< Pointer to the location to hold the count of query star comparisons.
         std::string table_name; ///< Name of the Nibble database table created with 'generate_sep_table'.
     };
     
     /// Default sigma query for all identification methods.
-    static constexpr double DEFAULT_SIGMA_QUERY = std::numeric_limits<double>::epsilon();
+    static constexpr double DEFAULT_SIGMA_QUERY = std::numeric_limits<double>::epsilon() * 100;
     
     /// Default SQL limit for all identification methods.
     static constexpr unsigned int DEFAULT_SQL_LIMIT = 500;
     
     /// Default sigma overlay (for matching) for all identification methods.
-    static constexpr double DEFAULT_SIGMA_OVERLAY = std::numeric_limits<double>::epsilon();
-    
-    /// Default gamma (match minimum percentage) for all identification methods.
-    static constexpr double DEFAULT_GAMMA = 0.66;
+    static constexpr double DEFAULT_SIGMA_OVERLAY = std::numeric_limits<double>::epsilon() * 100;
     
     /// Default nu max (comparison counts) for all identification methods.
     static constexpr unsigned int DEFAULT_NU_MAX = 50000;
@@ -52,17 +48,13 @@ class Identification {
     Identification ();
     
     virtual std::vector<labels_list> experiment_query (const Star::list &s) = 0;
-    virtual Star::list experiment_first_alignment (const Star::list &candidates, const Star::list &r,
-                                                   const Star::list &b) = 0;
     virtual labels_list experiment_reduction () = 0;
     virtual Star::list experiment_alignment () = 0;
-    virtual Star::list experiment_crown () = 0;
     
     static const Star::list NO_CONFIDENT_ALIGNMENT;
     static const labels_list NO_CANDIDATES_FOUND;
     
     static const Star::list EXCEEDED_NU_MAX;
-    static const Star::list NO_CONFIDENT_MATCH_SET;
     static const Parameters DEFAULT_PARAMETERS;
 
 #if !defined ENABLE_TESTING_ACCESS
