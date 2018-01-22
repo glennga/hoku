@@ -140,11 +140,9 @@ Star Star::zero () {
 ///
 /// @param seed Random device to use when generating star.
 /// @return Star with random, normalized components and a catalog ID = NO_LABEL.
-Star Star::chance (std::random_device &seed) {
-    std::mt19937_64 mersenne_twister(seed());
-    std::uniform_real_distribution<double> dist(-1.0, 1.0);
-    
-    return Star(dist(mersenne_twister), dist(mersenne_twister), dist(mersenne_twister), NO_LABEL).as_unit();
+Star Star::chance () {
+    return Star(RandomDraw::draw_real(-1.0, 1.0), RandomDraw::draw_real(-1.0, 1.0), RandomDraw::draw_real(-1.0, 1.0),
+                NO_LABEL).as_unit();
 }
 
 /// Generate a random star with normalized components. Using C++11 random functions. Instead of assigning a catalog ID
@@ -153,8 +151,8 @@ Star Star::chance (std::random_device &seed) {
 /// @param seed Random device to use when generating star.
 /// @param label Catalog ID to use with the randomized star.
 /// @return Star with random, normalized components and a catalog ID = 0.
-Star Star::chance (std::random_device &seed, const int label) {
-    Star s = chance(seed);
+Star Star::chance (const int label) {
+    Star s = chance();
     s.label = label;
     
     return s;

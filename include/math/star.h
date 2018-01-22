@@ -11,7 +11,8 @@
 #include <sstream>
 #include <iomanip>
 #include <array>
-#include <random>
+
+#include "math/random-draw.h"
 
 /// The star class is really a 3D vector class in disguise, with methods focusing toward rotation and angular
 /// separation. This class is the basis for all of the Hoku research.
@@ -47,7 +48,7 @@ class Star {
     
     /// The default label of all stars.
     static constexpr int NO_LABEL = 0;
-    
+  
   public:
     Star (double i, double j, double k, int label = 0, double m = -30.0, bool set_unit = false);
     Star ();
@@ -69,8 +70,8 @@ class Star {
     bool operator== (const Star &s) const;
     
     static Star zero ();
-    static Star chance (std::random_device &seed);
-    static Star chance (std::random_device &seed, int label);
+    static Star chance ();
+    static Star chance (int label);
     
     static double dot (const Star &s_1, const Star &s_2);
     static Star cross (const Star &s_1, const Star &s_2);
@@ -79,9 +80,9 @@ class Star {
     static bool within_angle (const Star &s_1, const Star &s_2, double theta);
     static bool within_angle (const list &s_l, double theta);
     
-    static Star define_label(const Star &s, int label);
+    static Star define_label (const Star &s, int label);
     static Star reset_label (const Star &s);
-    
+
 #if !defined ENABLE_TESTING_ACCESS
     private:
 #endif

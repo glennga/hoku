@@ -49,8 +49,7 @@ TEST(StarComputation, Norm) {
 
 /// Check if the norm of a generated unit vector is equal to one.
 TEST(StarNorm, Unit) {
-    std::random_device seed;
-    Star a = Star::chance(seed) * 85.0, b = a.as_unit();
+    Star a = Star::chance() * 85.0, b = a.as_unit();
     EXPECT_DOUBLE_EQ(b.norm(), 1.0);
 }
 
@@ -74,20 +73,17 @@ TEST(StarEquality, Precision) {
 
 /// Check if the chance method returns a unit star.
 TEST(StarChance, Unit) {
-    std::random_device seed;
-    EXPECT_DOUBLE_EQ(Star::chance(seed).norm(), 1.0);
+    EXPECT_DOUBLE_EQ(Star::chance().norm(), 1.0);
 }
 
 /// Check if the label number assigned is correct from overloaded chance method.
 TEST(StarChance, Label) {
-    std::random_device seed;
-    EXPECT_EQ(Star::chance(seed, -100).label, -100);
+    EXPECT_EQ(Star::chance(-100).label, -100);
 }
 
 /// Check if the chance method returns a different star upon the next use.
 TEST(StarChance, Duplicate) {
-    std::random_device seed;
-    Star a = Star::chance(seed), b = Star::chance(seed);
+    Star a = Star::chance(), b = Star::chance();
     EXPECT_FALSE(a == b);
 }
 
