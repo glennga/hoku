@@ -52,11 +52,8 @@ class Identification {
     Identification ();
     
     virtual std::vector<labels_list> experiment_query (const Star::list &s) = 0;
-    virtual Star::list experiment_first_alignment (const Star::list &candidates, const Star::list &r,
-                                                   const Star::list &b) = 0;
     virtual labels_list experiment_reduction () = 0;
     virtual Star::list experiment_alignment () = 0;
-    virtual Star::list experiment_crown () = 0;
     
     static const Star::list NO_CONFIDENT_ALIGNMENT;
     static const labels_list NO_CANDIDATES_FOUND;
