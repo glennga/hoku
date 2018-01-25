@@ -9,7 +9,7 @@
 
 #include "storage/nibble.h"
 
-// TODO: finish documentation with examples
+// TODO: Finish Lumberjack documentation with examples.
 /// The lumberjack class is used to log the results of all trials.
 #if !defined ENABLE_TESTING_ACCESS
 class Lumberjack : private Nibble {

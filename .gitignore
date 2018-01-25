@@ -11,6 +11,4 @@ build/
 *.bak
 *.synctex.gz
 *.log
-*.bbl
-*.aux
-*.blg
+auxil/

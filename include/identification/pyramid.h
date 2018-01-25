@@ -10,7 +10,7 @@
 #include "identification/angle.h"
 #include <iostream>
 
-// TODO: fix these docs
+// TODO: Fix the Pyramid documentation.
 /// The pyramid class is an implementation of the identification portion of the Pyramid
 /// process. This is one of the five star identification procedures being tested.
 ///

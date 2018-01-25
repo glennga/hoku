@@ -318,7 +318,7 @@ int Chomp::create_k_vector (const std::string &focus) {
     return build_k_vector_table(focus, m, q);
 }
 
-// TODO: figure out what is wrong with querying triangle tables here... Switching to normal indexed queries.
+// TODO: Determine what is wrong with this K-Vector implementation.
 /// Search a table for the specified fields given a focus column using the K-Vector method. Searches for all results
 /// between y_a and y_b.
 ///

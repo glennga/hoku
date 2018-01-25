@@ -10,7 +10,7 @@
 #include "identification.h"
 #include <iostream>
 
-// TODO: fix these docs
+// TODO: Fix the Angle documentation.
 /// The angle class is an implementation of the identification portion of the LIS Stellar Attitude Acquisition
 /// process. This is one of the five star identification procedures being tested.
 ///

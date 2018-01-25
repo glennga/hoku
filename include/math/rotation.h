@@ -8,7 +8,7 @@
 
 #include "math/star.h"
 
-// TODO: fix these docs
+// TODO: Fix the Rotation documentation.
 /// The rotation class uses the vector functions in the star class to form quaternions. Rotations allow us to
 /// simulate a true lost-in-space condition.
 ///
