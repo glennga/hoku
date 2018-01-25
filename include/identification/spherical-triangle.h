@@ -9,7 +9,7 @@
 
 #include "base-triangle.h"
 
-// TODO: fix the documentation here
+// TODO: Fix the SphericalTriangle documentation.
 /// The triangle spherical class is an implementation of Crassidis and Cole's Spherical Triangle Pattern Recognition
 /// Process. This is one of the five star identification procedures being tested.
 ///

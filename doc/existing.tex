@@ -467,16 +467,9 @@ To second verification step is denoted as \Call{CompositeVerify}{$b, r, a, I$} i
 algorithm~\autoref{algorithm:compositePyramidHelpers}. Like the Pyramid verification function, this verification starts
 by selecting a nearby star to $b$ in the image $b_e$. The planar area and moment are computed for
 
-The angular separation
-between each star in b is computed, generating θ ie ,θ je ,θ ke .
-Again, three sets of catalog pairs R ie ,R je ,R ke are selected
-such that condition (3) holds for each respective θ. If the
-common star between all R sets exists near the given r set,
-then the test past. Otherwise, the test fails.
-
 The same function \Call{Common}{$R^{ab}, R^{ac}$} from the
 Pyramid method is used to determine what the
-% TODO: need to account for the fact that there exists two common stars here.... Need to add exlusion set !!!!
+% TODO: Need to account for the fact that there exists two common stars here.... Need to add exlusion set !!!!
 \begin{algorithm}
     \caption{Functions for Composite Pyramid Identification} \label{algorithm:compositePyramidHelpers}
     \begin{algorithmic}[1]

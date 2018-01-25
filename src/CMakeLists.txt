@@ -15,7 +15,7 @@ add_executable(GenerateN generate-n.cpp)
 target_link_libraries(GenerateN Pyramid PlanarTriangle
         SphericalTriangle Angle BaseTriangle Identification Benchmark
         Rotation QuadNode KdNode Chomp Nibble Asterism Mercator Trio
-        Star SQLiteCpp Sqlite3)
+        Star SQLiteCpp Sqlite3 RandomDraw)
 
 ##################################################################
 # Link and Create Executable PerformE
@@ -24,4 +24,4 @@ add_executable(PerformE perform-e.cpp)
 target_link_libraries(PerformE Experiment Lumberjack Pyramid
         PlanarTriangle SphericalTriangle Angle BaseTriangle
         Identification Benchmark Rotation QuadNode KdNode Chomp
-        Nibble Mercator Trio Star SQLiteCpp Sqlite3)
+        Nibble Mercator Trio Star SQLiteCpp Sqlite3 RandomDraw)
