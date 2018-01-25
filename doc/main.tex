@@ -1,47 +1,31 @@
-\documentclass[conference]{IEEEtran} 
+\documentclass[conference]{IEEEtran}
 
-\usepackage{graphicx} \usepackage{url} \usepackage{hyperref} 
-\usepackage{amsmath} \usepackage{amssymb}
-\usepackage{listings} \usepackage{color} \usepackage{textcomp}
+\usepackage{graphicx} \usepackage{url} \usepackage{hyperref} \usepackage{caption} \usepackage{amsmath}
+\usepackage{amssymb} \usepackage{array} \usepackage{listings} \usepackage{color} \usepackage{textcomp}
 \usepackage[utf8]{inputenc} \usepackage{natbib} \usepackage{algorithm} \usepackage{tikz}
 \usepackage[noend]{algpseudocode}
+
 \usetikzlibrary{shapes.geometric, arrows}
 
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{8} % for bold
-\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{8}  % for normal
-\definecolor{deepblue}{rgb}{0,0,0.5} \definecolor{deepred}{rgb}{0.6,0,0}
-\definecolor{deepgreen}{rgb}{0,0.5,0} \lstdefinestyle{code-s}{
-    keywordstyle=\ttb\color{deepblue}, emphstyle=\ttb\color{deepred},
-    stringstyle=\color{deepgreen}, commentstyle=\color{deepgreen},
-    showstringspaces=false, breaklines=true, showspaces=false, showtabs=false,
-    basicstyle=\footnotesize, literate={\ \ }{{\ }}1 }
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-
-\title{Analysis of Lost-in-Space Star Identification Algorithms} \author{Glenn Galvizo} 
+\title{Analysis of Lost-in-Space Star Identification Algorithms}
+\author{Glenn Galvizo}
 
 \begin{document}
-\maketitle
+    \maketitle
 
-% Abstract.
-\input{abstract}
+    \input{abstract} % Abstract.
 
-% Background.
-\input{background}
+    \input{background} % Background.
 
-% Existing Solutions.
-\input{existing}
+    \input{existing} % Existing Solutions.
 
-% Methodology
-\input{methods}
+    \input{methods} % Methodology
 
-% Evaluation.
+    \input{analysis} % Evaluation.
 
-% Conclusion.
+    \input{conclusion} % Conclusion.
 
-% References. 
-\nocite{*}
-\bibliographystyle{unsrt}
-\bibliography{references} 
-
+    \nocite{*} % References.
+    \bibliographystyle{unsrt}
+    \bibliography{references}
 \end{document}
