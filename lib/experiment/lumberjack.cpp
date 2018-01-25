@@ -72,6 +72,11 @@ int Lumberjack::log_trial (const tuple_d &result) {
 ///
 /// @return 0 when finished.
 int Lumberjack::flush_buffer () {
+    // Do not proceed if the buffer is empty.
+    if (result_buffer.empty()) {
+        return 0;
+    }
+    
     // Create bind statement with necessary amount of '?'.
     std::string sql = "INSERT INTO " + table + std::string(" (") + trial_fields + ") VALUES ";
     

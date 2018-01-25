@@ -308,7 +308,7 @@ void Benchmark::shift_light (const unsigned int n, const double sigma, bool cap_
     this->error_models.push_back(shifted_light);
 }
 
-// TODO: this function does not work, MAKE IT >:(
+// TODO: Barrel distortion does not currently work. Fix this method.
 /// Simulate barrel distortion using the equation r_d = r_u(1 - alpha|r_u|^2. This distorts the entire image. Source
 /// found here: https://stackoverflow.com/a/34743020
 ///
