@@ -184,7 +184,7 @@ TEST(PlaneTrial, CleanQuery) {
     Benchmark input(ch, 15);
     Plane a(Benchmark::black(), p);
     
-    std::vector<Identification::labels_list> d = a.experiment_query({input.stars[0], input.stars[1], input.stars[2]});
+    std::vector<Identification::labels_list> d = a.query({input.stars[0], input.stars[1], input.stars[2]});
     Identification::labels_list ell = {input.stars[0].get_label(), input.stars[1].get_label(),
         input.stars[2].get_label()};
     

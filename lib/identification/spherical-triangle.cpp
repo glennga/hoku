@@ -58,7 +58,7 @@ std::vector<Trio::stars> Sphere::match_stars (const index_trio &i_b) {
 ///
 /// @param s Stars to query with. This must be of length = QUERY_STAR_SET_SIZE.
 /// @return Vector of likely matches found by the spherical triangle method.
-std::vector<Identification::labels_list> Sphere::experiment_query (const Star::list &s) {
+std::vector<Identification::labels_list> Sphere::query (const Star::list &s) {
     if (s.size() != QUERY_STAR_SET_SIZE) {
         throw "Input list does not have exactly three stars.";
     }
