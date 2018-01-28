@@ -53,7 +53,7 @@ std::vector<Trio::stars> Plane::match_stars (const index_trio &i_b) {
 ///
 /// @param s Stars to query with. This must be of length = QUERY_STAR_SET_SIZE.
 /// @return Vector of likely matches found by the planar triangle method.
-std::vector<Identification::labels_list> Plane::experiment_query (const Star::list &s) {
+std::vector<Identification::labels_list> Plane::query (const Star::list &s) {
     if (s.size() != QUERY_STAR_SET_SIZE) {
         throw "Input list does not have exactly three stars.";
     }

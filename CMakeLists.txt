@@ -48,6 +48,14 @@ endif ()
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib)
 
 ##################################################################
+# Required Libraries for External Usage
+##################################################################
+set(HOKU_LIBS Pyramid PlanarTriangle SphericalTriangle Angle
+    BaseTriangle Identification Benchmark Rotation QuadNode KdNode
+    Chomp Nibble Asterism Mercator Trio Star SQLiteCpp Sqlite3
+    RandomDraw)
+
+##################################################################
 # Add Subdirectory Containing Unit Tests (If Desired)
 ##################################################################
 Option(BUILD_TEST "Build for Testing" OFF)

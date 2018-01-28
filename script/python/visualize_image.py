@@ -22,7 +22,6 @@ affected_n.i affected_n.j affected_n.k affected_n.bsc_id affected_n.plot_color
 """""
 
 import matplotlib.pyplot as plt
-import matplotlib
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib
 import numpy as np

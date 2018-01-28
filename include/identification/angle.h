@@ -41,9 +41,9 @@ class Angle : public Identification {
   public:
     explicit Angle (const Benchmark &input, const Parameters &p);
     
-    std::vector<labels_list> experiment_query (const Star::list &s);
-    labels_list experiment_reduction ();
-    Star::list experiment_alignment ();
+    std::vector<labels_list> query (const Star::list &s);
+    labels_list reduce ();
+    Star::list align ();
     
     static int generate_table (double fov, const std::string &table_name);
     

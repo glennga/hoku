@@ -192,7 +192,7 @@ Star::list Pyramid::singular_alignment (const Star::list &b) {
 ///
 /// @param s Stars to query with. This must be of length = QUERY_STAR_SET_SIZE.
 /// @return Vector of likely matches found by the pyramid method.
-std::vector<Identification::labels_list> Pyramid::experiment_query (const Star::list &s) {
+std::vector<Identification::labels_list> Pyramid::query (const Star::list &s) {
     if (s.size() != QUERY_STAR_SET_SIZE) {
         throw "Input list does not have exactly two stars.";
     }
@@ -223,7 +223,7 @@ std::vector<Identification::labels_list> Pyramid::experiment_query (const Star::
 ///
 /// @return NO_CANDIDATES_FOUND if a candidate quad cannot be found. Otherwise, a single match configuration found
 /// by the angle method.
-Identification::labels_list Pyramid::experiment_reduction () {
+Identification::labels_list Pyramid::reduce () {
     Star::list c = singular_alignment({input[0], input[1], input[2]});
     if (std::equal(c.begin(), c.end(), NO_CONFIDENT_ALIGNMENT.begin())) {
         return NO_CANDIDATES_FOUND;
@@ -247,7 +247,7 @@ Identification::labels_list Pyramid::experiment_reduction () {
 /// @return NO_CONFIDENT_ALIGNMENT if an alignment cannot be found exhaustively. EXCEEDED_NU_MAX if an alignment
 /// cannot be found within a certain number of query picks. Otherwise, body stars b with the attached labels
 /// of the inertial pair r.
-Star::list Pyramid::experiment_alignment () {
+Star::list Pyramid::align () {
     *parameters.nu = 0;
     
     // This procedure will not work |input| < 4. Exit early with NO_CONFIDENT_ALIGNMENT.

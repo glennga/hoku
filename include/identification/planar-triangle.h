@@ -44,7 +44,7 @@ class PlanarTriangle : public BaseTriangle {
     
     PlanarTriangle (const Benchmark &, const Parameters &);
     
-    std::vector<labels_list> experiment_query (const Star::list &s);
+    std::vector<labels_list> query (const Star::list &s);
     labels_list experiment_reduction ();
     Star::list experiment_alignment ();
     
