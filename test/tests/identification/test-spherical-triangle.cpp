@@ -188,7 +188,7 @@ TEST(SphereTrial, CleanQuery) {
     Benchmark input(ch, 15);
     Sphere a(Benchmark::black(), p);
     
-    std::vector<Identification::labels_list> d = a.experiment_query({input.stars[0], input.stars[1], input.stars[2]});
+    std::vector<Identification::labels_list> d = a.query({input.stars[0], input.stars[1], input.stars[2]});
     Identification::labels_list ell = {input.stars[0].get_label(), input.stars[1].get_label(),
         input.stars[2].get_label()};
     
@@ -228,7 +228,7 @@ TEST(SphereTrial, CleanAlignment) {
     Star::list c = {ch.query_hip(input.stars[0].get_label()), ch.query_hip(input.stars[1].get_label()),
         ch.query_hip(input.stars[2].get_label())};
     
-    Sphere a(Benchmark( b, Rotation::rotate(focus, q), 20), p);
+    Sphere a(Benchmark(b, Rotation::rotate(focus, q), 20), p);
     Star::list f = a.experiment_alignment();
     EXPECT_THAT(f, Contains(Star::define_label(b[0], c[0].get_label())));
     EXPECT_THAT(f, Contains(Star::define_label(b[1], c[1].get_label())));

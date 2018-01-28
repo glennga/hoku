@@ -155,7 +155,7 @@ TEST(AngleTrial, CleanQuery) {
     Angle a(Benchmark::black(), p);
     Star b = ch.query_hip(103215), c = ch.query_hip(103217);
     
-    std::vector<Identification::labels_list> d = a.experiment_query({b, c});
+    std::vector<Identification::labels_list> d = a.query({b, c});
     EXPECT_THAT(d, Contains(Identification::labels_list {103215, 103217}));
 }
 
@@ -168,7 +168,7 @@ TEST(AngleTrial, CleanReduction) {
     i.stars = {ch.query_hip(103215), ch.query_hip(103217)};
     
     Angle a(i, p);
-    EXPECT_THAT(a.experiment_reduction(), UnorderedElementsAre(103215, 103217));
+    EXPECT_THAT(a.reduce(), UnorderedElementsAre(103215, 103217));
 }
 
 /// Check that a clean input returns the expected alignment of stars.
@@ -186,7 +186,7 @@ TEST(AngleTrial, CleanAlignment) {
     Star d = Rotation::rotate(b, q), e = Rotation::rotate(c, q);
     
     Angle a(Benchmark({d, e}, d, 20), p);
-    Star::list f = a.experiment_alignment();
+    Star::list f = a.align();
     EXPECT_THAT(f, Contains(Star::define_label(d, 103215)));
     EXPECT_THAT(f, Contains(Star::define_label(e, 103217)));
 }

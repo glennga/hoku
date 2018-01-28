@@ -53,7 +53,7 @@ namespace Experiment {
                     beta.shift_light(T::QUERY_STAR_SET_SIZE, ss);
                     
                     // Perform a single trial.
-                    std::vector<Identification::labels_list> r = T(beta, p).experiment_query(s);
+                    std::vector<Identification::labels_list> r = T(beta, p).query(s);
                     
                     // Create the list to compare to.
                     Identification::labels_list w;
@@ -116,7 +116,7 @@ namespace Experiment {
                                           ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)));
                         
                         // Perform a single trial.
-                        Identification::labels_list w = T(input, p).experiment_reduction();
+                        Identification::labels_list w = T(input, p).reduction();
                         
                         // Log the results of our trial.
                         lu.log_trial({Reduction::SQ_MIN, Reduction::SO_MIN, ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)),
@@ -183,7 +183,7 @@ namespace Experiment {
                             input.add_extra_light(static_cast<unsigned int> ((e / (1 - e)) * clean_size));
                             
                             // Perform a single trial.
-                            Star::list w = T(input, p).experiment_alignment();
+                            Star::list w = T(input, p).align();
                             
                             // Log the results of our trial.
                             lu.log_trial({Alignment::SQ_MIN, Alignment::SO_MIN, ss, MB_MIN + mb_i * MB_STEP, e,

@@ -53,7 +53,7 @@ TEST(PyramidTrial, CleanQuery) {
     Pyramid a(Benchmark::black(), p);
     
     // We only use the first two stars for querying here.
-    std::vector<Identification::labels_list> d = a.experiment_query({input.stars[0], input.stars[1]});
+    std::vector<Identification::labels_list> d = a.query({input.stars[0], input.stars[1]});
     Identification::labels_list ell = {input.stars[0].get_label(), input.stars[1].get_label()};
     
     std::sort(ell.begin(), ell.end());
@@ -71,7 +71,7 @@ TEST(PyramidTrial, CleanReduction) {
         input.stars[2].get_label()};
     
     std::sort(ell.begin(), ell.end());
-    EXPECT_THAT(a.experiment_reduction(), UnorderedElementsAre(ell[0], ell[1], ell[2]));
+    EXPECT_THAT(a.reduce(), UnorderedElementsAre(ell[0], ell[1], ell[2]));
 }
 
 /// Check that a clean input returns the expected alignment of stars.
@@ -91,7 +91,7 @@ TEST(PyramidTrial, CleanAlignment) {
         ch.query_hip(input.stars[2].get_label()), ch.query_hip(input.stars[3].get_label())};
     
     Pyramid a(Benchmark(b, Rotation::rotate(focus, q), 20), p);
-    Star::list f = a.experiment_alignment();
+    Star::list f = a.align();
     EXPECT_THAT(f, Contains(Star::define_label(b[0], c[0].get_label())));
     EXPECT_THAT(f, Contains(Star::define_label(b[1], c[1].get_label())));
     EXPECT_THAT(f, Contains(Star::define_label(b[2], c[2].get_label())));
