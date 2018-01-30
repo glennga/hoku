@@ -3,29 +3,25 @@
 \usepackage{graphicx} \usepackage{url} \usepackage{hyperref} \usepackage{caption} \usepackage{amsmath}
 \usepackage{amssymb} \usepackage{array} \usepackage{listings} \usepackage{color} \usepackage{textcomp}
 \usepackage[utf8]{inputenc} \usepackage{natbib} \usepackage{algorithm} \usepackage{tikz}
-\usepackage[noend]{algpseudocode}
+\usepackage[noend]{algpseudocode} \usepackage{csquotes}
 
 \usetikzlibrary{shapes.geometric, arrows}
 
 \title{Analysis of Lost-in-Space Star Identification Algorithms}
-\author{Glenn Galvizo}
+\author{Glenn Galvizo \\ University of Hawaii at Manoa} \date{\today}
 
 \begin{document}
     \maketitle
 
-    \input{abstract} % Abstract.
+    \input{abstract}
+    \input{background}
+    \input{problem}
+    \input{existing}
+    \input{methods}
+    \input{analysis}
+    \input{conclusion}
 
-    \input{background} % Background.
-
-    \input{existing} % Existing Solutions.
-
-    \input{methods} % Methodology
-
-    \input{analysis} % Evaluation.
-
-    \input{conclusion} % Conclusion.
-
-    \nocite{*} % References.
+    \nocite{*}
     \bibliographystyle{unsrt}
     \bibliography{references}
 \end{document}

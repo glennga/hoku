@@ -53,8 +53,8 @@ cd src
 make -j8 install
 ```
 
-Download the Nibble database, `nibble.db`. This holds all the data each identification method will reference (the 
-catalog). 
+Download the Nibble database, `nibble.db` [here](https://drive.google.com/open?id=1R7kmOB5QHgCqTh3Uc_w48UDaTEolhrTx),
+and store this in `hoku/data`. This holds all the data each identification method will reference (the catalog). 
 
 ## Running Experiments
 There exist three experiments in this research:
