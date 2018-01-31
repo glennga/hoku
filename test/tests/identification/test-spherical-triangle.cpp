@@ -43,7 +43,7 @@ TEST(SphereQuery, MatchStarsFOV) {
     a.input[1] = Star::reset_label(ch.query_hip(4));
     a.input[2] = Star::reset_label(ch.query_hip(5));
     
-    std::vector<Trio::stars> b = a.match_stars(Sphere::STARTING_INDEX_TRIO);
+    std::vector<Star::trio> b = a.match_stars(Sphere::STARTING_INDEX_TRIO);
     EXPECT_THAT(b[0], Each(Star::zero()));
 }
 
@@ -57,7 +57,7 @@ TEST(SphereQuery, MatchStarsNone) {
     a.input[1] = Star(1, 1, 1);
     a.input[2] = Star(1.1, 1, 1);
     
-    std::vector<Trio::stars> b = a.match_stars(Sphere::STARTING_INDEX_TRIO);
+    std::vector<Star::trio> b = a.match_stars(Sphere::STARTING_INDEX_TRIO);
     EXPECT_THAT(b[0], Each(Star::zero()));
 }
 
@@ -68,10 +68,10 @@ TEST(SphereQuery, MatchStarsResults) {
     Chomp ch;
     Benchmark input(ch, 20);
     Sphere a(input, par);
-    std::vector<Trio::stars> b = a.match_stars(Sphere::STARTING_INDEX_TRIO);
+    std::vector<Star::trio> b = a.match_stars(Sphere::STARTING_INDEX_TRIO);
     
     // Check that original input trio exists in search.
-    for (const Trio::stars &t : b) {
+    for (const Star::trio &t : b) {
         for (int i = 0; i < 3; i++) {
             Identification::labels_list t_ell = {t[0].get_label(), t[1].get_label(), t[2].get_label()};
             EXPECT_THAT(t_ell, Contains(input.stars[i].get_label()));
@@ -88,7 +88,7 @@ TEST(SphereQuery, PivotResults) {
     Benchmark input(ch, 20);
     Sphere a(input, par);
     
-    Trio::stars c = a.pivot(Sphere::STARTING_INDEX_TRIO);
+    Star::trio c = a.pivot(Sphere::STARTING_INDEX_TRIO);
     std::vector<int> c_ell = {c[0].get_label(), c[1].get_label(), c[2].get_label()};
     EXPECT_THAT(c_ell, Contains(input.stars[0].get_label()));
     EXPECT_THAT(c_ell, Contains(input.stars[1].get_label()));
@@ -102,7 +102,7 @@ TEST(SphereMatch, RotatingCorrectInput) {
     Star a = Star::chance(), b = Star::chance();
     Rotation c = Rotation::chance();
     Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
-    Rotation f = Rotation::rotation_across_frames({a, b}, {d, e});
+    Rotation f = Rotation::triad({a, b}, {d, e});
     Benchmark input(ch, Star::chance(), c, 8);
     std::vector<Star> rev_input;
     par.sigma_overlay = 0.000001;
@@ -128,7 +128,7 @@ TEST(SphereMatch, RotatingErrorInput) {
     Star a = Star::chance(), b = Star::chance();
     Rotation c = Rotation::chance();
     Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
-    Rotation f = Rotation::rotation_across_frames({a, b}, {d, e});
+    Rotation f = Rotation::triad({a, b}, {d, e});
     Benchmark input(ch, Star::chance(), c, 8);
     std::vector<Star> rev_input;
     par.sigma_overlay = 0.000001;
@@ -156,7 +156,7 @@ TEST(SphereMatch, RotatingDuplicateInput) {
     Star a = Star::chance(), b = Star::chance();
     Rotation c = Rotation::chance();
     Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
-    Rotation f = Rotation::rotation_across_frames({a, b}, {d, e});
+    Rotation f = Rotation::triad({a, b}, {d, e});
     Benchmark input(ch, Star::chance(), c, 8);
     std::vector<Star> rev_input;
     par.sigma_overlay = 0.000001;

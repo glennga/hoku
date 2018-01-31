@@ -125,8 +125,8 @@ Star::list Angle::singular_alignment (const Star::list &candidates, const Star::
     for (unsigned int i = 0; i < 2; i++) {
         // We define our alignment 'a' below.
         std::array<int, 2> a = {(i == 0) ? 0 : 1, (i == 0) ? 1 : 0};
-        
-        matches[i] = find_matches(candidates, Rotation::rotation_across_frames({b[0], b[1]}, {r[a[0]], r[a[1]]}));
+    
+        matches[i] = find_matches(candidates, Rotation::triad({b[0], b[1]}, {r[a[0]], r[a[1]]}));
         alignments[i] = {Star::define_label(b[0], r[a[0]].get_label()), Star::define_label(b[1], r[a[1]].get_label())};
     }
     

@@ -38,7 +38,7 @@ int PlanarTriangle::generate_table (const double fov, const std::string &table_n
 /// @param i_b Index trio of stars in body (B) frame.
 /// @return NO_CANDIDATE_STARS_FOUND if stars are not within the fov or if no matches currently exist.
 /// Otherwise, vector of trios whose areas and moments are close.
-std::vector<Trio::stars> Plane::match_stars (const index_trio &i_b) {
+std::vector<Star::trio> Plane::match_stars (const index_trio &i_b) {
     return m_stars(i_b, Trio::planar_area, Trio::planar_moment);
 }
 

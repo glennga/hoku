@@ -52,3 +52,22 @@ Star::list Identification::find_matches (const Star::list &candidates, const Rot
     
     return matches;
 }
+
+/// Extends the alignment process by determining an attitude given the alignment results, and a solution to Wahba's
+/// problem.
+///
+/// @param f Function to solve Wahba's problem (quaternion given vector observations in two frames).
+/// @return The rotation from the R set to the B set.
+Rotation Identification::find_attitude(const Rotation::wabha_function &f) {
+    // Perform the alignment procedure.
+    Star::list a = align(), inertial;
+    
+    // 'a' contains a list of labeled image stars. Determine the matching catalog stars.
+    inertial.reserve(a.size());
+    for (const Star &s : a) {
+        inertial.push_back(ch.query_hip(s.get_label()));
+    }
+    
+    // Return the result of applying the Wahba solver with the image and catalog stars.
+    return f(inertial, a);
+}

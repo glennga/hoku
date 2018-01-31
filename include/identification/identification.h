@@ -50,6 +50,7 @@ class Identification {
     virtual std::vector<labels_list> query (const Star::list &s) = 0;
     virtual labels_list reduce () = 0;
     virtual Star::list align () = 0;
+    Rotation find_attitude(const Rotation::wabha_function &f);
     
     static const Star::list NO_CONFIDENT_ALIGNMENT;
     static const labels_list NO_CANDIDATES_FOUND;

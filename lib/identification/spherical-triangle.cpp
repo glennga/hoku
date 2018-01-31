@@ -41,7 +41,7 @@ int SphericalTriangle::generate_table (const double fov, const std::string &tabl
 /// @param i_b Index trio of stars in body (B) frame.
 /// @return NO_CANDIDATE_STARS_FOUND if stars are not within the fov or if no matches currently exist.
 /// Otherwise, vector of trios whose areas and moments are close.
-std::vector<Trio::stars> Sphere::match_stars (const index_trio &i_b) {
+std::vector<Star::trio> Sphere::match_stars (const index_trio &i_b) {
     return m_stars(i_b, Trio::spherical_area, [] (const Star &b_1, const Star &b_2, const Star &b_3) {
         return Trio::spherical_moment(b_1, b_2, b_3, DEFAULT_TD_H);
     });

@@ -25,9 +25,6 @@
 ///
 class Trio {
   public:
-    /// Common alias for a trio of stars.
-    using stars = std::array<Star, 3>;
-    
     /// Ensure default constructor is **not** generated.
     Trio () = delete;
     

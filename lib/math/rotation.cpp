@@ -76,10 +76,10 @@ Rotation Rotation::multiply (const Rotation &q_1, const Rotation &q_2) {
 /// Find the quaternion across two different frames given pairs of vectors in each frame. Solution found here:
 /// https://en.wikipedia.org/wiki/Triad_method
 ///
-/// @param r Pair of stars in frame V.
-/// @param b Pair of stars in frame W.
+/// @param r 2 element list of stars in frame V.
+/// @param b 2 element list of stars in frame W.
 /// @return The quaternion to rotate from frame V (r set) to W (b set).
-Rotation Rotation::rotation_across_frames (const Star::pair &r, const Star::pair &b) {
+Rotation Rotation::triad (const Star::list &r, const Star::list &b) {
     // Compute triads. Parse them into individual components.
     Star v_1 = r[0].as_unit(), w_1 = b[0].as_unit();
     Star v_2 = (Star::cross(r[0].as_unit(), r[1].as_unit())).as_unit();
@@ -164,17 +164,6 @@ double Rotation::angle_between (const Rotation &q_1, const Rotation &q_2) {
     
     // Find and return the axis angle in degrees.
     return (std::isnan(acos(q_3.w))) ? 0 : 2 * acos(q_3.w) * (180.0 / M_PI);
-}
-
-/// Get another quantity for how 'close' two quaternions are. We rotate the given star using both quaternions, and
-/// return the difference vector.
-///
-/// @param q_1 Rotation one to compare against.
-/// @param q_2 Rotation two to compare against.
-/// @param s Star to rotate with.
-/// @return Difference between q_1 and q_2's rotation of s.
-Star Rotation::rotation_difference (const Rotation &q_1, const Rotation &q_2, const Star &s) {
-    return rotate(s, q_1) - rotate(s, q_2);
 }
 
 /// Return the identity quaternion, as a Rotation object.

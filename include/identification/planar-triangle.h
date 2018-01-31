@@ -57,7 +57,7 @@ class PlanarTriangle : public BaseTriangle {
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
-    std::vector<Trio::stars> match_stars (const index_trio &);
+    std::vector<Star::trio> match_stars (const index_trio &);
 };
 
 /// Alias for the PlanarTriangle class. 'Plane' distinguishes the process I am testing here enough from the 4 other
