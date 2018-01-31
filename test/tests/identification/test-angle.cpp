@@ -67,7 +67,7 @@ TEST(AngleMatch, CorrectInput) {
     Star a = Star::chance(), b = Star::chance();
     Rotation c = Rotation::chance();
     Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
-    Rotation f = Rotation::rotation_across_frames({a, b}, {d, e});
+    Rotation f = Rotation::triad({a, b}, {d, e});
     Benchmark input(ch, Star::chance(), c, 8);
     std::vector<Star> rev_input;
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
@@ -93,7 +93,7 @@ TEST(AngleMatch, ErrorInput) {
     Star a = Star::chance(), b = Star::chance();
     Rotation c = Rotation::chance();
     Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
-    Rotation f = Rotation::rotation_across_frames({a, b}, {d, e});
+    Rotation f = Rotation::triad({a, b}, {d, e});
     Benchmark input(ch, Star::chance(), c, 8);
     std::vector<Star> rev_input;
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
@@ -122,7 +122,7 @@ TEST(AngleMatch, RotatingDuplicateInput) {
     Star a = Star::chance(), b = Star::chance();
     Rotation c = Rotation::chance();
     Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
-    Rotation f = Rotation::rotation_across_frames({a, b}, {d, e});
+    Rotation f = Rotation::triad({a, b}, {d, e});
     Benchmark input(ch, Star::chance(), c, 8);
     std::vector<Star> rev_input;
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
@@ -174,7 +174,6 @@ TEST(AngleTrial, CleanReduction) {
 /// Check that a clean input returns the expected alignment of stars.
 TEST(AngleTrial, CleanAlignment) {
     Chomp ch;
-    std::random_device seed;
     unsigned int nu;
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(nu);

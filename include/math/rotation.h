@@ -35,42 +35,44 @@ class Rotation {
   public:
     /// Force default constructor. Default is {1, 0, 0, 0} (identity).
     Rotation () = default;
+    
+    /// Alias for a function that solves Wahba's problem (e.g. TRIAD, QUEST, etc...).
+    using wahba_function = Rotation (*) (const Star::list &, const Star::list &);
   
   public:
     bool operator== (const Rotation &q) const;
+    Rotation operator* (const Rotation &q) const;
     
     static Star rotate (const Star &s, const Rotation &q);
     static Star push (const Star &s, const Star &f, double d);
     static Star shake (const Star &s, double sigma);
     
-    static double angle_between (const Rotation &q_1, const Rotation &q_2);
-    static Star rotation_difference (const Rotation &q_1, const Rotation &q_2, const Star &s);
-    
     static Rotation identity ();
     static Rotation chance ();
     
-    static Rotation rotation_across_frames (const Star::pair &r, const Star::pair &b);
+    static Rotation triad (const Star::list &r, const Star::list &b);
+    static Rotation q_exact (const Star::list &r, const Star::list &b);
+    static Rotation quest (const Star::list &r, const Star::list &b);
 
 #if !defined ENABLE_TESTING_ACCESS
-    private:
+  private:
 #endif
     /// Matrix alias, by using a 3-element array of 3D vectors.
     using matrix = std::array<Star, 3>;
     
     /// Precision default for '==' method.
     static constexpr double EQUALITY_PRECISION_DEFAULT = 0.000000000001;
-    
+
 #if !defined ENABLE_TESTING_ACCESS
-    private:
+  private:
 #endif
     Rotation (double w, const Star &v, bool as_unit = false);
     
-    static Rotation multiply (const Rotation &q_1, const Rotation &q_2);
     static Rotation matrix_to_quaternion (const matrix &r);
     static matrix matrix_multiply_transpose (const matrix &a, const matrix &b);
 
 #if !defined ENABLE_TESTING_ACCESS
-    private:
+  private:
 #endif
     /// W component, or the sole real component of a quaternion. Defaults to one (identity quaternion).
     double w = 1;

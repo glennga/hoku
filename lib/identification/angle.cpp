@@ -10,7 +10,7 @@
 
 /// Default parameters for the angle identification method.
 const Identification::Parameters Angle::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
-    DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU, "ANGLE_20"};
+    DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_F, "ANGLE_20"};
 
 /// Returned when no candidate pair is found from a query.
 const Star::pair Angle::NO_CANDIDATE_PAIR_FOUND = {Star::zero(), Star::zero()};
@@ -125,8 +125,8 @@ Star::list Angle::singular_alignment (const Star::list &candidates, const Star::
     for (unsigned int i = 0; i < 2; i++) {
         // We define our alignment 'a' below.
         std::array<int, 2> a = {(i == 0) ? 0 : 1, (i == 0) ? 1 : 0};
-        
-        matches[i] = find_matches(candidates, Rotation::rotation_across_frames({b[0], b[1]}, {r[a[0]], r[a[1]]}));
+    
+        matches[i] = find_matches(candidates, parameters.f({b[0], b[1]}, {r[a[0]], r[a[1]]}));
         alignments[i] = {Star::define_label(b[0], r[a[0]].get_label()), Star::define_label(b[1], r[a[1]].get_label())};
     }
     

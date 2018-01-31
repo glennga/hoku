@@ -97,9 +97,9 @@ TEST(RotationLogic, Rotate) {
 /// Check the TRIAD property that the resultant quaternion rotates both star pairs across frames correctly with the
 /// simple case of axis vectors.
 TEST(RotationTRIAD, Simple) {
-    std::array<Star, 2> a = {Star(1, 0, 0), Star(0, 1, 0)};
-    std::array<Star, 2> b = {Star(0, 0, 1), Star(0, 1, 0)};
-    Rotation c = Rotation::rotation_across_frames(a, b);
+    Star::list a = {Star(1, 0, 0), Star(0, 1, 0)};
+    Star::list b = {Star(0, 0, 1), Star(0, 1, 0)};
+    Rotation c = Rotation::triad(a, b);
     Star d = Rotation::rotate(b[0], c), e = Rotation::rotate(b[1], c);
     EXPECT_TRUE(Star::is_equal(d, a[0], 0.0000000001));
     EXPECT_TRUE(Star::is_equal(e, a[1], 0.0000000001));
@@ -109,9 +109,9 @@ TEST(RotationTRIAD, Simple) {
 /// random vectors.
 TEST(RotationTRIAD, Chance) {
     Rotation a = Rotation::chance();
-    std::array<Star, 2> b = {Star::chance(), Star::chance()};
-    std::array<Star, 2> c = {Rotation::rotate(b[0], a), Rotation::rotate(b[1], a)};
-    Rotation d = Rotation::rotation_across_frames(b, c);
+    Star::list b = {Star::chance(), Star::chance()};
+    Star::list c = {Rotation::rotate(b[0], a), Rotation::rotate(b[1], a)};
+    Rotation d = Rotation::triad(b, c);
     Star e = Rotation::rotate(c[0], d), f = Rotation::rotate(c[1], d);
     EXPECT_TRUE(Star::is_equal(e, b[0], 0.0000000001));
     EXPECT_TRUE(Star::is_equal(f, b[1], 0.0000000001));
@@ -127,7 +127,7 @@ TEST(RotationTRIAD, MultipleStars) {
         b.push_back(Star::chance());
         c.push_back(Rotation::rotate(b[q], a));
     }
-    d = Rotation::rotation_across_frames({b[0], b[1]}, {c[0], c[1]});
+    d = Rotation::triad({b[0], b[1]}, {c[0], c[1]});
     
     for (int q = 0; q < 5; q++) {
         Star e = Rotation::rotate(c[q], d);

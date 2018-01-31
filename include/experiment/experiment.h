@@ -116,7 +116,7 @@ namespace Experiment {
                                           ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)));
                         
                         // Perform a single trial.
-                        Identification::labels_list w = T(input, p).reduction();
+                        Identification::labels_list w = T(input, p).reduce();
                         
                         // Log the results of our trial.
                         lu.log_trial({Reduction::SQ_MIN, Reduction::SO_MIN, ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)),

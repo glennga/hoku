@@ -40,6 +40,9 @@ class Star {
     /// Pair type, defined as a 2-element array of Stars.
     using pair = std::array<Star, 2>;
     
+    /// Trio type, defined as a 3-element array of Stars.
+    using trio = std::array<Star, 3>;
+    
     /// Returned when a user attempts to access an item using the [] operator for n > 1.
     static constexpr double INVALID_ELEMENT_ACCESSED = 0;
     
