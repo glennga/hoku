@@ -1,0 +1,77 @@
+\section{Attitude Determination}\label{sec:attitudeDetermination}
+Attitude determination is the process of finding one's orientation in space.
+On Earth, "up" and "down" mean "up from the center of the Earth" and "down toward the center of the Earth".
+The direction toward the Earth can be determined using the Earth's gravitational presence.
+This makes attitude determination fairly straightforward, requiring no more than a 3-axis acceleration sensor.
+These are present inside most(if not all) modern cell phones.
+
+In space, distinguishing "up from Earth" from "down toward Earth" is different as the Earth's gravitational presence is
+severely diminished.
+This means that the acceleration sensors used here cannot be used to determine one's attitude in
+space.
+Spacecraft instead use other objects to build an attitude from.
+The visual position of the Sun and the Earth's magnetic field are common choices for reference points, but the most
+popular are the visual positions of various stars in the sky.
+
+% https://commons.wikimedia.org/wiki/File:Moving_coordinate_system.PNG
+\begin{figure}
+    \centering{
+    \includegraphics[scale=0.23]{images/moving-coordinate-systems.PNG}
+    \caption{
+    Visual of two coordinate frames: the inertial frame $A$, and the body frame $B$ from (citation here).
+    The point $x$ is observed with vector $x_A$ in the $A$ frame, but the same point $x$ is observed with vector
+    $x_B$ in the $B$ frame.
+    By aligning several observations in both frames, a spacecraft orientation $x_{AB}$ in the $B$ frame can be
+    determined in the $A$ frame.
+    } \label{figure:coordinateSystem}
+    }
+\end{figure}
+
+Once some known object is found by the sensor, these measurements exists in a \textit{body reference frame}.
+This reference frame reveals the position of objects with respect to the sensor, but is not fixed to any point.
+There exists a separate, fixed frame with which these known objects are recorded in prior to the start of the mission.
+This is known as an \textit{inertial reference frame}.
+~\autoref{figure:coordinateSystem} depicts the relation between both frames.
+Given sensor measurements to a set of points ($X_A, X'_A, X''_A, \ldots$) and inertial frame measurements to the same
+objects ($X_B, X'_B, X''_B, \ldots$), the goal of attitude determination involves finding the rotation $X_{AB}$ to
+take all points in the sensor frame to the inertial frame (or the inverse).
+In short, attitude determination involves taking inertial frame object observations in the body frame, and figuring out
+how the spacecraft is oriented in this inertial frame.
+
+From here, the problem becomes aligning vector observations in the body frame with another set of vectors in the
+inertial frame.
+This is known as \textit{Wahba's problem}, and is a form of an optimization problem.
+A popular and simple method to extract an attitude from two vectors in both the inertial and body frame is the
+\textit{TRIAD method}.
+For all instances where Wahba's problem was present, the TRIAD method was used to extract an orientation.
+
+\subsection{Stellar Based Attitude Determination}\label{subsec:stellarBasedAttitudeDetermination}
+Relative to our solar system, the majority of bright stars ($m < 6.0$, or visible from the Earth without a telescope)
+\textit{do not visibly move}.
+Most of these stars exist hundreds of lightyears away from the solar system.
+Observing a tiny change in a star's position from Earth suggests a massive change in position relative to the star.
+For many LEO missions, the time it takes for these star positions to change is longer than the length of mission itself.
+For longer missions, only then will star dynamics have to be taken into account.
+This paper address spacecraft missions where all stars are virtually static in position.
+
+A basic star tracker is composed of a camera, a computer for determining orientation, and a link back to the main
+computer.
+Once the star tracker on a lost-in-space spacecraft takes a picture, three main pieces of information are known:
+\begin{enumerate}
+    \item An 2D image of the sky.
+    \item Characteristics of the camera hardware (field-of-view, lens structure, \ldots).
+    \item All cataloged stars and their 3D positions in the catalog (inertial) frame.
+\end{enumerate}
+
+After taking the picture, the pixel positions of stars in the image are determined.
+This involves finding bright blobs in the image, and finding each blob's center of mass.
+To align these stars with the ones in the catalog, the image must be projected into 3D.
+This is done using the items in (2) above, and can be a major source of error if these
+characteristics are not accurate.
+The result of this process are star vectors in the image (body) frame.
+
+By running these image star vectors through a star identification method, an \textit{alignment} between the image frame
+stars and catalog frame stars is found.
+For a given image star $b$ and a catalog star $r$, an alignment $a$ describes an association ($b, r$) between both
+stars.
+This then reduces to Wahba's problem, and is solved using the TRIAD method to obtain a spacecraft attitude.

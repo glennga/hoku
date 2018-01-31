@@ -53,8 +53,8 @@ cd src
 make -j8 install
 ```
 
-Download the Nibble database, `nibble.db`. This holds all the data each identification method will reference (the 
-catalog). 
+Download the Nibble database, `nibble.db` [here](https://drive.google.com/open?id=1R7kmOB5QHgCqTh3Uc_w48UDaTEolhrTx),
+and store this in `hoku/data`. This holds all the data each identification method will reference (the catalog). 
 
 ## Running Experiments
 There exist three experiments in this research:
@@ -117,8 +117,9 @@ nu_max <- Maximum number of query star comparisons before returning an empty lis
 nu <- Pointer to the location to hold the count of query star comparisons.
 table_name <- Name of the Nibble database table created with 'generate_sep_table'.
 */
-p.nu_max = 20000, p.sigma_overlay = Alignment::SO_MIN, p.sigma_query = Alignment::SQ_MIN;
-p.table_name = ANGLE_20, p.nu = std::make_shared<unsigned int>(nu);
+p.nu_max = 20000, p.sigma_overlay = Identification::DEFAULT_SIGMA_OVERLAY;
+p.sigma_query = IDENTIFICATION::DEFAULT_SIGMA_QUERY; p.table_name = ANGLE_20;
+p.nu = std::make_shared<unsigned int>(nu);
 
 // Output: A std::vector (Star::list) of Star objects, holding all stars in the image that were 
 //         identified, and with labels attached to them.
@@ -133,7 +134,7 @@ Only CMake builds are supported at the moment. The final step is to link the `HO
 `CMakeLists.txt` file. 
 ```cmake
 add_executable(MyStarTracker my-star-tracker.cpp)
-target_link_libraries(MyStarTracker ${SOME_OTHER_LIBS ${HOKU_LIBS})
+target_link_libraries(MyStarTracker ${SOME_OTHER_LIBS} ${HOKU_LIBS})
 ```
 
 ## Google Test Generation
