@@ -174,7 +174,6 @@ TEST(AngleTrial, CleanReduction) {
 /// Check that a clean input returns the expected alignment of stars.
 TEST(AngleTrial, CleanAlignment) {
     Chomp ch;
-    std::random_device seed;
     unsigned int nu;
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(nu);

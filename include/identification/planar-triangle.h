@@ -45,8 +45,8 @@ class PlanarTriangle : public BaseTriangle {
     PlanarTriangle (const Benchmark &, const Parameters &);
     
     std::vector<labels_list> query (const Star::list &s);
-    labels_list experiment_reduction ();
-    Star::list experiment_alignment ();
+    labels_list reduce ();
+    Star::list align ();
     
     static int generate_table(double fov, const std::string &table_name);
   

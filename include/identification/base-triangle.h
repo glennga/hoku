@@ -11,7 +11,6 @@
 #include "math/trio.h"
 #include <deque>
 #include <iostream>
-#include <functional>
 #include <iterator>
 
 /// The base triangle class is a base class for Crassidis and Cole's Planar and Spherical Pattern Recognition Process.
@@ -31,10 +30,10 @@ class BaseTriangle : public Identification {
     using index_trio = std::array<int, 3>;
     
     /// Alias for an area function in the Trio class.
-    using area_function = std::function<double (const Star &, const Star &, const Star &)>;
+    using area_function = double (*)(const Star &, const Star &, const Star &);
     
     /// Alias for a moment function in the Trio class.
-    using moment_function = std::function<double (const Star &, const Star &, const Star &)>;
+    using moment_function =  double (*)(const Star &, const Star &, const Star &);
     
     /// Return the first element, and deque the first element.
     ///
@@ -57,8 +56,7 @@ class BaseTriangle : public Identification {
     
     static int generate_triangle_table (double fov, const std::string &table_name, area_function compute_area,
                                         moment_function compute_moment);
-    std::vector<Star::trio> m_stars (const index_trio &i_b, area_function compute_area,
-                                     moment_function compute_moment);
+    std::vector<Star::trio> m_stars (const index_trio &i_b, area_function compute_area, moment_function compute_moment);
     
     static const index_trio STARTING_INDEX_TRIO;
     

@@ -16,7 +16,7 @@ const Star::list Identification::EXCEEDED_NU_MAX = {Star::zero()};
 
 /// Default parameters for a general identification object.
 const Identification::Parameters Identification::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
-    DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_TABLE_NAME};
+    DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_F, DEFAULT_TABLE_NAME};
 
 /// Constructor. We set our field-of-view to the default here.
 Identification::Identification () {
@@ -56,9 +56,8 @@ Star::list Identification::find_matches (const Star::list &candidates, const Rot
 /// Extends the alignment process by determining an attitude given the alignment results, and a solution to Wahba's
 /// problem.
 ///
-/// @param f Function to solve Wahba's problem (quaternion given vector observations in two frames).
 /// @return The rotation from the R set to the B set.
-Rotation Identification::find_attitude(const Rotation::wabha_function &f) {
+Rotation Identification::find_attitude() {
     // Perform the alignment procedure.
     Star::list a = align(), inertial;
     
@@ -69,5 +68,5 @@ Rotation Identification::find_attitude(const Rotation::wabha_function &f) {
     }
     
     // Return the result of applying the Wahba solver with the image and catalog stars.
-    return f(inertial, a);
+    return parameters.f(inertial, a);
 }

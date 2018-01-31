@@ -6,7 +6,6 @@
 #ifndef HOKU_ROTATION_H
 #define HOKU_ROTATION_H
 
-#include <functional>
 #include "math/star.h"
 
 // TODO: Fix the Rotation documentation.
@@ -38,7 +37,7 @@ class Rotation {
     Rotation () = default;
     
     /// Alias for a function that solves Wahba's problem (e.g. TRIAD, QUEST, etc...).
-    using wabha_function = std::function<Rotation (const Star::list &, const Star::list &)>;
+    using wahba_function = Rotation (*)(const Star::list &, const Star::list &);
   
   public:
     bool operator== (const Rotation &q) const;

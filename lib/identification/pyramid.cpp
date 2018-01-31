@@ -8,7 +8,7 @@
 
 /// Default parameters for the pyramid identification method.
 const Identification::Parameters Pyramid::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
-    DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU, "PYRAMID_20"};
+    DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_F, "PYRAMID_20"};
 
 /// Returned when there exists no common stars between the label list pairs.
 const Star::list Pyramid::NO_COMMON_FOUND = {Star::zero()};

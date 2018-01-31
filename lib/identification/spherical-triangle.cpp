@@ -8,7 +8,7 @@
 
 /// Default parameters for the spherical triangle identification method.
 const Identification::Parameters Sphere::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
-    DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU, "SPHERE_20"};
+    DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_F, "SPHERE_20"};
 
 /// Constructor. Sets the benchmark data and fov. Sets the parameters and working table.
 ///
@@ -86,7 +86,7 @@ std::vector<Identification::labels_list> Sphere::query (const Star::list &s) {
 ///
 /// @return NO_CANDIDATES_FOUND if we cannot query anything. Otherwise, a single match configuration found by the
 /// spherical triangle method.
-Identification::labels_list Sphere::experiment_reduction () {
+Identification::labels_list Sphere::reduce () {
     return e_reduction();
 }
 
@@ -107,6 +107,6 @@ Identification::labels_list Sphere::experiment_reduction () {
 /// @return NO_CONFIDENT_ALIGNMENT if an alignment cannot be found exhaustively. EXCEEDED_NU_MAX if an alignment
 /// cannot be found within a certain number of query picks. Otherwise, body stars b with the attached labels
 /// of the inertial pair r.
-Star::list Sphere::experiment_alignment () {
+Star::list Sphere::align () {
     return e_alignment();
 }

@@ -172,7 +172,7 @@ Star::trio BaseTriangle::pivot (const index_trio &i_b, const std::vector<Star::t
     if (!past_set.empty() && !(std::equal(past_set[0].begin() + 1, past_set[0].end(), past_set[0].begin()))) {
         for (unsigned int i = 0; i < matches.size(); i++) {
             bool match_found = false;
-    
+            
             for (const Star::trio &past : past_set) {
                 // We do not need to check all permutations. Break early and advance to next star.
                 if ((past[0] == matches[i][0] || past[0] == matches[i][1] || past[0] == matches[i][2])
@@ -220,7 +220,7 @@ Star::list BaseTriangle::singular_alignment (const Star::list &candidates, const
     
     // Determine the rotation to take frame R to B. Only use r_1 and r_2 to get rotation.
     for (unsigned int i = 0; i < 3; i++) {
-        Rotation q = Rotation::triad({b[0], b[1]}, {r[order[i][0]], r[order[i][1]]});
+        Rotation q = parameters.f({b[0], b[1]}, {r[order[i][0]], r[order[i][1]]});
         matches[i] = find_matches(candidates, q);
         alignments[i] = {ell(i, 0), ell(i, 1), ell(i, 2)};
     }
