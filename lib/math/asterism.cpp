@@ -10,12 +10,12 @@
 const Asterism::points_cd Asterism::MALFORMED_HASH = {0, 0, 0, 0};
 
 /// Returned by ordering functions when order cannot be determined.
-const Asterism::stars Asterism::INDETERMINATE_ORDER = {Star::zero(), Star::zero(), Star::zero(), Star::zero()};
+const Star::quad Asterism::INDETERMINATE_ORDER = {Star::zero(), Star::zero(), Star::zero(), Star::zero()};
 
 /// Constructor. Projects stars with width = 1.0 and finds points A, B, C, and D.
 ///
 /// @param s Quad of stars to construct asterism of.
-Asterism::Asterism (const stars &s) {
+Asterism::Asterism (const Star::quad &s) {
     points projected = {Mercator(s[0], 1), Mercator(s[1], 1), Mercator(s[2], 1), Mercator(s[3], 1)};
     int index_a = 0, index_b = 0;
     double d_max = 0;
@@ -69,7 +69,7 @@ void Asterism::verify_ab_stars () {
         };
         a = rotate_positive(a), b = rotate_positive(b), c = rotate_positive(c), d = rotate_positive(d);
     }
-
+    
     // Now, set the point closest to the origin as A, and the one left as B.
     if (Mercator::distance_between(origin, b) < Mercator::distance_between(origin, a)) {
         Mercator t(a[0], a[1], 1, a.get_label());
@@ -134,7 +134,7 @@ Asterism::points_cd Asterism::compute_cd_prime () {
 /// @param s Quad of stars to construct asterism of.
 /// @return A MALFORMED_HASH if an asterism cannot be formed. The projected coordinates of the C' and D' stars:
 /// C'_x, C'_y, D'_x, D'_y otherwise.
-Asterism::points_cd Asterism::hash (const stars &s) {
+Asterism::points_cd Asterism::hash (const Star::quad &s) {
     // Determine A, B, C, and D stars.
     Asterism m(s);
     
@@ -147,9 +147,9 @@ Asterism::points_cd Asterism::hash (const stars &s) {
 /// @param s Quad of stars to find order of.
 /// @return INDETERMINATE_ORDER if the CD property cannot be met. The same stars in the order of A, B, C, and D
 /// otherwise.
-Asterism::stars Asterism::find_order (const stars &s) {
+Star::quad Asterism::find_order (const Star::quad &s) {
     Asterism m(s);
-    stars s_abcd = INDETERMINATE_ORDER;
+    Star::quad s_abcd = INDETERMINATE_ORDER;
     
     // We run the computation if the hash generated switches C and D.
     points_cd h = m.compute_cd_prime();
@@ -174,7 +174,7 @@ Asterism::stars Asterism::find_order (const stars &s) {
 ///
 /// @param s Quad of stars to determine the center of.
 /// @return The center star of the quad.
-Star Asterism::center (const stars &s) {
+Star Asterism::center (const Star::quad &s) {
     auto average_dim = [&s] (const int n) -> double {
         std::array<double, 4> n_vector = {s[0][n], s[1][n], s[2][n], s[3][n]};
         return std::accumulate(n_vector.begin(), n_vector.end(), 0.0) / 4;

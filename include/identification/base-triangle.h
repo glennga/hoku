@@ -13,6 +13,8 @@
 #include <iostream>
 #include <iterator>
 
+/// @brief Abstract base class for both triangle star identification methods.
+///
 /// The base triangle class is a base class for Crassidis and Cole's Planar and Spherical Pattern Recognition Process.
 /// These are two of the five star identification procedures being tested.
 class BaseTriangle : public Identification {

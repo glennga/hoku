@@ -14,23 +14,24 @@
 
 #include "math/random-draw.h"
 
-/// The star class is really a 3D vector class in disguise, with methods focusing toward rotation and angular
-/// separation. This class is the basis for all of the Hoku research.
+/// @brief Class for 3D vector representation of stars.
+///
+/// The star class is really a 3D vector class in disguise, with methods focusing toward rotation, angular
+/// separation, and label attachment. This is the basis for all of the Hoku research.
 ///
 /// @example
 /// @code{.cpp}
 /// // Define stars (in order): {0, 0, 0}, {random, random, random}, {0, 0, 0}, {-0.680414, 0.680414, 0.272166}
-/// std::random_device seed;
-/// Star s_1, s_2 = Star::chance(seed), s_3 = Star::zero(), s_4(-10, 10, 4, 0, 0, true);
+/// Star s_1, s_2 = Star::chance(), s_3 = Star::zero(), s_4(-10, 10, 4, 0, 0, true);
 ///
 /// // Cross stars {-2, -1, 0} and {3, 2, 1} to produce {-1, 2, -1}.
-/// printf("%s", Star::cross(Star(-2, -1, 0), Star(3, 2, 1)).str());
+/// std::cout << Star::cross(Star(-2, -1, 0), Star(3, 2, 1)).str() << std::endl;
 ///
 /// // Add star {1, 1, 1} to star {5, 5, 5}. Subtract result by {2, 2, 2} to get {4, 4, 4}.
-/// printf("%s", (Star(5, 5, 5) + Star(1, 1, 1) - Star(2, 2, 2)).str());
+/// std::cout << (Star(5, 5, 5) + Star(1, 1, 1) - Star(2, 2, 2)).str() << std::endl;
 ///
 /// // Determine angle between Star {2, 3, 5} and {5, 6, 7} to get 0.9744339542.
-/// printf("%s", (Star::angle_between(Star(2, 3, 5), Star(5, 6, 7)).str());
+/// std::cout << (Star::angle_between(Star(2, 3, 5), Star(5, 6, 7)).str() << std::endl;
 /// @endcode
 class Star {
   public:
@@ -42,6 +43,9 @@ class Star {
     
     /// Trio type, defined as a 3-element array of Stars.
     using trio = std::array<Star, 3>;
+    
+    /// Quad type, defined as a 4-element array of Stars.
+    using quad = std::array<Star, 4>;
     
     /// Returned when a user attempts to access an item using the [] operator for n > 1.
     static constexpr double INVALID_ELEMENT_ACCESSED = 0;
@@ -87,7 +91,7 @@ class Star {
     static Star reset_label (const Star &s);
 
 #if !defined ENABLE_TESTING_ACCESS
-    private:
+  private:
 #endif
     /// I Component (element 0) of 3D vector.
     double i;

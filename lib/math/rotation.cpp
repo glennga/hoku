@@ -36,7 +36,6 @@ bool Rotation::operator== (const Rotation &q) const {
 ///
 /// @param q Quaternion to multiply with current quaternion.
 /// @return Quaternion product of the current quaternion and q.
-[[maybe_unused]]
 Rotation Rotation::operator* (const Rotation &q) const {
     double n_0 = (this->w * q.w) - (this->i * q.i) - (this->j * q.j) - (this->k * q.k);
     double n_1 = (this->w * q.i) + (this->i * q.w) - (this->j * q.k) + (this->k * q.j);

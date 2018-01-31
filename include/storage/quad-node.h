@@ -11,7 +11,8 @@
 #include "storage/chomp.h"
 #include <memory>
 
-// TODO: Fix the QuadNode documentation.
+/// @brief Class for spatial indexing of a list of stars. Typically larger than KdNode.
+///
 /// The QuadNode represents a node for the Mercator quadtree, a structure for spatial indexing.
 ///
 /// @example
@@ -21,14 +22,10 @@
 ///
 /// // Find all nearby stars that are within 15 degrees of a random star (Star::chance()). Expecting 90 stars.
 /// for (const Star &s : q_root.nearby_stars(Star::chance(), 15, 90)) {
-///     printf("%s", s.str().c_str());
+///     std::cout << s.str() << std::endl;
 /// }
 /// @endcode
-#if !defined ENABLE_TESTING_ACCESS
-class QuadNode : private Mercator {
-#else
-    class QuadNode : public Mercator {
-#endif
+class QuadNode : public Mercator {
   public:
     Star::list nearby_stars (const Star &, double, unsigned int);
     static QuadNode load_tree (double, double = 6.0);
@@ -38,7 +35,7 @@ class QuadNode : private Mercator {
     
     /// Global width of a quadnode root (w_n).
     static constexpr double ROOT_GLOBAL_WIDTH = -1;
-    
+
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
@@ -50,7 +47,7 @@ class QuadNode : private Mercator {
     
     /// Precision default for '==' method.
     static constexpr double EQUALITY_PRECISION_DEFAULT = 0.000000000001;
-    
+
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
@@ -78,7 +75,7 @@ class QuadNode : private Mercator {
     
     QuadNode find_quad_leaves (const QuadNode &, double, const QuadNode::list &);
     Star::list query_quadtree (Chomp &, const QuadNode &, const QuadNode &, Star::list &);
-    
+
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif

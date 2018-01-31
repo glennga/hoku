@@ -10,20 +10,19 @@
 #include "math/mercator.h"
 #include "math/star.h"
 
-/// The mercator class is meant to reduce a dimension off of a star. This class is used to flatten the points in
-/// the BSC5 table and as the main data in the bright stars quadtree.
+/// @brief Feature and alignment class for a Astrometry.net star identification method.
+/// 
+/// The asterism class holds all feature and alignment computations necessary for the Astrometry.net method. A four
+/// element hash code is retrieved from a quad of stars, and the order is determined using `find_order`.
 ///
 /// @example
 /// @code{.cpp}
-/// // Project star {1, 1, 1} to a 1000x1000 square (the jist of it).
-/// Mercator a(Star(1, 1, 1), 1000);
-/// printf("%s", a.str().c_str());
+/// // Output the hash code for a quad of random stars.
+/// std::cout << Asterism::hash(Star::quad {Star::chance(), Star::chance(), Star::chance(), Star::chance()})
+///           << std::endl;
 /// @endcode
 class Asterism {
   public:
-    /// Common alias for an asterism (quad) of stars in 3D.
-    using stars = std::array<Star, 4>;
-    
     /// Common alias for an asterism (quad) of 2D stars (points).
     using points = std::array<Mercator, 4>;
     
@@ -32,20 +31,20 @@ class Asterism {
     
     /// Ensure default constructor is **not** generated.
     Asterism () = delete;
-    
+  
   public:
-    static points_cd hash (const stars &s);
-    static stars find_order (const stars &s);
+    static points_cd hash (const Star::quad &s);
+    static Star::quad find_order (const Star::quad &s);
     
-    static Star center (const stars &s);
+    static Star center (const Star::quad &s);
     
     static const points_cd MALFORMED_HASH;
-    static const stars INDETERMINATE_ORDER;
-    
+    static const Star::quad INDETERMINATE_ORDER;
+
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
-    explicit Asterism (const stars &s);
+    explicit Asterism (const Star::quad &s);
     
     void verify_ab_stars ();
     Asterism::points_cd compute_cd_prime ();

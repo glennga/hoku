@@ -12,6 +12,8 @@
 #include <iostream>
 #include "storage/nibble.h"
 
+/// @brief Class for accessing the Hipparcos catalog.
+///
 /// The chomp class is used with nearly all identification implementations. Like Nibble, a group of stars are linked
 /// with certain attributes. Unlike Nibble, the data structure and methods are extended beyond that of a basic lookup
 /// table.
@@ -29,10 +31,11 @@
 /// ch.create_k_vector("M");
 ///
 /// // Search the bright stars table for I and J components of all stars with 2.2 < m <2.3. Expecting 20 floats total.
-/// sql_row a = ch.k_vector_query("I, J", 2.2, 2.3, 20);
+/// tuples_d a = ch.k_vector_query("I, J", 2.2, 2.3, 20);
 ///
-/// // Print the results of the search. a[0][0] = first result's I component. a[1][1] = second result's J component.
-/// printf("%f, %f", ch.table_results_at(a, 0, 0), ch.table_results_at(a, 1, 1));
+/// // Print the results of the search.
+/// for (const t
+/// std::cout << ch.table_results_at(a, 0, 0) + ","  + ch.table_results_at(a, 1, 1) << std::endl;
 ///
 /// // Find all stars near star 4 that are separated by no more than 7.5 degrees. Expecting 20 results.
 /// Star::list b = ch.nearby_bright_stars(nb.query_hip(4), 15, 20);
@@ -53,11 +56,11 @@ class Chomp : public Nibble {
     
     /// Returned from table generators when the table already exists in the database.
     static constexpr int TABLE_EXISTS = -1;
-    
+  
   public:
     using Nibble::tuples_d;
     
-    Chomp();
+    Chomp ();
     
     int generate_bright_table ();
     int generate_hip_table ();

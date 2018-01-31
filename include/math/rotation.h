@@ -8,18 +8,19 @@
 
 #include "math/star.h"
 
-// TODO: Fix the Rotation documentation.
-/// The rotation class uses the vector functions in the star class to form quaternions. Rotations allow us to
-/// simulate a true lost-in-space condition.
+/// @brief Class to represent quaternions, with methods to solve Wahba's problem.
+///
+/// The rotation class contains functions to operate with quaternions and rotation matrices. Also contained here are
+/// several solutions to Wahba's problem: determining an attitude given vector observations (stars) in an inertial
+/// frame and a body frame.
 ///
 /// @example
 /// @code{.cpp}
 /// // Rotate {1, 1, 1} by a random rotation.
-/// std::random_device seed;
-/// printf("%s", Star::rotate(Star(1, 1, 1), Rotation::chance(seed)).str());
+/// std::cout << Star::rotate(Star(1, 1, 1), Rotation::chance()).str() << std::endl;
 ///
-/// Star a = Star::chance(seed), b = Star::chance(seed), c, d;
-/// Rotation e = Rotation::chance(seed), f;
+/// Star a = Star::chance(), b = Star::chance(), c, d;
+/// Rotation e = Rotation::chance(), f;
 ///
 /// // Star C is Star A rotated by Quaternion E. Star D is Star B rotated by Quaternion E.
 /// c = Rotation::rotate(a, e);
@@ -29,7 +30,7 @@
 /// f = Rotation::rotation_across_frames({a, b}, {c, d});
 ///
 /// // Result should show the same star.
-/// printf("%s : %s", Rotation::rotate(a, e).str(), Rotation::rotate(a, f).str());
+/// std::cout << Rotation::rotate(a, e).str() + " : " Rotation::rotate(a, f).str() << std::endl;
 /// @endcode
 class Rotation {
   public:

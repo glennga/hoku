@@ -11,26 +11,22 @@
 #include <memory>
 #include <algorithm>
 
-// TODO: Fix the KdNode documentation.
-/// The KdNode represents a node for the Mercator kd-tree, a structure for spatial indexing. This structure is
-/// currently being used by the Astrometry.net and Pyramid identification methods.
+/// @brief Class for spatial indexing of a list of stars. Typically smaller than QuadNode.
+///
+/// The KdNode represents a node for the Mercator KD-tree, a structure for spatial indexing.
 ///
 /// @example
 /// @code{.cpp}
-/// // Construct the kd-tree for all stars in BSC5. Project every star to a square of 1000x1000 size.
-/// Star::list a = Nibble().all_bsc5_stars();
+/// // Construct the kd-tree for all stars in the catalog. Project every star to a square of 1000x1000 size.
+/// Star::list a = Chomp().hip_as_list();
 /// KdNode k_root = KdNode::load_tree(a, 1000);
 ///
 /// // Find all nearby stars that are within 15 degrees of a random star (Star::chance()). Expecting 90 stars.
 /// for (const Star &s : k_root.nearby_stars(Star::chance(), 15, 90)) {
-///     printf("%s", s.str().c_str());
+///     std::cout << s.str() << std::endl;
 /// }
 /// @endcode
-#if !defined ENABLE_TESTING_ACCESS
-class KdNode : private Mercator {
-#else
 class KdNode : public Mercator {
-#endif
   public:
     static KdNode load_tree (const Star::list &, double);
     Star::list nearby_stars (const Star &, double, unsigned int, const Star::list &);
@@ -40,9 +36,9 @@ class KdNode : public Mercator {
     
     /// For the label property. This suggests that a given point is the root of the tree.
     static constexpr int ROOT_LABEL = -1;
-    
+
 #if !defined ENABLE_TESTING_ACCESS
-    private:
+  private:
 #endif
     /// Alias for edge to nodes (there should only be a left and right).
     using child_edge = std::shared_ptr<KdNode>;
@@ -62,9 +58,9 @@ class KdNode : public Mercator {
     
     /// Default precision for node component comparisons.
     static constexpr double EQUALITY_PRECISION_DEFAULT = 0.000000000001;
-    
+
 #if !defined ENABLE_TESTING_ACCESS
-    private:
+  private:
 #endif
     KdNode (unsigned int, unsigned int, int, const bounds_set &, list &);
     static void sort_by_dimension (unsigned int, unsigned int, int, list &);
@@ -75,9 +71,9 @@ class KdNode : public Mercator {
     
     std::string str () const override;
     bool operator== (const KdNode &) const;
-    
+
 #if !defined ENABLE_TESTING_ACCESS
-    private:
+  private:
 #endif
     /// Minimum values for this node's represented box. Used for box queries.
     bounds b_min = {0, 0};

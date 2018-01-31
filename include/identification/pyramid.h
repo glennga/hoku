@@ -10,28 +10,25 @@
 #include "identification/angle.h"
 #include <iostream>
 
-// TODO: Fix the Pyramid documentation.
-/// The pyramid class is an implementation of the identification portion of the Pyramid
-/// process. This is one of the five star identification procedures being tested.
+/// @brief Star identification class using pyramids.
+///
+/// The pyramid class is an implementation of Motari's Pyramid method for alignment determination. This is one of the
+/// six star identification procedures being tested.
 ///
 /// @example
 /// @code{.cpp}
-/// // Populate a table named "SEP20" in Nibble.db of all distinct pair of stars whose angle of separation is
-/// // less than 20 degrees of each. The entries stored are the catalog IDs, and the separation angle.
-/// Pyramid::generate_sep_table(20, "SEP20");
-///
-/// /* The snippet above should only be run ONCE. The snippet below is run with every different test. */
-///
 /// // Find all stars around a random star within 7.5 degrees of it. Rotate all stars by same random rotation.
 /// Benchmark b(15, Star::chance(), Rotation::chance());
 ///
 /// // Append 2 extra stars to the data-set above.
 /// b.add_extra_light(2);
 ///
-/// // Print all matches (the key here is the 'identify' method).
-/// for (const Star &s : Pyramid::identify(b, p)) {
-///     printf("%s", s.str().c_str());
-/// }
+/// // Determine an alignment. 'A' contains the body set with catalog label attached.
+/// Star::list a = Angle(b, Pyramid::DEFAULT_PARAMETERS).align();
+/// for (const Star &s : a) { std::cout << s.str(); << std::endl; }
+///
+/// // Extract an attitude instead of an alignment.
+/// Rotation q = Angle(b, Pyramid::DEFAULT_PARAMETERS).find_attitude();
 /// @endcode
 class Pyramid : public Identification {
   public:
