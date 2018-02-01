@@ -42,7 +42,7 @@ TEST(PlaneQuery, MatchStarsFOV) {
     a.input[1] = Star::reset_label(ch.query_hip(4));
     a.input[2] = Star::reset_label(ch.query_hip(5));
     
-    std::vector<Trio::stars> b = a.match_stars(Plane::STARTING_INDEX_TRIO);
+    std::vector<Star::trio> b = a.match_stars(Plane::STARTING_INDEX_TRIO);
     EXPECT_THAT(b[0], Each(Star::zero()));
 }
 
@@ -56,7 +56,7 @@ TEST(PlaneQuery, MatchStarsNone) {
     a.input[1] = Star(1, 1, 1);
     a.input[2] = Star(1.1, 1, 1);
     
-    std::vector<Trio::stars> b = a.match_stars(Plane::STARTING_INDEX_TRIO);
+    std::vector<Star::trio> b = a.match_stars(Plane::STARTING_INDEX_TRIO);
     EXPECT_THAT(b[0], Each(Star::zero()));
 }
 
@@ -66,10 +66,10 @@ TEST(PlaneQuery, MatchStarsResults) {
     Chomp ch;
     Benchmark input(ch, 20);
     Plane a(input, par);
-    std::vector<Trio::stars> b = a.match_stars(Plane::STARTING_INDEX_TRIO);
+    std::vector<Star::trio> b = a.match_stars(Plane::STARTING_INDEX_TRIO);
     
     // Check that original input trio exists in search.
-    for (const Trio::stars &t : b) {
+    for (const Star::trio &t : b) {
         for (int i = 0; i < 3; i++) {
             Identification::labels_list t_ell = {t[0].get_label(), t[1].get_label(), t[2].get_label()};
             EXPECT_THAT(t_ell, Contains(input.stars[i].get_label()));
@@ -84,7 +84,7 @@ TEST(PlaneQuery, PivotResults) {
     Benchmark input(ch, 20);
     Plane a(input, par);
     
-    Trio::stars c = a.pivot(Plane::STARTING_INDEX_TRIO);
+    Star::trio c = a.pivot(Plane::STARTING_INDEX_TRIO);
     std::vector<int> c_ell = {c[0].get_label(), c[1].get_label(), c[2].get_label()};
     EXPECT_THAT(c_ell, Contains(input.stars[0].get_label()));
     EXPECT_THAT(c_ell, Contains(input.stars[1].get_label()));
@@ -98,7 +98,7 @@ TEST(PlaneMatch, RotatingCorrectInput) {
     Star a = Star::chance(), b = Star::chance();
     Rotation c = Rotation::chance();
     Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
-    Rotation f = Rotation::rotation_across_frames({a, b}, {d, e});
+    Rotation f = Rotation::triad({a, b}, {d, e});
     Benchmark input(ch, Star::chance(), c, 8);
     std::vector<Star> rev_input;
     par.sigma_overlay = 0.000001;
@@ -124,7 +124,7 @@ TEST(PlaneMatch, RotatingErrorInput) {
     Star a = Star::chance(), b = Star::chance();
     Rotation c = Rotation::chance();
     Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
-    Rotation f = Rotation::rotation_across_frames({a, b}, {d, e});
+    Rotation f = Rotation::triad({a, b}, {d, e});
     Benchmark input(ch, Star::chance(), c, 8);
     std::vector<Star> rev_input;
     par.sigma_overlay = 0.000001;
@@ -152,7 +152,7 @@ TEST(PlaneMatch, RotatingDuplicateInput) {
     Star a = Star::chance(), b = Star::chance();
     Rotation c = Rotation::chance();
     Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
-    Rotation f = Rotation::rotation_across_frames({a, b}, {d, e});
+    Rotation f = Rotation::triad({a, b}, {d, e});
     Benchmark input(ch, Star::chance(), c, 8);
     std::vector<Star> rev_input;
     par.sigma_overlay = 0.000001;
@@ -204,7 +204,7 @@ TEST(PlaneTrial, CleanReduction) {
         input.stars[2].get_label()};
     
     std::sort(ell.begin(), ell.end());
-    EXPECT_THAT(a.experiment_reduction(), UnorderedElementsAre(ell[0], ell[1], ell[2]));
+    EXPECT_THAT(a.reduce(), UnorderedElementsAre(ell[0], ell[1], ell[2]));
 }
 
 /// Check that a clean input returns the expected alignment of stars.
@@ -225,7 +225,7 @@ TEST(PlaneTrial, CleanAlignment) {
         ch.query_hip(input.stars[2].get_label())};
     
     Plane a(Benchmark(b, Rotation::rotate(focus, q), 20), p);
-    Star::list f = a.experiment_alignment();
+    Star::list f = a.align();
     EXPECT_THAT(f, Contains(Star::define_label(b[0], c[0].get_label())));
     EXPECT_THAT(f, Contains(Star::define_label(b[1], c[1].get_label())));
     EXPECT_THAT(f, Contains(Star::define_label(b[2], c[2].get_label())));

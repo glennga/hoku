@@ -10,12 +10,16 @@
 #include "storage/nibble.h"
 
 // TODO: Finish Lumberjack documentation with examples.
-/// The lumberjack class is used to log the results of all trials.
-#if !defined ENABLE_TESTING_ACCESS
-class Lumberjack : private Nibble {
-#else
+/// @brief Class used to log the results of all experiments.
+///
+/// The lumberjack class is used to log the results of all trials. Instead of `nibble.db`, this data is stored in
+/// `lumberjack.db`.
+///
+/// @example
+/// @code{.cpp}
+/// Lumberjack lu
+/// @endcode
 class Lumberjack : public Nibble {
-#endif
   public:
     Lumberjack (const std::string &trial_table, const std::string &identifier_name, const std::string &timestamp);
     ~Lumberjack ();
@@ -27,12 +31,12 @@ class Lumberjack : public Nibble {
     static const std::string DATABASE_LOCATION;
 
 #if !defined ENABLE_TESTING_ACCESS
-    private:
+  private:
 #endif
     int flush_buffer ();
 
 #if !defined ENABLE_TESTING_ACCESS
-    private:
+  private:
 #endif
     /// The maximum size of our result buffer. When we go over this limit, we flush.
     static constexpr int MAXIMUM_BUFFER_SIZE = 100;

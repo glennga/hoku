@@ -31,6 +31,20 @@ bool Rotation::operator== (const Rotation &q) const {
            && fabs(j - q.j) < EQUALITY_PRECISION_DEFAULT && fabs(k - q.k) < EQUALITY_PRECISION_DEFAULT;
 }
 
+/// Find the quaternion product between the current quaternion and q. Solution found here:
+/// https://www.mathworks.com/help/aerotbx/ug/quatmultiply.html
+///
+/// @param q Quaternion to multiply with current quaternion.
+/// @return Quaternion product of the current quaternion and q.
+Rotation Rotation::operator* (const Rotation &q) const {
+    double n_0 = (this->w * q.w) - (this->i * q.i) - (this->j * q.j) - (this->k * q.k);
+    double n_1 = (this->w * q.i) + (this->i * q.w) - (this->j * q.k) + (this->k * q.j);
+    double n_2 = (this->w * q.j) + (this->i * q.k) + (this->j * q.w) - (this->k * q.i);
+    double n_3 = (this->w * q.k) - (this->i * q.j) + (this->j * q.i) + (this->k * q.w);
+    
+    return {n_0, Star(n_1, n_2, n_3)};
+}
+
 /// Given a rotation matrix as an array of stars, return the quaternion equivalent. Solution found here:
 /// http://www.euclideanspac.com/maths/geometry/rotations/conversions/matrixToQuaternion/
 ///
@@ -56,43 +70,6 @@ Rotation::matrix Rotation::matrix_multiply_transpose (const matrix &a, const mat
     return {Star(Star::dot(a[0], b[0]), Star::dot(a[0], b[1]), Star::dot(a[0], b[2])),
         Star(Star::dot(a[1], b[0]), Star::dot(a[1], b[1]), Star::dot(a[1], b[2])),
         Star(Star::dot(a[2], b[0]), Star::dot(a[2], b[1]), Star::dot(a[2], b[2]))};
-}
-
-/// Find the quaternion product between q_1 and q_2. Solution found here:
-/// https://www.mathworks.com/help/aerotbx/ug/quatmultiply.html
-///
-/// @param q_1 Quaternion to multiply with q_2.
-/// @param q_2 Quaternion to multiply with q_1.
-/// @return Quaternion product of q_1 and q_2.
-Rotation Rotation::multiply (const Rotation &q_1, const Rotation &q_2) {
-    double n_0 = (q_1.w * q_2.w) - (q_1.i * q_2.i) - (q_1.j * q_2.j) - (q_1.k * q_2.k);
-    double n_1 = (q_1.w * q_2.i) + (q_1.i * q_2.w) - (q_1.j * q_2.k) + (q_1.k * q_2.j);
-    double n_2 = (q_1.w * q_2.j) + (q_1.i * q_2.k) + (q_1.j * q_2.w) - (q_1.k * q_2.i);
-    double n_3 = (q_1.w * q_2.k) - (q_1.i * q_2.j) + (q_1.j * q_2.i) + (q_1.k * q_2.w);
-    
-    return {n_0, Star(n_1, n_2, n_3)};
-}
-
-/// Find the quaternion across two different frames given pairs of vectors in each frame. Solution found here:
-/// https://en.wikipedia.org/wiki/Triad_method
-///
-/// @param r Pair of stars in frame V.
-/// @param b Pair of stars in frame W.
-/// @return The quaternion to rotate from frame V (r set) to W (b set).
-Rotation Rotation::rotation_across_frames (const Star::pair &r, const Star::pair &b) {
-    // Compute triads. Parse them into individual components.
-    Star v_1 = r[0].as_unit(), w_1 = b[0].as_unit();
-    Star v_2 = (Star::cross(r[0].as_unit(), r[1].as_unit())).as_unit();
-    Star w_2 = (Star::cross(b[0].as_unit(), b[1].as_unit())).as_unit();
-    Star v_3 = (Star::cross(r[0].as_unit(), v_2)).as_unit();
-    Star w_3 = (Star::cross(b[0].as_unit(), w_2)).as_unit();
-    
-    // Each vector represents a column -> [v_1 : v_2 : v_3]
-    matrix v = {Star(v_1[0], v_2[0], v_3[0]), Star(v_1[1], v_2[1], v_3[1]), Star(v_1[2], v_2[2], v_3[2])};
-    matrix w = {Star(w_1[0], w_2[0], w_3[0]), Star(w_1[1], w_2[1], w_3[1]), Star(w_1[2], w_2[2], w_3[2])};
-    
-    // Multiple V with W^T to find resulting rotation. Return result as quaternion.
-    return matrix_to_quaternion(matrix_multiply_transpose(v, w));
 }
 
 /// Rotate the current vector by the given quaternion. Converts the quaternion into a rotation matrix to multiply
@@ -148,35 +125,6 @@ Star Rotation::shake (const Star &s, const double sigma) {
     return push(s, Star::chance(), theta);
 }
 
-/// Get a scalar quantity for how 'close' two quaternions are. We find the quaternion from q_1 to q_2, and return the
-/// axis angle from this.
-///
-/// @param q_1 Rotation one to compare against.
-/// @param q_2 Rotation two to compare against.
-/// @return Axis angle of quaternion to take q_1 to q_2 in degrees.
-double Rotation::angle_between (const Rotation &q_1, const Rotation &q_2) {
-    // Compute the inverse of q_1.
-    double q_1_norm = pow(q_1.w, 2) + pow(q_1.i, 2) + pow(q_1.j, 2) + pow(q_1.k, 2);
-    Rotation q_1_inv(q_1.w / q_1_norm, Star(-q_1.i / q_1_norm, -q_1.j / q_1_norm, -q_1.k / q_1_norm));
-    
-    // Find q_3 such that q_1 rotates to q_2.
-    Rotation q_3 = multiply(q_1_inv, q_2);
-    
-    // Find and return the axis angle in degrees.
-    return (std::isnan(acos(q_3.w))) ? 0 : 2 * acos(q_3.w) * (180.0 / M_PI);
-}
-
-/// Get another quantity for how 'close' two quaternions are. We rotate the given star using both quaternions, and
-/// return the difference vector.
-///
-/// @param q_1 Rotation one to compare against.
-/// @param q_2 Rotation two to compare against.
-/// @param s Star to rotate with.
-/// @return Difference between q_1 and q_2's rotation of s.
-Star Rotation::rotation_difference (const Rotation &q_1, const Rotation &q_2, const Star &s) {
-    return rotate(s, q_1) - rotate(s, q_2);
-}
-
 /// Return the identity quaternion, as a Rotation object.
 /// 
 /// @return Identity quaternion: <1, 0, 0, 0>.
@@ -191,4 +139,46 @@ Rotation Rotation::identity () {
 Rotation Rotation::chance () {
     Star p = Star::chance(), q = Star::chance();
     return {sqrt(1.0 + Star::dot(p, q)), Star::cross(p, q), true};
+}
+
+/// Deterministic method that finds the quaternion across two different frames given pairs of vectors in each frame.
+/// This solves Wahba's problem. Solution found here: https://en.wikipedia.org/wiki/Triad_method
+///
+/// @param r 2 element list of stars in frame V.
+/// @param b 2 element list of stars in frame W.
+/// @return The quaternion to rotate from frame V (r set) to W (b set).
+Rotation Rotation::triad (const Star::list &r, const Star::list &b) {
+    // Compute triads. Parse them into individual components.
+    Star v_1 = r[0].as_unit(), w_1 = b[0].as_unit();
+    Star v_2 = (Star::cross(r[0].as_unit(), r[1].as_unit())).as_unit();
+    Star w_2 = (Star::cross(b[0].as_unit(), b[1].as_unit())).as_unit();
+    Star v_3 = (Star::cross(r[0].as_unit(), v_2)).as_unit();
+    Star w_3 = (Star::cross(b[0].as_unit(), w_2)).as_unit();
+    
+    // Each vector represents a column -> [v_1 : v_2 : v_3]
+    matrix v = {Star(v_1[0], v_2[0], v_3[0]), Star(v_1[1], v_2[1], v_3[1]), Star(v_1[2], v_2[2], v_3[2])};
+    matrix w = {Star(w_1[0], w_2[0], w_3[0]), Star(w_1[1], w_2[1], w_3[1]), Star(w_1[2], w_2[2], w_3[2])};
+    
+    // Multiple V with W^T to find resulting rotation. Return result as quaternion.
+    return matrix_to_quaternion(matrix_multiply_transpose(v, w));
+}
+
+/// Statistical approach to find the quaternion across two different frames given vector observations in both. This
+/// solves Wahba's problem through least squares minimization of the loss function.
+///
+/// @param r List of stars in frame ...
+/// @param b List of stars in frame ...
+/// @return The quaternion to frame the ... (r set) to ... (b set).
+Rotation Rotation::q_exact (const Star::list &r, const Star::list &b) {
+
+}
+
+/// Statistical approach to find the quaternion across two different frames given vector observations in both. This
+/// solves Wahba's problem through ....
+///
+/// @param r List of stars in frame ...
+/// @param b List of stars in frame ...
+/// @return The quaternion to frame the ... (r set) to ... (b set).
+Rotation Rotation::quest (const Star::list &r, const Star::list &b) {
+
 }

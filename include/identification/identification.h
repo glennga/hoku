@@ -8,6 +8,11 @@
 
 #include "benchmark/benchmark.h"
 
+/// @brief Abstract base class for all identification procedures.
+///
+/// The identification class serves as an abstract base for other identification procedures (Angle, Pyramid, etc...).
+/// Contained in this class are shared members and functions between each identification procedure, as well as
+/// a method for 'completing' the attitude determination process `find_attitude()`.
 class Identification {
   public:
     // All identification methods must contain these parameters.
@@ -17,6 +22,7 @@ class Identification {
         double sigma_overlay; ///< Resultant of inertial->body rotation must within 3 * sigma_overlay of *a* body.
         unsigned int nu_max; ///< Maximum number of query star comparisons before returning an empty list.
         std::shared_ptr<unsigned int> nu; ///< Pointer to the location to hold the count of query star comparisons.
+        Rotation::wahba_function f; ///< Function to use to solve Wahba's problem with.
         std::string table_name; ///< Name of the Nibble database table created with 'generate_sep_table'.
     };
     
@@ -35,6 +41,9 @@ class Identification {
     /// Default pointer to nu (comparison count) for all identification methods.
     static constexpr auto DEFAULT_NU = nullptr;
     
+    /// Default solution to Wahba's problem for all identification methods.
+    static constexpr auto DEFAULT_F = Rotation::triad;
+    
     /// Default table name for all identification methods.
     static constexpr const char *DEFAULT_TABLE_NAME = "NO_TABLE";
     
@@ -50,6 +59,7 @@ class Identification {
     virtual std::vector<labels_list> query (const Star::list &s) = 0;
     virtual labels_list reduce () = 0;
     virtual Star::list align () = 0;
+    Rotation find_attitude();
     
     static const Star::list NO_CONFIDENT_ALIGNMENT;
     static const labels_list NO_CANDIDATES_FOUND;

@@ -10,10 +10,10 @@
 const std::vector<BaseTriangle::label_trio> BaseTriangle::NO_CANDIDATE_TRIOS_FOUND = {{-1, -1, -1}};
 
 /// Returned when no candidates can be found from a match step.
-const std::vector<Trio::stars> BaseTriangle::NO_CANDIDATE_STARS_FOUND = {{Star::zero(), Star::zero(), Star::zero()}};
+const std::vector<Star::trio> BaseTriangle::NO_CANDIDATE_STARS_FOUND = {{Star::zero(), Star::zero(), Star::zero()}};
 
 /// Returned with an unsuccessful pivoting step.
-const Trio::stars BaseTriangle::NO_CANDIDATE_STAR_SET_FOUND = {Star::zero(), Star::zero(), Star::zero()};
+const Star::trio BaseTriangle::NO_CANDIDATE_STAR_SET_FOUND = {Star::zero(), Star::zero(), Star::zero()};
 
 /// Starting index trio to perform pivot with.
 const BaseTriangle::index_trio BaseTriangle::STARTING_INDEX_TRIO = {0, 1, 2};
@@ -114,11 +114,11 @@ std::vector<BaseTriangle::label_trio> BaseTriangle::query_for_trio (const double
 /// @param compute_moment Polar moment function to compute moment with.
 /// @return NO_CANDIDATE_STARS_FOUND if stars are not within the fov or if no matches currently exist. Otherwise,
 /// vector of trios whose areas and moments are close.
-std::vector<Trio::stars> BaseTriangle::m_stars (const index_trio &i_b, area_function compute_area,
-                                                moment_function compute_moment) {
-    Trio::stars b_stars = {this->input[i_b[0]], this->input[i_b[1]], this->input[i_b[2]]};
+std::vector<Star::trio> BaseTriangle::m_stars (const index_trio &i_b, area_function compute_area,
+                                               moment_function compute_moment) {
+    Star::trio b_stars = {this->input[i_b[0]], this->input[i_b[1]], this->input[i_b[2]]};
     std::vector<label_trio> match_hr;
-    std::vector<Trio::stars> matched_stars;
+    std::vector<Star::trio> matched_stars;
     
     // Do not attempt to find matches if all stars are not within fov.
     if (!Star::within_angle({b_stars[0], b_stars[1], b_stars[2]}, this->fov)) {
@@ -162,8 +162,8 @@ void BaseTriangle::generate_pivot_list (const index_trio &i_b) {
 /// @param past_set Matches found in a previous search.
 /// @return NO_CANDIDATE_STAR_SET_FOUND if pivoting is unsuccessful. Otherwise, a trio of stars that match the given B
 /// stars to R stars.
-Trio::stars BaseTriangle::pivot (const index_trio &i_b, const std::vector<Trio::stars> &past_set) {
-    std::vector<Trio::stars> matches = this->match_stars(i_b);
+Star::trio BaseTriangle::pivot (const index_trio &i_b, const std::vector<Star::trio> &past_set) {
+    std::vector<Star::trio> matches = this->match_stars(i_b);
     if (std::equal(matches.begin(), matches.end(), NO_CANDIDATE_STARS_FOUND.begin())) {
         matches.clear();
     }
@@ -173,7 +173,7 @@ Trio::stars BaseTriangle::pivot (const index_trio &i_b, const std::vector<Trio::
         for (unsigned int i = 0; i < matches.size(); i++) {
             bool match_found = false;
             
-            for (const Trio::stars &past : past_set) {
+            for (const Star::trio &past : past_set) {
                 // We do not need to check all permutations. Break early and advance to next star.
                 if ((past[0] == matches[i][0] || past[0] == matches[i][1] || past[0] == matches[i][2])
                     && (past[1] == matches[i][0] || past[1] == matches[i][1] || past[1] == matches[i][2])) {
@@ -205,7 +205,7 @@ Trio::stars BaseTriangle::pivot (const index_trio &i_b, const std::vector<Trio::
 /// @param b Body (frame B) Trio of stars to check against the inertial trio.
 /// @return The quaternion corresponding to largest set of matching stars across the body and inertial in all pairing
 /// configurations.
-Star::list BaseTriangle::singular_alignment (const Star::list &candidates, const Trio::stars &r, const Trio::stars &b) {
+Star::list BaseTriangle::singular_alignment (const Star::list &candidates, const Star::trio &r, const Star::trio &b) {
     std::array<index_trio, 6> order = {STARTING_INDEX_TRIO};
     std::array<Star::list, 6> matches = {}, alignments = {};
     auto ell = [&r, &b, &order] (const int i, const int j) -> Star {
@@ -220,7 +220,7 @@ Star::list BaseTriangle::singular_alignment (const Star::list &candidates, const
     
     // Determine the rotation to take frame R to B. Only use r_1 and r_2 to get rotation.
     for (unsigned int i = 0; i < 3; i++) {
-        Rotation q = Rotation::rotation_across_frames({b[0], b[1]}, {r[order[i][0]], r[order[i][1]]});
+        Rotation q = parameters.f({b[0], b[1]}, {r[order[i][0]], r[order[i][1]]});
         matches[i] = find_matches(candidates, q);
         alignments[i] = {ell(i, 0), ell(i, 1), ell(i, 2)};
     }
@@ -248,7 +248,7 @@ std::vector<BaseTriangle::label_trio> BaseTriangle::e_query (double a, double i)
 /// @return NO_CANDIDATES_FOUND if no candidates found. Otherwise, a single elements that best meets the criteria.
 Identification::labels_list BaseTriangle::e_reduction () {
     generate_pivot_list(STARTING_INDEX_TRIO);
-    Trio::stars candidate_trio = pivot(STARTING_INDEX_TRIO);
+    Star::trio candidate_trio = pivot(STARTING_INDEX_TRIO);
     
     if (std::equal(candidate_trio.begin(), candidate_trio.end(), NO_CANDIDATE_STAR_SET_FOUND.begin())) {
         return NO_CANDIDATES_FOUND;
@@ -270,8 +270,8 @@ Star::list BaseTriangle::e_alignment () {
     for (int i = 0; i < static_cast<signed> (input.size() - 2); i++) {
         for (int j = i + 1; j < static_cast<signed> (input.size() - 1); j++) {
             for (int k = j + 1; k < static_cast<signed> (input.size()); k++) {
-                std::vector<Trio::stars> candidate_trios;
-                Trio::stars candidate_trio;
+                std::vector<Star::trio> candidate_trios;
+                Star::trio candidate_trio;
                 Star::list candidates;
                 (*parameters.nu)++;
                 

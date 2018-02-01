@@ -10,32 +10,26 @@
 #include "identification.h"
 #include <iostream>
 
-// TODO: Fix the Angle documentation.
-/// The angle class is an implementation of the identification portion of the LIS Stellar Attitude Acquisition
-/// process. This is one of the five star identification procedures being tested.
+/// @brief Star identification class using angles.
+///
+/// The angle class is an implementation of Gottlieb's Angle method with Tappe's DMT process for alignment
+/// determination. This is one of the six star identification procedures being tested.
 ///
 /// @example
 /// @code{.cpp}
-/// // Populate a table named "SEP20" in Nibble.db of all distinct pair of stars whose angle of separation is
-/// // less than 20 degrees of each. The entries stored are the catalog ID numbers, and the separation angle.
-/// Angle::generate_sep_table(20, "SEP20");
-///
-/// /* The snippet above should only be run ONCE. The snippet below is run with every different test. */
-///
-/// // Find all stars around a random star within 7.5 degrees of it. Rotate all stars by same random rotation.
+/// // Find all stars around a random star within 7.5 degrees of it.
+/// // Rotate all stars by same random rotation.
 /// Benchmark b(15, Star::chance(), Rotation::chance());
 ///
 /// // Append 2 extra stars to the data-set above.
 /// b.add_extra_light(2);
 ///
-/// Angle::Parameters p;
-/// // The minimum number of stars to match the body and inertial is now 7.
-/// p.match_minimum = 7;
+/// // Determine an alignment. 'A' contains the body set with catalog label attached.
+/// Star::list a = Angle(b, Angle::DEFAULT_PARAMETERS).align();
+/// for (const Star s : a) { std::cout << s.str(); << std::endl; }
 ///
-/// // Print all matches (the key here is the 'identify' method).
-/// for (const Star &s : Angle::identify(b, p)) {
-///     printf("%s", s.str().c_str());
-/// }
+/// // Extract an attitude instead of an alignment.
+/// Rotation q = Angle(b, Angle::DEFAULT_PARAMETERS).find_attitude();
 /// @endcode
 class Angle : public Identification {
   public:
@@ -53,7 +47,7 @@ class Angle : public Identification {
   public:
     /// Exact number of query stars required for query experiment.
     static constexpr unsigned int QUERY_STAR_SET_SIZE = 2;
-    
+
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif

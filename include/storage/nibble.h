@@ -14,6 +14,8 @@
 #include "third-party/sqlite-cpp/SQLiteCpp.h"
 #include "math/star.h"
 
+/// @brief Class for interacting with `nibble.db` through SQLite.
+///
 /// The nibble class is used with all identification implementations. A group is stars are linked with certain
 /// attributes. Inside this namespace includes the building blocks to generate entire tables, then search these tables.
 ///
@@ -37,9 +39,9 @@
 ///
 /// // Search the 'BRIGHT' table star 3's right ascension and declination. Expecting 2 floats, limit results by 1 row.
 /// Nibble::tuples_d a = nb.search_table("label = 3", "alpha, delta", 2, 1);
-///
-/// // Print the results of the search. Search for a[0][0] (which is star 3's alpha) and a[0][1] (star 3's delta).
-/// printf("%f, %f", a[0][0], a[0][1]);
+/// for (const tuple_d &i : a) {
+///     for (const double &b : i) { std::cout << b << std::endl; }
+/// }
 /// @endcode
 class Nibble {
   public:

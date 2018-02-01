@@ -8,7 +8,7 @@
 
 /// Default parameters for the planar triangle identification method.
 const Identification::Parameters Plane::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
-    DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU, "PLANE_20"};
+    DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_F, "PLANE_20"};
 
 /// Constructor. Sets the benchmark data and fov. Sets the parameters, working table, and our index permutations.
 ///
@@ -38,7 +38,7 @@ int PlanarTriangle::generate_table (const double fov, const std::string &table_n
 /// @param i_b Index trio of stars in body (B) frame.
 /// @return NO_CANDIDATE_STARS_FOUND if stars are not within the fov or if no matches currently exist.
 /// Otherwise, vector of trios whose areas and moments are close.
-std::vector<Trio::stars> Plane::match_stars (const index_trio &i_b) {
+std::vector<Star::trio> Plane::match_stars (const index_trio &i_b) {
     return m_stars(i_b, Trio::planar_area, Trio::planar_moment);
 }
 
@@ -80,7 +80,7 @@ std::vector<Identification::labels_list> Plane::query (const Star::list &s) {
 ///
 /// @return NO_CANDIDATES_FOUND if we cannot query anything. Otherwise, a single match configuration found by the
 /// planar triangle method.
-Identification::labels_list Plane::experiment_reduction () {
+Identification::labels_list Plane::reduce () {
     return e_reduction();
 }
 
@@ -101,6 +101,6 @@ Identification::labels_list Plane::experiment_reduction () {
 /// @return NO_CONFIDENT_ALIGNMENT if an alignment cannot be found exhaustively. EXCEEDED_NU_MAX if an alignment
 /// cannot be found within a certain number of query picks. Otherwise, body stars b with the attached labels
 /// of the inertial pair r.
-Star::list Plane::experiment_alignment () {
+Star::list Plane::align () {
     return e_alignment();
 }

@@ -9,6 +9,8 @@
 
 #include "math/star.h"
 
+/// @brief Class to project 3D stars to 2D, using Mercator projections.
+///
 /// The mercator class is meant to reduce a dimension off of a star. This class is used to flatten the points in
 /// the bright stars table to a square and as the main data in the bright stars quadtree. The advantage using this
 /// projection over the Gnomonic projections (treating right ascension and declination as it's own axis) is that we
@@ -21,7 +23,7 @@
 /// @code{.cpp}
 /// // Project star {1, 1, 1} to a 1000x1000 square (the jist of it).
 /// Mercator a(Star(1, 1, 1), 1000);
-/// printf("%s", a.str().c_str());
+/// std::cout << a.str() << std::endl;
 /// @endcode
 class Mercator {
   public:
