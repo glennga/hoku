@@ -8,6 +8,11 @@
 
 #include "benchmark/benchmark.h"
 
+/// @brief Abstract base class for all identification procedures.
+///
+/// The identification class serves as an abstract base for other identification procedures (Angle, Pyramid, etc...).
+/// Contained in this class are shared members and functions between each identification procedure, as well as
+/// a method for 'completing' the attitude determination process `find_attitude()`.
 class Identification {
   public:
     // All identification methods must contain these parameters.

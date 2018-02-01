@@ -30,6 +30,8 @@
 #include "identification/planar-triangle.h"
 #include "identification/pyramid.h"
 
+/// @brief Namespace containing all parameters for Nibble table generation.
+///
 /// Defining characteristics of the Nibble tables generated.
 namespace DCNT {
     static const double FOV = 20; ///< Maximum field-of-view for each generated table.

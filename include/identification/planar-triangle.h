@@ -9,33 +9,25 @@
 
 #include "base-triangle.h"
 
-// TODO: Fix the PlanarTriangle documentation.
-/// The triangle planar class is an implementation of Crassidis and Cole's Planar Triangle Pattern Recognition
-/// Process. This is one of the five star identification procedures being tested.
+/// @brief Star identification class using planar triangles.
+///
+/// The planar triangle class is an implementation of Cole and Crassidus's Planar Triangle method with Tappe's DMT
+/// process for alignment determination. This is one of the six star identification procedures being tested.
 ///
 /// @example
 /// @code{.cpp}
-/// // Populate a table named "PLAN20" in Nibble.db of all distinct trios of stars whose angle of separation is
-/// // less than 20 degrees of each. The entries stored are the BSC5 catalog IDs, the planar area between each star,
-/// // and the planar polar moment between each star.
-/// PlanarTriangle::generate_triangle_table(20, "PLAN20");
-///
-/// /* The snippet above should only be run ONCE. The snippet below is run with every different test. */
-///
 /// // Find all stars around a random star within 7.5 degrees of it. Rotate all stars by same random rotation.
 /// Benchmark b(15, Star::chance(), Rotation::chance());
 ///
 /// // Append 2 extra stars to the data-set above.
 /// b.add_extra_light(2);
 ///
-/// Plane::Parameters p;
-/// // The minimum number of stars to match the body and inertial is now 7.
-/// p.match_minimum = 7;
+/// // Determine an alignment. 'A' contains the body set with catalog label attached.
+/// Star::list a = Angle(b, Plane::DEFAULT_PARAMETERS).align();
+/// for (const Star &s : a) { std::cout << s.str(); << std::endl; }
 ///
-/// // Print all matches (the key here is the 'identify' method).
-/// for (const Star &s : Plane(b, p).identify()) {
-///     printf("%s", s.str().c_str());
-/// }
+/// // Extract an attitude instead of an alignment.
+/// Rotation q = Angle(b, Plane::DEFAULT_PARAMETERS).find_attitude();
 /// @endcode
 class PlanarTriangle : public BaseTriangle {
   public:

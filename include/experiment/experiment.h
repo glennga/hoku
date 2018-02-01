@@ -10,13 +10,23 @@
 #include "identification/identification.h"
 #include "experiment/lumberjack.h"
 
-/// This namespace holds all namespaces and functions used to conduct every experiment with.
+/// @brief Namespace that holds all namespaces, functions, and parameters used to conduct every experiment with.
+///
+/// All experiment modifications (parameters) should be performed in **this file only**. \n
+/// There exist three subnamespaces holding the required functions for each experiment:
+/// @code{.cpp}
+/// 1. Query
+/// 2. Reduction
+/// 3. Alignment
+/// @endcode
 namespace Experiment {
     const double WORKING_FOV = 20; ///< Field of view that all our test stars must be within.
     const int SAMPLES = 10; ///< Number of samples to retrieve for each individual trial.
     
     void present_benchmark (Chomp &, Star::list &, Star &, double = 0);
     
+    /// @brief Namespace that holds all parameters and functions to conduct the query experiment with.
+    ///
     /// The query experiment is used to characterize the choose query stars and search catalog steps.
     namespace Query {
         /// Schema comma separated string that corresponds to the creation of the query table.
@@ -69,6 +79,8 @@ namespace Experiment {
         }
     }
     
+    /// @brief Namespace that holds all parameters and functions to conduct the reduction experiment with.
+    ///
     /// The reduction experiment is used to characterize the choose query stars step to our attitude determination step.
     namespace Reduction {
         /// Schema header that corresponds to the log file for all reduction trials.
@@ -127,6 +139,8 @@ namespace Experiment {
         }
     }
     
+    /// @brief Namespace that holds all parameters and functions to conduct the alignment experiment with.
+    ///
     /// The alignment experiment is used to characterize each identifier from start to alignment determination.
     namespace Alignment {
         /// Schema header that corresponds to the log file for all alignment trials.

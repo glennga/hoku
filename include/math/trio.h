@@ -8,6 +8,8 @@
 
 #include "math/star.h"
 
+/// @brief Feature class for planar and spherical triangle star identification procedures.
+///
 /// The trio class is used with the planar and spherical star identification procedures. Given three vectors, one
 /// can find the area and polar moment of the formed planar or spherical triangle.
 ///
@@ -15,12 +17,12 @@
 /// @code{.cpp}
 /// // Trio: {1, 1, 1}, {1, -1, 1}, and {-1, -1, 5}.
 /// // Draw a planar triangle between the trio. Compute this area and polar moment.
-/// printf("%f", Trio::planar_area(Star(1, 1, 1), Star(1, -1, 1), Star(-1, -1, 5)));
-/// printf("%f", Trio::planar_moment(Star(1, 1, 1), Star(1, -1, 1), Star(-1, -1, 5)));
+/// std::cout << Trio::planar_area(Star(1, 1, 1), Star(1, -1, 1), Star(-1, -1, 5)) << std::endl;
+/// std::cout << Trio::planar_moment(Star(1, 1, 1), Star(1, -1, 1), Star(-1, -1, 5)) << std::endl;
 ///
 /// // Draw a spherical triangle between the trio. Compute this area and polar moment.
-/// printf("%f", Trio::spherical_area(Star(1, 1, 1), Star(1, -1, 1), Star(-1, -1, 5)));
-/// printf("%f", Trio::spherical_moment(Star(1, 1, 1), Star(1, -1, 1), Star(-1, -1, 5)));
+/// std::cout << Trio::spherical_area(Star(1, 1, 1), Star(1, -1, 1), Star(-1, -1, 5)) << std::endl;
+/// std::cout << Trio::spherical_moment(Star(1, 1, 1), Star(1, -1, 1), Star(-1, -1, 5)) << std::endl;
 /// @endcode
 ///
 class Trio {

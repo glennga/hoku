@@ -15,6 +15,8 @@
 #include "math/rotation.h"
 #include "storage/chomp.h"
 
+/// @brief Class to represent an image of stars.
+///
 /// The benchmark class is used for all star identification implementation testing. To imitate real data from a star
 /// detector, we search for all stars in a section of the sky and apply various error models to this set.
 ///
