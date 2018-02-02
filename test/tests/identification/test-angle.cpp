@@ -171,8 +171,8 @@ TEST(AngleTrial, CleanReduction) {
     EXPECT_THAT(a.reduce(), UnorderedElementsAre(103215, 103217));
 }
 
-/// Check that a clean input returns the expected alignment of stars.
-TEST(AngleTrial, CleanAlignment) {
+/// Check that a clean input returns the expected identification of stars.
+TEST(AngleTrial, CleanIdentify) {
     Chomp ch;
     unsigned int nu;
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
@@ -185,7 +185,7 @@ TEST(AngleTrial, CleanAlignment) {
     Star d = Rotation::rotate(b, q), e = Rotation::rotate(c, q);
     
     Angle a(Benchmark({d, e}, d, 20), p);
-    Star::list f = a.align();
+    Star::list f = a.identify();
     EXPECT_THAT(f, Contains(Star::define_label(d, 103215)));
     EXPECT_THAT(f, Contains(Star::define_label(e, 103217)));
 }

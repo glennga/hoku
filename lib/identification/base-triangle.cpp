@@ -205,9 +205,10 @@ Star::trio BaseTriangle::pivot (const index_trio &i_b, const std::vector<Star::t
 /// @param b Body (frame B) Trio of stars to check against the inertial trio.
 /// @return The quaternion corresponding to largest set of matching stars across the body and inertial in all pairing
 /// configurations.
-Star::list BaseTriangle::singular_alignment (const Star::list &candidates, const Star::trio &r, const Star::trio &b) {
+Star::list BaseTriangle::singular_identification (const Star::list &candidates, const Star::trio &r,
+                                                  const Star::trio &b) {
     std::array<index_trio, 6> order = {STARTING_INDEX_TRIO};
-    std::array<Star::list, 6> matches = {}, alignments = {};
+    std::array<Star::list, 6> matches = {}, identities = {};
     auto ell = [&r, &b, &order] (const int i, const int j) -> Star {
         return Star::define_label(b[j], r[order[i][j]].get_label());
     };
@@ -222,11 +223,11 @@ Star::list BaseTriangle::singular_alignment (const Star::list &candidates, const
     for (unsigned int i = 0; i < 3; i++) {
         Rotation q = parameters.f({b[0], b[1]}, {r[order[i][0]], r[order[i][1]]});
         matches[i] = find_matches(candidates, q);
-        alignments[i] = {ell(i, 0), ell(i, 1), ell(i, 2)};
+        identities[i] = {ell(i, 0), ell(i, 1), ell(i, 2)};
     }
     
-    // Return alignment set corresponding to the largest match (messy lambda and iterator stuff below D:).
-    return alignments[
+    // Return map set corresponding to the largest match (messy lambda and iterator stuff below D:).
+    return identities[
         std::max_element(matches.begin(), matches.end(), [] (const Star::list &lhs, const Star::list &rhs) {
             return lhs.size() < rhs.size();
         }) - matches.begin()];
@@ -260,10 +261,10 @@ Identification::labels_list BaseTriangle::e_reduction () {
 
 /// Find the rotation from the images in our current benchmark to our inertial frame (i.e. the catalog).
 ///
-/// @return NO_CONFIDENT_ALIGNMENT if an alignment cannot be found exhaustively. EXCEEDED_NU_MAX if an alignment
-/// cannot be found within a certain number of query picks. Otherwise, body stars b with the attached labels
-/// of the inertial pair r.
-Star::list BaseTriangle::e_alignment () {
+/// @return NO_CONFIDENT_IDENTITY if an identification cannot be found exhaustively. EXCEEDED_NU_MAX if an
+/// identification cannot be found within a certain number of query picks. Otherwise, body stars b with the attached
+/// labels of the inertial pair r.
+Star::list BaseTriangle::e_identify () {
     *parameters.nu = 0;
     
     // There exists |input| choose 3 possibilities.
@@ -291,10 +292,10 @@ Star::list BaseTriangle::e_alignment () {
                 candidates = ch.nearby_hip_stars(candidate_trio[0], fov,
                                                  static_cast<unsigned int> (3.0 * input.size()));
                 
-                // Find the most likely alignment given the two pairs.
-                return singular_alignment(candidates, candidate_trio, {input[i], input[j], input[k]});
+                // Find the most likely map given the two pairs.
+                return singular_identification(candidates, candidate_trio, {input[i], input[j], input[k]});
             }
         }
     }
-    return NO_CONFIDENT_ALIGNMENT;
+    return NO_CONFIDENT_IDENTITY;
 }

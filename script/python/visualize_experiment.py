@@ -1,15 +1,9 @@
 """"
-This file is used to produce plots to show the relationship between various parameters in the Query, Alignment, 
-Reduction, SemiCrown, and Crown trials. We assume these trials use the following attributes:
+This file is used to produce plots to show the relationship between various parameters in the Query, Reduction, 
+and Identification trials. We assume these trials use the following attributes:
 
 Query:      IdentificationMethod,QuerySigma,ShiftSigma,CandidateSetSize,SExistence [5]
-Alignment:  IdentificationMethod,MatchSigma,ShiftSigma,MBar,OptimalConfigRotation,
-            NonOptimalConfigRotation,OptimalComponentError,NonOptimalComponentError [8]
-Reduction:  IdentificationMethod,MatchSigma,QuerySigma,ShiftSigma,CameraSensitivity,ResultMatchesInput [6]
-Semi-Crown: IdentificationMethod,MatchSigma,QuerySigma,ShiftSigma,CameraSensitivity,FalseStars,
-            ComparisonCount,ComponentError [8]
-Crown:      IdentificationMethod,MatchSigma,QuerySigma,ShiftSigma,CameraSensitivity,FalseStars,
-            ComparisonCount,BenchmarkSetSize,ResultSetSize,PercentageCorrectInCleanResultSet [10]
+....
 
 The first argument is the location of the log file. We can infer the type of trial from the fifth element of the header.
 
@@ -34,15 +28,15 @@ query_params = {"yll": iter([[0, 1.05], [0, 1.3]]),
                 "xal": iter(['Noise (Degrees)', 'Noise (Degrees)']),
                 "yal": iter(['P(Correct Star Set in Candidates)', r'$|$Candidate Set$|$'])}
 
-# Plot parameters for alignment trials.
+# Plot parameters for identification trials.
 # noinspection PyRedeclaration
-alignment_params = {"yll": iter([[0, 0.002], [0, 1]]),
-                    "xtl": iter([['6.0', '6.25', '6.5', '6.75', '7.0']] +
-                                [[r'$0$'] + [r'$10^{-6}$'] + [r'$10^{-5}$'] + [r'$10^{-4}$'] + [r'$10^{-3}$']]),
-                    "ll": iter([['Angle', 'Spherical Triangle', 'Planar Triangle', 'Pyramid', 'CoIn']
-                                for _ in range(2)]),
-                    "xal": iter([r'Camera Sensitivity (m)', 'Noise (Degrees)']),
-                    "yal": iter([r'Rotational Error' for _ in range(2)])}
+identification_params = {"yll": iter([[0, 0.002], [0, 1]]),
+                         "xtl": iter([['6.0', '6.25', '6.5', '6.75', '7.0']] +
+                                     [[r'$0$'] + [r'$10^{-6}$'] + [r'$10^{-5}$'] + [r'$10^{-4}$'] + [r'$10^{-3}$']]),
+                         "ll": iter([['Angle', 'Spherical Triangle', 'Planar Triangle', 'Pyramid', 'CoIn']
+                                     for _ in range(2)]),
+                         "xal": iter([r'Camera Sensitivity (m)', 'Noise (Degrees)']),
+                         "yal": iter([r'Rotational Error' for _ in range(2)])}
 
 # Plot parameters for reduction trials.
 # noinspection PyRedeclaration
@@ -101,7 +95,7 @@ def visualize_trial(angle_log, sphere_log, plane_log, pyramid_log, coin_log):
         if all(map(lambda a: len(a) == 5, attributes)):
             v.query_trial_plot(qu_ppv, logs, query_params)
         elif all(map(lambda a: a[4] == 'OptimalConfigRotation', attributes)):
-            v.alignment_trial_plot(al_ppv, logs, alignment_params)
+            v.identification_trial_plot(al_ppv, logs, identification_params)
         elif all(map(lambda a: len(a) == 6, attributes)):
             v.reduction_trial_plot(r_ppv, logs, reduction_params)
         elif all(map(lambda a: a[4] == 'CameraSensitivity' and len(a) == 8, attributes)):

@@ -12,7 +12,7 @@
 
 /// @brief Star identification class using pyramids.
 ///
-/// The pyramid class is an implementation of Motari's Pyramid method for alignment determination. This is one of the
+/// The pyramid class is an implementation of Motari's Pyramid method for identification. This is one of the
 /// six star identification procedures being tested.
 ///
 /// @example
@@ -23,12 +23,12 @@
 /// // Append 2 extra stars to the data-set above.
 /// b.add_extra_light(2);
 ///
-/// // Determine an alignment. 'A' contains the body set with catalog label attached.
-/// Star::list a = Angle(b, Pyramid::DEFAULT_PARAMETERS).align();
+/// // Determine an identification. 'A' contains the body set with catalog label attached.
+/// Star::list a = Pyramid(b, Pyramid::DEFAULT_PARAMETERS).identify();
 /// for (const Star &s : a) { std::cout << s.str(); << std::endl; }
 ///
-/// // Extract an attitude instead of an alignment.
-/// Rotation q = Angle(b, Pyramid::DEFAULT_PARAMETERS).find_attitude();
+/// // Extract an attitude instead of an identification.
+/// Rotation q = Pyramid(b, Pyramid::DEFAULT_PARAMETERS).align();
 /// @endcode
 class Pyramid : public Identification {
   public:
@@ -36,7 +36,7 @@ class Pyramid : public Identification {
     
     std::vector<labels_list> query (const Star::list &s);
     labels_list reduce ();
-    Star::list align ();
+    Star::list identify ();
     
     static int generate_table (double fov, const std::string &table_name);
     
@@ -68,7 +68,7 @@ class Pyramid : public Identification {
     Star::list common_stars (const label_list_pair &r_ab, const label_list_pair &r_ac, const Star::list &f);
     bool verification (const star_trio &r, const star_trio &b_f);
     star_trio find_candidate_trio (const star_trio &);
-    Star::list singular_alignment (const Star::list &b);
+    Star::list singular_identification (const Star::list &b);
 };
 
 #endif /* HOKU_PYRAMID_H */
