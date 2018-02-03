@@ -8,10 +8,10 @@
 /// Returned when no candidates are found from a query.
 const Identification::labels_list Identification::NO_CANDIDATES_FOUND = {-1, -1};
 
-/// Returned when there exists no confident alignment from an alignment trial.
-const Star::list Identification::NO_CONFIDENT_ALIGNMENT = {Star::define_label(Star::zero(), -1)};
+/// Returned when there exists no confident identity from an identification trial.
+const Star::list Identification::NO_CONFIDENT_IDENTITY = {Star::define_label(Star::zero(), -1)};
 
-/// Returned when we count past our defined max nu from a crown or alignment trial.
+/// Returned when we count past our defined max nu from a crown or identification trial.
 const Star::list Identification::EXCEEDED_NU_MAX = {Star::zero()};
 
 /// Default parameters for a general identification object.
@@ -53,13 +53,13 @@ Star::list Identification::find_matches (const Star::list &candidates, const Rot
     return matches;
 }
 
-/// Extends the alignment process by determining an attitude given the alignment results, and a solution to Wahba's
+/// Extends the identification process by determining an attitude given the identity results, and a solution to Wahba's
 /// problem.
 ///
 /// @return The rotation from the R set to the B set.
-Rotation Identification::find_attitude() {
-    // Perform the alignment procedure.
-    Star::list a = align(), inertial;
+Rotation Identification::align() {
+    // Perform the identification procedure.
+    Star::list a = identify(), inertial;
     
     // 'a' contains a list of labeled image stars. Determine the matching catalog stars.
     inertial.reserve(a.size());

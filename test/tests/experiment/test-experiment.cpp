@@ -33,11 +33,11 @@ TEST(ExperimentReduction, Trial) {
 
 }
 
-TEST(ExperimentAlignment, IsCorrectlyAligned) {
+TEST(ExperimentIdentification, IsCorrectlyIdentified) {
 
 }
 
-TEST(ExperimentAlignment, Trial) {
+TEST(ExperimentIdentification, Trial) {
 
 }
 

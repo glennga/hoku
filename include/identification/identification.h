@@ -12,7 +12,7 @@
 ///
 /// The identification class serves as an abstract base for other identification procedures (Angle, Pyramid, etc...).
 /// Contained in this class are shared members and functions between each identification procedure, as well as
-/// a method for 'completing' the attitude determination process `find_attitude()`.
+/// a method for 'completing' the attitude determination process `align()`.
 class Identification {
   public:
     // All identification methods must contain these parameters.
@@ -58,10 +58,10 @@ class Identification {
     
     virtual std::vector<labels_list> query (const Star::list &s) = 0;
     virtual labels_list reduce () = 0;
-    virtual Star::list align () = 0;
-    Rotation find_attitude();
+    virtual Star::list identify () = 0;
+    Rotation align();
     
-    static const Star::list NO_CONFIDENT_ALIGNMENT;
+    static const Star::list NO_CONFIDENT_IDENTITY;
     static const labels_list NO_CANDIDATES_FOUND;
     
     static const Star::list EXCEEDED_NU_MAX;

@@ -24,12 +24,12 @@
 /// // Append 2 extra stars to the data-set above.
 /// b.add_extra_light(2);
 ///
-/// // Determine an alignment. 'A' contains the body set with catalog label attached.
-/// Star::list a = Angle(b, Angle::DEFAULT_PARAMETERS).align();
+/// // Determine an identification. 'A' contains the body set with catalog label attached.
+/// Star::list a = Angle(b, Angle::DEFAULT_PARAMETERS).identify();
 /// for (const Star s : a) { std::cout << s.str(); << std::endl; }
 ///
-/// // Extract an attitude instead of an alignment.
-/// Rotation q = Angle(b, Angle::DEFAULT_PARAMETERS).find_attitude();
+/// // Extract an attitude instead of an identification.
+/// Rotation q = Angle(b, Angle::DEFAULT_PARAMETERS).align();
 /// @endcode
 class Angle : public Identification {
   public:
@@ -37,7 +37,7 @@ class Angle : public Identification {
     
     std::vector<labels_list> query (const Star::list &s);
     labels_list reduce ();
-    Star::list align ();
+    Star::list identify ();
     
     static int generate_table (double fov, const std::string &table_name);
     
@@ -53,7 +53,7 @@ class Angle : public Identification {
 #endif
     labels_list query_for_pair (double theta);
     Star::pair find_candidate_pair (const Star &b_a, const Star &b_b);
-    Star::list singular_alignment (const Star::list &candidates, const Star::list &r, const Star::list &b);
+    Star::list singular_identification (const Star::list &candidates, const Star::list &r, const Star::list &b);
 };
 
 #endif /* HOKU_ANGLE_H */

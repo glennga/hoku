@@ -211,8 +211,8 @@ TEST(SphereTrial, CleanReduction) {
     EXPECT_THAT(a.experiment_reduction(), UnorderedElementsAre(ell[0], ell[1], ell[2]));
 }
 
-/// Check that a clean input returns the expected alignment of stars.
-TEST(SphereTrial, CleanAlignment) {
+/// Check that a clean input returns the expected identification of stars.
+TEST(SphereTrial, CleanIdentify) {
     Chomp ch;
     Rotation q = Rotation::chance();
     Star focus = Star::chance();
@@ -229,7 +229,7 @@ TEST(SphereTrial, CleanAlignment) {
         ch.query_hip(input.stars[2].get_label())};
     
     Sphere a(Benchmark(b, Rotation::rotate(focus, q), 20), p);
-    Star::list f = a.experiment_alignment();
+    Star::list f = a.identify();
     EXPECT_THAT(f, Contains(Star::define_label(b[0], c[0].get_label())));
     EXPECT_THAT(f, Contains(Star::define_label(b[1], c[1].get_label())));
     EXPECT_THAT(f, Contains(Star::define_label(b[2], c[2].get_label())));

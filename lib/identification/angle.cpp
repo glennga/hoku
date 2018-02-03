@@ -115,23 +115,23 @@ Star::pair Angle::find_candidate_pair (const Star &b_a, const Star &b_b) {
 /// @param r Inertial (frame R) pair of stars that match body pair. This must be length = 2.
 /// @param b Body (frame B) pair of stars that match inertial pair. This must be length = 2.
 /// @return Body stars b with the attached labels of the inertial pair r.
-Star::list Angle::singular_alignment (const Star::list &candidates, const Star::list &r, const Star::list &b) {
+Star::list Angle::singular_identification (const Star::list &candidates, const Star::list &r, const Star::list &b) {
     if (r.size() != 2 || b.size() != 2) {
         throw "Input lists does not have exactly two stars.";
     }
-    std::array<Star::list, 2> matches = {}, alignments = {};
+    std::array<Star::list, 2> matches = {}, identities = {};
     
     // Determine the rotation to take frame B to A, find all matches with this rotation.
     for (unsigned int i = 0; i < 2; i++) {
-        // We define our alignment 'a' below.
+        // We define our identity 'a' below.
         std::array<int, 2> a = {(i == 0) ? 0 : 1, (i == 0) ? 1 : 0};
     
         matches[i] = find_matches(candidates, parameters.f({b[0], b[1]}, {r[a[0]], r[a[1]]}));
-        alignments[i] = {Star::define_label(b[0], r[a[0]].get_label()), Star::define_label(b[1], r[a[1]].get_label())};
+        identities[i] = {Star::define_label(b[0], r[a[0]].get_label()), Star::define_label(b[1], r[a[1]].get_label())};
     }
     
     // Return the body pair with the appropriate labels.
-    return (matches[0].size() > matches[1].size()) ? alignments[0] : alignments[1];
+    return (matches[0].size() > matches[1].size()) ? identities[0] : identities[1];
 }
 
 /// Reproduction of the Angle method's database querying. Input image is not used. We require the following be defined:
@@ -196,10 +196,10 @@ Angle::labels_list Angle::reduce () {
 ///
 /// @param input The set of benchmark data to work with.
 /// @param p Adjustments to the identification process.
-/// @return NO_CONFIDENT_ALIGNMENT if an alignment cannot be found exhaustively. EXCEEDED_NU_MAX if an alignment
-/// cannot be found within a certain number of query picks. Otherwise, body stars b with the attached labels
-/// of the inertial pair r.
-Star::list Angle::align () {
+/// @return NO_CONFIDENT_IDENTITY if an identification cannot be found exhaustively. EXCEEDED_NU_MAX if an
+/// identification cannot be found within a certain number of query picks. Otherwise, body stars b with the attached
+/// labels of the inertial pair r.
+Star::list Angle::identify () {
     *parameters.nu = 0;
     
     // There exists |input| choose 2 possibilities.
@@ -223,9 +223,9 @@ Star::list Angle::align () {
             candidates = ch.nearby_hip_stars(candidate_pair[0], fov, static_cast<unsigned int>(3 * input.size()));
             
             // Find the most likely pair combination given the two pairs.
-            return singular_alignment(candidates, {candidate_pair[0], candidate_pair[1]}, {input[i], input[j]});
+            return singular_identification(candidates, {candidate_pair[0], candidate_pair[1]}, {input[i], input[j]});
         }
     }
     
-    return NO_CONFIDENT_ALIGNMENT;
+    return NO_CONFIDENT_IDENTITY;
 }

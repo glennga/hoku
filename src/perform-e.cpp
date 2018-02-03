@@ -15,17 +15,17 @@
 ///
 /// - b query -> Run the query trials with the B method.
 /// - b reduction -> Run the reduction trials with the B method.
-/// - b alignment -> Run the alignment trials with the B method.
+/// - b identification -> Run the identification trials with the B method.
 ///
 /// To create lumberjack tables...
 /// - create-table query -> Create the query table in the lumberjack database.
 /// - create-table reduction -> Create the reduction table in the lumberjack database.
-/// - create-table alignment -> Create the alignment table in the lumberjack database.
+/// - create-table identification -> Create the identification table in the lumberjack database.
 /// @endcode{.cpp}
 /// @example
 /// @code{.cpp}
-/// # Run the alignment trials using the Angle method.
-/// RunTrial angle alignment
+/// # Run the identification trials using the Angle method.
+/// RunTrial angle identification
 /// @endcode
 
 #include <chrono>
@@ -40,7 +40,7 @@
 /// @param experiment_in Input given by the user, to identify the type of experiment table.
 /// @return Index of the name space below. 3 is given if the given input is not in the name space.
 int experiment_hash (const std::string &experiment_in) {
-    std::array<std::string, 5> space = {"query", "reduction", "alignment"};
+    std::array<std::string, 5> space = {"query", "reduction", "identification"};
     return static_cast<int> (std::distance(space.begin(), std::find(space.begin(), space.end(), experiment_in)));
 }
 
@@ -52,7 +52,7 @@ std::string experiment_table (const std::string &experiment_in) {
     switch (experiment_hash(experiment_in)) {
         case 0: return "QUERY";
         case 1: return "REDUCTION";
-        case 2: return "ALIGNMENT";
+        case 2: return "IDENTIFICATION";
         default: throw "Experiment name is not in the space of trial names.";
     }
 }
@@ -76,7 +76,7 @@ int create_lumberjack_table (const std::string &experiment_in) {
     switch (experiment_hash(experiment_in)) {
         case 0: return Lumberjack::create_table("QUERY", Experiment::Query::SCHEMA);
         case 2: return Lumberjack::create_table("REDUCTION", Experiment::Reduction::SCHEMA);
-        case 3: return Lumberjack::create_table("ALIGNMENT", Experiment::Alignment::SCHEMA);
+        case 3: return Lumberjack::create_table("IDENTIFICATION", Experiment::Identification::SCHEMA);
         default: throw "Experiment name is not in the space of trial names.";
     }
 }
@@ -94,7 +94,7 @@ void perform_trial (Lumberjack &lu, const std::string &identifier_in, const std:
     switch ((identifier_hash(identifier_in) * 5) + experiment_hash(experiment_in)) {
         case 0: return Experiment::Query::trial<Angle>(ch, lu, table_names[0]);
         case 1: return Experiment::Reduction::trial<Angle>(ch, lu, table_names[0]);
-        case 2: return Experiment::Alignment::trial<Angle>(ch, lu, table_names[0]);
+        case 2: return Experiment::Identification::trial<Angle>(ch, lu, table_names[0]);
         
         case 3: throw "Not implemented.";
         case 4: throw "Not implemented.";
@@ -102,15 +102,15 @@ void perform_trial (Lumberjack &lu, const std::string &identifier_in, const std:
         
         case 6: return Experiment::Query::trial<Sphere>(ch, lu, table_names[1]);
         case 7: return Experiment::Reduction::trial<Sphere>(ch, lu, table_names[1]);
-        case 8: return Experiment::Alignment::trial<Sphere>(ch, lu, table_names[1]);
+        case 8: return Experiment::Identification::trial<Sphere>(ch, lu, table_names[1]);
         
         case 9: return Experiment::Query::trial<Plane>(ch, lu, table_names[2]);
         case 10: return Experiment::Reduction::trial<Plane>(ch, lu, table_names[2]);
-        case 11: return Experiment::Alignment::trial<Plane>(ch, lu, table_names[2]);
+        case 11: return Experiment::Identification::trial<Plane>(ch, lu, table_names[2]);
         
         case 12: return Experiment::Query::trial<Pyramid>(ch, lu, table_names[3]);
         case 13: return Experiment::Reduction::trial<Pyramid>(ch, lu, table_names[3]);
-        case 14: return Experiment::Alignment::trial<Pyramid>(ch, lu, table_names[3]);
+        case 14: return Experiment::Identification::trial<Pyramid>(ch, lu, table_names[3]);
         
         case 15: throw "Not implemented.";
         case 16: throw "Not implemented.";
@@ -131,16 +131,16 @@ void perform_trial (Lumberjack &lu, const std::string &identifier_in, const std:
 /// - pyramid a -> Run trial A with the Pyramid method.
 ///
 /// - b query -> Run the query trials with the B method.
-/// - b first-alignment -> Run the first alignment trials with the B method.
+/// - b first-identification -> Run the first identification trials with the B method.
 /// - b reduction -> Run the reduction trials with the B method.
-/// - b alignment -> Run the alignment trials with the B method.
+/// - b identification -> Run the identification trials with the B method.
 /// - b crown -> Run the crown trials with the B method.
 ///
 /// To create lumberjack tables...
 /// - create-table query -> Create the query table in the lumberjack database.
-/// - create-table first-alignment -> Create the first alignment table in the lumberjack database.
+/// - create-table first-identification -> Create the first identification table in the lumberjack database.
 /// - create-table reduction -> Create the reduction table in the lumberjack database.
-/// - create-table alignment -> Create the alignment table in the lumberjack database.
+/// - create-table identification -> Create the identification table in the lumberjack database.
 /// - create-table crown -> Create the crown table in the lumberjack database.
 /// @endcode{.cpp}
 ///
@@ -168,8 +168,9 @@ int main (int argc, char *argv[]) {
         };
         
         if (!is_valid_arg(argv[1], {"angle", "interior", "sphere", "plane", "pyramid", "composite", "create-table"})
-            || !is_valid_arg(argv[2], {"query", "reduction", "alignment"})) {
-            std::cout << "Usage: RunTrial ['angle', ... , 'create-table'] ['query', ... , 'alignment']" << std::endl;
+            || !is_valid_arg(argv[2], {"query", "reduction", "identification"})) {
+            std::cout << "Usage: RunTrial ['angle', ... , 'create-table'] ['query', ... , 'identification']"
+                      << std::endl;
             return -1;
         }
     }

@@ -104,9 +104,9 @@ Identification::labels_list Sphere::reduce () {
 ///
 /// @param input The set of benchmark data to work with.
 /// @param p Adjustments to the identification process.
-/// @return NO_CONFIDENT_ALIGNMENT if an alignment cannot be found exhaustively. EXCEEDED_NU_MAX if an alignment
-/// cannot be found within a certain number of query picks. Otherwise, body stars b with the attached labels
-/// of the inertial pair r.
-Star::list Sphere::align () {
-    return e_alignment();
+/// @return NO_CONFIDENT_IDENTITY if an identification cannot be found exhaustively. EXCEEDED_NU_MAX if an
+/// identification cannot be found within a certain number of query picks. Otherwise, body stars b with the attached
+/// labels of the inertial pair r.
+Star::list Sphere::identify () {
+    return e_identify();
 }

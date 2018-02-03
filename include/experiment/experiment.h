@@ -17,7 +17,7 @@
 /// @code{.cpp}
 /// 1. Query
 /// 2. Reduction
-/// 3. Alignment
+/// 3. Identification
 /// @endcode
 namespace Experiment {
     const double WORKING_FOV = 20; ///< Field of view that all our test stars must be within.
@@ -139,14 +139,14 @@ namespace Experiment {
         }
     }
     
-    /// @brief Namespace that holds all parameters and functions to conduct the alignment experiment with.
+    /// @brief Namespace that holds all parameters and functions to conduct the identification experiment with.
     ///
-    /// The alignment experiment is used to characterize each identifier from start to alignment determination.
-    namespace Alignment {
-        /// Schema header that corresponds to the log file for all alignment trials.
+    /// The identification experiment is used to characterize each identifier from start to identification.
+    namespace Identification {
+        /// Schema header that corresponds to the log file for all identification trials.
         const char *const SCHEMA = "IdentificationMethod TEXT, Timestamp TEXT, SigmaQuery FLOAT, SigmaOverlay FLOAT, "
             "ShiftDeviation FLOAT, CameraSensitivity FLOAT, FalseStars INT, ComparisonCount INT, "
-            "IsCorrectlyAligned INT";
+            "IsCorrectlyIdentified INT";
         
         const double SQ_MIN = std::numeric_limits<double>::epsilon() * pow(3, 5); ///< Minimum query sigma.
         const double SO_MIN = std::numeric_limits<double>::epsilon() * 3; ///< Minimum match sigma.
@@ -161,12 +161,12 @@ namespace Experiment {
         const int ES_STEP = 5; ///< Step to increment extra stars with.
         const int ES_ITER = 5;  ///< Number of extra stars variations.
         
-        bool is_correctly_aligned (const Star::list &body, const Star::list &w);
+        bool is_correctly_identified (const Star::list &body, const Star::list &w);
         
-        /// Generic experiment function for the alignment trials. Performs a alignment trial and records the experiment
-        /// in the lumberjack. The provided Nibble connection is used for generating the input image.
+        /// Generic experiment function for the identification trials. Performs a identification trial and records the
+        /// experiment in the lumberjack. The provided Nibble connection is used for generating the input image.
         ///
-        /// @tparam T Identification class to perform alignment experiment with.
+        /// @tparam T Identification class to perform identification experiment with.
         /// @param ch Nibble connection used to generate the input image.
         /// @param lu Lumberjack connection used to record the results of each trial.
         /// @param table_name Name of the table used with the specified identifier.
@@ -178,7 +178,7 @@ namespace Experiment {
             Star focus;
             
             // Define our hyperparameters.
-            p.nu_max = 20000, p.sigma_overlay = Alignment::SO_MIN, p.sigma_query = Alignment::SQ_MIN;
+            p.nu_max = 20000, p.sigma_overlay = Identification::SO_MIN, p.sigma_query = Identification::SQ_MIN;
             p.table_name = table_name, p.nu = std::make_shared<unsigned int>(nu);
             
             for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
@@ -197,11 +197,12 @@ namespace Experiment {
                             input.add_extra_light(static_cast<unsigned int> ((e / (1 - e)) * clean_size));
                             
                             // Perform a single trial.
-                            Star::list w = T(input, p).align();
+                            Star::list w = T(input, p).identify();
                             
                             // Log the results of our trial.
-                            lu.log_trial({Alignment::SQ_MIN, Alignment::SO_MIN, ss, MB_MIN + mb_i * MB_STEP, e,
-                                             static_cast<double> (*p.nu), (is_correctly_aligned(body, w) ? 1.0 : 0)});
+                            lu.log_trial(
+                                {Identification::SQ_MIN, Identification::SO_MIN, ss, MB_MIN + mb_i * MB_STEP, e,
+                                    static_cast<double> (*p.nu), (is_correctly_identified(body, w) ? 1.0 : 0)});
                         }
                     }
                 }
