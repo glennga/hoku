@@ -22,12 +22,12 @@
 /// // Append 2 extra stars to the data-set above.
 /// b.add_extra_light(2);
 ///
-/// // Determine an alignment. 'A' contains the body set with catalog label attached.
-/// Star::list a = Angle(b, Plane::DEFAULT_PARAMETERS).align();
+/// // Determine an identification. 'A' contains the body set with catalog label attached.
+/// Star::list a = Plane(b, Plane::DEFAULT_PARAMETERS).identify();
 /// for (const Star &s : a) { std::cout << s.str(); << std::endl; }
 ///
-/// // Extract an attitude instead of an alignment.
-/// Rotation q = Angle(b, Plane::DEFAULT_PARAMETERS).find_attitude();
+/// // Extract an attitude instead of an identification.
+/// Rotation q = Plane(b, Plane::DEFAULT_PARAMETERS).align();
 /// @endcode
 class PlanarTriangle : public BaseTriangle {
   public:
@@ -38,7 +38,7 @@ class PlanarTriangle : public BaseTriangle {
     
     std::vector<labels_list> query (const Star::list &s);
     labels_list reduce ();
-    Star::list align ();
+    Star::list identify ();
     
     static int generate_table(double fov, const std::string &table_name);
   

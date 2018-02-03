@@ -1,4 +1,4 @@
-# Hoku (Lost-in-Space Star Alignment for Spacecraft)
+# Hoku (Lost-in-Space Star Identification for Spacecraft)
 
 ## Overview
 Ancient mariners could look up the night sky, point out what stars they were looking at, and navigate across the globe 
@@ -8,10 +8,10 @@ astronomical catalog. The device that performs these computations is the star tr
 ship. _Lost-in-space_ refers to an additional constraint on the problem: the absence of knowing where we took the 
 picture and how we pointed the camera.
 
-This repository holds research toward the analysis of various lost-in-space _star alignment_ procedures for spacecraft. 
-This includes a study of feature uniqueness, permutation order, candidate reduction, and alignment determination under 
-the introduction of various noise. The process of identifying blobs in an image, constructing the image coordinate 
-system, and efficiently querying static databases is __not__ addressed here. 
+This repository holds research toward the analysis of various lost-in-space _star identification_ procedures for 
+spacecraft. This includes a study of feature uniqueness, permutation order, candidate reduction, and identification 
+under the introduction of various noise. The process of identifying blobs in an image, constructing the image 
+coordinate system, and efficiently querying static databases is __not__ addressed here. 
 
 There has been an increasing number of approaches toward stellar attitude determination, but little comparison between
 each of these methods in a more controlled manner. Interchangeable factors are abstracted away (camera hardware, blob
@@ -60,7 +60,7 @@ and store this in `hoku/data`. This holds all the data each identification metho
 There exist three experiments in this research:
 1. Feature Uniqueness (`query`)
 2. Candidate Reduction (`reduction`)
-3. Alignment Determination (`alignment`)
+3. Identification (`identification`)
 
 There exist six different identification methods implemented here:
 1. Gottlieb's Angle Method (`angle`)
@@ -83,17 +83,17 @@ and grouped by the experiment timestamp. To view the results of these experiment
 
 TODO: Finish the `visualize_image.py` portion.
 
-## Star Alignment Procedure Usage
+## Star Identification Procedure Usage
 
-To use a star alignment procedure in another application (such as an actual star tracker), start by copying the entire 
-Hoku directory into your project. 
+To use a star identification procedure in another application (such as an actual star tracker), start by copying the 
+entire Hoku directory into your project. 
 
-Include the desired star alignment procedure you want to use:
+Include the desired star identification procedure you want to use:
 ```cpp
 #include "hoku/include/identification/angle.h"
 ```
 
-Example usage of Gottlieb's Angle alignment procedure is depicted below. 
+Example usage of Gottlieb's Angle identification procedure is depicted below. 
 ```cpp
 // Input: A std::vector (Star::list) of Star objects, representing stars as 3D vectors in 
 //        the image coordinate system.
@@ -123,7 +123,7 @@ p.nu = std::make_shared<unsigned int>(nu);
 
 // Output: A std::vector (Star::list) of Star objects, holding all stars in the image that were 
 //         identified, and with labels attached to them.
-Star::list output = Angle(input, p).align()
+Star::list output = Angle(input, p).identify()
 
 // To view the labels, use the 'get_label()' method for each Star.
 int ell_0 = output[0].get_label();

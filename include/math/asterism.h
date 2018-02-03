@@ -10,9 +10,9 @@
 #include "math/mercator.h"
 #include "math/star.h"
 
-/// @brief Feature and alignment class for a Astrometry.net star identification method.
+/// @brief Feature and identification class for a Astrometry.net star identification method.
 /// 
-/// The asterism class holds all feature and alignment computations necessary for the Astrometry.net method. A four
+/// The asterism class holds all feature and identification computations necessary for the Astrometry.net method. A four
 /// element hash code is retrieved from a quad of stars, and the order is determined using `find_order`.
 ///
 /// @example

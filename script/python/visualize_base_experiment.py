@@ -1,5 +1,5 @@
 """"
-This file is used to generate the base plots for each trial: Query, Alignment, Reduction, Semi-Crown and Crown.
+This file is used to generate the base plots for each trial: Query, Reduction, Identification
 """""
 
 import matplotlib.pyplot as plt
@@ -106,7 +106,7 @@ def query_trial_plot(ppv, log_sets, plot_params):
     plt.show()
 
 
-def alignment_trial_plot(ppv, log_sets, plot_params):
+def identification_trial_plot(ppv, log_sets, plot_params):
     """ For every log in log_sets (which hold sets of tuples), display a plot comparing each.
 
     The following plots are displayed: Camera Sensitivity vs. ||Original Star - Estimated Star||

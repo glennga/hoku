@@ -98,7 +98,7 @@ Star::list Pyramid::common_stars (const label_list_pair &r_ab, const label_list_
     return common.empty() ? NO_COMMON_FOUND : common;
 }
 
-/// Given the current alignment pair, select a random star in the image and verify that the alignment is correct.
+/// Given the current map pair, select a random star in the image and verify that the identification is correct.
 ///
 /// @param r Current reference star trio.
 /// @param b Current body star trio.
@@ -163,16 +163,15 @@ Pyramid::star_trio Pyramid::find_candidate_trio (const star_trio &b_f) {
     return r;
 }
 
-/// Alignment determination process for a single reference star and alignment trio.
+/// Identification determination process for a single reference star and identification trio.
 ///
-/// @param b Body (frame B) pair of stars that match the inertial pair. This must be of length =
-/// FIRST_ALIGNMENT_STAR_SET_SIZE.
-/// @return NO_CONFIDENT_ALIGNMENT if an alignment quad cannot be found. Otherwise, body stars b with the attached
+/// @param b Body (frame B) pair of stars that match the inertial pair.
+/// @return NO_CONFIDENT_IDENTITY if an identification quad cannot be found. Otherwise, body stars b with the attached
 /// labels of the inertial pair r.
-Star::list Pyramid::singular_alignment (const Star::list &b) {
+Star::list Pyramid::singular_identification (const Star::list &b) {
     star_trio r_quad = find_candidate_trio({b[0], b[1], b[2]});
     if (std::equal(r_quad.begin(), r_quad.end(), NO_CANDIDATE_TRIANGLE_FOUND.begin())) {
-        return NO_CONFIDENT_ALIGNMENT;
+        return NO_CONFIDENT_IDENTITY;
     }
     
     auto attach_label = [&b, &r_quad] (const int i) -> Star {
@@ -213,7 +212,7 @@ std::vector<Identification::labels_list> Pyramid::query (const Star::list &s) {
 }
 
 /// Finds the single, most likely result for the first four stars in our current benchmark. This trial is
-/// basically the same as the first alignment trials. Input image is used. We require the following to be defined:
+/// basically the same as the first identification trials. Input image is used. We require the following to be defined:
 ///
 /// @code{.cpp}
 ///     - table_name
@@ -224,8 +223,8 @@ std::vector<Identification::labels_list> Pyramid::query (const Star::list &s) {
 /// @return NO_CANDIDATES_FOUND if a candidate quad cannot be found. Otherwise, a single match configuration found
 /// by the angle method.
 Identification::labels_list Pyramid::reduce () {
-    Star::list c = singular_alignment({input[0], input[1], input[2]});
-    if (std::equal(c.begin(), c.end(), NO_CONFIDENT_ALIGNMENT.begin())) {
+    Star::list c = singular_identification({input[0], input[1], input[2]});
+    if (std::equal(c.begin(), c.end(), NO_CONFIDENT_IDENTITY.begin())) {
         return NO_CANDIDATES_FOUND;
     }
     return labels_list {c[0].get_label(), c[1].get_label(), c[2].get_label()};
@@ -244,15 +243,15 @@ Identification::labels_list Pyramid::reduce () {
 ///
 /// @param input The set of benchmark data to work with.
 /// @param p Adjustments to the identification process.
-/// @return NO_CONFIDENT_ALIGNMENT if an alignment cannot be found exhaustively. EXCEEDED_NU_MAX if an alignment
-/// cannot be found within a certain number of query picks. Otherwise, body stars b with the attached labels
-/// of the inertial pair r.
-Star::list Pyramid::align () {
+/// @return NO_CONFIDENT_IDENTITY if an identification cannot be found exhaustively. EXCEEDED_NU_MAX if an
+/// identification cannot be found within a certain number of query picks. Otherwise, body stars b with the attached
+/// labels of the inertial pair r.
+Star::list Pyramid::identify () {
     *parameters.nu = 0;
     
-    // This procedure will not work |input| < 4. Exit early with NO_CONFIDENT_ALIGNMENT.
+    // This procedure will not work |input| < 4. Exit early with NO_CONFIDENT_IDENTITY.
     if (input.size() < 4) {
-        return NO_CONFIDENT_ALIGNMENT;
+        return NO_CONFIDENT_IDENTITY;
     }
     
     // Otherwise, there exists |input| choose 3 possibilities. Looping specified in paper.
@@ -281,5 +280,5 @@ Star::list Pyramid::align () {
         }
     }
     
-    return NO_CONFIDENT_ALIGNMENT;
+    return NO_CONFIDENT_IDENTITY;
 }
