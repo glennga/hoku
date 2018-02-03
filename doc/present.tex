@@ -35,11 +35,10 @@
         \frametitle{Research Goal: Characterization}
         \begin{block}{Lost-in-Space Attitude Determination Process}
             \begin{enumerate}
-                \item Given an image of stars. \medskip
-                \item \textbf{Identify a select few stars in the image.} \medskip
-                \item Guess how we are oriented. \medskip
-                \item Identify the rest of the stars in the image. \medskip
-                \item Finalize and determine our orientation. \medskip
+                \item Given an image of stars \medskip
+                \item Move stars to a 3D coordinate frame \medskip
+                \item \textbf{Identify a select few stars in the image} \medskip
+                \item Determine how we are oriented \medskip
             \end{enumerate}
         \end{block} \bigskip
         What is the most optimal identification process?
@@ -56,7 +55,7 @@
     \begin{frame}
         \frametitle{Relevancy: Spacecraft Attitude}
         \begin{definition}
-            Attitude determination = process of finding one's \textit{orientation} in space.
+            Attitude determination = process of finding one's \textit{orientation} in space
         \end{definition} \medskip
         \begin{columns}
             \begin{column}{0.5\textwidth}
@@ -152,12 +151,12 @@
         \begin{figure}
             \begin{columns}
                 \begin{column}{0.4\linewidth}
-                    \centering{\vspace*{-5pt}\scalebox{.55}{\input{generic-identification}}}
+                    \centering{\scalebox{.53}{\input{generic-identification}}}
                 \end{column}
                 \begin{column}{0.6\linewidth}
                     \caption{Flowchart depicting flow of general identification method} \bigskip
                     \begin{enumerate}
-                        \item \textit{Search Catalog} $=$ Query Step \medskip
+                        \item \textit{Search Catalog} $=$ Query w/ Features Step \medskip
                         \item \textit{Filter Candidates} $=$ Reduction Step \medskip
                         \item \textit{Identify} $=$ Identification Step \medskip
                     \end{enumerate}
@@ -200,15 +199,15 @@
         \begin{columns}
             \begin{column}{0.5\textwidth}
                 \begin{block}{Problem}
-                    Gathering image data and characterizing error is hard
+                    Gathering image data and characterizing error is hard :(
                 \end{block} \medskip
                 \begin{block}{Solution}
                     Generate artifical images!
                     \begin{itemize}
                         \item Uses real stars from Hipparcos star catalogue
                         \item Work entirely in 3D frame
-                        \item Represents rotated celestial sphere
                         \item An image center and field-of-view are specified
+                        \item Can apply artificial error (centroiding, false stars)
                     \end{itemize}
                 \end{block}
             \end{column}
@@ -222,27 +221,49 @@
     \subsection{Query Experiment}\label{subsec:queryExperiment}
     \begin{frame}
         \frametitle{Query Experiment}
-        \begin{block}{Question:}
+        \begin{block}{Question}
             Which set of features most accurately distinguish a set of stars?
+        \end{block} \medskip
+        \begin{block}{Experiment}
+            \begin{enumerate}
+                \item Generate image of stars $I$
+                \item Apply noise to image
+                \item Run identification before reduction step (giving $R$) \textit{once}
+                \item Check if $R$ contains the correct stars (denoted 'hit')
+                \item Repeat for different image
+            \end{enumerate}
         \end{block}
-        \begin{enumerate}
-            \item Analysis in terms of
-        \end{enumerate}
     \end{frame}
 
     \subsection{Reduction Experiment}\label{subsec:reductionExperiment}
     \begin{frame}
         \frametitle{Reduction Experiment}
-        \begin{block}{Question:}
+        \begin{block}{Question}
             What is the best process for reducing a set of catalog candidates?
+        \end{block} \bigskip
+        \begin{block}{Experiment}
+            \begin{enumerate}
+                \item Generate image of stars $I$
+                \item Apply noise to image
+                \item Run identification before identification step (giving $r$)
+                \item Check if $r$ contains correct stars in $I$ ('hits')
+            \end{enumerate}
         \end{block}
     \end{frame}
 
     \subsection{Identification Experiment}\label{subsec:identificationExperiment}
     \begin{frame}
         \frametitle{Identification Experiment}
-        \begin{block}{Question:}
+        \begin{block}{Question}
             Which identification method can most accurately determine a map?
+        \end{block} \bigskip
+        \begin{block}{Experiment}
+            \begin{enumerate}
+                \item Generate image of stars $I$
+                \item Apply noise to image
+                \item Run identification method end to end (giving $a$)
+                \item Check if $a$ is a correct map
+            \end{enumerate}
         \end{block}
     \end{frame}
 
