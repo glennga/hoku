@@ -7,6 +7,19 @@
 
 \usetikzlibrary{shapes.geometric, arrows}
 
+\makeatletter
+\newcommand\fs@norules{\def\@fs@cfont{\bfseries}\let\@fs@capt\floatc@ruled
+\def\@fs@pre{}%
+\def\@fs@post{}%
+\def\@fs@mid{\kern3pt}%
+\let\@fs@iftopcapt\iftrue}
+\makeatother
+
+\algnewcommand{\LineComment}[1]{\State \(\triangleright\) #1}
+
+\floatstyle{norules}
+\restylefloat{algorithm}
+
 \title{Analysis of Lost-in-Space Star Identification Algorithms}
 \author{Glenn Galvizo \\ University of Hawaii at Manoa} \date{\today}
 

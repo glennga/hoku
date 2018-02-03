@@ -1,0 +1,268 @@
+\documentclass[11pt]{beamer}
+\usetheme{Malmoe}
+\usefonttheme[onlymath]{serif}
+
+\usepackage{graphicx} \usepackage{url} \usepackage{hyperref} \usepackage{caption} \usepackage{amsmath}
+\usepackage{amssymb} \usepackage{array} \usepackage{listings} \usepackage{color} \usepackage{textcomp}
+\usepackage[utf8]{inputenc} \usepackage{natbib} \usepackage{algorithm} \usepackage{tikz}
+\usepackage[noend]{algpseudocode} \usepackage{csquotes}
+
+\usetikzlibrary{shapes.geometric, arrows}
+
+\setbeamercovered{transparent}
+\setbeamertemplate{navigation symbols}{}
+\setbeamerfont{page number in head/foot}{size=\fontsize{9}{11}}
+\setbeamertemplate{footline}[frame number]
+\setbeamertemplate{section in toc}{\inserttocsectionnumber.~\inserttocsection}
+
+\author{Glenn Galvizo}
+\title{Analysis of Lost-in-Space Star Identification Methods}
+\institute{University of Hawaii at Manoa - Advisor: Dr. Lipyeow Lim}
+
+\begin{document}
+    \begin{frame}
+        \titlepage
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Overview}
+        \tableofcontents
+    \end{frame}
+
+    \section{Background}\label{sec:background}
+    \subsection{Problem Statement}\label{subsec:problemStatement}
+    \begin{frame}
+        \frametitle{Research Goal: Characterization}
+        \begin{block}{Lost-in-Space Attitude Determination Process}
+            \begin{enumerate}
+                \item Given an image of stars. \medskip
+                \item \textbf{Identify a select few stars in the image.} \medskip
+                \item Guess how we are oriented. \medskip
+                \item Identify the rest of the stars in the image. \medskip
+                \item Finalize and determine our orientation. \medskip
+            \end{enumerate}
+        \end{block} \bigskip
+        What is the most optimal identification process?
+    \end{frame}
+
+    \subsection{Importance}\label{subsec:importance}
+    \begin{frame}
+        \frametitle{Roots: Ancient Navigation}
+        \centerline{\includegraphics[scale=0.16]{images/hokulea}}
+        \centerline{\textit{Stars provide a lot of positional information!}}
+    \end{frame}
+
+    % Taking a step back. Going to talk about attitude determination.
+    \begin{frame}
+        \frametitle{Relevancy: Spacecraft Attitude}
+        \begin{definition}
+            Attitude determination = process of finding one's \textit{orientation} in space.
+        \end{definition} \medskip
+        \begin{columns}
+            \begin{column}{0.5\textwidth}
+                \begin{itemize}
+                    \item Craft uses orientation to: \medskip
+                    \begin{enumerate}
+                        \item Orient solar panels
+                        \item Direct thrusters
+                        \item Position payload
+                    \end{enumerate} \medskip
+                    \item Ancient navigator analogy: \medskip
+                    \begin{enumerate}
+                        \item Navigator $\leftrightarrow$ Computer
+                        \item Eyes $\leftrightarrow$ Camera
+                        \item Methods $\leftrightarrow$ Algorithm
+                    \end{enumerate}
+                \end{itemize}
+            \end{column}
+            \begin{column}{0.5\textwidth}
+                \centering{\includegraphics[scale=0.35]{images/spacecraft-attitude}}
+            \end{column}
+        \end{columns}
+    \end{frame}
+
+    \subsection{Spacecraft Attitude Problem}\label{subsec:spacecraftAttitudeProblem}
+    \begin{frame}
+        \frametitle{Attitude Determination}
+        \begin{columns}
+            \begin{column}{0.5\textwidth}
+                \begin{itemize}
+                    \item $A \gets$ inertial frame \bigskip
+                    \item $B \gets$ body frame \bigskip
+                    \item $X_A \gets$ known location in $A$ \bigskip
+                    \item $X_B \gets$ observation in $B$ \bigskip
+                \end{itemize}
+            \end{column}
+            \begin{column}{0.55\textwidth}
+                \centering{\includegraphics[scale=0.2]{images/moving-coordinate-systems.PNG}}
+            \end{column}
+        \end{columns} \bigskip
+        \centering{\textit{Goal: Find rotation $X_{AB}$ to take $A$ points to $B$}}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Stellar Attitude Determination}
+        \begin{columns}
+            \begin{column}{0.5\textwidth}
+                \centering{\includegraphics[scale=0.4]{images/phone-accelerometer.png}} \\
+                \textbf{Earth: \\} Use Acceleration Toward Earth
+            \end{column}
+            \begin{column}{0.5\textwidth}
+                \centering{\includegraphics[scale=0.335]{images/star-tracker-lens.png}} \\
+                \textbf{Space (LEO): \\} Use Stellar Objects (Sun, Stars)
+            \end{column}
+        \end{columns}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Wahba's Problem}
+        \begin{definition}
+            Wahba's Problem = Finding rotation $X_{AB}$ to take frame $A$ to $B$, using set of observations in both
+            frames
+        \end{definition} \bigskip
+        \begin{itemize}
+            \item Observations in $A$ are ($X_A, X'_A, X''_A, \ldots$) \medskip
+            \item Observations in $B$ are ($X_B, X'_B, X''_B, \ldots$) \medskip
+            \item $X_A$ maps to $X_B$, $X'_A$ maps to $X'_B$, \ldots \bigskip \bigskip
+            \item \textbf{Requires two sets of observations to solve} \medskip
+            \item Known approaches: TRIAD, Q-Method (Newton), QUEST
+        \end{itemize}
+    \end{frame}
+
+    % https://www.w3.org/TR/orientation-sensor/images/absolute_orientation_sensor_coordinate_system.png
+    % https://www.researchgate.net/profile/Haibo_Liu_12/publication/252685563/figure/fig1/AS:298171570900992
+    %       @1448101050111/Fig-1-Measurement-model-of-star-tracker.png
+
+    \section{Identification Algorithms}\label{sec:identificationAlgorithms}
+    \begin{frame}
+        \begin{block}{Question}
+            How do we match image stars (body) to catalog stars (inertial)?
+        \end{block}
+        \begin{block}{Answer}
+            A star identification algorithm!
+        \end{block}
+        \begin{figure}
+            \hspace*{-30pt}\centering{\includegraphics[scale=0.37]{images/star-identification.png}}
+            \caption{Depicts mapping of stars in image (left, in yellow) to stars in catalog (right, in blue)}
+        \end{figure}
+    \end{frame}
+
+    \subsection{Generic Identification}\label{subsec:genericIdentification}
+    \begin{frame}
+        \begin{figure}
+            \begin{columns}
+                \begin{column}{0.4\linewidth}
+                    \centering{\vspace*{-5pt}\scalebox{.55}{\input{generic-identification}}}
+                \end{column}
+                \begin{column}{0.6\linewidth}
+                    \caption{Flowchart depicting flow of general identification method} \bigskip
+                    \begin{enumerate}
+                        \item \textit{Search Catalog} $=$ Query Step \medskip
+                        \item \textit{Filter Candidates} $=$ Reduction Step \medskip
+                        \item \textit{Identify} $=$ Identification Step \medskip
+                    \end{enumerate}
+                \end{column}
+            \end{columns}
+        \end{figure}
+    \end{frame}
+
+    \subsection{Existing Implementations}\label{subsec:existingImplementations}
+    \begin{frame}
+        \frametitle{Popular Approaches to Star Identification}
+        \begin{table}
+            \centering{\tiny\hspace*{-10pt}\input{summary-table}} \bigskip \bigskip
+            \centering{
+            \caption{
+            Overview table of the different identification methods.
+            Each method's image features, reduction process, identification process is displayed.
+            } \label{tab:identificationMethodOverview}
+            }
+        \end{table}
+    \end{frame}
+
+    \section{Methodology}\label{sec:methodology}
+    \begin{frame}
+        \frametitle{Experiment Overview}
+        \begin{block}{Research Goal}
+            What is the most optimal identification process?
+        \end{block} \bigskip \bigskip
+        Which method has the best \ldots
+        \begin{enumerate}
+            \item Query process? \medskip
+            \item Reduction process? \medskip
+            \item Identification process? \medskip
+        \end{enumerate}
+    \end{frame}
+
+    \subsection{Image Generation}\label{subsec:imageGeneration}
+    \begin{frame}
+        \frametitle{Benchmark Image Generation}
+        \begin{columns}
+            \begin{column}{0.5\textwidth}
+                \begin{block}{Problem}
+                    Gathering image data and characterizing error is hard
+                \end{block} \medskip
+                \begin{block}{Solution}
+                    Generate artifical images!
+                    \begin{itemize}
+                        \item Uses real stars from Hipparcos star catalogue
+                        \item Work entirely in 3D frame
+                        \item Represents rotated celestial sphere
+                        \item An image center and field-of-view are specified
+                    \end{itemize}
+                \end{block}
+            \end{column}
+            \begin{column}{0.5\textwidth}
+                \hspace*{-2pt}\centering{\includegraphics[scale=0.3]{images/benchmark.png}}
+            \end{column}
+        \end{columns}
+
+    \end{frame}
+
+    \subsection{Query Experiment}\label{subsec:queryExperiment}
+    \begin{frame}
+        \frametitle{Query Experiment}
+        \begin{block}{Question:}
+            Which set of features most accurately distinguish a set of stars?
+        \end{block}
+        \begin{enumerate}
+            \item Analysis in terms of
+        \end{enumerate}
+    \end{frame}
+
+    \subsection{Reduction Experiment}\label{subsec:reductionExperiment}
+    \begin{frame}
+        \frametitle{Reduction Experiment}
+        \begin{block}{Question:}
+            What is the best process for reducing a set of catalog candidates?
+        \end{block}
+    \end{frame}
+
+    \subsection{Identification Experiment}\label{subsec:identificationExperiment}
+    \begin{frame}
+        \frametitle{Identification Experiment}
+        \begin{block}{Question:}
+            Which identification method can most accurately determine a map?
+        \end{block}
+    \end{frame}
+
+    \section{Conclusion}\label{sec:conclusion}
+    \begin{frame}
+        \frametitle{Conclusion}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Acknowledgments}
+        \begin{itemize}
+            \item Dr. Lipyeow Lim \medskip
+            \item Hawaii Space Flight Laboratory \medskip
+            \item Undergraduate Research Opportunities Program \medskip
+            \item Undergraduate Showcase \medskip
+            \item The Audience \medskip
+        \end{itemize}
+    \end{frame}
+
+    \begin{frame}
+        \centering{\huge{Questions?}}
+    \end{frame}
+\end{document}
