@@ -4,13 +4,13 @@
 Each identification method is presented with an image $I$ of all the stars in the image reference frame.
 The goal of each method is to find some mapping between the \textit{subset} of the image star vectors $b$ and a subset
 of the catalog star vectors $r$.
-This mapping will be denoted as $a$, for alignment.
+This mapping will be denoted as $a$.
 Complete identification of the all stars in each image is not the focus.
 
 Every algorithm starts with some combination $c$ from all possible $k$ combinations of $|I|$ stars $C_k^{|I|}$, where
 $k = $ the size of the image subset that specific identification method uses.
 A set of stars from the image $b$ is selected using the current combination $c$.
-For an identification method that uses $k=2$ stars to determine the alignment in an image of $|I|=4$ stars, the
+For an identification method that uses $k=2$ stars to determine the mapping in an image of $|I|=4$ stars, the
 combinations of $I$ are:
 \begin{equation}
     C_2^4 \text{ combinations of } I = \{(I_0, I_1), (I_0, I_2), \ldots, (I_3, I_4)\}
@@ -26,7 +26,7 @@ in~\autoref{eq:catalogCandidateExample}:
 \end{equation}
 
 Through some filter process, a single set $r$ from $R$ is then selected.
-If all of these steps are successful, then the alignment $a$ between $r$ and $b$ is determined and returned.
+If all of these steps are successful, then the map $a$ between $r$ and $b$ is determined and returned.
 Otherwise, a new combination $c$ is selected and the entire process is repeated.
 This process is detailed in~\autoref{figure:genericIdentificationMethodFlowchart}.
 
@@ -35,7 +35,7 @@ This process is detailed in~\autoref{figure:genericIdentificationMethodFlowchart
     \input{generic-identification}
     \caption{
     Flowchart depicting a general star identification process.
-    Given an image $I$, this processes returns an alignment $a$ mapping some subset of the input $b$ to a subset of
+    Given an image $I$, this processes returns an map $a$ pairing some subset of the input $b$ to a subset of
     the catalog $r$.
     } \label{figure:genericIdentificationMethodFlowchart}
     }
@@ -51,7 +51,7 @@ This process is detailed in~\autoref{figure:genericIdentificationMethodFlowchart
 %        \State $b \gets \{I(c_1), I(c_2), I(c_3), \dots, I(r_k)\}$
 %        \State $R \gets $ catalog star sets, each set of size $=k$
 %        \State $r \gets $ a single set from $R$ that matches $b$
-%        \State $a \gets $ an alignment between $b$ and $r$
+%        \State $a \gets $ a map between $b$ and $r$
 %        \\
 %        \If{the steps above are successful}
 %        \State \textbf{return} $a$
@@ -81,7 +81,7 @@ Assuming the noise follows a Gaussian distribution, it follows that 99.7\% of al
 If there exists more than one catalog pair after this reduction, then this process is repeated for
 $\theta^{13}, \theta^{14}, \dots,$ and so on until a unique pair is found or all possible pairs in the image
 have been exhausted.
-To determine an alignment, a \textit{direct match test} (DMT) is performed.
+To determine an mapping, a \textit{direct match test} (DMT) is performed.
 
 \begin{algorithm}
     \caption{Angle Identification Method} \label{algorithm:angleIdentification}
@@ -105,7 +105,7 @@ To determine an alignment, a \textit{direct match test} (DMT) is performed.
 \end{algorithm}
 
 Tappe (citation here) specifies this DMT method, which extracts an attitude after running this candidate finding step.
-Given an image star pair $(b_i, b_j)$ and a catalog star pair $(r_i, r_j)$, an alignment is proposed:
+Given an image star pair $(b_i, b_j)$ and a catalog star pair $(r_i, r_j)$, an map is proposed:
 \begin{equation}
     a_1 = (b_i \rightarrow r_i, b_j \rightarrow r_j)
 \end{equation}
@@ -113,19 +113,19 @@ Given an image star pair $(b_i, b_j)$ and a catalog star pair $(r_i, r_j)$, an a
 Wahba's problem (extracting an attitude given vector observations in two coordinate systems) is then solved using the
 TRIAD method.
 This gives a rotation $q_1$ between the image and catalog frames.
-This process is repeated for the other possible alignment to obtain a second rotation $q_2$:
+This process is repeated for the other possible map to obtain a second rotation $q_2$:
 \begin{equation}
     a_2 = (b_i \rightarrow r_j, b_j \rightarrow r_i)
 \end{equation}
 
 The most likely attitude is determined by predicting which entries in the catalog represent stars in the image using
 $q_1$ and $q_2$.
-The alignment with the most correctly predicted stars is then returned as the resulting attitude.
+The mapping with the most correctly predicted stars is then returned as the resulting attitude.
 The general form for this function (accepting an $B$ and $R$ of arbitrary size) is described in
 algorithm~\ref{algorithm:angleHelper}.
 
 \begin{algorithm}
-    \caption{Functions for Angle Method} \label{algorithm:angleHelper}
+    \caption{Functions for Angle Method}\label{algorithm:angleHelper}
     \begin{algorithmic}[1]
         \Function{DMT}{$b, r$}
         \State $A \gets $ all possible permutations between $b$ and $r$
@@ -135,7 +135,7 @@ algorithm~\ref{algorithm:angleHelper}.
         \State $M \gets M ||$ (stars correctly predicted with $q$)
         \EndFor
         \\
-        \State \textbf{return} alignment $a$ associated with \Call{Max}{$M$}
+        \State \textbf{return} map $a$ associated with \Call{Max}{$M$}
         \EndFunction
     \end{algorithmic}
 \end{algorithm}
@@ -150,7 +150,7 @@ These are denoted as $\theta^1, \theta^2,$ and $\phi$ respectively.
 
 The additional constraint that $\theta^1 < \theta^2$ is imposed before proceeding.
 If this is not true, then stars $b_1$ and $b_2$ are swapped and this process is repeated.
-By adding this restriction to the catalog search, a star alignment procedure (e.g.\ Tappe's direct match test) is no
+By adding this restriction to the catalog search, a star mapping procedure (e.g.\ Tappe's direct match test) is no
 longer required.
 
 \begin{subequations}
@@ -294,18 +294,18 @@ defines $R_1 = \emptyset$, which requires a "check" on lines 2 and 3 of algorith
     \end{algorithmic}
 \end{algorithm}
 
-Cole and Crassidus do not specify alignment determination steps, so Tappe's DMT process is used to complete the star
+Cole and Crassidus do not specify identification steps, so Tappe's DMT process is used to complete the star
 identification process.
-Given an image star trio $(b_i, b_j, b_k)$ and a catalog star trio $(r_i, r_j, r_k)$, an alignment is proposed:
+Given an image star trio $(b_i, b_j, b_k)$ and a catalog star trio $(r_i, r_j, r_k)$, an map is proposed:
 \begin{equation}
     a_1 = (s_i \rightarrow r_i, b_j \rightarrow r_j, b_k \rightarrow r_k)
 \end{equation}
 
 \begin{subequations}
-    \label{eq:trianglePossibleAlignments}
+    \label{eq:trianglePossibleMaps}
     The TRIAD method only uses two vector observations from each frame, meaning that the $b_k \rightarrow r_k$ map is
     disregarded as the first rotation $q_1$ is computed.
-    This process is repeated for all 5 other possible alignments to get $q_2, q_3, \dots, q_6$.
+    This process is repeated for all 5 other possible mappings to get $q_2, q_3, \dots, q_6$.
     \begin{align}
         a_1 &= (s_i \rightarrow r_i, b_j \rightarrow r_j, b_k \rightarrow r_k) \\
         a_2 &= (s_i \rightarrow r_i, b_j \rightarrow r_k, b_k \rightarrow r_j) \\
@@ -341,7 +341,7 @@ condition~\eqref{eq:angleRequirement} holds for each respective $\theta$.
 The common stars between each of these pairs inside $R$ is then determined, yielding $T^1, T^2, $ and $T^3$.
 If there exists a sole element inside each $T$, then a secondary verification involving guessing a nearby star is
 performed.
-Once this verification step is past, an alignment is then returned.
+Once this verification step is past, a map is then returned.
 This entire process is described in algorithm~\ref{algorithm:pyramidIdentification}.
 
 \begin{algorithm}
@@ -449,11 +449,11 @@ condition~\eqref{eq:triangleRequirement} hold.
 
 Unlike the triangle methods, no pivot is performed.
 This searching process is repeated until a unique $R$ is found.
-Toloei does not specify an attitude determination method, and an alignment cannot be determined using common
+Toloei does not specify an attitude determination method, and a map cannot be determined using common
 stars like the Pyramid method.
 To bridge this gap, Tappe's DMT process is used in the same manner as the Triangle methods.
-With an alignment determined, the secondary verification step involving guessing a nearby star is performed.
-If this verification step passes, then an alignment returned.
+With a map determined, the secondary verification step involving guessing a nearby star is performed.
+If this verification step passes, then the mapping is returned.
 This entire process is described in algorithm~\ref{algorithm:compositePyramidIdentification}.
 
 \begin{algorithm}
@@ -495,7 +495,7 @@ This entire process is described in algorithm~\ref{algorithm:compositePyramidIde
 To second verification step is denoted as \Call{CompositeVerify}{$b, r, a, I$} in
 algorithm~\ref{algorithm:compositePyramidHelpers}.
 $b$ and $r$ are given an arbitrary order.
-The actual alignment is determined by $a$, yielding $b^{\star}$ and $r^{\star}$ whose stars $i, j, k$ map to each other.
+The actual map is determined by $a$, yielding $b^{\star}$ and $r^{\star}$ whose stars $i, j, k$ pair with each other.
 
 Like the Pyramid verification function, this verification starts by selecting a nearby star to $b$ in the image $b_e$.
 The planar area and moment are computed for the trios $(b_e, b_i, b_j)$, $(b_e, b_i, b_k)$, and $(b_e, b_j, b_k)$.
@@ -508,8 +508,8 @@ The same function \Call{Common}{$R^{ab}, R^{ac}$} from the Pyramid method is use
     \begin{algorithmic}[1]
         \Function{CompositeVerify}{$b, r, a, I$}
         \State $b_e \gets $ star in image $I$ not in $b$
-        \State $b^{\star} \gets $ stars in $b$ aligned using $a$
-        \State $r^{\star} \gets $ stars in $r$ aligned using $a$
+        \State $b^{\star} \gets $ stars in $b$ mapped using $a$
+        \State $r^{\star} \gets $ stars in $r$ mapped using $a$
 
         \State $R^{eij} \gets $ catalog trios that meet~\eqref{eq:triangleRequirement} with $(b_e, b^{\star}_i,
         b^{\star}_j)$
@@ -531,25 +531,11 @@ The same function \Call{Common}{$R^{ab}, R^{ac}$} from the Pyramid method is use
 \end{algorithm}
 
 \begin{table*}[ht]
-    \centering {
+    \centering{
     \caption{
     Overview table of the different identification methods.
-    Each method's image features, reduction process, and alignment process is displayed.
+    Each method's image features, reduction process, identification process is displayed.
     } \label{tab:identificationMethodOverview}
-    \begin{tabular}{  m{0.22\linewidth} || m{0.21\linewidth} | m{0.21\linewidth} | m{0.24\linewidth} }
-        & \textbf{Image Features} & \textbf{Reduction} & \textbf{Alignment} \\
-        \hline \hline
-        \textbf{Angle} & $\theta^{ij}$ & Require $|R|=1$ & \Call{DMT}{$b, r$} \\ \hline
-        \textbf{Interior Angle} & $\theta^{ic}, \theta^{jc}, \phi$ & Require $|R| = 1$ & Restrict $\theta^{ic},
-        \theta^{jc}$ at Query Time \\ \hline
-        \textbf{Spherical Triangle} & Spherical $a^{ijk}, \imath^{ijk}$ & \Call{Pivot}{$b_i, b_j, b_k, R_1$} &
-        \Call{DMT}{$b, r$} \\ \hline
-        \textbf{Planar Triangle} & Planar $a^{ijk}, \imath^{ijk}$ & \Call{Pivot}{$b_i, b_j, b_k, R_1$} &
-        \Call{DMT}{$b, r$} \\ \hline
-        \textbf{Pyramid} & $\theta^{ij}, \theta^{ik}, \theta^{jk}$ & Require $|R| = 1$ &
-        \Call{Common}{$R^{ab}, R^{ac}, F$}, \newline \Call{PyramidVerify}{$r, b, I$} \\ \hline
-        \textbf{Composite Pyramid} & Planar $a^{ijk}, \imath^{ijk}$ & Require $|R| = 1$ & \Call{DMT}{$b, r$}, \newline
-        \Call{CompositeVerify}{$r, b, a, I$}
-    \end{tabular}
+    \input{summary-table}
     }
 \end{table*}
