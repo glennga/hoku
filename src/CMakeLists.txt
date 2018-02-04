@@ -14,7 +14,6 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 add_executable(GenerateN generate-n.cpp)
 target_link_libraries(GenerateN ${HOKU_LIBS})
 
-
 ##################################################################
 # Link and Create Executable PerformE
 ##################################################################
