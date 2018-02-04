@@ -70,3 +70,20 @@ Rotation Identification::align() {
     // Return the result of applying the Wahba solver with the image and catalog stars.
     return parameters.f(inertial, a);
 }
+
+/// Extends the identification process by attempting to identify all stars in the image.
+///
+/// @return List of all identified stars.
+Star::list Identification::identify_all () {
+    // Perform the identification procedure.
+    Star::list a = identify(), inertial;
+    
+    // 'a' contains a list of labeled image stars. Determine the matching catalog stars.
+    inertial.reserve(a.size());
+    for (const Star &s : a) {
+        inertial.push_back(ch.query_hip(s.get_label()));
+    }
+    
+    // Return the result of applying the Wahba solver and finding all matches with this.
+    return find_matches(inertial, parameters.f(inertial, a));
+}

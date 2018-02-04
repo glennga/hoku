@@ -1,43 +1,36 @@
-/// @file generate-n.cpp
+/// @file run-identify.cpp
 /// @author Glenn Galvizo
 ///
-/// Source file for the Nibble database generator. This populates all of the tables required for testing. This would
-/// a really long time to run all at once, so we call the binary produced by this with an argument of which table to
-/// produce.
-///
+/// Performs the 'identify' method to identify a set of stars, given a CSV describing the image. User can specify
+/// which identification method should be used. The CSV should be formatted as such:
 /// @code{.cpp}
-/// - bright -> Produce the bright stars (< 6.0) table from the Hipparcos catalog.
-/// - hip -> Produce the hip stars (no magnitude restriction) table from the Hipparcos catalog.
-/// - angle -> Produce table for Angle method.
-/// - interior -> Produce table for InteriorAngle method.
-/// - sphere -> Produce table for SphericalTriangle method.
-/// - plane -> Produce table for PlanarTriangle method.
-/// - pyramid -> Produce table for Pyramid method.
-/// - composite -> Produce table for CompositePyramid method.
+/// # Image center is specified FIRST. Following stars are specified with reference to this point:
+/// [x-coordinate],[y-coordinate],[z-coordinate]
 ///
-/// - x k -> Produce K-Vector table for the given method (invalid for bright and hip).
-/// - x d -> Delete all tables for the given method.
+/// # All stars in image follow the center. TODO: figure specific format of stars:
+/// [x-coordinate-1],[y-coordinate-1],[z-coordinate-1],[name-1]
+/// [x-coordinate-2],[y-coordinate-2],[z-coordinate-2],[name-2]
+/// [x-coordinate-3],[y-coordinate-3],[z-coordinate-3],[name-3]
+/// .
+/// .
+/// .
+/// [x-coordinate-N],[y-coordinate-N],[z-coordinate-N],[name-N]
 /// @endcode
+///
+/// The output is a Matplotlib image, displaying the image with Hipparcos labels attached to them.
 /// @example
 /// @code{.cpp}
-/// # Produce the table for the Angle method. After this is done, produce the K-Vector table.
-/// GenerateN angle k
+/// # Run the Angle identification method on my-image.csv. Image has a field-of-view = 20 degrees.
+/// RunIdentify angle 20 my-image.csv
 /// @endcode
 
-/// @file
 #include <iostream>
 #include "identification/angle.h"
+#include "identification/spherical-triangle.h"
+#include "identification/planar-triangle.h"
+#include "identification/pyramid.h"
 
-
-
-/// @brief Namespace containing all parameters for Nibble table generation.
-///
-/// Defining characteristics of the Nibble tables generated.
 namespace DCNT {
-    static const double FOV = 20; ///< Maximum field-of-view for each generated table.
-    
-    static const char *BRIGHT_HIP_NAME = "HIP_BRIGHT"; ///< Name of star catalog table w/ magnitude < 6.0 restriction.
-    static const char *HIP_NAME = "HIP"; ///< Name of star catalog table w/o magnitude restrictions.
     static const char *ANGLE_NAME = "ANGLE_20"; ///< Name of table generated for Angle method.
     static const char *INTERIOR_NAME = "INTERIOR_20"; ///< Name of table generated for InteriorAngle method.
     static const char *SPHERE_NAME = "SPHERE_20"; ///< Name of table generated for SphericalTriangle method.
@@ -45,141 +38,104 @@ namespace DCNT {
     static const char *PYRAMID_NAME = "PYRAMID_20"; ///< Name of table generated for Pyramid method.
     static const char *COMPOSITE_NAME = "COMPOSITE_20"; ///< Name of table generated for CompositePyramid method.
     
-    static const char *KVEC_ANGLE_FOCUS = "theta"; ///< Focus attribute for K-Vector Angle table.
-    static const char *KVEC_INTERIOR_FOCUS = "theta"; ///< Focus attribute for K-Vector InteriorAngle table.
-    static const char *KVEC_SPHERE_FOCUS = "a"; ///< Focus attribute for K-Vector SphericalTriangle table.
-    static const char *KVEC_PLANE_FOCUS = "a"; ///< Focus attribute for K-Vector PlanarTriangle table.
-    static const char *KVEC_PYRAMID_FOCUS = "theta"; ///< Focus attribute for K-Vector Pyramid table.
-    static const char *KVEC_COMPOSITE_FOCUS = "a"; ///< Focus attribute for K-Vector CompositePyramid table.
-    
-    static const int BRIGHT_TABLE_HASH = 0; ///< Index of bright table choice in choice space.
-    static const int HIP_TABLE_HASH = 1; ///< Index of hip table choice in choice space.
-    static const int ANGLE_TABLE_HASH = 2; ///< Index of angle table choice in choice space.
-    static const int INTERIOR_TABLE_HASH = 3; ///< Index of interior table choice in choice space.
-    static const int SPHERE_TABLE_HASH = 4; ///< Index of sphere table choice in choice space.
-    static const int PLANE_TABLE_HASH = 5; ///< Index of plane table choice in choice space.
-    static const int PYRAMID_TABLE_HASH = 6; ///< Index of pyramid table choice in choice space.
-    static const int COMPOSITE_TABLE_HASH = 7; ///< Index of composite table choice in choice space.
+    /// Array of all table names. Used with 'identifier_hash'.
+    std::array<std::string, 6> id_space = {ANGLE_NAME, INTERIOR_NAME, SPHERE_NAME, PLANE_NAME, PYRAMID_NAME,
+        COMPOSITE_NAME};
 }
 
-/// Convert our choice string into an integer for the switch statements.
-///
-/// @param choice Name associated with table to hash for.
-/// @return Unique integer associated with the choice.
-int choice_hash (const std::string &choice) {
-    std::array<std::string, 8> choice_space = {"bright", "hip", "angle", "interior", "sphere", "plane", "pyramid",
-        "composite"};
+namespace DCIP {
+    static const double SIGMA_QUERY = 0.0001; ///< Query must be within 3 * sigma_query.
+    static const unsigned int SQL_LIMIT = 100; ///< While performing a SQL query, limit results by this number.
+    static const double SIGMA_OVERLAY = 0.0001; ///< Resultant of inertial->body rotation must within 3 * this number.
+    static const unsigned int NU_MAX = 10000; ///< Maximum number of query star comparisons before returning empty.
     
-    return static_cast<int> (std::distance(choice_space.begin(),
-                                           std::find(choice_space.begin(), choice_space.end(), choice)));
+    unsigned int nu_location; ///< Location to hold count of query star comparisons.
+    std::shared_ptr<unsigned int> nu = std::make_shared<unsigned int>(nu_location);
+    
+    Rotation::wahba_function f = Rotation::triad; ///< Function to use to solve Wahba's problem with.
 }
 
-/// Given the table choice, remove the given table and the K-Vector table if they exist.
+/// Given an open filestream to the image file, determine the image center and the rest of the stars.
 ///
-/// @param choice Name associated with the table to remove.
-void remove_table (const std::string &choice) {
-    auto choose_table = [&choice] () -> std::string {
-        switch (choice_hash(choice)) {
-            case DCNT::BRIGHT_TABLE_HASH: return DCNT::BRIGHT_HIP_NAME;
-            case DCNT::HIP_TABLE_HASH: return DCNT::HIP_NAME;
-            case DCNT::ANGLE_TABLE_HASH: return DCNT::ANGLE_NAME;
-            case DCNT::INTERIOR_TABLE_HASH: return DCNT::INTERIOR_NAME;
-            case DCNT::SPHERE_TABLE_HASH: return DCNT::SPHERE_NAME;
-            case DCNT::PLANE_TABLE_HASH: return DCNT::PLANE_NAME;
-            case DCNT::PYRAMID_TABLE_HASH: return DCNT::PYRAMID_NAME;
-            case DCNT::COMPOSITE_TABLE_HASH: return DCNT::COMPOSITE_NAME;
-            default: throw "Table choice is not within space {0, 1, 2, 3, 4, 5, 6, 7}.";
+/// @param image Reference to the filestream of the image.
+/// @return Empty list if there exist less than four total stars. Otherwise, the list of stars. The first is the focus,
+/// and the following are the stars in the image.
+Star::list parse_csv (std::ifstream &image) {
+    Star::list s_i;
+    
+    try {
+        for (std::string entry; std::getline(image, entry);) {
+            std::istringstream entry_stream(entry);
+            std::vector<double> s_c;
+            
+            // Read the line by commas.
+            while (entry_stream.good()) {
+                std::string substr;
+                std::getline(entry_stream, substr, ',');
+                s_c.push_back(std::stof(substr, nullptr));
+            }
+            
+            // Using the first three elements (x, y, z), construct and save the **normalized** star.
+            s_i.push_back(Star(s_c[0], s_c[1], s_c[2], 0, 0, true));
         }
-    };
+    }
+    catch (std::exception &e) {
+        // Ignore entries that cannot be parsed (most likely comments).
+    }
     
-    Nibble nb;
-    SQLite::Transaction transaction(*nb.conn);
-    (*nb.conn).exec("DROP TABLE IF EXISTS " + choose_table());
-    (*nb.conn).exec("DROP TABLE IF EXISTS " + choose_table() + "_KVEC");
-    transaction.commit();
-    
-    std::cout << "Table deletion was successful (or table does not exist)." << std::endl;
+    return (s_i.size() < 4) ? Star::list {} : s_i;
 }
 
-/// Given the table choice, attempt to generate the specified table. Error handling should occur within the table
-/// generation functions themselves.
+/// Convert the given user argument specifying the identifier name, to its appropriate hash.
 ///
-/// @param choice Name associated with the table to generate.
-void generate_table (const std::string &choice) {
-    auto display_result = [] (const int r) -> void {
-        std::cout << ((r == Nibble::TABLE_NOT_CREATED) ? "Table already exists." : "Table was created successfully.")
-                  << std::endl;
+/// @param identifier_in Input given by the user, to identify the type of experiment table.
+/// @return Index of the name space below. 6 is given if the given input is not in the name space.
+int identifier_hash (const std::string &identifier_in) {
+    std::array<std::string, 6> space = {"angle", "interior", "sphere", "plane", "pyramid", "composite"};
+    return static_cast<int> (std::distance(space.begin(), std::find(space.begin(), space.end(), identifier_in)));
+}
+
+/// Run the specified identification method with the given field-of-view and star list. Display the results using
+/// Matplotlib.
+///
+/// @param id_method String containing the identification method to run.
+/// @param fov Field of view of the image.
+/// @param s_i Star list containing the image center (first) and the image stars (following).
+/// @return 0 when finished.
+int run_identity (const std::string &id_method, const double fov, const Star::list &s_i) {
+    // Construct the image into a Benchmark given the arguments.
+    Benchmark input(Star::list(s_i.begin() + 1, s_i.end()), s_i[0], fov);
+    const int i = identifier_hash(id_method);
+    
+    // Construct hyperparameters.
+    Identification::Parameters p = {};
+    p.nu_max = DCIP::NU_MAX, p.sigma_overlay = DCIP::SIGMA_OVERLAY, p.sigma_query = DCIP::SIGMA_QUERY;
+    p.nu = DCIP::nu, p.f = DCIP::f, p.table_name = DCNT::id_space[i];
+    
+    // Identify using the given ID method, and display the results through Python.
+    auto identify = [&input, &p, &s_i, &fov] (const Star::list &result) -> int {
+        Benchmark output(result, s_i[0], fov);
+        output.display_plot();
+        return 0;
     };
     
-    switch (choice_hash(choice)) {
-        case DCNT::BRIGHT_TABLE_HASH: return display_result(Chomp().generate_bright_table());
-        case DCNT::HIP_TABLE_HASH: return display_result(Chomp().generate_hip_table());
-        case DCNT::ANGLE_TABLE_HASH: return display_result(Angle::generate_table(DCNT::FOV, DCNT::ANGLE_NAME));
-        case DCNT::INTERIOR_TABLE_HASH: throw "Not implemented.";
-        case DCNT::SPHERE_TABLE_HASH: return display_result(Sphere::generate_table(DCNT::FOV, DCNT::SPHERE_NAME));
-        case DCNT::PLANE_TABLE_HASH: return display_result(Plane::generate_table(DCNT::FOV, DCNT::PLANE_NAME));
-        case DCNT::PYRAMID_TABLE_HASH: return display_result(Pyramid::generate_table(DCNT::FOV, DCNT::PYRAMID_NAME));
-        case DCNT::COMPOSITE_TABLE_HASH: throw "Not implemented.";
-        default: throw "Table choice is not within space {0, 1, 2, 3, 4, 5}.";
+    switch (i) {
+        case 0: return identify(Angle(input, p).identify_all());
+        case 1: throw "Not implemented.";
+        case 2: return identify(Sphere(input, p).identify_all());
+        case 3: return identify(Plane(input, p).identify_all());
+        case 4: return identify(Pyramid(input, p).identify_all());
+        case 5: throw "Not implemented.";
+        default: throw "ID method not in appropriate space.";
     }
 }
 
-/// Given the table choice, attempt to generate the K-Vector for the specified table and the predefined focus attribute.
+/// Select the desired identification method to use given the first argument. In the second argument, indicate the
+/// field-of-view of the image. In the third argument, specify the CSV file to read.
 ///
-/// @param choice Name associated with the table to generate.
-void generate_kvec_table (const std::string &choice) {
-    Chomp ch;
-    
-    // Polish the selected table. Create the K-Vector for the given table using the given focus.
-    auto create_and_polish = [&ch] (const std::string &table, const std::string &focus) -> void {
-        ch.select_table(table);
-        ch.polish_table(focus);
-        
-        auto response = (ch.create_k_vector(focus) == Nibble::TABLE_NOT_CREATED) ? "K-Vector table already exists."
-                                                                                 : "K-Vector table was created "
-                            "successfully.";
-        std::cout << response << std::endl;
-    };
-    
-    switch (choice_hash(choice)) {
-        case DCNT::BRIGHT_TABLE_HASH: throw "Cannot generate KVEC table for star catalog table.";
-        case DCNT::HIP_TABLE_HASH: throw "Cannot generate KVEC table for star catalog table.";
-        case DCNT::ANGLE_TABLE_HASH: return create_and_polish(DCNT::ANGLE_NAME, DCNT::KVEC_ANGLE_FOCUS);
-        case DCNT::INTERIOR_TABLE_HASH: throw "Not implemented.";
-        case DCNT::SPHERE_TABLE_HASH: return create_and_polish(DCNT::SPHERE_NAME, DCNT::KVEC_SPHERE_FOCUS);
-        case DCNT::PLANE_TABLE_HASH: return create_and_polish(DCNT::PLANE_NAME, DCNT::KVEC_PLANE_FOCUS);
-        case DCNT::PYRAMID_TABLE_HASH: return create_and_polish(DCNT::PYRAMID_NAME, DCNT::KVEC_PYRAMID_FOCUS);
-        case DCNT::COMPOSITE_TABLE_HASH: throw "Not implemented.";
-        default: throw "Table choice is not within space {0, 1, 2, 3, 4, 5, 6, 7}.";
-    }
-}
-
-/// Select the desired table generation methods given the first argument. In the second argument, indicate whether you
-/// want to build a K-Vector table for this first table as well, or delete all tables associated with the first
-/// argument.
-///
-/// @code{.cpp}
-/// - bright -> Produce the bright stars (< 6.0) table from the Hipparcos catalog.
-/// - hip -> Produce the hip stars (no magnitude restriction) table from the Hipparcos catalog.
-/// - angle -> Produce table for Angle method.
-/// - interior -> Produce table for InteriorAngle method.
-/// - sphere -> Produce table for SphericalTriangle method.
-/// - plane -> Produce table for PlanarTriangle method.
-/// - pyramid -> Produce table for Pyramid method.
-/// - composite -> Produce table for CompositePyramid method.
-///
-/// - x k -> Produce K-Vector table for the given method (invalid for bright and hip).
-/// - x d -> Delete all tables for the given method.
-/// @endcode
-/// @example
-/// @code{.cpp}
-/// # Produce the table for the Angle method. After this is done, produce the K-Vector table.
-/// GenerateN angle k
-/// @endcode
-///
-/// @param argc Argument count. Domain is [2, 3].
-/// @param argv Argument vector. argv[1] is our selected table. argv[2] is our additional operation specification.
-/// @return -1 if the arguments are incorrect. 0 otherwise.
+/// @param argc Argument count. Must be equal to 4.
+/// @param argv Argument vector. Must be in order 'identification method', 'field of view', 'image file'.
+/// @return -2 if the CSV is incorrectly formatted. -1 if the arguments are incorrect. 0 otherwise.
 int main (int argc, char *argv[]) {
     auto is_valid_arg = [] (const char *arg, const std::vector<std::string> &input_space) -> bool {
         std::string a = std::string(arg);
@@ -187,30 +143,34 @@ int main (int argc, char *argv[]) {
     };
     
     // Validate our input.
-    if (argc < 2 || argc > 3) {
-        std::cout << "Usage: GenerateN [TableSpecification] [GenerateKVector/DeleteTable]" << std::endl;
+    if (argc != 4) {
+        std::cout << "Usage: RunIdentify [id method] [field of view (degrees)] [image file]" << std::endl;
         return -1;
     }
-    if ((argc >= 2
-         && !is_valid_arg(argv[1], {"bright", "hip", "angle", "interior", "sphere", "plane", "pyramid", "composite"}))
-        || (argc == 3 && !is_valid_arg(argv[2], {"k", "d"}))) {
-        std::cout << "Usage: GenerateN ['bright', 'hip', 'angle', ...] ['k', 'd']" << std::endl;
+    else if (!is_valid_arg(argv[1], {"angle", "interior", "sphere", "plane", "pyramid", "composite"})) {
+        std::cout << "Invalid ID method. Use: ['angle', 'interior', 'sphere', 'plane', 'pyramid', 'composite']"
+                  << std::endl;
+        return -1;
+    }
+    else if (std::stof(argv[2]) < 0) {
+        std::cout << "Field of view must be greater than 0. " << std::endl;
         return -1;
     }
     
-    // If desired, delete all tables related to the specified table.
-    if (argc == 3 && strcmp(argv[2], "d") == 0) {
-        remove_table(std::string(argv[1]));
-        return 0;
+    // Open the image file.
+    std::ifstream image(argv[3]);
+    if (!image.is_open()) {
+        std::cout << "Cannot open image file. " << std::endl;
+        return -1;
     }
     
-    // Attempt to generate the specified table.
-    generate_table(std::string(argv[1]));
-    
-    // If desired, generate the K-Vector for the specified table.
-    if (argc == 3 && strcmp(argv[2], "k") == 0) {
-        generate_kvec_table(std::string(argv[1]));
+    // Parse the CSV for an image center and stars.
+    Star::list image_s = parse_csv(image);
+    if (image_s.empty()) {
+        std::cout << "Image file not correctly formatted." << std::endl;
+        return -2;
     }
     
-    return 0;
+    // Run the identification.
+    return run_identity(std::string(argv[1]), std::stof(argv[2]), image_s);
 }

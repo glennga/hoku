@@ -51,12 +51,12 @@ TEST(ChompLists, NearbyHipStars) {
 
 /// Check that components are correctly parsed from the given line.
 TEST(ChompStarTable, ComponentsFromLine) {
-    std::array<double, 6> a = {0.000911850889839031, 1.08901336539477, 0.999819374779962, 1.59119257019658e-05,
+    std::array<double, 7> a = {0.000911850889839031, 1.08901336539477, 0.999819374779962, 1.59119257019658e-05,
         0.0190057244380963, 9.20429992675781};
     std::string b = "     1|  5|0|1| 0.0000159148  0.0190068680|   4.55|   -4.55|   -1.19|  1.29|  0.66|  1.33|  1.25| "
         " 0.75| 90| 0.91| 0|   0.0|   0| 9.2043|0.0020|0.017|0| 0.482|0.025| 0.550|   1.19  -0.71   1.00  -0.02   0.02 "
         "1.00   0.45  -0.05   0.03   1.09  -0.41   0.09   0.08  -0.60   1.00";
-    std::array<double, 6> c = Chomp().components_from_line(b);
+    std::array<double, 7> c = Chomp().components_from_line(b);
     
     EXPECT_NEAR(a[0], c[0], 0.000001);
     EXPECT_NEAR(a[1], c[1], 0.000001);
@@ -66,6 +66,16 @@ TEST(ChompStarTable, ComponentsFromLine) {
     EXPECT_NEAR(a[5], c[5], 0.01);
 }
 
+/// Check that the angle between NU.03 Canis Majoris and Alpha Canis Majoris (Sirius) are correct.
+TEST(ChompStarTable, CorrectAngleBetweenStars) {
+    Chomp ch;
+    ch.generate_hip_table();
+    
+    double theta = 2.30833333;
+    Star a = ch.query_hip(31700), b = ch.query_hip(32349);
+    EXPECT_NEAR(theta, Star::angle_between(a, b), 0.002);
+}
+
 /// Check that the both the bright stars table and the hip table are present after running the generators.
 TEST(ChompStarTable, TableExistence) {
     Chomp ch;
@@ -73,6 +83,26 @@ TEST(ChompStarTable, TableExistence) {
     ch.generate_bright_table();
     EXPECT_EQ(ch.generate_hip_table(), Chomp::TABLE_EXISTS);
     EXPECT_EQ(ch.generate_bright_table(), Chomp::TABLE_EXISTS);
+}
+
+/// Check that NU.03 Canis Majoris has the correct elements.
+TEST(ChompQuery, Query31700) {
+    Chomp ch;
+    Nibble::tuples_d a = ch.search_table("*", "label = 31700", 1);
+    
+    EXPECT_FLOAT_EQ(a[0][0], 1.7361245261 * (180 / M_PI));
+    EXPECT_FLOAT_EQ(a[0][1], -0.3183036734 * (180 / M_PI));
+    EXPECT_FLOAT_EQ(a[0][5], 4.5975);
+}
+
+/// Check that Alpha Canis Majoris has the correct elements.
+TEST(ChompQuery, Query32349) {
+    Chomp ch;
+    Nibble::tuples_d a = ch.search_table("*", "label = 32349", 1);
+    
+    EXPECT_FLOAT_EQ(a[0][0], 1.7678185359 * (180 / M_PI));
+    EXPECT_FLOAT_EQ(a[0][1], -0.2916993748 * (180 / M_PI));
+    EXPECT_FLOAT_EQ(a[0][5], -1.0876);
 }
 
 /// Check that the hip query method returns the expected values.
