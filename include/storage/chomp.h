@@ -104,7 +104,7 @@ class Chomp : public Nibble {
     int build_k_vector_table (const std::string &, double, double);
     void load_all_stars ();
     
-    static std::array<double, 6> components_from_line (const std::string &);
+    static std::array<double, 7> components_from_line (const std::string &);
     static const double DOUBLE_EPSILON;
 };
 

@@ -60,6 +60,7 @@ class Identification {
     virtual labels_list reduce () = 0;
     virtual Star::list identify () = 0;
     Rotation align();
+    Star::list identify_all ();
     
     static const Star::list NO_CONFIDENT_IDENTITY;
     static const labels_list NO_CANDIDATES_FOUND;

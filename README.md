@@ -85,6 +85,39 @@ TODO: Finish the `visualize_image.py` portion.
 
 ## Star Identification Procedure Usage
 
+### RunIdentify Executable
+To identify stars in an image and view the results, use the executable `RunIdentify`:
+```cmd
+cd hoku/bin
+./RunIdentify [id-method] [field-of-view] [image-file]
+```
+
+The first argument specifies the type of identification method to run. The second argument specifies the image field 
+of view in degrees. The third argument specifies the image center and the stars in the image. To run the Angle 
+identification method on `my-image.csv` with a field of view of 20 degrees, enter the following:
+```cmd
+./RunIdentify angle 20 my-image.csv
+```
+
+The image file must be formatted with the image center as the first entry, and all following entries as the stars in 
+the image:
+```cmd
+# Image center is specified FIRST. Following stars are specified with reference to this point:
+[x-coordinate],[y-coordinate],[z-coordinate]
+
+# All stars in image follow the center. TODO: figure specific format of stars:
+[x-coordinate-1],[y-coordinate-1],[z-coordinate-1],[name-1]
+[x-coordinate-2],[y-coordinate-2],[z-coordinate-2],[name-2]
+[x-coordinate-3],[y-coordinate-3],[z-coordinate-3],[name-3]
+.
+.
+.
+[x-coordinate-N],[y-coordinate-N],[z-coordinate-N],[name-N]
+```
+
+The output runs the `visualize-image.py` script to display your image, with Hipparcos labels attached to each point. 
+
+### Library Integration
 To use a star identification procedure in another application (such as an actual star tracker), start by copying the 
 entire Hoku directory into your project. 
 

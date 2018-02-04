@@ -30,9 +30,9 @@ Chomp::Chomp () {
 /// given a line from the ASCII catalog.
 ///
 /// @param entry String containing line from Hipparcos ASCII catalog.
-/// @return Array of components in order {alpha, delta, i, j, k, m}.
-std::array<double, 6> Chomp::components_from_line (const std::string &entry) {
-    std::array<double, 6> components = {0, 0, 0, 0, 0, 0};
+/// @return Array of components in order {alpha, delta, i, j, k, m, label}.
+std::array<double, 7> Chomp::components_from_line (const std::string &entry) {
+    std::array<double, 7> components = {0, 0, 0, 0, 0, 0};
     
     try {
         // Read right ascension. Convert to degrees.
@@ -46,9 +46,11 @@ std::array<double, 6> Chomp::components_from_line (const std::string &entry) {
                         1.0 * cos((M_PI / 180.0) * delta) * sin(M_PI / 180.0 * alpha),
                         1.0 * sin((M_PI / 180.0) * delta), 0, true);
         
-        // Parse apparent magnitude.
-        double m = strtof(entry.substr(129, 7).c_str(), nullptr);
-        components = {alpha, delta, star_entry[0], star_entry[1], star_entry[2], m};
+        // Parse apparent magnitude and label.
+        double m = stof(entry.substr(129, 7), nullptr);
+        double ell = stof(entry.substr(0,6), nullptr);
+        
+        components = {alpha, delta, star_entry[0], star_entry[1], star_entry[2], m, ell};
     }
     catch (std::exception &e) {
         // Ignore entries without recorded alpha or delta.
@@ -79,15 +81,13 @@ int Chomp::generate_bright_table () {
     }
     
     // Insert into bright stars table.
-    double label = 1;
     for (std::string entry; getline(catalog, entry);) {
-        std::array<double, 6> c = components_from_line(entry);
+        std::array<double, 7> c = components_from_line(entry);
         
         // Only insert if magnitude < 6.0 (visible light).
         if (c[5] < 6.0 && !std::equal(c.begin() + 1, c.end(), c.begin())) {
-            insert_into_table("alpha, delta, i, j, k, m, label", tuple_d {c[0], c[1], c[2], c[3], c[4], c[5], label});
+            insert_into_table("alpha, delta, i, j, k, m, label", tuple_d {c[0], c[1], c[2], c[3], c[4], c[5], c[6]});
         }
-        label += 1;
     }
     transaction.commit();
     
@@ -118,11 +118,9 @@ int Chomp::generate_hip_table () {
     }
     
     // Insert into general stars table. There is no magnitude discrimination here.
-    double label = 1;
     for (std::string entry; getline(catalog, entry);) {
-        std::array<double, 6> c = components_from_line(entry);
-        insert_into_table("alpha, delta, i, j, k, m, label", tuple_d {c[0], c[1], c[2], c[3], c[4], c[5], label});
-        label += 1;
+        std::array<double, 7> c = components_from_line(entry);
+        insert_into_table("alpha, delta, i, j, k, m, label", tuple_d {c[0], c[1], c[2], c[3], c[4], c[5], c[6]});
     }
     transaction.commit();
     
