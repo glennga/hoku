@@ -4,6 +4,9 @@
 /// Source file for SphericalTriangle class, which matches a set of body vectors (stars) to their inertial counter-parts
 /// in the database.
 
+#include <algorithm>
+
+#include "math/trio.h"
 #include "identification/spherical-triangle.h"
 
 /// Default parameters for the spherical triangle identification method.

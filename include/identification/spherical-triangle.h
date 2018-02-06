@@ -7,6 +7,7 @@
 #ifndef HOKU_SPHERICAL_TRIANGLE_H
 #define HOKU_SPHERICAL_TRIANGLE_H
 
+#include "benchmark/benchmark.h"
 #include "base-triangle.h"
 
 /// @brief Star identification class using spherical triangles.

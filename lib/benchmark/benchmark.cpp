@@ -3,7 +3,12 @@
 ///
 /// Source file for Benchmark class, which generates the input data for star identification testing.
 
+#include <algorithm>
+#include <iomanip>
+#include <fstream>
+
 #include "benchmark/benchmark.h"
+#include "math/random-draw.h"
 
 /// String of HOKU_PROJECT_PATH environment variable.
 const std::string Benchmark::PROJECT_LOCATION = std::getenv("HOKU_PROJECT_PATH");

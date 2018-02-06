@@ -24,6 +24,8 @@
 /// @endcode
 
 #include <iostream>
+#include <algorithm>
+
 #include "identification/angle.h"
 #include "identification/spherical-triangle.h"
 #include "identification/planar-triangle.h"

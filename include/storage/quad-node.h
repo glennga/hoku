@@ -9,7 +9,6 @@
 
 #include "math/mercator.h"
 #include "storage/chomp.h"
-#include <memory>
 
 /// @brief Class for spatial indexing of a list of stars. Typically larger than KdNode.
 ///

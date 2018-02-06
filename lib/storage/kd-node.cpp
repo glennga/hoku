@@ -3,6 +3,10 @@
 ///
 /// Source file for KdNode class, which represents a node and associated functions for the Mercator kd-tree.
 
+#include <cmath>
+#include <algorithm>
+#include <iomanip>
+
 #include "storage/kd-node.h"
 
 /// Recursively populate a kd-tree given the current endpoints of a list "t", the current depth of the tree, and the

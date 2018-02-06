@@ -4,6 +4,9 @@
 /// Source file for PlanarTriangle class, which matches a set of body vectors (stars) to their inertial counter-parts in
 /// the database.
 
+#include <algorithm>
+
+#include "math/trio.h"
 #include "identification/planar-triangle.h"
 
 /// Default parameters for the planar triangle identification method.
