@@ -1,16 +1,22 @@
+\newcommand{\algorithmautorefname}{Algorithm}
+\newcommand{\algeqref}[1]{\hyperref[#1]{Eq.~\ref*{#1}}}
+\algnewcommand{\LineComment}[1]{\State \(\triangleright\) #1}
+
+\restylefloat{algorithm}
+
 \section{Star Identification Methods}\label{sec:starIdentificationMethods}
 
 \subsection{Generic Identification Method}\label{subsec:genericIdentificationMethod}
 Each identification method is presented with an image $I$ of all the stars in the image reference frame.
 The goal of each method is to find some mapping between the \textit{subset} of the image star vectors $b$ and a subset
 of the catalog star vectors $r$.
-This mapping will be denoted as $a$, for alignment.
+This mapping will be denoted as $a$.
 Complete identification of the all stars in each image is not the focus.
 
 Every algorithm starts with some combination $c$ from all possible $k$ combinations of $|I|$ stars $C_k^{|I|}$, where
 $k = $ the size of the image subset that specific identification method uses.
 A set of stars from the image $b$ is selected using the current combination $c$.
-For an identification method that uses $k=2$ stars to determine the alignment in an image of $|I|=4$ stars, the
+For an identification method that uses $k=2$ stars to determine the mapping in an image of $|I|=4$ stars, the
 combinations of $I$ are:
 \begin{equation}
     C_2^4 \text{ combinations of } I = \{(I_0, I_1), (I_0, I_2), \ldots, (I_3, I_4)\}
@@ -26,16 +32,16 @@ in~\autoref{eq:catalogCandidateExample}:
 \end{equation}
 
 Through some filter process, a single set $r$ from $R$ is then selected.
-If all of these steps are successful, then the alignment $a$ between $r$ and $b$ is determined and returned.
+If all of these steps are successful, then the map $a$ between $r$ and $b$ is determined and returned.
 Otherwise, a new combination $c$ is selected and the entire process is repeated.
 This process is detailed in~\autoref{figure:genericIdentificationMethodFlowchart}.
 
 \begin{figure}
     \centering{
-    \input{generic-identification}
+    \input{include/generic-identification}
     \caption{
     Flowchart depicting a general star identification process.
-    Given an image $I$, this processes returns an alignment $a$ mapping some subset of the input $b$ to a subset of
+    Given an image $I$, this processes returns an map $a$ pairing some subset of the input $b$ to a subset of
     the catalog $r$.
     } \label{figure:genericIdentificationMethodFlowchart}
     }
@@ -51,7 +57,7 @@ This process is detailed in~\autoref{figure:genericIdentificationMethodFlowchart
 %        \State $b \gets \{I(c_1), I(c_2), I(c_3), \dots, I(r_k)\}$
 %        \State $R \gets $ catalog star sets, each set of size $=k$
 %        \State $r \gets $ a single set from $R$ that matches $b$
-%        \State $a \gets $ an alignment between $b$ and $r$
+%        \State $a \gets $ a map between $b$ and $r$
 %        \\
 %        \If{the steps above are successful}
 %        \State \textbf{return} $a$
@@ -67,7 +73,7 @@ In 1978, Gottlieb (citation here) developed the Polygon Angular Matching method.
 Starting with an image $I$, two stars $b = (b_1, b_2)$ are selected arbitrarily.
 The corresponding angular separation between each of these stars from a defined observer is computed, which is
 denoted as $\theta^{12}$.
-All possible pairs $(r_i, r_j)$ in the catalog are then selected such that condition~\eqref{eq:angleRequirement} holds.
+All possible pairs $(r_i, r_j)$ in the catalog are then selected such that ~\autoref{eq:angleRequirement} holds.
 The set that holds these pairs is denoted as $R$.
 
 \begin{equation}
@@ -81,21 +87,21 @@ Assuming the noise follows a Gaussian distribution, it follows that 99.7\% of al
 If there exists more than one catalog pair after this reduction, then this process is repeated for
 $\theta^{13}, \theta^{14}, \dots,$ and so on until a unique pair is found or all possible pairs in the image
 have been exhausted.
-To determine an alignment, a \textit{direct match test} (DMT) is performed.
+To determine an mapping, a \textit{direct match test} (DMT) is performed.
 
 \begin{algorithm}
     \caption{Angle Identification Method} \label{algorithm:angleIdentification}
     \begin{algorithmic}[1]
         \Procedure{Identify}{}
         \State $I \gets \text{all stars} \text{ from image}$
-        \For{$i \gets 1 \text{\textbf{ to }} |I|$}
+        \For{$i \gets 1 \text{\textbf{ to }} |I|$} \Comment Iterate through $C^{|I|}_2$
         \For{$j \gets i + 1 \text{\textbf{ to }} |I| - 1$}
         \State $b \gets (b_i, b_j)$
-        \State $R \gets $ catalog pairs that meet~\eqref{eq:angleRequirement} with $b$
+        \State $R \gets $ catalog pairs that meet~\algeqref{eq:angleRequirement} with $b$
         \\
         \If{$|R| = 1$}
         \State $r \gets $ singular pair inside $R$
-        \State $a \gets $ \Call{DMT}{$b, r$}
+        \State $a \gets $ \Call{DMT}{$b, r, I$}
         \State \textbf{return} $a$
         \EndIf
         \EndFor
@@ -105,7 +111,7 @@ To determine an alignment, a \textit{direct match test} (DMT) is performed.
 \end{algorithm}
 
 Tappe (citation here) specifies this DMT method, which extracts an attitude after running this candidate finding step.
-Given an image star pair $(b_i, b_j)$ and a catalog star pair $(r_i, r_j)$, an alignment is proposed:
+Given an image star pair $(b_i, b_j)$ and a catalog star pair $(r_i, r_j)$, an map is proposed:
 \begin{equation}
     a_1 = (b_i \rightarrow r_i, b_j \rightarrow r_j)
 \end{equation}
@@ -113,29 +119,31 @@ Given an image star pair $(b_i, b_j)$ and a catalog star pair $(r_i, r_j)$, an a
 Wahba's problem (extracting an attitude given vector observations in two coordinate systems) is then solved using the
 TRIAD method.
 This gives a rotation $q_1$ between the image and catalog frames.
-This process is repeated for the other possible alignment to obtain a second rotation $q_2$:
+This process is repeated for the other possible map to obtain a second rotation $q_2$:
 \begin{equation}
     a_2 = (b_i \rightarrow r_j, b_j \rightarrow r_i)
 \end{equation}
 
 The most likely attitude is determined by predicting which entries in the catalog represent stars in the image using
 $q_1$ and $q_2$.
-The alignment with the most correctly predicted stars is then returned as the resulting attitude.
-The general form for this function (accepting an $B$ and $R$ of arbitrary size) is described in
-algorithm~\ref{algorithm:angleHelper}.
+The mapping with the most correctly predicted stars is then returned as the resulting attitude.
+The general form for this function (accepting an $B$ and $R$ of arbitrary size) is described
+in~\autoref{algorithm:angleHelper}.
 
 \begin{algorithm}
-    \caption{Functions for Angle Method} \label{algorithm:angleHelper}
+    \caption{Functions for Angle Method}\label{algorithm:angleHelper}
     \begin{algorithmic}[1]
-        \Function{DMT}{$b, r$}
+        \Function{DMT}{$b, r, I$}
         \State $A \gets $ all possible permutations between $b$ and $r$
+        \State $P \gets $ all stars in catalog near $r$
         \State $M \gets \emptyset$
+        \\
         \For {$a \in A$}
         \State $q \gets $ \Call{TRIAD}{$a$}
-        \State $M \gets M ||$ (stars correctly predicted with $q$)
+        \State $M \gets M ||$ (stars in $P$ that align with $I$ using $q$)
         \EndFor
         \\
-        \State \textbf{return} alignment $a$ associated with \Call{Max}{$M$}
+        \State \textbf{return} map $a$ associated with \Call{Max}{$M$}
         \EndFunction
     \end{algorithmic}
 \end{algorithm}
@@ -150,14 +158,14 @@ These are denoted as $\theta^1, \theta^2,$ and $\phi$ respectively.
 
 The additional constraint that $\theta^1 < \theta^2$ is imposed before proceeding.
 If this is not true, then stars $b_1$ and $b_2$ are swapped and this process is repeated.
-By adding this restriction to the catalog search, a star alignment procedure (e.g.\ Tappe's direct match test) is no
+By adding this restriction to the catalog search, a star mapping procedure (e.g.\ Tappe's direct match test) is no
 longer required.
 
 \begin{subequations}
     \label{eq:interiorAngleRequirement}
 
-    All possible \textit{trios} $R$ in the catalog are then selected such that all of
-    condition~\eqref{eq:interiorAngleRequirement} hold:
+    All possible \textit{trios} $R$ in the catalog are then selected such that all
+    of~\autoref{eq:interiorAngleRequirement} hold:
     \begin{align}
         |\theta(r_i, r_c) - \theta^1| &< 3 \sigma_{\theta} \\
         |\theta(r_j, r_c) - \theta^2| &< 3 \sigma_{\theta} \\
@@ -180,18 +188,18 @@ To more closely follow the generic star identification flow, $P$ will not be sto
 needed to acquire a total match.
 If a confident match is not found by the first $b_c$ star, then the search process will be repeated until such a
 match is found.
-This entire method is described in algorithm~\ref{algorithm:interiorAngleIdentification}.
+This entire method is described in~\autoref{algorithm:interiorAngleIdentification}.
 
 \begin{algorithm}
     \caption{Interior Angle Identification Method} \label{algorithm:interiorAngleIdentification}
     \begin{algorithmic}[1]
         \Procedure{Identify}{}
         \State $I \gets \text{all stars } \text{ from image}$
-        \For{$i \gets 1 \text{\textbf{ to }} |I|$}
+        \For{$i \gets 1 \text{\textbf{ to }} |I|$}  \Comment Iterate through $C^{|I|}_3$
         \For{$j \gets i + 1 \text{\textbf{ to }} |I| - 1$}
         \For{$k \gets j + 1 \text{\textbf{ to }} |I| - 2$}
         \State $b \gets (b_i, b_j)$
-        \State $R \gets $ catalog trios that meet~\eqref{eq:interiorAngleRequirement} with $b$
+        \State $R \gets $ catalog trios that meet~\algeqref{eq:interiorAngleRequirement} with $b$
         \\
         \If{$|R| = 1$}
         \State $(r_i, r_j) \gets $ singular pair inside $R$
@@ -212,8 +220,8 @@ This entire method is described in algorithm~\ref{algorithm:interiorAngleIdentif
     Starting with an image $I$, three stars $b = b_1, b_2, b_3)$ are selected arbitrarily.
     Treating the trio as a spherical triangle, the spherical area and moment are computed.
     This is denoted as $a^{123}$ and $\imath^{123}$ respectively.
-    Similar to Gottlieb's method, star \textit{trios} $R$ are selected from the catalog such that the all of
-    condition~\eqref{eq:triangleRequirement} hold:
+    Similar to Gottlieb's method, star \textit{trios} $R$ are selected from the catalog such that the all
+    of~\autoref{eq:triangleRequirement} hold:
     \begin{align}
         | a(r_i, r_j, r_k) - a^{123} | &< 3 \sigma_a \\
         | \imath(r_i, r_j, r_k) - \imath^{123} | &< 3\sigma_{\imath}
@@ -227,14 +235,14 @@ The pivoting process is repeated until a unique match in $R_{t=1}$ is found, or 
 image star are exhausted.
 The entire catalog search procedure is repeated until a unique catalog trio is found, or all trios in the image have
 been used.
-This procedure is described in algorithm~\ref{algorithm:triangleIdentification}.
+This procedure is described in~\autoref{algorithm:triangleIdentification}.
 
 \begin{algorithm}
     \caption{Triangle Method Identification} \label{algorithm:triangleIdentification}
     \begin{algorithmic}[1]
         \Procedure{Identify}{}
         \State $I \gets \text{all stars} \text{ from image}$
-        \For{$i \gets 1 \text{\textbf{ to }} |I|$}
+        \For{$i \gets 1 \text{\textbf{ to }} |I|$}  \Comment Iterate through $C^{|I|}_3$
         \For{$j \gets i + 1 \text{\textbf{ to }} |I| - 1$}
         \For{$k \gets j + 1\text{\textbf{ to }} |I| - 2$}
         \State $R \gets$ \Call{Pivot}{$b_i, b_j, b_k, \emptyset$}
@@ -254,8 +262,8 @@ A second set of trios $R_{t=2}$ is retrieved using $\bar{b} = (b_1, b_2, b_4)$, 
 but changing the third image star.
 All star trios in $R_{t=1}$ that do not match a trio in $R_{t=2}$ by \textit{two stars} (a partial match) are removed
 from $R_{t=1}$.
-Note that the \Call{Pivot}{$b_i, b_j, b_k, R_1$} call inside algorithm~\ref{algorithm:triangleIdentification}
-defines $R_1 = \emptyset$, which requires a "check" on lines 2 and 3 of algorithm~\ref{algorithm:triangleHelper}.
+Note that the \Call{Pivot}{$b_i, b_j, b_k, R_1$} call inside~\autoref{algorithm:triangleIdentification}
+defines $R_1 = \emptyset$, which requires a "check" on lines 2 and 3 of~\autoref{algorithm:triangleHelper}.
 
 \begin{algorithm}
     \caption{Functions for Triangle Identification} \label{algorithm:triangleHelper}
@@ -279,7 +287,7 @@ defines $R_1 = \emptyset$, which requires a "check" on lines 2 and 3 of algorith
         \\
         \Function{Pivot}{$b_i, b_j, b_k, R_1$}
         \State $b \gets (b_j, b_j, b_k)$
-        \State $R_t \gets $ catalog trios that meet~\eqref{eq:triangleRequirement} with $b$
+        \State $R_t \gets $ catalog trios that meet~\algeqref{eq:triangleRequirement} with $b$
         \State $R_1 \gets $ \Call{PartialMatch}{$R_t, R_1$}
         \\
         \If{$|R_1| = 1$}
@@ -294,18 +302,18 @@ defines $R_1 = \emptyset$, which requires a "check" on lines 2 and 3 of algorith
     \end{algorithmic}
 \end{algorithm}
 
-Cole and Crassidus do not specify alignment determination steps, so Tappe's DMT process is used to complete the star
+Cole and Crassidus do not specify identification steps, so Tappe's DMT process is used to complete the star
 identification process.
-Given an image star trio $(b_i, b_j, b_k)$ and a catalog star trio $(r_i, r_j, r_k)$, an alignment is proposed:
+Given an image star trio $(b_i, b_j, b_k)$ and a catalog star trio $(r_i, r_j, r_k)$, an map is proposed:
 \begin{equation}
     a_1 = (s_i \rightarrow r_i, b_j \rightarrow r_j, b_k \rightarrow r_k)
 \end{equation}
 
 \begin{subequations}
-    \label{eq:trianglePossibleAlignments}
+    \label{eq:trianglePossibleMaps}
     The TRIAD method only uses two vector observations from each frame, meaning that the $b_k \rightarrow r_k$ map is
     disregarded as the first rotation $q_1$ is computed.
-    This process is repeated for all 5 other possible alignments to get $q_2, q_3, \dots, q_6$.
+    This process is repeated for all 5 other possible mappings to get $q_2, q_3, \dots, q_6$.
     \begin{align}
         a_1 &= (s_i \rightarrow r_i, b_j \rightarrow r_j, b_k \rightarrow r_k) \\
         a_2 &= (s_i \rightarrow r_i, b_j \rightarrow r_k, b_k \rightarrow r_j) \\
@@ -333,24 +341,24 @@ recursive step.
 \subsection{Mortari's Pyramid Star Identification Method}\label{subsec:mortari'sPyramidStarIdentificationMethod}
 In 2004, Mortari (citation here) developed the Pyramid method.
 Starting with an image $I$, three stars $b = (b_1, b_2, b_3)$ are selected to avoid the persistence of false stars.
-This is specified in lines 19 to 23 in algorithm~\ref{algorithm:pyramidIdentification}.
+This is specified in lines 19 to 23 in~\autoref{algorithm:pyramidIdentification}.
 The corresponding angular separation between each distinct permutation of the three is computed, denoted as
 $\theta^{12}, \theta^{13}, \theta^{23}$.
-All possible \textit{pair sets} $R^{12}, R^{13}, R^{23}$ are selected from the catalog such that
-condition~\eqref{eq:angleRequirement} holds for each respective $\theta$.
+All possible \textit{pair sets} $R^{12}, R^{13}, R^{23}$ are selected from the catalog such
+that~\autoref{eq:angleRequirement} holds for each respective $\theta$.
 The common stars between each of these pairs inside $R$ is then determined, yielding $T^1, T^2, $ and $T^3$.
 If there exists a sole element inside each $T$, then a secondary verification involving guessing a nearby star is
 performed.
-Once this verification step is past, an alignment is then returned.
-This entire process is described in algorithm~\ref{algorithm:pyramidIdentification}.
+Once this verification step is past, a map is then returned.
+This entire process is described in~\autoref{algorithm:pyramidIdentification}.
 
 \begin{algorithm}
     \caption{Pyramid Identification Method} \label{algorithm:pyramidIdentification}
     \begin{algorithmic}[1]
         \Function {FindCatalogStars} {$b, I$}
-        \State $R^{ij} \gets$ catalog pairs that meet~\eqref{eq:angleRequirement} with ($b_i, b_j$)
-        \State $R^{jk} \gets$ catalog pairs that meet~\eqref{eq:angleRequirement} with ($b_i, b_j$)
-        \State $R^{ik} \gets$ catalog pairs that meet~\eqref{eq:angleRequirement} with ($b_i, b_k$)
+        \State $R^{ij} \gets$ catalog pairs that meet~\algeqref{eq:angleRequirement} with ($b_i, b_j$)
+        \State $R^{jk} \gets$ catalog pairs that meet~\algeqref{eq:angleRequirement} with ($b_i, b_j$)
+        \State $R^{ik} \gets$ catalog pairs that meet~\algeqref{eq:angleRequirement} with ($b_i, b_k$)
         \\
         \State $T^i \gets $ \Call{Common}{$R^{ij}, R^{ik}$}
         \State $T^j \gets $ \Call{Common}{$R^{ij}, R^{jk}$}
@@ -367,6 +375,8 @@ This entire process is described in algorithm~\ref{algorithm:pyramidIdentificati
         \\
         \Procedure{Identify}{}
         \State $I \gets \text{all stars } s \text{ from image}$
+        \\
+        \LineComment Iterate through $C^{|I|}_3$ using \textit{smart scan technique}
         \For{$dj \gets 1 \text{\textbf{ to }} |I| - 2$}
         \For{$dk \gets 1 \text{\textbf{ to }} |I| - 1 - dj$}
         \For{$k \gets i \text{\textbf{ to }} |I| - dj - dk$}
@@ -396,18 +406,20 @@ pairs and taking the union of the two.
 If $R^{ab} = \{ (1, 2), (2, 3) \}$ and $R^{ac} = \{ (2, 5), (7, 3) \}$, then the common stars for $a$ is
 $T^a = \{2, 3\}$.
 
-%The function \Call{Common}{$R^{ab}, R^{ac}, E$} in algorithm~\ref{algorithm:pyramidHelpers} also specifies an $E$
+%The function \Call{Common}{$R^{ab}, R^{ac}, E$} in~\autoref{algorithm:pyramidHelpers} also specifies an $E$
 %parameter, which acts as a "exclusion" set.
 %Once a common star is found $T^i$, it follows that the next common star to be found $T^j$ should not include this
 % previously found star.
 
-The second verification step is denoted as \Call{PyramidVerify}{$r, b, I$} in
-algorithm~\ref{algorithm:pyramidHelpers}.
+The second verification step is denoted as \Call{PyramidVerify}{$r, b, I$} in~\autoref{algorithm:pyramidHelpers}.
 This function starts by selecting a nearby star to $b$ in the image $b_e$.
 The angular separation between each star in $b$ is computed, generating $\theta^{ie}, \theta^{je},
 \theta^{ke}$.
-Again, three sets of catalog pairs $R^{ie}, R^{je}, R^{ke}$ are selected such that
-condition~\eqref{eq:angleRequirement} holds for each respective $\theta$.
+Each of these angular separations can be thought of as the edges to the pyramid head $b_e$, with the base of the pyramid
+being the original triangle $b_i, b_j, b_k$.
+
+Again, three sets of catalog pairs $R^{ie}, R^{je}, R^{ke}$ are selected such that~\autoref{eq:angleRequirement} holds
+for each respective $\theta$.
 If the common star between all $R$ sets exists near the given $r$ set, then the test past.
 Otherwise, the test fails.
 
@@ -415,14 +427,14 @@ Otherwise, the test fails.
     \caption{Functions for Pyramid Identification} \label{algorithm:pyramidHelpers}
     \begin{algorithmic}[1]
         \Function{Common}{$R^{ab}, R^{ac}$}
-        \State \textbf{return} all stars that meet~\eqref{eq:commonStarsPyramid} with $R^{ab}, R^{ac}$
+        \State \textbf{return} all stars that meet~\algeqref{eq:commonStarsPyramid} with $R^{ab}, R^{ac}$
         \EndFunction
         \\
         \Function{PyramidVerify}{$r, b, I$}
         \State $b_e \gets $ star in image $I$ not in $b$
-        \State $R^{ie} \gets$ catalog pairs that meet~\eqref{eq:angleRequirement} with $(b_i, b_e)$
-        \State $R^{je} \gets$ catalog pairs that meet~\eqref{eq:angleRequirement} with $(b_j, b_e)$
-        \State $R^{ke} \gets$ catalog pairs that meet~\eqref{eq:angleRequirement} with $(b_k, b_e)$
+        \State $R^{ie} \gets$ catalog pairs that meet~\algeqref{eq:angleRequirement} with $(b_i, b_e)$
+        \State $R^{je} \gets$ catalog pairs that meet~\algeqref{eq:angleRequirement} with $(b_j, b_e)$
+        \State $R^{ke} \gets$ catalog pairs that meet~\algeqref{eq:angleRequirement} with $(b_k, b_e)$
         \\
         \State $T^e \gets $ \Call{Common}{$R^{je}, R^{ke} \cup R^{ie}$}
         \If{$|T^e| = 1$}
@@ -444,27 +456,27 @@ Starting with an image $I$, three stars $b = (b_1, b_2, b_3)$ are selected in th
 method.
 Treating the trio as a planar triangle, the planar area and moment are computed.
 This is denoted as $a^{123}$ and $\imath^{123}$ respectively.
-Similar to the Planar Triangle method, star \textit{trios} $R$ are selected from the catalog such that
-condition~\eqref{eq:triangleRequirement} hold.
+Similar to the Planar Triangle method, star \textit{trios} $R$ are selected from the catalog such
+that~\autoref{eq:triangleRequirement} hold.
 
 Unlike the triangle methods, no pivot is performed.
 This searching process is repeated until a unique $R$ is found.
-Toloei does not specify an attitude determination method, and an alignment cannot be determined using common
+Toloei does not specify an attitude determination method, and a map cannot be determined using common
 stars like the Pyramid method.
 To bridge this gap, Tappe's DMT process is used in the same manner as the Triangle methods.
-With an alignment determined, the secondary verification step involving guessing a nearby star is performed.
-If this verification step passes, then an alignment returned.
-This entire process is described in algorithm~\ref{algorithm:compositePyramidIdentification}.
+With a map determined, the secondary verification step involving guessing a nearby star is performed.
+If this verification step passes, then the mapping is returned.
+This entire process is described in~\autoref{algorithm:compositePyramidIdentification}.
 
 \begin{algorithm}
     \caption{Composite Pyramid Identification Method} \label{algorithm:compositePyramidIdentification}
     \begin{algorithmic}[1]
         \Function {FindCatalogStars} {$b, I$}
-        \State $R \gets $ catalog trios that meet~\eqref{eq:triangleRequirement} with $b$
+        \State $R \gets $ catalog trios that meet~\algeqref{eq:triangleRequirement} with $b$
         \\
         \If{$|R| = 1$}
         \State $r \gets $ singular trio inside $R$
-        \State $a \gets $ \Call{DMT}{$b, r$}
+        \State $a \gets $ \Call{DMT}{$b, r, I$}
         \If{\Call{CompositeVerify}{$a, I$} is \textbf{true}}
         \State \textbf{return} $a$
         \EndIf
@@ -474,6 +486,8 @@ This entire process is described in algorithm~\ref{algorithm:compositePyramidIde
         \\
         \Procedure{Identify}{}
         \State $I \gets \text{all stars } s \text{ from image}$
+        \\
+        \LineComment Iterate through $C^{|I|}_3$ using \textit{smart scan technique}
         \For{$dj \gets 1 \text{\textbf{ to }} |I| - 2$}
         \For{$dk \gets 1 \text{\textbf{ to }} |I| - 1 - dj$}
         \For{$k \gets i \text{\textbf{ to }} |I| - dj - dk$}
@@ -492,15 +506,18 @@ This entire process is described in algorithm~\ref{algorithm:compositePyramidIde
     \end{algorithmic}
 \end{algorithm}
 
-To second verification step is denoted as \Call{CompositeVerify}{$b, r, a, I$} in
-algorithm~\ref{algorithm:compositePyramidHelpers}.
+The second verification step is denoted as \Call{CompositeVerify}{$b, r, a, I$}
+in~\autoref{algorithm:compositePyramidHelpers}.
 $b$ and $r$ are given an arbitrary order.
-The actual alignment is determined by $a$, yielding $b^{\star}$ and $r^{\star}$ whose stars $i, j, k$ map to each other.
+The actual map is determined by $a$, yielding $b^{\star}$ and $r^{\star}$ whose stars $i, j, k$ pair with each other.
 
 Like the Pyramid verification function, this verification starts by selecting a nearby star to $b$ in the image $b_e$.
 The planar area and moment are computed for the trios $(b_e, b_i, b_j)$, $(b_e, b_i, b_k)$, and $(b_e, b_j, b_k)$.
 These are all of the possible triangles formed with the inclusion of the verification star and two of the original
 trio $b$.
+In the original Pyramid method, the angular separations could be thought of as pyramid edges.
+Here, each triangle can be thought of as a face of the pyramid.
+
 From here, the catalog trio sets $R^{eij}, R^{eik}$, and $R^{ejk}$ are retrieved.
 The same function \Call{Common}{$R^{ab}, R^{ac}$} from the Pyramid method is used to determine what $b_e$ is.
 \begin{algorithm}
@@ -508,14 +525,14 @@ The same function \Call{Common}{$R^{ab}, R^{ac}$} from the Pyramid method is use
     \begin{algorithmic}[1]
         \Function{CompositeVerify}{$b, r, a, I$}
         \State $b_e \gets $ star in image $I$ not in $b$
-        \State $b^{\star} \gets $ stars in $b$ aligned using $a$
-        \State $r^{\star} \gets $ stars in $r$ aligned using $a$
+        \State $b^{\star} \gets $ stars in $b$ mapped using $a$
+        \State $r^{\star} \gets $ stars in $r$ mapped using $a$
 
-        \State $R^{eij} \gets $ catalog trios that meet~\eqref{eq:triangleRequirement} with $(b_e, b^{\star}_i,
+        \State $R^{eij} \gets $ catalog trios that meet~\algeqref{eq:triangleRequirement} with $(b_e, b^{\star}_i,
         b^{\star}_j)$
-        \State $R^{eik} \gets $ catalog trios that meet~\eqref{eq:triangleRequirement} with $(b_e, b^{\star}_i,
+        \State $R^{eik} \gets $ catalog trios that meet~\algeqref{eq:triangleRequirement} with $(b_e, b^{\star}_i,
         b^{\star}_k)$
-        \State $R^{ejk} \gets $ catalog trios that meet~\eqref{eq:triangleRequirement} with $(b_e, b^{\star}_j,
+        \State $R^{ejk} \gets $ catalog trios that meet~\algeqref{eq:triangleRequirement} with $(b_e, b^{\star}_j,
         b^{\star}_k)$
         \State $T^e \gets $ \Call{Common}{$R^{eij}, R^{eik} \cup R^{ejk}$}
         \\
@@ -531,25 +548,11 @@ The same function \Call{Common}{$R^{ab}, R^{ac}$} from the Pyramid method is use
 \end{algorithm}
 
 \begin{table*}[ht]
-    \centering {
+    \centering{
     \caption{
     Overview table of the different identification methods.
-    Each method's image features, reduction process, and alignment process is displayed.
+    Each method's image features, reduction process, identification process is displayed.
     } \label{tab:identificationMethodOverview}
-    \begin{tabular}{  m{0.22\linewidth} || m{0.21\linewidth} | m{0.21\linewidth} | m{0.24\linewidth} }
-        & \textbf{Image Features} & \textbf{Reduction} & \textbf{Alignment} \\
-        \hline \hline
-        \textbf{Angle} & $\theta^{ij}$ & Require $|R|=1$ & \Call{DMT}{$b, r$} \\ \hline
-        \textbf{Interior Angle} & $\theta^{ic}, \theta^{jc}, \phi$ & Require $|R| = 1$ & Restrict $\theta^{ic},
-        \theta^{jc}$ at Query Time \\ \hline
-        \textbf{Spherical Triangle} & Spherical $a^{ijk}, \imath^{ijk}$ & \Call{Pivot}{$b_i, b_j, b_k, R_1$} &
-        \Call{DMT}{$b, r$} \\ \hline
-        \textbf{Planar Triangle} & Planar $a^{ijk}, \imath^{ijk}$ & \Call{Pivot}{$b_i, b_j, b_k, R_1$} &
-        \Call{DMT}{$b, r$} \\ \hline
-        \textbf{Pyramid} & $\theta^{ij}, \theta^{ik}, \theta^{jk}$ & Require $|R| = 1$ &
-        \Call{Common}{$R^{ab}, R^{ac}, F$}, \newline \Call{PyramidVerify}{$r, b, I$} \\ \hline
-        \textbf{Composite Pyramid} & Planar $a^{ijk}, \imath^{ijk}$ & Require $|R| = 1$ & \Call{DMT}{$b, r$}, \newline
-        \Call{CompositeVerify}{$r, b, a, I$}
-    \end{tabular}
+    \input{include/summary-table}
     }
 \end{table*}

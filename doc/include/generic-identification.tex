@@ -1,3 +1,5 @@
+\usetikzlibrary{shapes.geometric, arrows}
+
 % Style for process block.
 \tikzstyle{process} = [rectangle, text width=3cm, minimum width=3cm, minimum height=1cm,text centered, draw=black,
 fill=orange!30]
@@ -20,23 +22,23 @@ fill=green!30, inner sep=-10pt]
     \node[scale=1](confidentInCatalog)[decision, below of=searchCatalog, yshift=-0.5cm] {$|R| > 0$?};
     \node[scale=1](filterCandidates)[process, below of=confidentInCatalog, yshift=-0.5cm] {Filter Candidates};
     \node[scale=1](confidentAfterFilter)[decision, below of=filterCandidates, yshift=-0.5cm] {Confident in $r$?};
-    \node[scale=1](findAlignment)[process, below of=confidentAfterFilter, yshift=-0.5cm]{Find Alignment};
-    \node[scale=1](confidentInAlignment)[decision, below of=findAlignment, yshift=-0.5cm] {Confident in $a$?};
-    \node[scale=1](returnAlignment)[terminal, right of=confidentInAlignment, xshift = 1.7cm] {Return Alignment};
+    \node[scale=1](findMap)[process, below of=confidentAfterFilter, yshift=-0.5cm]{Identify};
+    \node[scale=1](confidentInMap)[decision, below of=findMap, yshift=-0.5cm] {Confident in $a$?};
+    \node[scale=1](returnMap)[terminal, right of=confidentInMap, xshift = 1.7cm] {Return Map};
 
     \draw[->,>=stealth](getImage) -- node[scale=1.3, yshift=-0.3cm]{$I$}(pickQueryStars);
     \draw[->,>=stealth] (pickQueryStars) -- node[scale=1.3, xshift=0.5cm]{$b$}(searchCatalog);
     \draw[->, >=stealth] (searchCatalog) -- node[scale=1.3, xshift=0.5cm, yshift=-0.15cm]{$R$}(confidentInCatalog);
     \draw[->, >=stealth] (confidentInCatalog) -- node[anchor=east, yshift=0.1cm]{Yes}(filterCandidates);
     \draw[->, >=stealth] (filterCandidates) -- node[scale=1.3, xshift=0.5cm, yshift=-0.15cm]{$r$}(confidentAfterFilter);
-    \draw[->, >=stealth] (confidentInAlignment) -- node[xshift=-0.05cm, yshift=0.2cm]{Yes}(returnAlignment);
-    \draw[->, >=stealth] (confidentAfterFilter) -- node[anchor=east, yshift=0.1cm]{Yes} (findAlignment);
-    \draw[->, >=stealth] (findAlignment) -- node[scale=1.3, xshift=0.5cm, yshift=-0.15cm]{$a$}(confidentInAlignment);
+    \draw[->, >=stealth] (confidentInMap) -- node[xshift=-0.05cm, yshift=0.2cm]{Yes}(returnMap);
+    \draw[->, >=stealth] (confidentAfterFilter) -- node[anchor=east, yshift=0.1cm]{Yes} (findMap);
+    \draw[->, >=stealth] (findMap) -- node[scale=1.3, xshift=0.5cm, yshift=-0.15cm]{$a$}(confidentInMap);
 
     \draw[->, >=stealth] (confidentInCatalog.west) -- ++(-1.1cm, 0cm) node[anchor=south, xshift=0.5cm]{No}
     |- (pickQueryStars.west);
     \draw[->, >=stealth] (confidentAfterFilter.west) -- ++(-1.1cm, 0cm) node[anchor=south, xshift=0.5cm]{No}
     |- (pickQueryStars.west);
-    \draw[->, >=stealth](confidentInAlignment.west) -- ++(-1.1cm, 0cm) node[anchor=south, xshift=0.5cm]{No}
+    \draw[->, >=stealth](confidentInMap.west) -- ++(-1.1cm, 0cm) node[anchor=south, xshift=0.5cm]{No}
     |- (pickQueryStars.west);
 \end{tikzpicture}

@@ -17,7 +17,10 @@ requires constant direction towards just these objects.
 Star trackers do not limit themselves to a single object, rather they use the entire sky of stars to determine it's
 orientation.
 
-This paper analyzes six existing identification methods, all of which involve the following process:
+There exist roughly 4500 stars in the sky visible to the human eye.
+It is computationally expensive to iterate through each combination of stars in the sky, so star identification methods
+are used instead.
+This paper analyzes six existing methods, all of which involve the following process:
 \begin{enumerate}
     \item Given an image of stars.
     \item Identify a select few stars in the image.
@@ -26,7 +29,7 @@ This paper analyzes six existing identification methods, all of which involve th
     \item Finalize and determine our orientation.
 \end{enumerate}
 
-Each method's feature uniqueness, permutation order, candidate reduction, and alignment determination will be
+Each method's feature uniqueness, permutation order, candidate reduction, and identification process will be
 characterized under the introduction of various noise.
 The process of identifying blobs in an image, constructing the image coordinate system, and efficiently querying
 static databases is not addressed here.
