@@ -6,7 +6,10 @@
 #ifndef HOKU_IDENTIFICATION_H
 #define HOKU_IDENTIFICATION_H
 
-#include "benchmark/benchmark.h"
+#include <memory>
+
+#include "storage/chomp.h"
+#include "math/rotation.h"
 
 /// @brief Abstract base class for all identification procedures.
 ///
@@ -59,7 +62,7 @@ class Identification {
     virtual std::vector<labels_list> query (const Star::list &s) = 0;
     virtual labels_list reduce () = 0;
     virtual Star::list identify () = 0;
-    Rotation align();
+    Rotation align ();
     Star::list identify_all ();
     
     static const Star::list NO_CONFIDENT_IDENTITY;

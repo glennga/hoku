@@ -4,6 +4,9 @@
 /// Source file for Asterism class, which represents two-dimensional projections of three-dimensional unit vectors
 /// (i.e. Stars).
 
+#include <algorithm>
+#include <numeric>
+
 #include "math/asterism.h"
 
 /// Returned by hashing functions when an asterism cannot be formed.

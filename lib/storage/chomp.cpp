@@ -4,6 +4,12 @@
 /// Source file for Chomp class, which is a child class of Nibble and provides more specific functions that facilitate
 /// the retrieval and storage of various lookup tables.
 
+#define _USE_MATH_DEFINES
+#include <cmath>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+
 #include "storage/chomp.h"
 
 /// Standard machine epsilon for doubles. This represents the smallest possible change in precision.

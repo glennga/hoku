@@ -3,6 +3,7 @@
 ///
 /// Source file for Identification class, which holds all common data between all identification processes.
 
+#include "benchmark/benchmark.h"
 #include "identification/identification.h"
 
 /// Returned when no candidates are found from a query.

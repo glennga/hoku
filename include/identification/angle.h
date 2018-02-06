@@ -7,8 +7,8 @@
 #ifndef HOKU_ANGLE_H
 #define HOKU_ANGLE_H
 
+#include "benchmark/benchmark.h"
 #include "identification.h"
-#include <iostream>
 
 /// @brief Star identification class using angles.
 ///

@@ -7,8 +7,8 @@
 #ifndef HOKU_PYRAMID_H
 #define HOKU_PYRAMID_H
 
+#include "benchmark/benchmark.h"
 #include "identification/angle.h"
-#include <iostream>
 
 /// @brief Star identification class using pyramids.
 ///

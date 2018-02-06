@@ -29,6 +29,10 @@
 /// @endcode
 
 #include <chrono>
+#include <algorithm>
+#include <iostream>
+#include <sstream>
+
 #include "identification/angle.h"
 #include "identification/spherical-triangle.h"
 #include "identification/planar-triangle.h"
@@ -76,7 +80,7 @@ int create_lumberjack_table (const std::string &experiment_in) {
     switch (experiment_hash(experiment_in)) {
         case 0: return Lumberjack::create_table("QUERY", Experiment::Query::SCHEMA);
         case 2: return Lumberjack::create_table("REDUCTION", Experiment::Reduction::SCHEMA);
-        case 3: return Lumberjack::create_table("IDENTIFICATION", Experiment::Identification::SCHEMA);
+        case 3: return Lumberjack::create_table("IDENTIFICATION", Experiment::Map::SCHEMA);
         default: throw "Experiment name is not in the space of trial names.";
     }
 }
@@ -94,7 +98,7 @@ void perform_trial (Lumberjack &lu, const std::string &identifier_in, const std:
     switch ((identifier_hash(identifier_in) * 5) + experiment_hash(experiment_in)) {
         case 0: return Experiment::Query::trial<Angle>(ch, lu, table_names[0]);
         case 1: return Experiment::Reduction::trial<Angle>(ch, lu, table_names[0]);
-        case 2: return Experiment::Identification::trial<Angle>(ch, lu, table_names[0]);
+        case 2: return Experiment::Map::trial<Angle>(ch, lu, table_names[0]);
         
         case 3: throw "Not implemented.";
         case 4: throw "Not implemented.";
@@ -102,15 +106,15 @@ void perform_trial (Lumberjack &lu, const std::string &identifier_in, const std:
         
         case 6: return Experiment::Query::trial<Sphere>(ch, lu, table_names[1]);
         case 7: return Experiment::Reduction::trial<Sphere>(ch, lu, table_names[1]);
-        case 8: return Experiment::Identification::trial<Sphere>(ch, lu, table_names[1]);
+        case 8: return Experiment::Map::trial<Sphere>(ch, lu, table_names[1]);
         
         case 9: return Experiment::Query::trial<Plane>(ch, lu, table_names[2]);
         case 10: return Experiment::Reduction::trial<Plane>(ch, lu, table_names[2]);
-        case 11: return Experiment::Identification::trial<Plane>(ch, lu, table_names[2]);
+        case 11: return Experiment::Map::trial<Plane>(ch, lu, table_names[2]);
         
         case 12: return Experiment::Query::trial<Pyramid>(ch, lu, table_names[3]);
         case 13: return Experiment::Reduction::trial<Pyramid>(ch, lu, table_names[3]);
-        case 14: return Experiment::Identification::trial<Pyramid>(ch, lu, table_names[3]);
+        case 14: return Experiment::Map::trial<Pyramid>(ch, lu, table_names[3]);
         
         case 15: throw "Not implemented.";
         case 16: throw "Not implemented.";

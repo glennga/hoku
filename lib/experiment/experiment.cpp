@@ -4,7 +4,10 @@
 /// Source file for all trials. This holds the namespaces of functions that allow us to test various methods and log
 /// the data.
 
+#include <algorithm>
+
 #include "experiment/experiment.h"
+#include "math/random-draw.h"
 
 /// Generate the benchmark to be used for identification. Restricts which stars to include based on the given camera
 /// sensitivity (m_bar).
@@ -102,7 +105,7 @@ bool Experiment::Reduction::is_correctly_identified (const Star::list &body,
 /// @param body All body stars. Check if b_ell correctly matches stars in this set.
 /// @param b_ell Subset of our body, but with predicted catalog labels.
 /// @return True if the predicted catalog labels matches the ground truth labels (body set).
-bool Experiment::Identification::is_correctly_identified (const Star::list &body, const Star::list &b_ell) {
+bool Experiment::Map::is_correctly_identified (const Star::list &body, const Star::list &b_ell) {
     unsigned int c = 0;
     for (const Star &b : body) {
         c += (std::find(b_ell.begin(), b_ell.end(), b) != b_ell.end()) ? 1 : 0;

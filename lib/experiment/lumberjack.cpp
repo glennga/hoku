@@ -3,6 +3,8 @@
 ///
 /// Source file for Lumberjack class, which facilitates the storage of various results of trials.
 
+#include <algorithm>
+
 #include "experiment/lumberjack.h"
 
 /// String of the HOKU_PROJECT_PATH environment variable.

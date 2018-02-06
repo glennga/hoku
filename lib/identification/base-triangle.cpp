@@ -4,6 +4,10 @@
 /// Source file for BaseTriangle class, which holds all common methods between the Planar and Spherical triangle
 /// methods (they are very similar).
 
+#include <iostream>
+#include <cmath>
+#include <algorithm>
+
 #include "identification/base-triangle.h"
 
 /// Returned when a query does not return any results.

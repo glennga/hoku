@@ -3,9 +3,11 @@
 ///
 /// Source file for Rotation class, which represents rotations on 3D star vectors using quaternions.
 
-#include "math/rotation.h"
+#define _USE_MATH_DEFINES
+#include <cmath>
 
-const double Rotation::EQUALITY_PRECISION_DEFAULT;
+#include "math/random-draw.h"
+#include "math/rotation.h"
 
 /// Private constructor. Sets the individual components.
 ///
@@ -170,7 +172,8 @@ Rotation Rotation::triad (const Star::list &r, const Star::list &b) {
 /// @param b List of stars in frame ...
 /// @return The quaternion to frame the ... (r set) to ... (b set).
 Rotation Rotation::q_exact (const Star::list &r, const Star::list &b) {
-
+    // TODO: Finish the q-Method.
+    return Rotation::identity();
 }
 
 /// Statistical approach to find the quaternion across two different frames given vector observations in both. This
@@ -180,5 +183,7 @@ Rotation Rotation::q_exact (const Star::list &r, const Star::list &b) {
 /// @param b List of stars in frame ...
 /// @return The quaternion to frame the ... (r set) to ... (b set).
 Rotation Rotation::quest (const Star::list &r, const Star::list &b) {
+    // TODO: Finish the QUEST Method.
+    return Rotation::identity();
 
 }

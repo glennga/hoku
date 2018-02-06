@@ -6,7 +6,6 @@
 #ifndef HOKU_ASTERISM_H
 #define HOKU_ASTERISM_H
 
-#include <algorithm>
 #include "math/mercator.h"
 #include "math/star.h"
 

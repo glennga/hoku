@@ -7,6 +7,9 @@
 #ifndef HOKU_EXPERIMENT_H
 #define HOKU_EXPERIMENT_H
 
+#include <cmath>
+
+#include "benchmark/benchmark.h"
 #include "identification/identification.h"
 #include "experiment/lumberjack.h"
 
@@ -142,7 +145,7 @@ namespace Experiment {
     /// @brief Namespace that holds all parameters and functions to conduct the identification experiment with.
     ///
     /// The identification experiment is used to characterize each identifier from start to identification.
-    namespace Identification {
+    namespace Map {
         /// Schema header that corresponds to the log file for all identification trials.
         const char *const SCHEMA = "IdentificationMethod TEXT, Timestamp TEXT, SigmaQuery FLOAT, SigmaOverlay FLOAT, "
             "ShiftDeviation FLOAT, CameraSensitivity FLOAT, FalseStars INT, ComparisonCount INT, "
@@ -178,7 +181,7 @@ namespace Experiment {
             Star focus;
             
             // Define our hyperparameters.
-            p.nu_max = 20000, p.sigma_overlay = Identification::SO_MIN, p.sigma_query = Identification::SQ_MIN;
+            p.nu_max = 20000, p.sigma_overlay = Map::SO_MIN, p.sigma_query = Map::SQ_MIN;
             p.table_name = table_name, p.nu = std::make_shared<unsigned int>(nu);
             
             for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
@@ -201,8 +204,8 @@ namespace Experiment {
                             
                             // Log the results of our trial.
                             lu.log_trial(
-                                {Identification::SQ_MIN, Identification::SO_MIN, ss, MB_MIN + mb_i * MB_STEP, e,
-                                    static_cast<double> (*p.nu), (is_correctly_identified(body, w) ? 1.0 : 0)});
+                                {Map::SQ_MIN, Map::SO_MIN, ss, MB_MIN + mb_i * MB_STEP, e, static_cast<double> (*p.nu),
+                                    (is_correctly_identified(body, w) ? 1.0 : 0)});
                         }
                     }
                 }
