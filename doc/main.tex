@@ -5,36 +5,21 @@
 \usepackage[utf8]{inputenc} \usepackage{natbib} \usepackage{algorithm} \usepackage{tikz}
 \usepackage[noend]{algpseudocode} \usepackage{csquotes}
 
-\usetikzlibrary{shapes.geometric, arrows}
-
-\makeatletter
-\newcommand\fs@norules{\def\@fs@cfont{\bfseries}\let\@fs@capt\floatc@ruled
-\def\@fs@pre{}%
-\def\@fs@post{}%
-\def\@fs@mid{\kern3pt}%
-\let\@fs@iftopcapt\iftrue}
-\makeatother
-
-\algnewcommand{\LineComment}[1]{\State \(\triangleright\) #1}
-
-\floatstyle{norules}
-\restylefloat{algorithm}
-
 \title{Analysis of Lost-in-Space Star Identification Algorithms}
 \author{Glenn Galvizo \\ University of Hawaii at Manoa} \date{\today}
 
 \begin{document}
     \maketitle
 
-    \input{abstract}
-    \input{background}
-    \input{problem}
-    \input{existing}
-    \input{methods}
-    \input{analysis}
-    \input{conclusion}
+    \input{include/abstract}
+    \input{include/background}
+    \input{include/problem}
+    \input{include/existing}
+    \input{include/methods}
+    \input{include/analysis}
+    \input{include/conclusion}
 
     \nocite{*}
     \bibliographystyle{unsrt}
-    \bibliography{references}
+    \bibliography{include/references}
 \end{document}

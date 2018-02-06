@@ -151,7 +151,7 @@
         \begin{figure}
             \begin{columns}
                 \begin{column}{0.4\linewidth}
-                    \centering{\scalebox{.53}{\input{generic-identification}}}
+                    \centering{\scalebox{.53}{\input{include/generic-identification}}}
                 \end{column}
                 \begin{column}{0.6\linewidth}
                     \caption{Flowchart depicting flow of general identification method} \bigskip
@@ -169,7 +169,7 @@
     \begin{frame}
         \frametitle{Popular Approaches to Star Identification}
         \begin{table}
-            \centering{\tiny\hspace*{-10pt}\input{summary-table}} \bigskip \bigskip
+            \centering{\tiny\hspace*{-10pt}\input{include/summary-table}} \bigskip \bigskip
             \centering{
             \caption{
             Overview table of the different identification methods.
@@ -185,7 +185,7 @@
         \begin{block}{Research Goal}
             What is the most optimal identification process?
         \end{block} \bigskip \bigskip
-        Which method has the best \ldots
+        Which method has the best \ldots.
         \begin{enumerate}
             \item Query process? \medskip
             \item Reduction process? \medskip
@@ -228,8 +228,8 @@
             \begin{enumerate}
                 \item Generate image of stars $I$
                 \item Apply noise to image
-                \item Run identification before reduction step (giving $R$) \textit{once}
-                \item Check if $R$ contains the correct stars (denoted 'hit')
+                \item Run identification before reduction step (giving $R$) \underline{once}
+                \item Check if $R$ contains the correct stars (denoted \textit{hit})
                 \item Repeat for different image
             \end{enumerate}
         \end{block}
@@ -246,7 +246,7 @@
                 \item Generate image of stars $I$
                 \item Apply noise to image
                 \item Run identification before identification step (giving $r$)
-                \item Check if $r$ contains correct stars in $I$ ('hits')
+                \item Check if $r$ contains correct stars in $I$ (\textit{hits})
             \end{enumerate}
         \end{block}
     \end{frame}
