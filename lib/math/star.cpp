@@ -3,7 +3,11 @@
 ///
 /// Source file for Star class, which represents three-dimensional star vectors.
 
+#define _USE_MATH_DEFINES
+#include <iomanip>
+
 #include "math/star.h"
+#include "math/random-draw.h"
 
 /// Constructor. Sets the i, j, and k components, as well as the catalog ID of the Star.
 ///

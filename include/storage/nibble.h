@@ -7,11 +7,9 @@
 #ifndef HOKU_NIBBLE_H
 #define HOKU_NIBBLE_H
 
-#include <fstream>
-#include <sstream>
 #include <memory>
-#include <algorithm>
 #include "third-party/sqlite-cpp/SQLiteCpp.h"
+
 #include "math/star.h"
 
 /// @brief Class for interacting with `nibble.db` through SQLite.
@@ -62,7 +60,7 @@ class Nibble {
     
     /// Returned when a table creation is not successful.
     static constexpr int TABLE_NOT_CREATED = -1;
-    
+  
   public:
     Nibble ();
     explicit Nibble (const std::string &, const std::string & = "");
@@ -78,7 +76,7 @@ class Nibble {
     int find_attributes (std::string &, std::string &);
     int sort_table (const std::string &);
     int polish_table (const std::string &);
-    
+  
   public:
     /// Using the currently selected table, insert the set of values in order of the fields given.
     ///
@@ -104,7 +102,7 @@ class Nibble {
         
         return 0;
     }
-    
+
 #if !defined ENABLE_TESTING_ACCESS
   protected:
 #endif
@@ -112,7 +110,7 @@ class Nibble {
     static const std::string DATABASE_LOCATION;
 
 #if !defined ENABLE_TESTING_ACCESS
-    protected:
+  protected:
 #endif
     /// Current table being operated on.
     std::string table;

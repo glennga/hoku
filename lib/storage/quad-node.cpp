@@ -4,6 +4,9 @@
 /// Source file for QuadNode class, which represents a node and associated functions for the Mercator quadtree. This 
 /// **cannot** handle the entire Hipparcos catalog.
 
+#include <cmath>
+#include <iomanip>
+
 #include "storage/quad-node.h"
 
 /// Sets the X and Y coordinates of the node, and the width of the quadrant directly.

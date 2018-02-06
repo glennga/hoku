@@ -3,6 +3,8 @@
 ///
 /// Source file for Trio class, which retrieves attributes based off of three Stars.
 
+#include <cmath>
+
 #include "math/trio.h"
 
 /// Private constructor. Sets the individual stars.

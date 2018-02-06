@@ -8,8 +8,6 @@
 #ifndef HOKU_CHOMP_H
 #define HOKU_CHOMP_H
 
-#include <iomanip>
-#include <iostream>
 #include "storage/nibble.h"
 
 /// @brief Class for accessing the Hipparcos catalog.

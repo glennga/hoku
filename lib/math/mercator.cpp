@@ -4,6 +4,10 @@
 /// Source file for Mercator class, which represents two-dimensional projections of three-dimensional unit vectors
 /// (i.e. Stars).
 
+#define _USE_MATH_DEFINES
+#include <cmath>
+#include <iomanip>
+
 #include "math/mercator.h"
 
 /// Constructor. Projects the input star by the given width and records the results.

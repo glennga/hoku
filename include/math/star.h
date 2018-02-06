@@ -6,13 +6,8 @@
 #ifndef HOKU_STAR_H
 #define HOKU_STAR_H
 
-#define _USE_MATH_DEFINES
-
-#include <sstream>
-#include <iomanip>
 #include <array>
-
-#include "math/random-draw.h"
+#include <vector>
 
 /// @brief Class for 3D vector representation of stars.
 ///

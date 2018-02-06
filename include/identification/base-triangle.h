@@ -7,11 +7,9 @@
 #ifndef HOKU_BASE_TRIANGLE_H
 #define HOKU_BASE_TRIANGLE_H
 
-#include "identification/identification.h"
-#include "math/trio.h"
 #include <deque>
-#include <iostream>
-#include <iterator>
+
+#include "identification/identification.h"
 
 /// @brief Abstract base class for both triangle star identification methods.
 ///

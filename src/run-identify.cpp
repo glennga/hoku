@@ -25,6 +25,10 @@
 /// @endcode
 
 #include <iostream>
+#include <sstream>
+#include <fstream>
+#include <algorithm>
+
 #include "identification/angle.h"
 #include "identification/spherical-triangle.h"
 #include "identification/planar-triangle.h"

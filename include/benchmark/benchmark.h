@@ -6,11 +6,6 @@
 #ifndef HOKU_BENCHMARK_H
 #define HOKU_BENCHMARK_H
 
-#include <cstdio>
-#include <algorithm>
-#include <sstream>
-#include <random>
-#include <iomanip>
 #include "math/star.h"
 #include "math/rotation.h"
 #include "storage/chomp.h"

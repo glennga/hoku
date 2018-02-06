@@ -4,6 +4,9 @@
 /// Source file for Pyramid class, which matches a set of body vectors (stars) to their inertial counter-parts in the
 /// database.
 
+#include <algorithm>
+
+#include "math/random-draw.h"
 #include "identification/pyramid.h"
 
 /// Default parameters for the pyramid identification method.

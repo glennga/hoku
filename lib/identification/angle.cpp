@@ -4,8 +4,8 @@
 /// Source file for Angle class, which matches a set of body vectors (stars) to their inertial counter-parts in the
 /// database.
 
-#include <cmath>
-#include <wrl.h>
+#include <iostream>
+
 #include "identification/angle.h"
 
 /// Default parameters for the angle identification method.
@@ -125,7 +125,7 @@ Star::list Angle::singular_identification (const Star::list &candidates, const S
     for (unsigned int i = 0; i < 2; i++) {
         // We define our identity 'a' below.
         std::array<int, 2> a = {(i == 0) ? 0 : 1, (i == 0) ? 1 : 0};
-    
+        
         matches[i] = find_matches(candidates, parameters.f({b[0], b[1]}, {r[a[0]], r[a[1]]}));
         identities[i] = {Star::define_label(b[0], r[a[0]].get_label()), Star::define_label(b[1], r[a[1]].get_label())};
     }

@@ -6,10 +6,9 @@
 #ifndef HOKU_KD_NODE_H
 #define HOKU_KD_NODE_H
 
-#include "math/mercator.h"
-#include "storage/chomp.h"
 #include <memory>
-#include <algorithm>
+
+#include "math/mercator.h"
 
 /// @brief Class for spatial indexing of a list of stars. Typically smaller than QuadNode.
 ///
