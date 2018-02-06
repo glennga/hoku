@@ -1,16 +1,16 @@
 \begin{tabular}{  m{0.22\linewidth} || m{0.21\linewidth} | m{0.21\linewidth} | m{0.24\linewidth} }
     & \textbf{Image Features} & \textbf{Reduction} & \textbf{Identification} \\
     \hline \hline
-    \textbf{Angle} & $\theta^{ij}$ & Require $|R|=1$ & \Call{DMT}{$b, r$} \\ \hline
+    \textbf{Angle} & $\theta^{ij}$ & Require $|R|=1$ & \Call{DMT}{$b, r, I$} \\ \hline
     \textbf{Interior Angle} & $\theta^{ic}, \theta^{jc}, \phi$ & Require $|R| = 1$ & Restrict $\theta^{ic},
     \theta^{jc}$ at Query Time \\ \hline
     \textbf{Spherical Triangle} & Spherical $a^{ijk}, \imath^{ijk}$ & \Call{Pivot}{$b_i, b_j, b_k, R_1$} &
-    \Call{DMT}{$b, r$} \\ \hline
+    \Call{DMT}{$b, r, I$} \\ \hline
     \textbf{Planar Triangle} & Planar $a^{ijk}, \imath^{ijk}$ & \Call{Pivot}{$b_i, b_j, b_k, R_1$} &
-    \Call{DMT}{$b, r$} \\ \hline
+    \Call{DMT}{$b, r, I$} \\ \hline
     \textbf{Pyramid} & $\theta^{ij}, \theta^{ik}, \theta^{jk}$ & Require $|R| = 1$ &
     \Call{Common}{$R^{ab}, R^{ac}, F$}, \newline \Call{PyramidVerify}{$r, b, I$} \\ \hline
-    \textbf{Composite Pyramid} & Planar $a^{ijk}, \imath^{ijk}$ & Require $|R| = 1$ & \Call{DMT}{$b, r$}, \newline
+    \textbf{Composite Pyramid} & Planar $a^{ijk}, \imath^{ijk}$ & Require $|R| = 1$ & \Call{DMT}{$b, r, I$}, \newline
     \Call{CompositeVerify}{$r, b, a, I$}
 \end{tabular}
 
