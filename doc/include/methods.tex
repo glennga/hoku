@@ -85,9 +85,21 @@ To generate clean benchmark images, three items must be specified:
 
 Note that the goal of attitude determination is to find this true attitude $q_{rb}$.
 
+\begin{figure}
+    \centering{
+    \includegraphics[scale=0.4]{images/benchmark.png}
+    \caption{
+    Visualization of an image presented to a star identification procedure.
+    Stars are represented as vectors whose origin is the observer (i.e.\ Earth), and whose endpoint lies on a section
+    of the celestial sphere.
+    } \label{figure:benchmarkImageExample}
+    }
+\end{figure}
+
 All stars $S_r$ from the catalog are selected such that no star exists more than $f$ away from $c_r$.
 $S_r$ and $c_r$ are then rotated by $q_{rb}$ to construct the image stars: $S_b$ and $c_b$.
 $S_b$ is then stripped of their catalog identifiers, as it is the job of the identification method to guess these.
+The resulting image is presented in~\autoref{figure:benchmarkImageExample}.
 What is presented to each identification method are the stars in the image $S_b$, the center of the image $c_b$, and
 the field-of-view $f$.
 
@@ -145,13 +157,13 @@ recorded against the number of incorrectly reduced $R$ sets with a feature exper
 The query step is required for the reduction step to work- but by not counting incorrect reductions due to a feature
 experiment miss, the reduction step can be described better.
 
-For a majority of these methods, a reduction process matter of repeating the query steps until $|R|=1$ holds true.
+For a majority of these methods, a reduction process is a matter of repeating the query steps until $|R|=1$ holds true.
 For the triangle methods however, their reduction process is the \Call{Pivot}{} method.
 The experiment reduces down to $|R|=1$ reduction vs. \Call{Pivot}{} reduction, coupled with each individual method's
 query steps.
 
 To start, complete images were generated containing $S_b$, $c_b$, and $f$.
-Each identification method was ran until a singular set $r$ in $R$ is found.
+Each identification method was run until a singular set $r$ in $R$ is found.
 If all $r$ exists in the original set $S_r$ used to generate the image, then this was counted as a
 \textit{reduction hit}.
 
@@ -174,7 +186,7 @@ The end to end trials were analyzed using two variables:
 \end{enumerate}
 
 To start, complete images were generated containing $S_b$, $c_b$, and $f$.
-Each identification method was ran from start to finish, producing a map $a$ (or not one at all).
+Each identification method was run from start to finish, producing a map $a$ (or not one at all).
 If the map references the correct stars in $S_b$ (i.e.\ the reduction experiment), this is recorded as a
 \textit{reduction hit}.
 If the map references the correct stars and the map $a$ is accurate, this is recorded as a \textit{map hit}.

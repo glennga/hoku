@@ -72,7 +72,7 @@ std::array<double, 7> Chomp::components_from_line (const std::string &entry) {
 int Chomp::generate_bright_table () {
     std::ifstream catalog(HIP_CATALOG_LOCATION);
     if (!catalog.is_open()) {
-        throw "Catalog file cannot be opened";
+        throw std::runtime_error(std::string("Catalog file cannot be opened"));
     }
     
     SQLite::Transaction transaction(*conn);
@@ -108,7 +108,7 @@ int Chomp::generate_bright_table () {
 int Chomp::generate_hip_table () {
     std::ifstream catalog(HIP_CATALOG_LOCATION);
     if (!catalog.is_open()) {
-        throw "Catalog file cannot be opened";
+        throw std::runtime_error(std::string("Catalog file cannot be opened"));
     }
     
     SQLite::Transaction transaction(*conn);
