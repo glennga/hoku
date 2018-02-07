@@ -11,7 +11,7 @@
 
 /// Default parameters for the planar triangle identification method.
 const Identification::Parameters Plane::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
-    DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_F, "PLANE_20"};
+    DEFAULT_PASS_R_SET_CARDINALITY, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_F, "PLANE_20"};
 
 /// Constructor. Sets the benchmark data and fov. Sets the parameters, working table, and our index permutations.
 ///
@@ -58,7 +58,7 @@ std::vector<Star::trio> Plane::match_stars (const index_trio &i_b) {
 /// @return Vector of likely matches found by the planar triangle method.
 std::vector<Identification::labels_list> Plane::query (const Star::list &s) {
     if (s.size() != QUERY_STAR_SET_SIZE) {
-        throw "Input list does not have exactly three stars.";
+        throw std::runtime_error(std::string("Input list does not have exactly three stars."));
     }
     
     std::vector<label_trio> h = e_query(Trio::planar_area(s[0], s[1], s[2]), Trio::planar_moment(s[0], s[1], s[2]));

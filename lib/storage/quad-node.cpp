@@ -311,7 +311,7 @@ Star::list QuadNode::nearby_stars (const Star &q, const double fov, const unsign
     
     // Operating node MUST be the root, with coordinates at (0, 0).
     if (this->x != 0 || this->y != 0) {
-        throw "\"nearby_stars\" not operating on root node.";
+        throw std::runtime_error(std::string("\"nearby_stars\" not operating on root node."));
     }
     
     nearby.reserve(expected);

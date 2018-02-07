@@ -57,7 +57,7 @@ std::string experiment_table (const std::string &experiment_in) {
         case 0: return "QUERY";
         case 1: return "REDUCTION";
         case 2: return "IDENTIFICATION";
-        default: throw "Experiment name is not in the space of trial names.";
+        default: throw std::runtime_error(std::string("Experiment name is not in the space of trial names."));
     }
 }
 
@@ -81,7 +81,7 @@ int create_lumberjack_table (const std::string &experiment_in) {
         case 0: return Lumberjack::create_table("QUERY", Experiment::Query::SCHEMA);
         case 2: return Lumberjack::create_table("REDUCTION", Experiment::Reduction::SCHEMA);
         case 3: return Lumberjack::create_table("IDENTIFICATION", Experiment::Map::SCHEMA);
-        default: throw "Experiment name is not in the space of trial names.";
+        default: throw std::runtime_error(std::string("Experiment name is not in the space of trial names."));
     }
 }
 
@@ -100,9 +100,9 @@ void perform_trial (Lumberjack &lu, const std::string &identifier_in, const std:
         case 1: return Experiment::Reduction::trial<Angle>(ch, lu, table_names[0]);
         case 2: return Experiment::Map::trial<Angle>(ch, lu, table_names[0]);
         
-        case 3: throw "Not implemented.";
-        case 4: throw "Not implemented.";
-        case 5: throw "Not implemented.";
+        case 3: throw std::runtime_error(std::string("Not implemented."));
+        case 4: throw std::runtime_error(std::string("Not implemented."));
+        case 5: throw std::runtime_error(std::string("Not implemented."));
         
         case 6: return Experiment::Query::trial<Sphere>(ch, lu, table_names[1]);
         case 7: return Experiment::Reduction::trial<Sphere>(ch, lu, table_names[1]);
@@ -116,11 +116,11 @@ void perform_trial (Lumberjack &lu, const std::string &identifier_in, const std:
         case 13: return Experiment::Reduction::trial<Pyramid>(ch, lu, table_names[3]);
         case 14: return Experiment::Map::trial<Pyramid>(ch, lu, table_names[3]);
         
-        case 15: throw "Not implemented.";
-        case 16: throw "Not implemented.";
-        case 17: throw "Not implemented.";
+        case 15: throw std::runtime_error(std::string("Not implemented."));
+        case 16: throw std::runtime_error(std::string("Not implemented."));
+        case 17: throw std::runtime_error(std::string("Not implemented."));
         
-        default: throw "Choices not in appropriate spaces or test does not exist.";
+        default: throw std::runtime_error(std::string("Choices not in appropriate spaces or test does not exist."));
     }
 }
 

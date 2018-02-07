@@ -17,7 +17,7 @@ const Star::list Identification::EXCEEDED_NU_MAX = {Star::zero()};
 
 /// Default parameters for a general identification object.
 const Identification::Parameters Identification::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
-    DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_F, DEFAULT_TABLE_NAME};
+    DEFAULT_PASS_R_SET_CARDINALITY, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_F, DEFAULT_TABLE_NAME};
 
 /// Constructor. We set our field-of-view to the default here.
 Identification::Identification () {

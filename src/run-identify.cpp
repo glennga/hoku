@@ -50,6 +50,7 @@ namespace DCNT {
 namespace DCIP {
     static const double SIGMA_QUERY = 0.0001; ///< Query must be within 3 * sigma_query.
     static const unsigned int SQL_LIMIT = 100; ///< While performing a SQL query, limit results by this number.
+    static const bool PASS_R_SET_CARDINALITY = false; ///< Restrict |R| = 1 is lifted. R_1 is returned instead.
     static const double SIGMA_OVERLAY = 0.0001; ///< Resultant of inertial->body rotation must within 3 * this number.
     static const unsigned int NU_MAX = 10000; ///< Maximum number of query star comparisons before returning empty.
     
@@ -111,9 +112,10 @@ int run_identity (const std::string &id_method, const double fov, const Star::li
     Benchmark input(Star::list(s_i.begin() + 1, s_i.end()), s_i[0], fov);
     const int i = identifier_hash(id_method);
     
-    // Construct hyperparameters.
-    Identification::Parameters p = {};
+    // Attach hyperparameters.
+    Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
     p.nu_max = DCIP::NU_MAX, p.sigma_overlay = DCIP::SIGMA_OVERLAY, p.sigma_query = DCIP::SIGMA_QUERY;
+    p.pass_r_set_cardinality = DCIP::PASS_R_SET_CARDINALITY, p.sql_limit = DCIP::SQL_LIMIT;
     p.nu = DCIP::nu, p.f = DCIP::f, p.table_name = DCNT::id_space[i];
     
     // Identify using the given ID method, and display the results through Python.
@@ -125,12 +127,12 @@ int run_identity (const std::string &id_method, const double fov, const Star::li
     
     switch (i) {
         case 0: return identify(Angle(input, p).identify_all());
-        case 1: throw "Not implemented.";
+        case 1: throw std::runtime_error(std::string("Not implemented."));
         case 2: return identify(Sphere(input, p).identify_all());
         case 3: return identify(Plane(input, p).identify_all());
         case 4: return identify(Pyramid(input, p).identify_all());
-        case 5: throw "Not implemented.";
-        default: throw "ID method not in appropriate space.";
+        case 5: throw std::runtime_error(std::string("Not implemented."));
+        default: throw std::runtime_error(std::string("ID method not in appropriate space."));
     }
 }
 

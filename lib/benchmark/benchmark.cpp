@@ -123,7 +123,7 @@ void Benchmark::record_current_plot () {
     
     // Do not record if files are unable to open.
     if (!current || !error) {
-        throw "Unable to open current and/or error files.";
+        throw std::runtime_error(std::string("Unable to open current and/or error files."));
     }
     
     // Record the fov and norm first.
@@ -168,7 +168,7 @@ void Benchmark::display_plot () {
 #endif
     
     if (std::ifstream(CURRENT_TMP) || std::ifstream(ERROR_TMP)) {
-        throw "Current and/or error plot files could not deleted.";
+        throw std::runtime_error(std::string("Current and/or error plot files could not deleted."));
     }
     
     // Record the current instance, and let Python work its magic!

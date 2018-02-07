@@ -10,7 +10,7 @@
 
 /// Default parameters for the angle identification method.
 const Identification::Parameters Angle::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
-    DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_F, "ANGLE_20"};
+    DEFAULT_PASS_R_SET_CARDINALITY, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_F, "ANGLE_20"};
 
 /// Returned when no candidate pair is found from a query.
 const Star::pair Angle::NO_CANDIDATE_PAIR_FOUND = {Star::zero(), Star::zero()};
@@ -75,7 +75,9 @@ Identification::labels_list Angle::query_for_pair (const double theta) {
     // Query using theta with epsilon bounds. Return NO_CANDIDATES_FOUND if nothing is found.
     candidates = ch.simple_bound_query("theta", "label_a, label_b, theta", theta - epsilon, theta + epsilon,
                                        this->parameters.sql_limit);
-    if (candidates.empty()) {
+    
+    // |R| = 1 restriction. Applied with the PASS_R_SET_CARDINALITY flag.
+    if (candidates.empty() || (this->parameters.pass_r_set_cardinality && candidates.size() > 1)) {
         return NO_CANDIDATES_FOUND;
     }
     
@@ -117,7 +119,7 @@ Star::pair Angle::find_candidate_pair (const Star &b_a, const Star &b_b) {
 /// @return Body stars b with the attached labels of the inertial pair r.
 Star::list Angle::singular_identification (const Star::list &candidates, const Star::list &r, const Star::list &b) {
     if (r.size() != 2 || b.size() != 2) {
-        throw "Input lists does not have exactly two stars.";
+        throw std::runtime_error(std::string("Input lists does not have exactly two stars."));
     }
     std::array<Star::list, 2> matches = {}, identities = {};
     
@@ -146,7 +148,7 @@ Star::list Angle::singular_identification (const Star::list &candidates, const S
 /// @return Vector of likely matches found by the angle method.
 std::vector<Identification::labels_list> Angle::query (const Star::list &s) {
     if (s.size() != QUERY_STAR_SET_SIZE) {
-        throw "Input list does not have exactly two stars.";
+        throw std::runtime_error(std::string("Input list does not have exactly two stars."));
     }
     double epsilon = 3.0 * this->parameters.sigma_query, theta = Star::angle_between(s[0], s[1]);
     std::vector<labels_list> r_bar;

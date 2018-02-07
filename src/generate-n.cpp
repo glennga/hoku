@@ -85,7 +85,7 @@ void remove_table (const std::string &choice) {
             case DCNT::PLANE_TABLE_HASH: return DCNT::PLANE_NAME;
             case DCNT::PYRAMID_TABLE_HASH: return DCNT::PYRAMID_NAME;
             case DCNT::COMPOSITE_TABLE_HASH: return DCNT::COMPOSITE_NAME;
-            default: throw "Table choice is not within space {0, 1, 2, 3, 4, 5, 6}.";
+            default: throw std::runtime_error(std::string("Table choice is not within space {0, 1, 2, 3, 4, 5, 6}."));
         }
     };
     
@@ -111,14 +111,14 @@ void generate_table (const std::string &choice) {
     switch (choice_hash(choice)) {
         case DCNT::HIP_TABLE_HASH: Chomp();
             return display_result(0);
-            
+        
         case DCNT::ANGLE_TABLE_HASH: return display_result(Angle::generate_table(DCNT::FOV, DCNT::ANGLE_NAME));
-        case DCNT::INTERIOR_TABLE_HASH: throw "Not implemented.";
+        case DCNT::INTERIOR_TABLE_HASH: throw std::runtime_error(std::string("Not implemented."));
         case DCNT::SPHERE_TABLE_HASH: return display_result(Sphere::generate_table(DCNT::FOV, DCNT::SPHERE_NAME));
         case DCNT::PLANE_TABLE_HASH: return display_result(Plane::generate_table(DCNT::FOV, DCNT::PLANE_NAME));
         case DCNT::PYRAMID_TABLE_HASH: return display_result(Pyramid::generate_table(DCNT::FOV, DCNT::PYRAMID_NAME));
-        case DCNT::COMPOSITE_TABLE_HASH: throw "Not implemented.";
-        default: throw "Table choice is not within space {0, 1, 2, 3, 4, 5, 6}.";
+        case DCNT::COMPOSITE_TABLE_HASH: throw std::runtime_error(std::string("Not implemented."));
+        default: throw std::runtime_error(std::string("Table choice is not within space {0, 1, 2, 3, 4, 5, 6}."));
     }
 }
 
@@ -140,14 +140,17 @@ void generate_kvec_table (const std::string &choice) {
     };
     
     switch (choice_hash(choice)) {
-        case DCNT::HIP_TABLE_HASH: throw "Cannot generate KVEC table for star catalog table.";
+        case DCNT::HIP_TABLE_HASH:
+            throw std::runtime_error(std::string("Cannot generate KVEC table for star catalog "
+                                                     "table."));
+            
         case DCNT::ANGLE_TABLE_HASH: return create_and_polish(DCNT::ANGLE_NAME, DCNT::KVEC_ANGLE_FOCUS);
-        case DCNT::INTERIOR_TABLE_HASH: throw "Not implemented.";
+        case DCNT::INTERIOR_TABLE_HASH: throw std::runtime_error(std::string("Not implemented."));
         case DCNT::SPHERE_TABLE_HASH: return create_and_polish(DCNT::SPHERE_NAME, DCNT::KVEC_SPHERE_FOCUS);
         case DCNT::PLANE_TABLE_HASH: return create_and_polish(DCNT::PLANE_NAME, DCNT::KVEC_PLANE_FOCUS);
         case DCNT::PYRAMID_TABLE_HASH: return create_and_polish(DCNT::PYRAMID_NAME, DCNT::KVEC_PYRAMID_FOCUS);
-        case DCNT::COMPOSITE_TABLE_HASH: throw "Not implemented.";
-        default: throw "Table choice is not within space {0, 1, 2, 3, 4, 5, 6}.";
+        case DCNT::COMPOSITE_TABLE_HASH: throw std::runtime_error(std::string("Not implemented."));
+        default: throw std::runtime_error(std::string("Table choice is not within space {0, 1, 2, 3, 4, 5, 6}."));
     }
 }
 
@@ -187,8 +190,7 @@ int main (int argc, char *argv[]) {
         std::cout << "Usage: GenerateN [TableSpecification] [GenerateKVector/DeleteTable]" << std::endl;
         return -1;
     }
-    if ((argc >= 2
-         && !is_valid_arg(argv[1], {"hip", "angle", "interior", "sphere", "plane", "pyramid", "composite"}))
+    if ((argc >= 2 && !is_valid_arg(argv[1], {"hip", "angle", "interior", "sphere", "plane", "pyramid", "composite"}))
         || (argc == 3 && !is_valid_arg(argv[2], {"k", "d"}))) {
         std::cout << "Usage: GenerateN ['hip', 'angle', 'sphere', ...] ['k', 'd']" << std::endl;
         return -1;
