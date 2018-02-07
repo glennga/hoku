@@ -5,8 +5,10 @@
 
 #define ENABLE_TESTING_ACCESS
 
-#include "benchmark/benchmark.h"
+#include <fstream>
 #include "gtest/gtest.h"
+
+#include "benchmark/benchmark.h"
 
 /// Check that the stars are not in the same order after shuffling.
 TEST(BenchmarkImage, StarShuffle) {
