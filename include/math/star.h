@@ -8,6 +8,7 @@
 
 #include <array>
 #include <vector>
+#include <limits>
 
 /// @brief Class for 3D vector representation of stars.
 ///
