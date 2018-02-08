@@ -5,8 +5,10 @@
 
 #define ENABLE_TESTING_ACCESS
 
-#include "math/star.h"
+#include <cmath>
 #include "gtest/gtest.h"
+
+#include "math/star.h"
 
 /// Check that the components are not altered without set_unit being set.
 TEST(StarConstructor, NoUnit) {

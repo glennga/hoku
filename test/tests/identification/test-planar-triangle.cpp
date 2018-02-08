@@ -5,8 +5,10 @@
 
 #define ENABLE_TESTING_ACCESS
 
-#include "identification/planar-triangle.h"
 #include "gmock/gmock.h"
+
+#include "identification/planar-triangle.h"
+#include "math/trio.h"
 
 // Import several matchers from Google Mock.
 using testing::UnorderedElementsAre;

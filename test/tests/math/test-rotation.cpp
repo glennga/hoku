@@ -5,8 +5,10 @@
 
 #define ENABLE_TESTING_ACCESS
 
-#include "math/rotation.h"
+#include <cmath>
 #include "gtest/gtest.h"
+
+#include "math/rotation.h"
 
 /// Check that the vector component is set to zero with the public constructor.
 TEST(RotationConstructor, Public) {
