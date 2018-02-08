@@ -5,8 +5,10 @@
 
 #define ENABLE_TESTING_ACCESS
 
-#include "identification/spherical-triangle.h"
 #include "gmock/gmock.h"
+
+#include "identification/spherical-triangle.h"
+#include "math/trio.h"
 
 // Import several matchers from Google Mock.
 using testing::UnorderedElementsAre;
@@ -208,7 +210,7 @@ TEST(SphereTrial, CleanReduction) {
         input.stars[2].get_label()};
     
     std::sort(ell.begin(), ell.end());
-    EXPECT_THAT(a.experiment_reduction(), UnorderedElementsAre(ell[0], ell[1], ell[2]));
+    EXPECT_THAT(a.reduce(), UnorderedElementsAre(ell[0], ell[1], ell[2]));
 }
 
 /// Check that a clean input returns the expected identification of stars.

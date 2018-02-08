@@ -6,8 +6,10 @@
 
 #define ENABLE_TESTING_ACCESS
 
-#include "storage/chomp.h"
+#include <fstream>
 #include "gtest/gtest.h"
+
+#include "storage/chomp.h"
 
 /// Check that Nibble database is present after creating a Nibble instance.
 TEST(NibbleFile, Existence) {
@@ -117,7 +119,7 @@ TEST(NibbleConnection, InMemoryInstance) {
     ch.generate_bright_table();
     Nibble nb(ch.BRIGHT_TABLE, "label");
     Nibble::tuples_d a = nb.search_table("i, j, k", "label = 88", 3);
-
+    
     EXPECT_NEAR(a[0][0], 0.658552697278613, 0.000000000000001);
     EXPECT_NEAR(a[0][1], 0.00309371805098928, 0.000000000000001);
     EXPECT_NEAR(a[0][2], -0.75252825449659, 0.000000000000001);

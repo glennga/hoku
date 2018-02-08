@@ -5,8 +5,10 @@
 
 #define ENABLE_TESTING_ACCESS
 
-#include "storage/kd-node.h"
 #include "gtest/gtest.h"
+
+#include "storage/chomp.h"
+#include "storage/kd-node.h"
 
 /// Check that the KdNode star constructor has the correct components.
 TEST(KdNodeConstructor, StarConstructor) {

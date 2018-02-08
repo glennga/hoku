@@ -14,7 +14,7 @@ using testing::Not;
 
 /// Check that stars A, B, C, and D are found correctly.
 TEST(AsterismProperty, ABCDStarFind) {
-    Asterism::stars m = {Star::chance(1), Star::chance(2), Star::chance(3), Star::chance(4)};
+    Star::quad m = {Star::chance(1), Star::chance(2), Star::chance(3), Star::chance(4)};
     Asterism::points n = {Mercator(m[0], 1), Mercator(m[1], 1), Mercator(m[2], 1), Mercator(m[3], 1)};
     Asterism p(m);
     double d_max = 0;
@@ -67,7 +67,7 @@ TEST(AsterimProperty, UniqueCenter) {
     Star::list a;
     a.reserve(10000);
     for (int i = 0; i < 10000; i++) {
-        Asterism::stars b = {Star::chance(), Star::chance(), Star::chance(), Star::chance()};
+        Star::quad b = {Star::chance(), Star::chance(), Star::chance(), Star::chance()};
         a.push_back(Asterism::center(b));
     }
     

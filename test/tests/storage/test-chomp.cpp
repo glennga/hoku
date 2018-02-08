@@ -5,8 +5,11 @@
 
 #define ENABLE_TESTING_ACCESS
 
-#include "storage/chomp.h"
+#define _USE_MATH_DEFINES
 #include "gmock/gmock.h"
+
+#include "storage/chomp.h"
+
 
 // Create an in-between matcher for Google Mock.
 using testing::PrintToString;
