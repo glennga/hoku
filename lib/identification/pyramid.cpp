@@ -11,7 +11,7 @@
 
 /// Default parameters for the pyramid identification method.
 const Identification::Parameters Pyramid::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
-    DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_F, "PYRAMID_20"};
+    DEFAULT_PASS_R_SET_CARDINALITY, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_F, "PYRAMID_20"};
 
 /// Returned when there exists no common stars between the label list pairs.
 const Star::list Pyramid::NO_COMMON_FOUND = {Star::zero()};
@@ -152,8 +152,8 @@ Pyramid::star_trio Pyramid::find_candidate_trio (const star_trio &b_f) {
     h.insert(h.end(), t_j.begin(), t_j.end());
     Star::list t_k = common_stars(r_ik, r_jk, h);
     
-    // If these lists do not contain exactly one element, break.
-    if (t_i.size() + t_j.size() + t_k.size() != 3) {
+    // |R| = 1 restriction. If these lists do not contain exactly one element, break.
+    if ((t_i.size() + t_j.size() + t_k.size() != 3) && this->parameters.pass_r_set_cardinality) {
         return NO_CANDIDATE_TRIANGLE_FOUND;
     }
     
@@ -196,7 +196,7 @@ Star::list Pyramid::singular_identification (const Star::list &b) {
 /// @return Vector of likely matches found by the pyramid method.
 std::vector<Identification::labels_list> Pyramid::query (const Star::list &s) {
     if (s.size() != QUERY_STAR_SET_SIZE) {
-        throw "Input list does not have exactly two stars.";
+        throw std::runtime_error(std::string("Input list does not have exactly two stars."));
     }
     double epsilon = 3.0 * this->parameters.sigma_query, theta = Star::angle_between(s[0], s[1]);
     std::vector<labels_list> r_bar;

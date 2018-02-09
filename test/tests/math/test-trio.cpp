@@ -5,9 +5,11 @@
 
 #define ENABLE_TESTING_ACCESS
 
+#include <cmath>
+#include "gtest/gtest.h"
+
 #include "math/rotation.h"
 #include "math/trio.h"
-#include "gtest/gtest.h"
 
 /// Check that the side lengths generated for a planar triangle are correct. Answers checked with WolframAlpha.
 TEST(TrioPlanar, LengthsComputation) {

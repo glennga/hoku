@@ -62,7 +62,7 @@ int Lumberjack::create_table (const std::string &table_name, const std::string &
 /// @return 0 when finished.
 int Lumberjack::log_trial (const tuple_d &result) {
     if (result.size() != expected_result_size) {
-        throw "Result is not of size: " + std::to_string(expected_result_size) + ".";
+        throw std::runtime_error(std::string("Result is not of size: " + std::to_string(expected_result_size) + "."));
     }
     result_buffer.emplace_back(result);
     
@@ -107,7 +107,7 @@ int Lumberjack::flush_buffer () {
     // Ensure that our changes are correctly reflected.
     SQLite::Transaction t(*conn);
     if (insert.exec() != static_cast<signed> (result_buffer.size())) {
-        throw "All results were not recorded.";
+        throw std::runtime_error(std::string("All results were not recorded."));
     }
     else {
         result_buffer.clear(), result_buffer.reserve(MAXIMUM_BUFFER_SIZE);

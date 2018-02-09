@@ -1,6 +1,6 @@
 @echo off
 
-set HOKU_PROJECT_PATH=%~dp0..\..
+set HOKU_PROJECT_PATH=%~dp0..
 
 mkdir "%HOKU_PROJECT_PATH%"\data\tmp
 mkdir "%HOKU_PROJECT_PATH%"\build

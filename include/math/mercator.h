@@ -47,6 +47,9 @@ class Mercator {
     static double distance_between (const Mercator &m_1, const Mercator &m_2);
     int get_label () const;
     
+    static Star transform_point (double x, double y, double dpp);
+    static Mercator transform_star (const Star &s, double w_n);
+    
     virtual std::string str () const;
     
 #if !defined ENABLE_TESTING_ACCESS

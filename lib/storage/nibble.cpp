@@ -41,7 +41,7 @@ Nibble::Nibble (const std::string &table_name, const std::string &focus) {
     std::string schema, fields;
     nb.find_attributes(schema, fields);
     if (this->create_table(table_name, schema) == TABLE_NOT_CREATED) {
-        throw "Unable to create specified table";
+        throw std::runtime_error(std::string("Unable to create specified table"));
     }
     
     // Copy the table from our search table to our in-memory database.
@@ -66,7 +66,7 @@ void Nibble::select_table (const std::string &table, const bool check_existence)
         SQLite::Statement query(*conn, "SELECT name FROM sqlite_master WHERE type='table' AND name='" + table + "\'");
         while (query.executeStep()) {
             if (query.getColumnCount() == 0) {
-                throw "Table does not exist. 'check_existence' flag raised";
+                throw std::runtime_error(std::string("Table does not exist. 'check_existence' flag raised"));
             }
         }
     }

@@ -38,11 +38,14 @@ git clone https://github.com/glennga/hoku.git
 ```
 
 Build the necessary directories and create the `HOKU_PROJECT_PATH` variable by running the first build script. Windows
-users have to execute `first-build.bat`, and Linux users execute `first-build.sh`.
+users have to execute `first-build.bat`, and Linux users execute `first-build.sh`. _Note that you may have to restart 
+your shell (exit, reopen) for the results to take place._
 ```cmd
-cd hoku/script 
-chmod +x first-build.sh
-first-build.sh
+cd hoku 
+chmod +x script/first-build.sh
+
+# You must execute this script from the top level directory of Hoku!
+sudo script/first-build.sh
 ```
 
 Generate the executables. The output will reside in the `bin` folder. 

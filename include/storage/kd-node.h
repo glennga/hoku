@@ -75,10 +75,10 @@ class KdNode : public Mercator {
   private:
 #endif
     /// Minimum values for this node's represented box. Used for box queries.
-    bounds b_min = {0, 0};
+    bounds b_min = bounds {0, 0};
     
     /// Maximum values for this node's represented box. Used for box queries.
-    bounds b_max = {0, 0};
+    bounds b_max = bounds {0, 0};
     
     /// Edge to left child node.
     child_edge left_child;

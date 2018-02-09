@@ -123,20 +123,13 @@ void Benchmark::record_current_plot () {
     
     // Do not record if files are unable to open.
     if (!current || !error) {
-        throw "Unable to open current and/or error files.";
+        throw std::runtime_error(std::string("Unable to open current and/or error files."));
     }
     
-    // Record the fov and norm first.
-    current_record << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed << this->fov << '\n'
-                   << this->focus.norm() << '\n';
+    // Record the focus.
+    current_record << this->focus[0] << " " << this->focus[1] << " " << this->focus[2] << "\n";
     
-    // Record the focus second.
-    for (const double &component : {this->focus[0], this->focus[1], this->focus[2]}) {
-        current_record << component << " ";
-    }
-    current_record << "\n";
-    
-    // Record the rest of the stars.
+    // Record the stars.
     for (const Star &s : this->stars) {
         current_record << s[0] << " " << s[1] << " " << s[2] << " " << s.get_label() << "\n";
     }
@@ -160,15 +153,18 @@ void Benchmark::record_current_plot () {
 /// familiar with Python's MatPlotLib, so this seemed like the most straight-forward approach.
 void Benchmark::display_plot () {
     std::remove(CURRENT_TMP.c_str()), std::remove(ERROR_TMP.c_str());
-
+    
+    // Field-of-view and norm are parameters to the plot script.
+    std::string params = " fov=" + std::to_string(this->fov) + " norm=" + std::to_string(this->focus.norm());
+    
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-    std::string cmd = std::string("python ") + PLOT_SCRIPT;
+    std::string cmd = std::string("python ") + PLOT_SCRIPT + params;
 #else
-    std::string cmd = "python3 " + std::string(PLOT_SCRIPT);
+    std::string cmd = "python3 " + std::string(PLOT_SCRIPT) + params;
 #endif
     
     if (std::ifstream(CURRENT_TMP) || std::ifstream(ERROR_TMP)) {
-        throw "Current and/or error plot files could not deleted.";
+        throw std::runtime_error(std::string("Current and/or error plot files could not deleted."));
     }
     
     // Record the current instance, and let Python work its magic!
