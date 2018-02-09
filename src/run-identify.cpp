@@ -34,7 +34,7 @@
 #include "identification/planar-triangle.h"
 #include "identification/pyramid.h"
 
-namespace DCNT {
+namespace NBHA {
     static const char *ANGLE_NAME = "ANGLE_20"; ///< Name of table generated for Angle method.
     static const char *INTERIOR_NAME = "INTERIOR_20"; ///< Name of table generated for InteriorAngle method.
     static const char *SPHERE_NAME = "SPHERE_20"; ///< Name of table generated for SphericalTriangle method.
@@ -116,7 +116,7 @@ int run_identity (const std::string &id_method, const double fov, const Star::li
     Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
     p.nu_max = DCIP::NU_MAX, p.sigma_overlay = DCIP::SIGMA_OVERLAY, p.sigma_query = DCIP::SIGMA_QUERY;
     p.pass_r_set_cardinality = DCIP::PASS_R_SET_CARDINALITY, p.sql_limit = DCIP::SQL_LIMIT;
-    p.nu = DCIP::nu, p.f = DCIP::f, p.table_name = DCNT::id_space[i];
+    p.nu = DCIP::nu, p.f = DCIP::f, p.table_name = NBHA::id_space[i];
     
     // Identify using the given ID method, and display the results through Python.
     auto identify = [&input, &p, &s_i, &fov] (const Star::list &result) -> int {
