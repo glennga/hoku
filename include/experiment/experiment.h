@@ -24,7 +24,7 @@
 /// 3. Identification
 /// @endcode
 namespace Experiment {
-    void present_benchmark (Chomp &, Star::list &, Star &, double = 0);
+    void present_benchmark (Chomp &, Star::list &, Star &, double fov, double = 0);
     
     /// @brief Namespace that holds all parameters and functions to conduct the query experiment with.
     ///
@@ -34,7 +34,7 @@ namespace Experiment {
         const char *const SCHEMA = "IdentificationMethod TEXT, Timestamp TEXT, SigmaQuery FLOAT, ShiftDeviation FLOAT, "
             "CandidateSetSize FLOAT, SExistence INT";
         
-        Star::list generate_n_stars (Chomp &ch, unsigned int n, Star &focus);
+        Star::list generate_n_stars (Chomp &ch, unsigned int n, Star &focus, double fov);
         bool set_existence (std::vector<Identification::labels_list> &r_set, Identification::labels_list &b);
         
         /// Generic experiment function for the query trials. Performs a query trial and records the experiment in
@@ -43,20 +43,21 @@ namespace Experiment {
         /// @tparam T Identification class to perform query experiment with.
         /// @param ch Nibble connection used to generate the input image.
         /// @param lu Lumberjack connection used to record the results of each trial.
-        /// @param table_name Name of the table used with the specified identifier.
+        /// @param cf Configuration reader holding all parameters to use.
+        /// @param tb Table name used with the method specified with the template T.
         template <class T>
-        void trial (Chomp &ch, Lumberjack &lu, const std::string &table_name) {
-            INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/data/config.ini"));
+        void trial (Chomp &ch, Lumberjack &lu, INIReader &cf, const std::string &tb) {
             Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
+            double fov = cf.GetReal("hardware", "fov", 0);
             Star focus;
             
-            p.sigma_query = cf.GetReal("id-parameters", "sq", 0), p.table_name = cf.Get("query-experiment", "lu", "");
-            for (int ss_i = 0; ss_i < cf.GetReal("query-experiment", "ss-iter", 0); ss_i++) {
-                double ss = (ss_i == 0) ? 0 : cf.GetReal("query-experiment", "ss-step", 0) * ss_i;
+            Identification::collect_parameters(p, cf), p.table_name = tb;
+            for (int ss_i = 0; ss_i < cf.GetInteger("query-experiment", "ss-iter", 0); ss_i++) {
+                double ss = (ss_i == 0) ? 0 : cf.GetInteger("query-experiment", "ss-step", 0) * ss_i;
                 
                 // Repeat each trial n = SAMPLES times.
                 for (int i = 0; i < cf.GetInteger("general-experiment", "samples", 0); i++) {
-                    Star::list s = generate_n_stars(ch, T::QUERY_STAR_SET_SIZE, focus);
+                    Star::list s = generate_n_stars(ch, T::QUERY_STAR_SET_SIZE, focus, fov);
                     Benchmark beta(s, focus, cf.GetReal("hardware", "fov", 0));
                     beta.shift_light(T::QUERY_STAR_SET_SIZE, ss);
                     
@@ -71,8 +72,7 @@ namespace Experiment {
                     }
                     
                     // Log the results of the trial.
-                    lu.log_trial({cf.GetReal("id-parameters", "sq", 0), ss, static_cast<double> (r.size()),
-                                     (set_existence(r, w) ? 1.0 : 0)});
+                    lu.log_trial({p.sigma_query, ss, static_cast<double> (r.size()), (set_existence(r, w) ? 1.0 : 0)});
                 }
             }
         }
@@ -94,35 +94,39 @@ namespace Experiment {
         /// @tparam T Identification class to perform reduction experiment with.
         /// @param ch Nibble connection used to generate the input image.
         /// @param lu Lumberjack connection used to record the results of each trial.
-        /// @param table_name Name of the table used with the specified identifier.
+        /// @param cf Configuration reader holding all parameters to use.
+        /// @param tb Table name used with the method specified with the template T.
         template <class T>
-        void trial (Chomp &ch, Lumberjack &lu, const std::string &table_name) {
+        void trial (Chomp &ch, Lumberjack &lu, INIReader &cf, const std::string &tb) {
             Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
+            double fov = cf.GetReal("hardware", "fov", 0);
             Star::list body;
             unsigned int nu = 0;
             Star focus;
             
             // Define our hyperparameters.
-            p.nu_max = 20000, p.sigma_overlay = Reduction::SO_MIN, p.sigma_query = Reduction::SQ_MIN;
-            p.table_name = table_name, p.nu = std::make_shared<unsigned int>(nu);
+            Identification::collect_parameters(p, cf), p.table_name = tb, p.nu = std::make_shared<unsigned int>(nu);
             
             // First run is clean, without shifts. Following are the shift trials.
-            for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
-                for (int mb_i = 0; mb_i < MB_ITER; mb_i++) {
+            for (int ss_i = 0; ss_i < cf.GetInteger("reduction-experiment", "ss-iter", 0); ss_i++) {
+                double ss = (ss_i == 0) ? 0 : cf.GetInteger("reduction-experiment", "ss-step", 0) * ss_i;
+                
+                for (int mb_i = 0; mb_i < cf.GetInteger("reduction-exeperiment", "mb-iter", 0); mb_i++) {
+                    double mb = cf.GetReal("reduction-experiment", "mb-min", 0)
+                                + mb_i * cf.GetInteger("reduction-experiment", "mb-step", 0);
                     
                     // Repeat each trial n = SAMPLES times.
                     for (int i = 0; i < cf.GetInteger("general-experiment", "samples", 0); i++) {
-                        present_benchmark(ch, body, focus, MB_MIN + mb_i * MB_STEP);
+                        present_benchmark(ch, body, focus, fov, mb);
                         Benchmark input(body, focus, cf.GetReal("hardware", "fov", 0));
-                        input.shift_light(static_cast<signed> (body.size()),
-                                          ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)));
+                        input.shift_light(static_cast<signed> (body.size()), ss);
                         
                         // Perform a single trial.
                         Identification::labels_list w = T(input, p).reduce();
                         
                         // Log the results of our trial.
-                        lu.log_trial({Reduction::SQ_MIN, Reduction::SO_MIN, ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)),
-                                         MB_MIN + mb_i * MB_STEP, (is_correctly_identified(body, w) ? 1.0 : 0)});
+                        lu.log_trial(
+                            {p.sigma_query, p.sigma_overlay, ss, mb, (is_correctly_identified(body, w) ? 1.0 : 0)});
                     }
                 }
             }
@@ -146,40 +150,45 @@ namespace Experiment {
         /// @tparam T Identification class to perform identification experiment with.
         /// @param ch Nibble connection used to generate the input image.
         /// @param lu Lumberjack connection used to record the results of each trial.
-        /// @param table_name Name of the table used with the specified identifier.
+        /// @param cf Configuration reader holding all parameters to use.
+        /// @param tb Table name used with the method specified with the template T.
         template <class T>
-        void trial (Chomp &ch, Lumberjack &lu, const std::string &table_name) {
+        void trial (Chomp &ch, Lumberjack &lu, INIReader &cf, const std::string &tb) {
             Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
+            double fov = cf.GetReal("hardware", "fov", 0);
             Star::list body;
             unsigned int nu = 0;
             Star focus;
             
             // Define our hyperparameters.
-            p.nu_max = 20000, p.sigma_overlay = Map::SO_MIN, p.sigma_query = Map::SQ_MIN;
-            p.table_name = table_name, p.nu = std::make_shared<unsigned int>(nu);
+            Identification::collect_parameters(p, cf), p.table_name = tb, p.nu = std::make_shared<unsigned int>(nu);
             
-            for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
-                double ss = ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i));
-                for (int mb_i = 0; mb_i < MB_ITER; mb_i++) {
-                    for (int es_i = 0; es_i < ES_ITER; es_i++) {
+            for (int ss_i = 0; ss_i < cf.GetInteger("identification-experiment", "ss-iter", 0); ss_i++) {
+                double ss = (ss_i == 0) ? 0 : cf.GetInteger("identification-experiment", "ss-step", 0) * ss_i;
+                
+                for (int mb_i = 0; mb_i < cf.GetInteger("identification-experiment", "mb-iter", 0); mb_i++) {
+                    double mb = cf.GetReal("identification-experiment", "mb-min", 0)
+                                + mb_i * cf.GetInteger("identification-experiment", "mb-step", 0);
+                    
+                    for (int es_i = 0; es_i < cf.GetInteger("identification-experiment", "es-iter", 0); es_i++) {
+                        double es = cf.GetReal("identification-experiment", "es-min", 0)
+                                    + es_i * cf.GetInteger("identification-experiment", "es-step", 0);
                         
                         // Repeat each trial n = SAMPLES times.
                         for (int i = 0; i < cf.GetInteger("general-experiment", "samples", 0); i++) {
-                            present_benchmark(ch, body, focus, MB_MIN + mb_i * MB_STEP);
+                            present_benchmark(ch, body, focus, fov, mb);
                             Benchmark input(body, focus, cf.GetReal("hardware", "fov", 0));
                             
                             // Append our error.
                             input.shift_light(static_cast<int> (body.size()), ss);
-                            double e = ES_MIN + ES_STEP * es_i, clean_size = body.size();
-                            input.add_extra_light(static_cast<unsigned int> ((e / (1 - e)) * clean_size));
+                            input.add_extra_light(static_cast<unsigned int> ((es / (1 - es)) * body.size()));
                             
                             // Perform a single trial.
                             Star::list w = T(input, p).identify();
                             
                             // Log the results of our trial.
-                            lu.log_trial(
-                                {Map::SQ_MIN, Map::SO_MIN, ss, MB_MIN + mb_i * MB_STEP, e, static_cast<double> (*p.nu),
-                                    (is_correctly_identified(body, w) ? 1.0 : 0)});
+                            lu.log_trial({p.sigma_query, p.sigma_overlay, ss, mb, es, static_cast<double> (*p.nu),
+                                             (is_correctly_identified(body, w) ? 1.0 : 0)});
                         }
                     }
                 }

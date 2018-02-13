@@ -11,13 +11,14 @@
 
 /// Default parameters for the pyramid identification method.
 const Identification::Parameters Pyramid::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
-    DEFAULT_PASS_R_SET_CARDINALITY, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_F, "PYRAMID_20"};
+    DEFAULT_PASS_R_SET_CARDINALITY, DEFAULT_FAVOR_BRIGHT_STARS, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU,
+    DEFAULT_F, "PYRAMID_20"};
 
 /// Returned when there exists no common stars between the label list pairs.
 const Star::list Pyramid::NO_COMMON_FOUND = {Star::zero()};
 
 /// Returned when there exists no candidate triangle to be found for the given three stars.
-const Pyramid::star_trio Pyramid::NO_CANDIDATE_TRIANGLE_FOUND = {Star::zero(), Star::zero(), Star::zero()};
+const Star::trio Pyramid::NO_CANDIDATE_TRIANGLE_FOUND = {Star::zero(), Star::zero(), Star::zero()};
 
 /// Constructor. Sets the benchmark data, fov, parameters, and current working table.
 ///
@@ -41,12 +42,12 @@ int Pyramid::generate_table (const double fov, const std::string &table_name) {
 /// Find all star pairs whose angle of separation is with 3 * query_sigma (epsilon) degrees of each other.
 ///
 /// @param theta Separation angle (degrees) to search with.
-/// @return List of star pairs that fall within epsilon degrees of theta.
-Pyramid::label_list_pair Pyramid::query_for_pairs (const double theta) {
+/// @return List of star lists (of size = 2) that fall within epsilon degrees of theta.
+Pyramid::labels_list_list Pyramid::query_for_pairs (const double theta) {
     // Noise is normally distributed. Angle within 3 sigma of theta.
     double epsilon = 3.0 * this->parameters.sigma_query;
     Chomp::tuples_d results;
-    label_list_pair candidates;
+    labels_list_list candidates;
     
     // Query using theta with epsilon bounds.
     ch.select_table(parameters.table_name);
@@ -56,7 +57,7 @@ Pyramid::label_list_pair Pyramid::query_for_pairs (const double theta) {
     // Append the results to our candidate list.
     candidates.reserve(results.size() / 2);
     for (const Nibble::tuple_d &result: results) {
-        candidates.push_back(label_pair {(static_cast<int> (result[0])), static_cast<int> (result[1])});
+        candidates.push_back({(static_cast<int> (result[0])), static_cast<int> (result[1])});
     }
     
     return candidates;
@@ -69,17 +70,17 @@ Pyramid::label_list_pair Pyramid::query_for_pairs (const double theta) {
 /// @param r_ac List of AC star pairs. We are trying to determine A.
 /// @param f Our "removed" list. Remove any labels in the "intersection" that exist in this set's labels.
 /// @return All common stars between AB and AC, with F removed.
-Star::list Pyramid::common_stars (const label_list_pair &r_ab, const label_list_pair &r_ac, const Star::list &f) {
-    auto flatten_pairs = [] (const label_list_pair &candidates, labels_list &out_list) -> void {
+Star::list Pyramid::common_stars (const labels_list_list &r_ab, const labels_list_list &r_ac, const Star::list &f) {
+    auto flatten_pairs = [] (const labels_list_list &candidates, labels_list &out_list) -> void {
         out_list.reserve(candidates.size() * 2);
-        for (const label_pair &candidate : candidates) {
+        for (const labels_list &candidate : candidates) {
             out_list.push_back(candidate[0]);
             out_list.push_back(candidate[1]);
         }
         std::sort(out_list.begin(), out_list.end());
     };
     
-    // Flatten our list of pairs.
+    // Flatten our list of lists.
     labels_list ab_list, ac_list, i, i_r;
     flatten_pairs(r_ab, ab_list), flatten_pairs(r_ac, ac_list);
     
@@ -106,7 +107,7 @@ Star::list Pyramid::common_stars (const label_list_pair &r_ab, const label_list_
 /// @param r Current reference star trio.
 /// @param b Current body star trio.
 /// @return True if the verification has passed. Otherwise, false.
-bool Pyramid::verification (const star_trio &r, const star_trio &b_f) {
+bool Pyramid::verification (const Star::trio &r, const Star::trio &b_f) {
     // Select a random star E. This must not exist in the current body trio.
     Star e;
     do {
@@ -115,10 +116,10 @@ bool Pyramid::verification (const star_trio &r, const star_trio &b_f) {
     while (std::find(b_f.begin(), b_f.end(), e) != b_f.end());
     
     // Find all star pairs between IE, JE, and KE.
-    auto find_pairs = [this, &e, &b_f] (const int a) -> label_list_pair {
+    auto find_pairs = [this, &e, &b_f] (const int a) -> labels_list_list {
         return this->query_for_pairs(Star::angle_between(b_f[a], e));
     };
-    label_list_pair r_ie = find_pairs(0), r_je = find_pairs(1), r_ke = find_pairs(2), h;
+    labels_list_list r_ie = find_pairs(0), r_je = find_pairs(1), r_ke = find_pairs(2), h;
     
     // Determine the star E in the catalog using common stars.
     std::set_union(r_ie.begin(), r_ie.end(), r_je.begin(), r_je.end(), std::back_inserter(h));
@@ -140,11 +141,11 @@ bool Pyramid::verification (const star_trio &r, const star_trio &b_f) {
 /// @param b_f Trio of stars in our body frame.
 /// @return NO_CANDIDATE_TRIANGLE_FOUND if no triangle can be found. Otherwise, the catalog IDs of stars from the
 /// inertial frame.
-Pyramid::star_trio Pyramid::find_candidate_trio (const star_trio &b_f) {
-    auto find_pairs = [this, &b_f] (const int a, const int b) -> label_list_pair {
+Star::trio Pyramid::find_candidate_trio (const Star::trio &b_f) {
+    auto find_pairs = [this, &b_f] (const int a, const int b) -> labels_list_list {
         return this->query_for_pairs(Star::angle_between(b_f[a], b_f[b]));
     };
-    label_list_pair r_ij = find_pairs(0, 1), r_ik = find_pairs(0, 2), r_jk = find_pairs(1, 2);
+    labels_list_list r_ij = find_pairs(0, 1), r_ik = find_pairs(0, 2), r_jk = find_pairs(1, 2);
     
     // Determine the star I, J, and K in the catalog using common stars.
     Star::list t_i = common_stars(r_ij, r_ik, Star::list {});
@@ -157,13 +158,29 @@ Pyramid::star_trio Pyramid::find_candidate_trio (const star_trio &b_f) {
         return NO_CANDIDATE_TRIANGLE_FOUND;
     }
     
+    // Favor bright stars if specified. Applied with the FAVOR_BRIGHT_STARS flag.
+    Star::trio r_f = {t_i[0], t_j[0], t_k[0]};
+    if (this->parameters.favor_bright_stars) {
+        // Form trios all of combinations from t_i, t_j, and t_k.
+        std::vector<Identification::labels_list> r;
+        for (const Star &s_i : t_i) {
+            for (const Star &s_j : t_j) {
+                for (const Star &s_k : t_k) {
+                    r.push_back({s_i.get_label(), s_j.get_label(), s_k.get_label()});
+                }
+            }
+        }
+        
+        sort_brightness(r);
+        r_f = {ch.query_hip(r[0][0]), ch.query_hip(r[0][1]), ch.query_hip(r[0][2])};
+    }
+
     // Otherwise, attempt to verify the triangle.
-    star_trio r = {t_i[0], t_j[0], t_k[0]};
-    if (!verification(r, b_f)) {
+    if (!verification(r_f, b_f)) {
         return NO_CANDIDATE_TRIANGLE_FOUND;
     }
     
-    return r;
+    return r_f;
 }
 
 /// Identification determination process for a single reference star and identification trio.
@@ -172,7 +189,7 @@ Pyramid::star_trio Pyramid::find_candidate_trio (const star_trio &b_f) {
 /// @return NO_CONFIDENT_IDENTITY if an identification quad cannot be found. Otherwise, body stars b with the attached
 /// labels of the inertial pair r.
 Star::list Pyramid::singular_identification (const Star::list &b) {
-    star_trio r_quad = find_candidate_trio({b[0], b[1], b[2]});
+    Star::trio r_quad = find_candidate_trio({b[0], b[1], b[2]});
     if (std::equal(r_quad.begin(), r_quad.end(), NO_CANDIDATE_TRIANGLE_FOUND.begin())) {
         return NO_CONFIDENT_IDENTITY;
     }
@@ -196,22 +213,30 @@ Star::list Pyramid::singular_identification (const Star::list &b) {
 /// @return Vector of likely matches found by the pyramid method.
 std::vector<Identification::labels_list> Pyramid::query (const Star::list &s) {
     if (s.size() != QUERY_STAR_SET_SIZE) {
-        throw std::runtime_error(std::string("Input list does not have exactly two stars."));
-    }
-    double epsilon = 3.0 * this->parameters.sigma_query, theta = Star::angle_between(s[0], s[1]);
-    std::vector<labels_list> r_bar;
-    
-    // Query using theta with epsilon bounds.
-    Nibble::tuples_d r = ch.simple_bound_query("theta", "label_a, label_b", theta - epsilon, theta + epsilon,
-                                               this->parameters.sql_limit);
-    
-    // Sort tuple_d into list of catalog ID pairs.
-    r_bar.reserve(r.size() / 2);
-    for (const Nibble::tuple_d &r_t : r) {
-        r_bar.emplace_back(labels_list {static_cast<int> (r_t[0]), static_cast<int> (r_t[1])});
+        throw std::runtime_error(std::string("Input list does not have exactly three stars."));
     }
     
-    return r_bar;
+    auto find_pairs = [this, &s] (const int a, const int b) -> labels_list_list {
+        return this->query_for_pairs(Star::angle_between(s[a], s[b]));
+    };
+    labels_list_list r_ij = find_pairs(0, 1), r_ik = find_pairs(0, 2), r_jk = find_pairs(1, 2);
+    
+    // Determine the star I, J, and K in the catalog using common stars.
+    Star::list t_i = common_stars(r_ij, r_ik, Star::list {});
+    Star::list t_j = common_stars(r_ij, r_jk, t_i), h = t_i;
+    h.insert(h.end(), t_j.begin(), t_j.end());
+    Star::list t_k = common_stars(r_ik, r_jk, h);
+    
+    // Form trios all of combinations from t_i, t_j, and t_k.
+    std::vector<Identification::labels_list> r;
+    for (const Star &s_i : t_i) {
+        for (const Star &s_j : t_j) {
+            for (const Star &s_k : t_k) {
+                r.push_back({s_i.get_label(), s_j.get_label(), s_k.get_label()});
+            }
+        }
+    }
+    return r;
 }
 
 /// Finds the single, most likely result for the first four stars in our current benchmark. This trial is
@@ -271,7 +296,7 @@ Star::list Pyramid::identify () {
                 }
                 
                 // Given three stars in our catalog, find their catalog IDs in the catalog.
-                star_trio r_quad = find_candidate_trio(star_trio {input[i], input[j], input[k]});
+                Star::trio r_quad = find_candidate_trio(Star::trio {input[i], input[j], input[k]});
                 if (std::equal(r_quad.begin(), r_quad.end(), NO_CANDIDATE_TRIANGLE_FOUND.begin())) {
                     continue;
                 }

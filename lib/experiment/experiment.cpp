@@ -15,17 +15,17 @@
 /// @param ch Open Nibble connection using Chomp methods.
 /// @param body Reference to location of the body stars.
 /// @param focus Reference to location of the focus star.
+/// @param fov Double of the field-of-view stars can exist from the focus.
 /// @param m_bar Minimum magnitude that all stars must be under.
-void Experiment::present_benchmark (Chomp &ch, Star::list &body, Star &focus, const double m_bar) {
+void Experiment::present_benchmark (Chomp &ch, Star::list &body, Star &focus, const double fov, const double m_bar) {
     Rotation q = Rotation::chance();
     
     // We require at-least five stars to exist here.
     do {
         focus = Star::chance();
-        body.clear(), body.reserve(static_cast<unsigned int> (WORKING_FOV * 4));
+        body.clear(), body.reserve(static_cast<unsigned int> (fov * 4));
         
-        for (const Star &s : ch.nearby_hip_stars(focus, WORKING_FOV / 2.0,
-                                                 static_cast<unsigned int> (WORKING_FOV * 4))) {
+        for (const Star &s : ch.nearby_hip_stars(focus, fov / 2.0, static_cast<unsigned int> (fov * 4))) {
             if (s.get_magnitude() < m_bar) {
                 body.emplace_back(Rotation::rotate(s, q));
             }
@@ -60,11 +60,12 @@ bool Experiment::Query::set_existence (std::vector<Identification::labels_list> 
 /// @param ch Open Nibble connection using Chomp methods.
 /// @param n Number of stars to generate.
 /// @param focus Reference to center used to query Nibble with.
+/// @param fov Double of the field-of-view stars can exist from the focus.
 /// @return List of n stars who are within fov degrees from each other.
-Star::list Experiment::Query::generate_n_stars (Chomp &ch, const unsigned int n, Star &focus) {
+Star::list Experiment::Query::generate_n_stars (Chomp &ch, const unsigned int n, Star &focus, const double fov) {
     // Find all stars near some random focus.
     focus = Star::chance();
-    Star::list s_c = ch.nearby_bright_stars(focus, WORKING_FOV / 2.0, static_cast<unsigned int> (WORKING_FOV * 4)), s;
+    Star::list s_c = ch.nearby_bright_stars(focus, fov / 2.0, static_cast<unsigned int> (fov * 4)), s;
     std::shuffle(s_c.begin(), s_c.end(), RandomDraw::mersenne_twister);
     
     // Insert n stars to s.
