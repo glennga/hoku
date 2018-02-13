@@ -95,7 +95,7 @@ void Identification::sort_brightness (std::vector<labels_list> &candidates) {
     };
     
     std::sort(candidates.begin(), candidates.end(), [&grab_b] (const labels_list &i, const labels_list &j) {
-        return (grab_b(i[0]) + grab_b(i[1]) + grab_b(i[2])) < (grab_b(j[0]) + grab_b(j[1]) + grab_b(j[2]));
+        return (grab_b(i[0]) + grab_b(i[1]) + grab_b(i[2])) > (grab_b(j[0]) + grab_b(j[1]) + grab_b(j[2]));
     });
 }
 
