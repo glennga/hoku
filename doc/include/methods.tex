@@ -114,12 +114,21 @@ False stars were added to $S_b$ by generating a random vector $s$ within $f$ of 
 \subsection{Which set of features best distinguish a set of stars?}\label{subsec:featureUniquenessMethods}
 This experiment helps determine which identification method has the best querying process for catalog candidates $R$.
 This is the first filter step, reducing the entire catalog to a subset of combinations.
-If the correct stars do not exist here, then the following steps will not be able to correctly determine a map.
-On the other hand if not enough of the catalog is filtered, there is a greater chance of error occuring at later steps.
+If the correct stars do not exist here (filter produces false negatives), then the following steps will not be able to
+correctly determine a map.
+On the other hand if not enough of the catalog is filtered, there is a greater chance of error occurring at later steps.
 
 Differences in catalog querying are specified in each paper (K-Vector, KD Trees, \ldots), but in this set of
 experiments all catalog querying uses a B-Tree index.
 The only unique portion of each query that remains are what features each method uses to search the catalog.
+The relational algebra then becomes:
+\begin{equation}
+    \Pi_{r_1, r_2, \ldots, r_k} (\sigma_{(c_f < q_f + 3\epsilon) \bigwedge (c_f > q_f - 3\epsilon)}(C))
+\end{equation}
+
+Here, $k$ refers to the number of stars used in the query (e.g. the Angle method uses $k = 2$ stars), $c_f$ refers to
+the catalog feature amongst $r_1, r_2, \ldots, r_k$, $q_f$ refers to the image feature amongst a body set $b$,
+$\epsilon$ refers to the deviation of noise, and $C$ refers to the catalog.
 
 Toloei's Composite Pyramid uses the same features as Cole and Crassidus's Planar Triangles method, so only five
 features were tested:
@@ -133,16 +142,21 @@ features were tested:
 
 The feature uniqueness of each identification method were analyzed in terms of three variables:
 \begin{enumerate}
-    \item Feature distribution across all possible combinations of stars in the catalog.
+    \item \label{itm:featureDist} Feature distribution across all possible combinations of stars in the catalog.
     \item \label{itm:hitCountFeature} \textit{Query hits} from single catalog candidate searches.
     \item $|R|$ from single catalog candidate searches.
 \end{enumerate}
-Query hit count here refers to finding a specific set of stars (the ones used to query for $R$) in the candidates.
 
-Single catalog candidate searches refer to feeding a partial image to each identification method and running it to
-produce an $R$ set.
-Partial images for~\itmref{Feature Experiment}{itm:hitCountFeature} are images that are generated with enough stars to
-derive a single candidate set from (e.g.\ the Angle method would only contain two stars in the image).
+TODO: Talk about the selectivity of each statement here?
+TODO: Still need to determine how distribution is going to be quantitatively analyzed.
+
+Query hit count here refers to finding a specific set of stars (the ones used to query for $R$) in the candidates.
+Single catalog candidate searches refer to feeding an image to each identification method and running it to produce
+an $R$ set.
+Referencing~\autoref{figure:genericIdentificationMethodFlowchart}, this consists of performing the \textit{Get Camera
+Image} step and executing the identification method past the \textit{Search Catalog} step to the first decision
+block.
+$R$ would then be analyzed for hits.
 
 A more even distribution of features, a higher query hit count, and a smaller $|R|$ suggest a better chance of uniquely
 identifying candidates.
@@ -152,10 +166,15 @@ This experiment helps determine which identification method has the best queryin
 If a reduction process is too restrictive, then a single match in $R$ will never be found.
 If a reduction process is not restrictive enough, then the following steps will rarely determine a correct map.
 
-To characterize the reduction portion, the number of correctly reduced $R$ sets with a feature experiment hit was
-recorded against the number of incorrectly reduced $R$ sets with a feature experiment hit.
-The query step is required for the reduction step to work- but by not counting incorrect reductions due to a feature
-experiment miss, the reduction step can be described better.
+Referencing~\autoref{figure:genericIdentificationMethodFlowchart}, the experiment starts at the \textit{Get Camera
+Image} step and executes the identification method to past the \textit{Confident in $r$?} decision block to produce a
+single match $r$ for some $b$.
+
+To characterize the reduction portion, the reduction process must be isolated.
+Only results that pass the first filter (the previous experiment) step will be counted, to avoid characterizing the
+query \textit{and} the reduction steps.
+The number of correctly reduced $R$ sets with a query experiment hit was recorded against the number of incorrectly
+reduced $R$ sets with a query experiment hit.
 
 For a majority of these methods, a reduction process is a matter of repeating the query steps until $|R|=1$ holds true.
 For the triangle methods however, their reduction process is the \Call{Pivot}{} method.
@@ -174,10 +193,13 @@ This experiment helps determine which identification method produces the most ac
 the entire process from end to end.
 An accurate map will reduce an attitude determination problem to Wahba's problem, which can be solved.
 
-To characterize the catalog to image mapping portion, the number of correct maps with the correctly reduced sets was
-recorded against the total number of incorrect maps with correctly reduced sets.
-The output from the query and reduction steps are required for the mapping step to work- but by not counting the
-number of incorrect maps due to steps earlier in the process, the mapping step can be described better.
+Referencing~\autoref{figure:genericIdentificationMethodFlowchart} again, this experiment runs the identification
+method end to end.
+To characteize the identification portion, the mapping process must be isolated.
+Only results that pass the first and second filter (the previous experiment) steps will be counted, to avoid
+characterizing the entire identification method.
+The number of correct maps with the correctly reduced sets was recorded against the total number of incorrect maps
+with correctly reduced sets.
 
 The end to end trials were analyzed using two variables:
 \begin{enumerate}

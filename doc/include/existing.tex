@@ -32,8 +32,9 @@ in~\autoref{eq:catalogCandidateExample}:
 \end{equation}
 
 Through some filter process, a single set $r$ from $R$ is then selected.
-If all of these steps are successful, then the map $a$ between $r$ and $b$ is determined and returned.
+If all of these steps are successful, then an one-to-one map $a$ between $r$ and $b$ is determined and returned.
 Otherwise, a new combination $c$ is selected and the entire process is repeated.
+In the event no map can be determined, an error is raised and an empty map is returned (not depicted in the flowchart).
 This process is detailed in~\autoref{figure:genericIdentificationMethodFlowchart}.
 
 \begin{figure}
@@ -48,7 +49,7 @@ This process is detailed in~\autoref{figure:genericIdentificationMethodFlowchart
 \end{figure}
 
 % Leaving this out for now. The flowchart should explain the process better.
-%\begin{algorithm}[H]
+%\begin{algorithm} \setstretch{1.0}[H]
 %    \caption{Generic Star Identification Method} \label{algorithm:genericStarIdentification}
 %    \begin{algorithmic}[1]
 %        \Procedure{Identify}{}
@@ -89,7 +90,7 @@ $\theta^{13}, \theta^{14}, \dots,$ and so on until a unique pair is found or all
 have been exhausted.
 To determine an mapping, a \textit{direct match test} (DMT) is performed.
 
-\begin{algorithm}
+\begin{algorithm} \setstretch{1.0}
     \caption{Angle Identification Method} \label{algorithm:angleIdentification}
     \begin{algorithmic}[1]
         \Procedure{Identify}{}
@@ -130,7 +131,7 @@ The mapping with the most correctly predicted stars is then returned as the resu
 The general form for this function (accepting an $B$ and $R$ of arbitrary size) is described
 in~\autoref{algorithm:angleHelper}.
 
-\begin{algorithm}
+\begin{algorithm} \setstretch{1.0}
     \caption{Functions for Angle Method}\label{algorithm:angleHelper}
     \begin{algorithmic}[1]
         \Function{DMT}{$b, r, I$}
@@ -190,7 +191,7 @@ If a confident match is not found by the first $b_c$ star, then the search proce
 match is found.
 This entire method is described in~\autoref{algorithm:interiorAngleIdentification}.
 
-\begin{algorithm}
+\begin{algorithm} \setstretch{1.0}
     \caption{Interior Angle Identification Method} \label{algorithm:interiorAngleIdentification}
     \begin{algorithmic}[1]
         \Procedure{Identify}{}
@@ -237,7 +238,7 @@ The entire catalog search procedure is repeated until a unique catalog trio is f
 been used.
 This procedure is described in~\autoref{algorithm:triangleIdentification}.
 
-\begin{algorithm}
+\begin{algorithm} \setstretch{1.0}
     \caption{Triangle Method Identification} \label{algorithm:triangleIdentification}
     \begin{algorithmic}[1]
         \Procedure{Identify}{}
@@ -265,7 +266,7 @@ from $R_{t=1}$.
 Note that the \Call{Pivot}{$b_i, b_j, b_k, R_1$} call inside~\autoref{algorithm:triangleIdentification}
 defines $R_1 = \emptyset$, which requires a "check" on lines 2 and 3 of~\autoref{algorithm:triangleHelper}.
 
-\begin{algorithm}
+\begin{algorithm} \setstretch{1.0}
     \caption{Functions for Triangle Identification} \label{algorithm:triangleHelper}
     \begin{algorithmic}[1]
         \Function{PartialMatch}{$R_1, R_t$}
@@ -352,7 +353,7 @@ performed.
 Once this verification step is past, a map is then returned.
 This entire process is described in~\autoref{algorithm:pyramidIdentification}.
 
-\begin{algorithm}
+\begin{algorithm} \setstretch{1.0}
     \caption{Pyramid Identification Method} \label{algorithm:pyramidIdentification}
     \begin{algorithmic}[1]
         \Function {FindCatalogStars} {$b, I$}
@@ -423,7 +424,7 @@ for each respective $\theta$.
 If the common star between all $R$ sets exists near the given $r$ set, then the test past.
 Otherwise, the test fails.
 
-\begin{algorithm}
+\begin{algorithm} \setstretch{1.0}
     \caption{Functions for Pyramid Identification} \label{algorithm:pyramidHelpers}
     \begin{algorithmic}[1]
         \Function{Common}{$R^{ab}, R^{ac}$}
@@ -468,7 +469,7 @@ With a map determined, the secondary verification step involving guessing a near
 If this verification step passes, then the mapping is returned.
 This entire process is described in~\autoref{algorithm:compositePyramidIdentification}.
 
-\begin{algorithm}
+\begin{algorithm} \setstretch{1.0}
     \caption{Composite Pyramid Identification Method} \label{algorithm:compositePyramidIdentification}
     \begin{algorithmic}[1]
         \Function {FindCatalogStars} {$b, I$}
@@ -520,7 +521,7 @@ Here, each triangle can be thought of as a face of the pyramid.
 
 From here, the catalog trio sets $R^{eij}, R^{eik}$, and $R^{ejk}$ are retrieved.
 The same function \Call{Common}{$R^{ab}, R^{ac}$} from the Pyramid method is used to determine what $b_e$ is.
-\begin{algorithm}
+\begin{algorithm} \setstretch{1.0}
     \caption{Functions for Composite Pyramid Identification} \label{algorithm:compositePyramidHelpers}
     \begin{algorithmic}[1]
         \Function{CompositeVerify}{$b, r, a, I$}

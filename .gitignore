@@ -8,6 +8,10 @@ build/
 
 # Latex files to ignore.
 *.pdf
+*.aux
+*.nav
+*.snm
+*.toc
 *.bak
 *.synctex.gz
 *.log
