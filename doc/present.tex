@@ -159,6 +159,7 @@
                         \item \textit{Search Catalog} $=$ Query w/ Features Step \medskip
                         \item \textit{Filter Candidates} $=$ Reduction Step \medskip
                         \item \textit{Identify} $=$ Identification Step \medskip
+                        \item \textit{\textbf{Requires $|I| \geq 3$}} \medskip
                     \end{enumerate}
                 \end{column}
             \end{columns}
@@ -215,7 +216,6 @@
                 \hspace*{-2pt}\centering{\includegraphics[scale=0.3]{images/benchmark.png}}
             \end{column}
         \end{columns}
-
     \end{frame}
 
     \subsection{Query Experiment}\label{subsec:queryExperiment}
@@ -223,7 +223,7 @@
         \frametitle{Query Experiment}
         \begin{block}{Question}
             Which set of features most accurately distinguish a set of stars?
-        \end{block} \medskip
+        \end{block}
         \begin{block}{Experiment}
             \begin{enumerate}
                 \item Generate image of stars $I$
@@ -233,6 +233,27 @@
                 \item Repeat for different image
             \end{enumerate}
         \end{block}
+        \begin{block}{Analysis}
+            More hits and smaller $|R|$ $\rightarrow$ effective filter
+        \end{block}
+    \end{frame}
+
+    \begin{frame}
+        \begin{figure}
+            \begin{columns}
+                \begin{column}{0.4\linewidth}
+                    \centering{\scalebox{.53}{\input{include/generic-identification}}}
+                \end{column}
+                \begin{column}{0.6\linewidth}
+                    \caption{Flowchart depicting flow of general identification method} \bigskip
+                    \begin{enumerate}
+                        \item \textit{Search Catalog} $=$ Query w/ Features Step \medskip
+                        \item \textit{Filter Candidates} $=$ Reduction Step \medskip
+                        \item \textit{Identify} $=$ Identification Step \medskip
+                    \end{enumerate}
+                \end{column}
+            \end{columns}
+        \end{figure}
     \end{frame}
 
     \subsection{Reduction Experiment}\label{subsec:reductionExperiment}
@@ -240,14 +261,18 @@
         \frametitle{Reduction Experiment}
         \begin{block}{Question}
             What is the best process for reducing a set of catalog candidates?
-        \end{block} \bigskip
+        \end{block}
         \begin{block}{Experiment}
             \begin{enumerate}
                 \item Generate image of stars $I$
                 \item Apply noise to image
                 \item Run identification before identification step (giving $r$)
                 \item Check if $r$ contains correct stars in $I$ (\textit{hits})
+                \item Repeat for different image
             \end{enumerate}
+        \end{block}
+        \begin{block}{Analysis}
+            Characterize reduction process, more hits $\rightarrow$ less false negatives
         \end{block}
     \end{frame}
 
@@ -256,20 +281,36 @@
         \frametitle{Identification Experiment}
         \begin{block}{Question}
             Which identification method can most accurately determine a map?
-        \end{block} \bigskip
+        \end{block}
         \begin{block}{Experiment}
             \begin{enumerate}
                 \item Generate image of stars $I$
                 \item Apply noise to image
                 \item Run identification method end to end (giving $a$)
-                \item Check if $a$ is a correct map
+                \item Check if $a$ is a correct map (\textit{hits})
+                \item Repeat for different image
             \end{enumerate}
+        \end{block}
+        \begin{block}{Analysis}
+            Characterize mapping process, more hits $\rightarrow$ accurate mapping
         \end{block}
     \end{frame}
 
     \section{Conclusion}\label{sec:conclusion}
     \begin{frame}
         \frametitle{Conclusion}
+        \begin{block}{Research Goal}
+            Determine what is the most optimal identification method
+        \end{block} \medskip
+        \begin{block}{Spacecraft Attitude Problem}
+            Given ($X_A, X'_A, \ldots$) and ($X_B, X'B, \ldots$), find $X_{AB}$
+        \end{block} \medskip
+        \begin{block}{Star Identification}
+            Determine mapping $X_A \rightarrow X_B$, $X'_A \rightarrow X'_B, \ldots$
+        \end{block} \medskip
+        \begin{block}{Methodology}
+            Characterize \textit{query}, \textit{reduction}, and \textit{identification}
+        \end{block}
     \end{frame}
 
     \begin{frame}
