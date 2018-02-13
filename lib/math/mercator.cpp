@@ -123,3 +123,30 @@ Mercator::quad Mercator::find_corners (const double a) const {
     return {Mercator(x - a / 2.0, y + a / 2.0, w_n), Mercator(x + a / 2.0, y + a / 2.0, w_n),
         Mercator(x - a / 2.0, y - a / 2.0, w_n), Mercator(x + a / 2.0, y - a / 2.0, w_n)};
 }
+
+/// Given a pixel point (X, Y) in an image and the ratio of pixels to degrees, project the star into 3D
+/// Cartesian space. The ratio of pixels to degrees must be passed, and it is assumed that the image itself is a
+/// square. Solution found here:
+/// https://stackoverflow.com/a/12734509
+///
+/// The given coordinates X, Y must be given in terms of FITS coordinates (i.e. top left = 0, 0, bottom right = N, N).
+///
+/// @param x X FITS coordinate of the image point.
+/// @param y Y FITS coordinate of the image point.
+/// @param dpp Degrees per pixel.
+/// @return The given point (X, Y) as a normalized vector in a 3D Cartesian frame.
+Star Mercator::transform_point (const double x, const double y, const double dpp) {
+    double r = (1 / (dpp / 90));
+    double alpha = x / r, delta = 2 * atan(exp(y/r)) - M_PI / 2;
+    
+    return Star(1.0 * cos(delta) * cos(alpha), 1.0 * cos(delta) * sin(alpha), 1.0 * sin(delta), 0, true);
+}
+
+/// Wrapper for 'project_star'. Projects the star with the given width.
+///
+/// @param s Star to project.
+/// @param w_n Width to project with.
+/// @return The star S, as a Mercator point in 2D space.
+Mercator Mercator::transform_star (const Star &s, const double w_n) {
+    return Mercator(s, w_n);
+}

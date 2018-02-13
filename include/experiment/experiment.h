@@ -8,6 +8,7 @@
 #define HOKU_EXPERIMENT_H
 
 #include <cmath>
+#include "third-party/inih/INIReader.h"
 
 #include "benchmark/benchmark.h"
 #include "identification/identification.h"
@@ -23,9 +24,6 @@
 /// 3. Identification
 /// @endcode
 namespace Experiment {
-    const double WORKING_FOV = 20; ///< Field of view that all our test stars must be within.
-    const int SAMPLES = 10; ///< Number of samples to retrieve for each individual trial.
-    
     void present_benchmark (Chomp &, Star::list &, Star &, double = 0);
     
     /// @brief Namespace that holds all parameters and functions to conduct the query experiment with.
@@ -35,10 +33,6 @@ namespace Experiment {
         /// Schema comma separated string that corresponds to the creation of the query table.
         const char *const SCHEMA = "IdentificationMethod TEXT, Timestamp TEXT, SigmaQuery FLOAT, ShiftDeviation FLOAT, "
             "CandidateSetSize FLOAT, SExistence INT";
-        
-        const double SQ_MIN = std::numeric_limits<double>::epsilon() * pow(3, 5); ///< Minimum query sigma.
-        const double SS_MULT = 0.00000001; ///< Shift sigma multiplier for each variation.
-        const int SS_ITER = 5; ///< Number of shift sigma variations.
         
         Star::list generate_n_stars (Chomp &ch, unsigned int n, Star &focus);
         bool set_existence (std::vector<Identification::labels_list> &r_set, Identification::labels_list &b);
@@ -52,17 +46,18 @@ namespace Experiment {
         /// @param table_name Name of the table used with the specified identifier.
         template <class T>
         void trial (Chomp &ch, Lumberjack &lu, const std::string &table_name) {
+            INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
             Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
             Star focus;
             
-            p.sigma_query = Query::SQ_MIN, p.table_name = table_name;
-            for (int ss_i = 0; ss_i < SS_ITER; ss_i++) {
-                double ss = (ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i);
+            p.sigma_query = cf.GetReal("id-parameters", "sq", 0), p.table_name = cf.Get("query-experiment", "lu", "");
+            for (int ss_i = 0; ss_i < cf.GetReal("query-experiment", "ss-iter", 0); ss_i++) {
+                double ss = (ss_i == 0) ? 0 : cf.GetReal("query-experiment", "ss-step", 0) * ss_i;
                 
                 // Repeat each trial n = SAMPLES times.
-                for (int i = 0; i < SAMPLES; i++) {
+                for (int i = 0; i < cf.GetInteger("general-experiment", "samples", 0); i++) {
                     Star::list s = generate_n_stars(ch, T::QUERY_STAR_SET_SIZE, focus);
-                    Benchmark beta(s, focus, WORKING_FOV);
+                    Benchmark beta(s, focus, cf.GetReal("hardware", "fov", 0));
                     beta.shift_light(T::QUERY_STAR_SET_SIZE, ss);
                     
                     // Perform a single trial.
@@ -76,7 +71,8 @@ namespace Experiment {
                     }
                     
                     // Log the results of the trial.
-                    lu.log_trial({SQ_MIN, ss, static_cast<double> (r.size()), (set_existence(r, w) ? 1.0 : 0)});
+                    lu.log_trial({cf.GetReal("id-parameters", "sq", 0), ss, static_cast<double> (r.size()),
+                                     (set_existence(r, w) ? 1.0 : 0)});
                 }
             }
         }
@@ -90,18 +86,9 @@ namespace Experiment {
         const char *const SCHEMA = "IdentificationMethod TEXT, Timestamp TEXT, SigmaQuery FLOAT, SigmaOverlay FLOAT, "
             "ShiftDeviation FLOAT, CameraSensitivity FLOAT, ResultMatchesInput INT";
         
-        const double SQ_MIN = std::numeric_limits<double>::epsilon() * pow(3, 5); ///< Minimum query sigma.
-        const double SO_MIN = std::numeric_limits<double>::epsilon() * 3; ///< Minimum match sigma.
-        const double SS_MULT = 0.00000001; ///< Shift sigma multiplier for each variation.
-        const int SS_ITER = 5; ///< Number of shift sigma variations.
-        
-        const double MB_MIN = 6.0; ///< Minimum magnitude bound.
-        const double MB_STEP = 0.25; ///< Step to increment magnitude bound with for each variation.
-        const int MB_ITER = 5; ///< Number of magnitude bound variations.
-        
         bool is_correctly_identified (const Star::list &body, const Identification::labels_list &r_labels);
         
-        /// Generic experiment function for the reduction trials. Performs a reduction trial and records the experiment 
+        /// Generic experiment function for the reduction trials. Performs a reduction trial and records the experiment
         /// in the lumberjack. The provided Nibble connection is used for generating the input image.
         ///
         /// @tparam T Identification class to perform reduction experiment with.
@@ -124,9 +111,9 @@ namespace Experiment {
                 for (int mb_i = 0; mb_i < MB_ITER; mb_i++) {
                     
                     // Repeat each trial n = SAMPLES times.
-                    for (int i = 0; i < SAMPLES; i++) {
+                    for (int i = 0; i < cf.GetInteger("general-experiment", "samples", 0); i++) {
                         present_benchmark(ch, body, focus, MB_MIN + mb_i * MB_STEP);
-                        Benchmark input(body, focus, WORKING_FOV);
+                        Benchmark input(body, focus, cf.GetReal("hardware", "fov", 0));
                         input.shift_light(static_cast<signed> (body.size()),
                                           ((ss_i == 0) ? 0 : SS_MULT * pow(10, ss_i)));
                         
@@ -150,19 +137,6 @@ namespace Experiment {
         const char *const SCHEMA = "IdentificationMethod TEXT, Timestamp TEXT, SigmaQuery FLOAT, SigmaOverlay FLOAT, "
             "ShiftDeviation FLOAT, CameraSensitivity FLOAT, FalseStars INT, ComparisonCount INT, "
             "IsCorrectlyIdentified INT";
-        
-        const double SQ_MIN = std::numeric_limits<double>::epsilon() * pow(3, 5); ///< Minimum query sigma.
-        const double SO_MIN = std::numeric_limits<double>::epsilon() * 3; ///< Minimum match sigma.
-        const double SS_MULT = 0.00000001; ///< Shift sigma multiplier for each variation.
-        const int SS_ITER = 5; ///< Number of shift sigma variations.
-        
-        const double MB_MIN = 6.0; ///< Minimum magnitude bound.
-        const double MB_STEP = 0.25; ///< Step to increment magnitude bound with for each variation.
-        const int MB_ITER = 5; ///< Number of magnitude bound variations.
-        
-        const int ES_MIN = 0; ///< Minimum number of extra stars to add.
-        const int ES_STEP = 5; ///< Step to increment extra stars with.
-        const int ES_ITER = 5;  ///< Number of extra stars variations.
         
         bool is_correctly_identified (const Star::list &body, const Star::list &w);
         
@@ -190,9 +164,9 @@ namespace Experiment {
                     for (int es_i = 0; es_i < ES_ITER; es_i++) {
                         
                         // Repeat each trial n = SAMPLES times.
-                        for (int i = 0; i < SAMPLES; i++) {
+                        for (int i = 0; i < cf.GetInteger("general-experiment", "samples", 0); i++) {
                             present_benchmark(ch, body, focus, MB_MIN + mb_i * MB_STEP);
-                            Benchmark input(body, focus, WORKING_FOV);
+                            Benchmark input(body, focus, cf.GetReal("hardware", "fov", 0));
                             
                             // Append our error.
                             input.shift_light(static_cast<int> (body.size()), ss);
