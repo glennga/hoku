@@ -32,6 +32,7 @@
 #include "identification/spherical-triangle.h"
 #include "identification/planar-triangle.h"
 #include "identification/pyramid.h"
+#include "identification/composite-pyramid.h"
 #include "experiment/experiment.h"
 
 /// INIReader to hold configuration associated with experiments.
@@ -109,21 +110,21 @@ void perform_trial (Lumberjack &lu, const std::string &identifier_in, const std:
         case 4: throw std::runtime_error(std::string("Not implemented."));
         case 5: throw std::runtime_error(std::string("Not implemented."));
         
-        case 6: return Experiment::Query::trial<Sphere>(ch, lu, cf, table_names[1]);
-        case 7: return Experiment::Reduction::trial<Sphere>(ch, lu, cf, table_names[1]);
-        case 8: return Experiment::Map::trial<Sphere>(ch, lu, cf, table_names[1]);
+        case 6: return Experiment::Query::trial<Sphere>(ch, lu, cf, table_names[2]);
+        case 7: return Experiment::Reduction::trial<Sphere>(ch, lu, cf, table_names[2]);
+        case 8: return Experiment::Map::trial<Sphere>(ch, lu, cf, table_names[2]);
         
-        case 9: return Experiment::Query::trial<Plane>(ch, lu, cf, table_names[2]);
-        case 10: return Experiment::Reduction::trial<Plane>(ch, lu, cf, table_names[2]);
-        case 11: return Experiment::Map::trial<Plane>(ch, lu, cf, table_names[2]);
+        case 9: return Experiment::Query::trial<Plane>(ch, lu, cf, table_names[3]);
+        case 10: return Experiment::Reduction::trial<Plane>(ch, lu, cf, table_names[3]);
+        case 11: return Experiment::Map::trial<Plane>(ch, lu, cf, table_names[3]);
         
-        case 12: return Experiment::Query::trial<Pyramid>(ch, lu, cf, table_names[3]);
-        case 13: return Experiment::Reduction::trial<Pyramid>(ch, lu, cf, table_names[3]);
-        case 14: return Experiment::Map::trial<Pyramid>(ch, lu, cf, table_names[3]);
+        case 12: return Experiment::Query::trial<Pyramid>(ch, lu, cf, table_names[4]);
+        case 13: return Experiment::Reduction::trial<Pyramid>(ch, lu, cf, table_names[4]);
+        case 14: return Experiment::Map::trial<Pyramid>(ch, lu, cf, table_names[4]);
         
-        case 15: throw std::runtime_error(std::string("Not implemented."));
-        case 16: throw std::runtime_error(std::string("Not implemented."));
-        case 17: throw std::runtime_error(std::string("Not implemented."));
+        case 15: return Experiment::Query::trial<Composite>(ch, lu, cf, table_names[5]);
+        case 16: return Experiment::Reduction::trial<Composite>(ch, lu, cf, table_names[5]);
+        case 17: return Experiment::Map::trial<Composite>(ch, lu, cf, table_names[5]);
         
         default: throw std::runtime_error(std::string("Choices not in appropriate spaces or test does not exist."));
     }

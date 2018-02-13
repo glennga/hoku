@@ -61,3 +61,12 @@ FILE(GLOB INCLUDES ${CMAKE_SOURCE_DIR}/include/identification/pyramid.h)
 add_library(Pyramid STATIC ${SOURCES} ${INCLUDES})
 install(TARGETS Pyramid DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include)
+
+##################################################################
+# Build Library Composite Pyramid
+##################################################################
+FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/composite-pyramid.cpp)
+FILE(GLOB INCLUDES ${CMAKE_SOURCE_DIR}/include/identification/composite-pyramid.h)
+add_library(CompositePyramid STATIC ${SOURCES} ${INCLUDES})
+install(TARGETS CompositePyramid DESTINATION lib)
+install(FILES ${INCLUDES} DESTINATION include)

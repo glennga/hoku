@@ -16,6 +16,8 @@
 /// The base triangle class is a base class for Crassidis and Cole's Planar and Spherical Pattern Recognition Process.
 /// These are two of the five star identification procedures being tested.
 class BaseTriangle : public Identification {
+    friend class CompositePyramid;
+    
   public:
     /// Alias for a trio of catalog IDs (3-element STL array of doubles).
     using label_trio = std::array<int, 3>;

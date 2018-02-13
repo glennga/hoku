@@ -207,7 +207,7 @@ Star::trio BaseTriangle::pivot (const index_trio &i_b, const std::vector<Star::t
 /// @param candidates All stars to check against the body star set.
 /// @param r Inertial (frame R) trio of stars to check against the body trio.
 /// @param b Body (frame B) Trio of stars to check against the inertial trio.
-/// @return The quaternion corresponding to largest set of matching stars across the body and inertial in all pairing
+/// @return The star list corresponding to largest set of matching stars across the body and inertial in all pairing
 /// configurations.
 Star::list BaseTriangle::singular_identification (const Star::list &candidates, const Star::trio &r,
                                                   const Star::trio &b) {

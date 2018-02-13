@@ -30,6 +30,7 @@
 #include "identification/spherical-triangle.h"
 #include "identification/planar-triangle.h"
 #include "identification/pyramid.h"
+#include "identification/composite-pyramid.h"
 
 /// INIReader to hold configuration associated with experiments.
 INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
@@ -118,7 +119,7 @@ int run_identity (const std::string &id_method, const Star::list &s_i) {
         case 2: return identify(Sphere(input, p).identify_all());
         case 3: return identify(Plane(input, p).identify_all());
         case 4: return identify(Pyramid(input, p).identify_all());
-        case 5: throw std::runtime_error(std::string("Not implemented."));
+        case 5: return identify(Composite(input, p).identify_all());
         default: throw std::runtime_error(std::string("ID method not in appropriate space."));
     }
 }
