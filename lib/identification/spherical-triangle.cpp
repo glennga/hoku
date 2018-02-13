@@ -11,7 +11,8 @@
 
 /// Default parameters for the spherical triangle identification method.
 const Identification::Parameters Sphere::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
-    DEFAULT_PASS_R_SET_CARDINALITY, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_F, "SPHERE_20"};
+    DEFAULT_PASS_R_SET_CARDINALITY, DEFAULT_FAVOR_BRIGHT_STARS, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU,
+    DEFAULT_F, "SPHERE_20"};
 
 /// Constructor. Sets the benchmark data and fov. Sets the parameters and working table.
 ///
@@ -66,12 +67,12 @@ std::vector<Identification::labels_list> Sphere::query (const Star::list &s) {
         throw std::runtime_error(std::string("Input list does not have exactly three stars."));
     }
     
-    std::vector<label_trio> h = e_query(Trio::spherical_area(s[0], s[1], s[2]),
-                                        Trio::spherical_moment(s[0], s[1], s[2]));
+    std::vector<labels_list> h = e_query(Trio::spherical_area(s[0], s[1], s[2]),
+                                         Trio::spherical_moment(s[0], s[1], s[2]));
     std::vector<labels_list> h_bar = {};
     
     // Convert our labels to lists.
-    std::for_each(h.begin(), h.end(), [&h_bar] (const label_trio &ell) {
+    std::for_each(h.begin(), h.end(), [&h_bar] (const labels_list &ell) {
         h_bar.emplace_back(labels_list {ell[0], ell[1], ell[2]});
     });
     return h_bar;

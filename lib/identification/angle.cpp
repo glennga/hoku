@@ -10,7 +10,8 @@
 
 /// Default parameters for the angle identification method.
 const Identification::Parameters Angle::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
-    DEFAULT_PASS_R_SET_CARDINALITY, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_F, "ANGLE_20"};
+    DEFAULT_PASS_R_SET_CARDINALITY, DEFAULT_FAVOR_BRIGHT_STARS, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU,
+    DEFAULT_F, "ANGLE_20"};
 
 /// Returned when no candidate pair is found from a query.
 const Star::pair Angle::NO_CANDIDATE_PAIR_FOUND = {Star::zero(), Star::zero()};
@@ -70,6 +71,7 @@ int Angle::generate_table (double fov, const std::string &table_name) {
 Identification::labels_list Angle::query_for_pair (const double theta) {
     // Noise is normally distributed. Angle within 3 sigma of theta.
     double epsilon = 3.0 * this->parameters.sigma_query;
+    std::vector<labels_list> candidate_labels;
     Nibble::tuples_d candidates;
     
     // Query using theta with epsilon bounds. Return NO_CANDIDATES_FOUND if nothing is found.
@@ -81,7 +83,17 @@ Identification::labels_list Angle::query_for_pair (const double theta) {
         return NO_CANDIDATES_FOUND;
     }
     
-    return labels_list{static_cast<int> (candidates[0][0]), static_cast<int> (candidates[0][1])};
+    // Create the candidate label list.
+    for (const Nibble::tuple_d &candidate : candidates) {
+        candidate_labels.push_back({static_cast<int>(candidate[0]), static_cast<int>(candidate[1])});
+    }
+    
+    // Favor bright stars if specified. Applied with the FAVOR_BRIGHT_STARS flag.
+    if (this->parameters.favor_bright_stars) {
+        sort_brightness(candidate_labels);
+    }
+    
+    return candidate_labels[0];
 }
 
 /// Given a set of body (frame B) stars, find the matching inertial (frame R) stars.

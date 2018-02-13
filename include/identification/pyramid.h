@@ -32,9 +32,9 @@
 /// @endcode
 class Pyramid : public Identification {
   public:
-    explicit Pyramid (const Benchmark &input, const Parameters &p);
+    Pyramid (const Benchmark &input, const Parameters &p);
     
-    std::vector<labels_list> query (const Star::list &s);
+    virtual std::vector<labels_list> query (const Star::list &s);
     labels_list reduce ();
     Star::list identify ();
     
@@ -44,31 +44,36 @@ class Pyramid : public Identification {
   
   public:
     /// Exact number of query stars required for query experiment.
-    static constexpr unsigned int QUERY_STAR_SET_SIZE = 2;
+    static constexpr unsigned int QUERY_STAR_SET_SIZE = 3;
+
+#if !defined ENABLE_TESTING_ACCESS
+  protected:
+    /// Alias for a list of catalog ID lists (STL vector of vectors of integers).
+    using labels_list_list = std::vector<labels_list>;
+#endif
+
+#if !defined ENABLE_TESTING_ACCESS
+  protected:
+    Star::list common_stars (const labels_list_list &r_ab, const labels_list_list &r_ac, const Star::list &f);
+    virtual bool verification (const Star::trio &r, const Star::trio &b_f);
+    virtual Star::trio find_candidate_trio (const Star::trio &);
+    Star::list singular_identification (const Star::list &b);
+    
+    static const Star::trio NO_CANDIDATE_TRIANGLE_FOUND;
+#endif
 
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
     /// Alias for a pair of catalog IDs (2-element STL array of integers).
     using label_pair = std::array<int, 2>;
-    
-    /// Alias for a list of catalog ID pairs (STL vector of 2-element arrays of integers).
-    using label_list_pair = std::vector<label_pair>;
-    
-    /// Alias for a quad of stars (3-element STL array of stars).
-    using star_trio = std::array<Star, 3>;
 
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
     static const Star::list NO_COMMON_FOUND;
-    static const star_trio NO_CANDIDATE_TRIANGLE_FOUND;
     
-    label_list_pair query_for_pairs (double);
-    Star::list common_stars (const label_list_pair &r_ab, const label_list_pair &r_ac, const Star::list &f);
-    bool verification (const star_trio &r, const star_trio &b_f);
-    star_trio find_candidate_trio (const star_trio &);
-    Star::list singular_identification (const Star::list &b);
+    labels_list_list query_for_pairs (double);
 };
 
 #endif /* HOKU_PYRAMID_H */

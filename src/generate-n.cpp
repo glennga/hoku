@@ -25,12 +25,12 @@
 
 #include <iostream>
 #include <algorithm>
-#include "third-party/inih/INIReader.h"
 
 #include "identification/angle.h"
 #include "identification/spherical-triangle.h"
 #include "identification/planar-triangle.h"
 #include "identification/pyramid.h"
+#include "identification/composite-pyramid.h"
 
 /// INIReader to hold configuration associated with table generation.
 INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
@@ -95,7 +95,8 @@ void generate_table (const std::string &choice) {
         case NBHA::SPHERE:return display_result(Sphere::generate_table(fov, cf.Get("table-names", "sphere", "")));
         case NBHA::PLANE: return display_result(Plane::generate_table(fov, cf.Get("table-names", "plane", "")));
         case NBHA::PYRAMID:return display_result(Pyramid::generate_table(fov, cf.Get("table-names", "pyramid", "")));
-        case NBHA::COMPOSITE: throw std::runtime_error(std::string("Not implemented."));
+        case NBHA::COMPOSITE: return display_result(
+                Composite::generate_table(fov, cf.Get("table-names", "composite", "")));
         default: throw std::runtime_error(std::string("Table choice is not within space {0, 1, 2, 3, 4, 5, 6}."));
     }
 }
@@ -128,7 +129,8 @@ void generate_kvec_table (const std::string &choice) {
                                                    cf.Get("table-focus", "plane", ""));
         case NBHA::PYRAMID: return create_and_polish(cf.Get("table-names", "pyramid", ""),
                                                      cf.Get("table-focus", "pyramid", ""));
-        case NBHA::COMPOSITE: throw std::runtime_error(std::string("Not implemented."));
+        case NBHA::COMPOSITE: return create_and_polish(cf.Get("table-names", "composite", ""),
+                                                       cf.Get("table-focus", "composite", ""));
         default: throw std::runtime_error(std::string("Table choice is not within space {0, 1, 2, 3, 4, 5, 6}."));
     }
 }

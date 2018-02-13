@@ -9,8 +9,11 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include "third-party/inih/INIReader.h"
 
 #include "storage/chomp.h"
+
+/// INIReader to hold configuration associated with table generation.
 
 /// Standard machine epsilon for doubles. This represents the smallest possible change in precision.
 const double Chomp::DOUBLE_EPSILON = std::numeric_limits<double>::epsilon();
@@ -26,6 +29,11 @@ const Star::list Chomp::NONEXISTENT_STAR_LIST = Star::list {};
 Chomp::Chomp () {
     const int FLAGS = SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE;
     this->conn = std::make_unique<SQLite::Database>(DATABASE_LOCATION, FLAGS);
+    
+    // Parse the table names.
+    INIReader cf(std::string(std::getenv("HOKU_PROJECT_PATH")) + std::string("/CONFIG.ini"));
+    this->bright_table = cf.Get("table-names", "bright", "");
+    this->hip_table = cf.Get("table-names", "hip", "");
     
     generate_hip_table();
     generate_bright_table();
@@ -54,7 +62,7 @@ std::array<double, 7> Chomp::components_from_line (const std::string &entry) {
         
         // Parse apparent magnitude and label.
         double m = stof(entry.substr(129, 7), nullptr);
-        double ell = stof(entry.substr(0,6), nullptr);
+        double ell = stof(entry.substr(0, 6), nullptr);
         
         components = {alpha, delta, star_entry[0], star_entry[1], star_entry[2], m, ell};
     }
@@ -76,7 +84,7 @@ int Chomp::generate_bright_table () {
     }
     
     SQLite::Transaction transaction(*conn);
-    if (create_table(BRIGHT_TABLE, "alpha FLOAT, delta FLOAT, i FLOAT, j FLOAT, k FLOAT, m FLOAT, label INT") == -1) {
+    if (create_table(bright_table, "alpha FLOAT, delta FLOAT, i FLOAT, j FLOAT, k FLOAT, m FLOAT, label INT") == -1) {
         return TABLE_EXISTS;
     }
     
@@ -112,7 +120,7 @@ int Chomp::generate_hip_table () {
     }
     
     SQLite::Transaction transaction(*conn);
-    if (create_table("HIP", "alpha FLOAT, delta FLOAT, i FLOAT, j FLOAT, k FLOAT, m FLOAT, label INT")
+    if (create_table(hip_table, "alpha FLOAT, delta FLOAT, i FLOAT, j FLOAT, k FLOAT, m FLOAT, label INT")
         == Nibble::TABLE_NOT_CREATED) {
         return TABLE_EXISTS;
     }
@@ -143,7 +151,7 @@ int Chomp::generate_hip_table () {
 Star Chomp::query_hip (int label) {
     std::string t_table = this->table;
     
-    select_table(HIP_TABLE);
+    select_table(hip_table);
     tuples_d results = search_table("i, j, k, m", "label = " + std::to_string(label), 1, 1);
     
     // Keep our previous table.
@@ -211,8 +219,8 @@ void Chomp::load_all_stars () {
     this->all_hip_stars.reserve(HIP_TABLE_LENGTH);
     
     // Select all for bright stars, and load this into RAM.
-    select_table(BRIGHT_TABLE);
-    SQLite::Statement query_b(*conn, "SELECT i, j, k, label, m FROM " + BRIGHT_TABLE);
+    select_table(bright_table);
+    SQLite::Statement query_b(*conn, "SELECT i, j, k, label, m FROM " + bright_table);
     while (query_b.executeStep()) {
         this->all_bright_stars.emplace_back(
             Star(query_b.getColumn(0).getDouble(), query_b.getColumn(1).getDouble(), query_b.getColumn(2).getDouble(),
@@ -220,8 +228,8 @@ void Chomp::load_all_stars () {
     }
     
     // Select all for general stars stars, and load this into RAM.
-    select_table(HIP_TABLE);
-    SQLite::Statement query_h(*conn, "SELECT i, j, k, label, m FROM " + HIP_TABLE);
+    select_table(hip_table);
+    SQLite::Statement query_h(*conn, "SELECT i, j, k, label, m FROM " + hip_table);
     while (query_h.executeStep()) {
         this->all_hip_stars.emplace_back(
             Star(query_h.getColumn(0).getDouble(), query_h.getColumn(1).getDouble(), query_h.getColumn(2).getDouble(),

@@ -53,7 +53,7 @@ class PlanarTriangle : public BaseTriangle {
     std::vector<Star::trio> match_stars (const index_trio &);
 };
 
-/// Alias for the PlanarTriangle class. 'Plane' distinguishes the process I am testing here enough from the 4 other
+/// Alias for the PlanarTriangle class. 'Plane' distinguishes the process I am testing here enough from the 5 other
 /// methods.
 typedef PlanarTriangle Plane;
 

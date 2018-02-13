@@ -11,7 +11,7 @@
 #include "identification/base-triangle.h"
 
 /// Returned when a query does not return any results.
-const std::vector<BaseTriangle::label_trio> BaseTriangle::NO_CANDIDATE_TRIOS_FOUND = {{-1, -1, -1}};
+const std::vector<BaseTriangle::labels_list> BaseTriangle::NO_CANDIDATE_TRIOS_FOUND = {{-1, -1, -1}};
 
 /// Returned when no candidates can be found from a match step.
 const std::vector<Star::trio> BaseTriangle::NO_CANDIDATE_STARS_FOUND = {{Star::zero(), Star::zero(), Star::zero()}};
@@ -85,9 +85,9 @@ int BaseTriangle::generate_triangle_table (const double fov, const std::string &
 /// @param a Area (planar or spherical) to search with.
 /// @param i_t Polar moment (planar or spherical) to search with.
 /// @return NO_CANDIDATE_TRIOS_FOUND if no candidates found. Otherwise, all elements that met the criteria.
-std::vector<BaseTriangle::label_trio> BaseTriangle::query_for_trio (const double a, const double i) {
+std::vector<BaseTriangle::labels_list> BaseTriangle::query_for_trio (const double a, const double i) {
     double epsilon = 3.0 * this->parameters.sigma_query;
-    std::vector<label_trio> area_moment_match = NO_CANDIDATE_TRIOS_FOUND;
+    std::vector<labels_list> area_moment_match = NO_CANDIDATE_TRIOS_FOUND;
     Nibble::tuples_d area_match;
     
     // First, search for trio of stars matching area condition.
@@ -99,13 +99,18 @@ std::vector<BaseTriangle::label_trio> BaseTriangle::query_for_trio (const double
     for (Chomp::tuple_d t : area_match) {
         if (t[3] >= i - epsilon && t[3] < i + epsilon) {
             area_moment_match.push_back(
-                label_trio {static_cast<int> (t[0]), static_cast<int> (t[1]), static_cast<int>(t[2])});
+                labels_list {static_cast<int> (t[0]), static_cast<int> (t[1]), static_cast<int>(t[2])});
         }
     }
     
     // If results are found, remove the initialized value of NO_CANDIDATE_TRIOS_FOUND.
     if (area_moment_match.size() > 1) {
         area_moment_match.erase(area_moment_match.begin());
+    }
+    
+    // Favor bright stars if specified. Applied with the FAVOR_BRIGHT_STARS flag.
+    if (this->parameters.favor_bright_stars) {
+        sort_brightness(area_moment_match);
     }
     return area_moment_match;
 }
@@ -121,7 +126,7 @@ std::vector<BaseTriangle::label_trio> BaseTriangle::query_for_trio (const double
 std::vector<Star::trio> BaseTriangle::m_stars (const index_trio &i_b, area_function compute_area,
                                                moment_function compute_moment) {
     Star::trio b_stars = {this->input[i_b[0]], this->input[i_b[1]], this->input[i_b[2]]};
-    std::vector<label_trio> match_hr;
+    std::vector<labels_list> match_hr;
     std::vector<Star::trio> matched_stars;
     
     // Do not attempt to find matches if all stars are not within fov.
@@ -138,7 +143,7 @@ std::vector<Star::trio> BaseTriangle::m_stars (const index_trio &i_b, area_funct
     
     // Grab stars themselves from catalog IDs found in matches. Return these matches.
     matched_stars.reserve(match_hr.size());
-    for (const label_trio &t : match_hr) {
+    for (const labels_list &t : match_hr) {
         matched_stars.push_back({ch.query_hip(static_cast<int> (t[0])), ch.query_hip(static_cast<int> (t[1])),
                                     ch.query_hip(static_cast<int> (t[2]))});
     }
@@ -193,6 +198,11 @@ Star::trio BaseTriangle::pivot (const index_trio &i_b, const std::vector<Star::t
         }
     }
     
+    // |R| = 1 restriction, w/o restriction we avoid recursion. Applied with the PASS_R_SET_CARDINALITY flag.
+    if (!matches.empty() && this->parameters.pass_r_set_cardinality) {
+        return matches[0];
+    }
+    
     switch (matches.size()) {
         case 1: return matches[0]; // Only 1 trio exists. This must be the matching trio.
         case 0: return NO_CANDIDATE_STAR_SET_FOUND; // No trios exist. Exit early.
@@ -207,7 +217,7 @@ Star::trio BaseTriangle::pivot (const index_trio &i_b, const std::vector<Star::t
 /// @param candidates All stars to check against the body star set.
 /// @param r Inertial (frame R) trio of stars to check against the body trio.
 /// @param b Body (frame B) Trio of stars to check against the inertial trio.
-/// @return The quaternion corresponding to largest set of matching stars across the body and inertial in all pairing
+/// @return The star list corresponding to largest set of matching stars across the body and inertial in all pairing
 /// configurations.
 Star::list BaseTriangle::singular_identification (const Star::list &candidates, const Star::trio &r,
                                                   const Star::trio &b) {
@@ -243,7 +253,7 @@ Star::list BaseTriangle::singular_identification (const Star::list &candidates, 
 /// @param a Area (planar or spherical) to search with.
 /// @param i_t Polar moment (planar or spherical) to search with.
 /// @return NO_CANDIDATE_TRIOS_FOUND if no candidates found. Otherwise, all elements that met the criteria.
-std::vector<BaseTriangle::label_trio> BaseTriangle::e_query (double a, double i) {
+std::vector<BaseTriangle::labels_list> BaseTriangle::e_query (double a, double i) {
     return query_for_trio(a, i);
 }
 
