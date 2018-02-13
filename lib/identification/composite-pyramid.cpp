@@ -16,9 +16,6 @@ const Identification::Parameters Composite::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_
     DEFAULT_PASS_R_SET_CARDINALITY, DEFAULT_FAVOR_BRIGHT_STARS, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU,
     DEFAULT_F, "COMPOSITE_20"};
 
-/// Returned when a query does not return any results.
-const Composite::labels_list_list Composite::NO_CANDIDATE_TRIOS_FOUND = {{-1, -1, -1}};
-
 /// Constructor. Sets the benchmark data, fov, parameters, and current working table. This is identical to the
 /// Pyramid constructor, so we use this instead.
 ///
@@ -45,7 +42,7 @@ int Composite::generate_table (const double fov, const std::string &table_name) 
 /// that fall within a and i of the given epsilon.
 Composite::labels_list_list Composite::query_for_trios (const double a, const double i) {
     double epsilon = 3.0 * this->parameters.sigma_query;
-    std::vector<labels_list> area_moment_match = NO_CANDIDATE_TRIOS_FOUND;
+    std::vector<labels_list> area_moment_match = BaseTriangle::NO_CANDIDATE_TRIOS_FOUND;
     Nibble::tuples_d area_match;
     
     // First, search for trio of stars matching area condition.
@@ -63,6 +60,11 @@ Composite::labels_list_list Composite::query_for_trios (const double a, const do
     // If results are found, remove the initialized value of NO_CANDIDATE_TRIOS_FOUND.
     if (area_moment_match.size() > 1) {
         area_moment_match.erase(area_moment_match.begin());
+    }
+    
+    // Favor bright stars if specified. Applied with the FAVOR_BRIGHT_STARS flag.
+    if (this->parameters.favor_bright_stars) {
+        sort_brightness(area_moment_match);
     }
     return area_moment_match;
 }
@@ -109,7 +111,7 @@ bool Composite::verification (const Star::trio &r, const Star::trio &b_f) {
 Star::trio Composite::find_candidate_trio (const Star::trio &b_f) {
     labels_list_list r_ijk = this->query_for_trios(Trio::planar_area(b_f[0], b_f[1], b_f[2]),
                                                    Trio::planar_moment(b_f[0], b_f[1], b_f[2]));
-    if (std::equal(r_ijk.begin(), r_ijk.end(), NO_CANDIDATE_TRIOS_FOUND.begin())) {
+    if (std::equal(r_ijk.begin(), r_ijk.end(), BaseTriangle::NO_CANDIDATE_TRIOS_FOUND.begin())) {
         return NO_CANDIDATE_TRIANGLE_FOUND;
     }
     

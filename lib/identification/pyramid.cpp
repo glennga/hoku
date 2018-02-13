@@ -158,13 +158,29 @@ Star::trio Pyramid::find_candidate_trio (const Star::trio &b_f) {
         return NO_CANDIDATE_TRIANGLE_FOUND;
     }
     
+    // Favor bright stars if specified. Applied with the FAVOR_BRIGHT_STARS flag.
+    Star::trio r_f = {t_i[0], t_j[0], t_k[0]};
+    if (this->parameters.favor_bright_stars) {
+        // Form trios all of combinations from t_i, t_j, and t_k.
+        std::vector<Identification::labels_list> r;
+        for (const Star &s_i : t_i) {
+            for (const Star &s_j : t_j) {
+                for (const Star &s_k : t_k) {
+                    r.push_back({s_i.get_label(), s_j.get_label(), s_k.get_label()});
+                }
+            }
+        }
+        
+        sort_brightness(r);
+        r_f = {ch.query_hip(r[0][0]), ch.query_hip(r[0][1]), ch.query_hip(r[0][2])};
+    }
+
     // Otherwise, attempt to verify the triangle.
-    Star::trio r = {t_i[0], t_j[0], t_k[0]};
-    if (!verification(r, b_f)) {
+    if (!verification(r_f, b_f)) {
         return NO_CANDIDATE_TRIANGLE_FOUND;
     }
     
-    return r;
+    return r_f;
 }
 
 /// Identification determination process for a single reference star and identification trio.

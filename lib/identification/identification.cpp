@@ -86,6 +86,19 @@ Star::list Identification::find_matches (const Star::list &candidates, const Rot
     return matches;
 }
 
+/// Sort the given list of candidate label lists by their average brightness.
+///
+/// @param candidates Reference to a list of lists of catalog labels to sort.
+void Identification::sort_brightness (std::vector<labels_list> &candidates) {
+    auto grab_b = [this] (const int ell) -> double {
+        return this->ch.query_hip(ell).get_magnitude();
+    };
+    
+    std::sort(candidates.begin(), candidates.end(), [&grab_b] (const labels_list &i, const labels_list &j) {
+        return (grab_b(i[0]) + grab_b(i[1]) + grab_b(i[2])) < (grab_b(j[0]) + grab_b(j[1]) + grab_b(j[2]));
+    });
+}
+
 /// Extends the identification process by determining an attitude given the identity results, and a solution to Wahba's
 /// problem.
 ///

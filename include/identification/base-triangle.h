@@ -17,10 +17,6 @@
 /// These are two of the five star identification procedures being tested.
 class BaseTriangle : public Identification {
     friend class CompositePyramid;
-    
-  public:
-    /// Alias for a trio of catalog IDs (3-element STL array of doubles).
-    using label_trio = std::array<int, 3>;
   
   public:
     BaseTriangle ();
@@ -52,7 +48,7 @@ class BaseTriangle : public Identification {
 #if !defined ENABLE_TESTING_ACCESS
   protected:
 #endif
-    std::vector<label_trio> e_query (double a, double i);
+    std::vector<labels_list> e_query (double a, double i);
     labels_list e_reduction ();
     Star::list e_identify ();
     
@@ -62,7 +58,7 @@ class BaseTriangle : public Identification {
     
     static const index_trio STARTING_INDEX_TRIO;
     
-    static const std::vector<BaseTriangle::label_trio> NO_CANDIDATE_TRIOS_FOUND;
+    static const std::vector<labels_list> NO_CANDIDATE_TRIOS_FOUND;
     static const std::vector<Star::trio> NO_CANDIDATE_STARS_FOUND;
     static const Star::trio NO_CANDIDATE_STAR_SET_FOUND;
 
@@ -76,7 +72,7 @@ class BaseTriangle : public Identification {
   private:
 #endif
     void generate_pivot_list (const index_trio &);
-    std::vector<label_trio> query_for_trio (double a, double i);
+    std::vector<labels_list> query_for_trio (double a, double i);
     virtual std::vector<Star::trio> match_stars (const index_trio &) = 0;
     Star::trio pivot (const index_trio &, const std::vector<Star::trio> & = {});
     Star::list singular_identification (const Star::list &candidates, const Star::trio &r, const Star::trio &b);

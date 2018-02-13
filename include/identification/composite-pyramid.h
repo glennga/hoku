@@ -46,8 +46,6 @@ class CompositePyramid : public Pyramid {
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
-    static const labels_list_list NO_CANDIDATE_TRIOS_FOUND;
-    
     labels_list_list query_for_trios (double, double);
     bool verification (const  Star::trio &r, const  Star::trio &b_f) override;
     Star::trio find_candidate_trio (const  Star::trio &) override;

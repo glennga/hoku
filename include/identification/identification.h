@@ -72,6 +72,7 @@ class Identification {
     virtual std::vector<labels_list> query (const Star::list &s) = 0;
     virtual labels_list reduce () = 0;
     virtual Star::list identify () = 0;
+    
     Rotation align ();
     Star::list identify_all ();
     
@@ -85,6 +86,7 @@ class Identification {
   protected:
 #endif
     Star::list find_matches (const Star::list &candidates, const Rotation &q);
+    void sort_brightness (std::vector<labels_list> &candidates);
 
 #if !defined ENABLE_TESTING_ACCESS
   protected:
