@@ -56,7 +56,26 @@ cd src
 make -j8 install
 ```
 
-Download the Nibble database, `nibble.db` [here](https://drive.google.com/open?id=1R7kmOB5QHgCqTh3Uc_w48UDaTEolhrTx),
+Modify the `CONFIG.ini` file to fit your hardware and experiment parameters. A more descriptive version of the 
+**id-parameters** section is below:
+1. `sq` = Value in degrees used to vary the selectivity of a catalog search. This value corresponds to noise. 
+Increasing this value raises your chances of collecting false positives, but decreasing this value may lead to more 
+false negatives.
+2. `sl` = Maximum number of tuples to select while querying the catalog.
+3. `prsc` = If toggled to 1, the reduction requirements become more 'lax'. Instead of going through each 
+identification's method specified reduction process, the first element of the list is simply selected.
+4. `fbr` = If toggled to 1, the results chosen from the reduction process will favor the bright star sets, as opposed
+to the more dimmer ones. 
+5. `so` = Value in degrees used to determine if an image star overlays with a catalog star. This value corresponds to
+noise. Increasing this value raises your chances of collecting false positives, but decreasing this value may lead 
+to more false negatives.
+6. `nu-m` = Maximum number of query star comparisons. To prevent an identification method from exhausting every 
+possible option and consuming time, set this appropriately.
+7. `wbs` = Wabha's problem solver. Select the choices: `TRIAD`, `QUEST`, or `Q`. These are different methods of 
+determining a rotation given vector observations in both frame. For every instance where Wahba's problem occurs, this
+method will be applied.
+
+Download the Nibble database, `nibble.db` [here](...),
 and store this in `hoku/data`. This holds all the data each identification method will reference (the catalog). 
 
 ## Running Experiments
@@ -84,7 +103,7 @@ cd hoku/bin
 The results will be logged in the Lumberjack database (`lumberjack.db`), stored in tables according to the experiments 
 and grouped by the experiment timestamp. To view the results of these experiments, use the visualize script.
 
-TODO: Finish the `visualize_image.py` portion.
+TODO: Finish the `visualize_results.py` portion.
 
 ## Star Identification Procedure Usage
 
@@ -92,30 +111,26 @@ TODO: Finish the `visualize_image.py` portion.
 To identify stars in an image and view the results, use the executable `RunIdentify`:
 ```cmd
 cd hoku/bin
-./RunIdentify [id-method] [field-of-view] [image-file]
+./RunIdentify [id-method] [image-file]
 ```
 
-The first argument specifies the type of identification method to run. The second argument specifies the image field 
-of view in degrees. The third argument specifies the image center and the stars in the image. To run the Angle 
-identification method on `my-image.csv` with a field of view of 20 degrees, enter the following:
+The first argument specifies the type of identification method to run. The second argument specifies the stars in 
+the image. To run the Angle identification method on `my-image.csv` with a field of view of 20 degrees, enter the 
+following:
 ```cmd
-./RunIdentify angle 20 my-image.csv
+./RunIdentify angle my-image.csv
 ```
 
-The image file must be formatted with the image center as the first entry, and all following entries as the stars in 
-the image:
+The image file must be formatted in a comma separated manner, specifying the centroid coordinates in terms of a 
+standard FITS image:
 ```cmd
-# Image center is specified FIRST. Following stars are specified with reference to this point:
-[x-coordinate],[y-coordinate],[z-coordinate]
-
-# All stars in image follow the center. TODO: figure specific format of stars:
-[x-coordinate-1],[y-coordinate-1],[z-coordinate-1],[name-1]
-[x-coordinate-2],[y-coordinate-2],[z-coordinate-2],[name-2]
-[x-coordinate-3],[y-coordinate-3],[z-coordinate-3],[name-3]
+# Use the FITS coordinates of each centroid [top-left = (0, 0), bottom-right = (max-width, max-height)]
+[x-coordinate-1],[y-coordinate-1]
+[x-coordinate-2],[y-coordinate-2]
 .
 .
 .
-[x-coordinate-N],[y-coordinate-N],[z-coordinate-N],[name-N]
+[x-coordinate-N],[y-coordinate-N]
 ```
 
 The output runs the `visualize-image.py` script to display your image, with Hipparcos labels attached to each point. 
@@ -131,6 +146,9 @@ Include the desired star identification procedure you want to use:
 
 Example usage of Gottlieb's Angle identification procedure is depicted below. 
 ```cpp
+/// INIReader to hold configuration associated with experiments.
+INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
+
 // Input: A std::vector (Star::list) of Star objects, representing stars as 3D vectors in 
 //        the image coordinate system.
 Star::list image = {Star(0, 0, 1), ...};  
@@ -143,19 +161,11 @@ Benchmark input (image, focus, 20);
 
 // Define any hyperparameters a Parameter struct.
 Angle::Parameters p;
-unsigned int nu = 0;
+Identification::collect_parameters(p, cf);
 
-/* 
-sigma_query <- Query must be within 3 * sigma_query.
-sql_limit <- While performing a SQL query, limit results by this number.
-sigma_overlay <- Resultant of inertial->body rotation must within 3 * sigma_overlay of *a* body.
-nu_max <- Maximum number of query star comparisons before returning an empty list.
-nu <- Pointer to the location to hold the count of query star comparisons.
-table_name <- Name of the Nibble database table created with 'generate_sep_table'.
-*/
-p.nu_max = 20000, p.sigma_overlay = Identification::DEFAULT_SIGMA_OVERLAY;
-p.sigma_query = IDENTIFICATION::DEFAULT_SIGMA_QUERY; p.table_name = ANGLE_20;
-p.nu = std::make_shared<unsigned int>(nu);
+// Define the location of the comparison count, and the table name.
+unsigned int nu = 0;
+p.table_name = cf.Get("table-names", "angle", ""), p.nu = std::make_shared<unsigned int> (nu);
 
 // Output: A std::vector (Star::list) of Star objects, holding all stars in the image that were 
 //         identified, and with labels attached to them.
@@ -164,6 +174,10 @@ Star::list output = Angle(input, p).identify()
 // To view the labels, use the 'get_label()' method for each Star.
 int ell_0 = output[0].get_label();
 int ell_1 = output[1].get_label();
+
+// View the output with the visualize script.
+Benchmark output(output, focus, 20);
+output.display_plot();
 ```
 
 Only CMake builds are supported at the moment. The final step is to link the `HOKU_LIBS` to your project in your 
