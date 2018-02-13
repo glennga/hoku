@@ -46,7 +46,7 @@ namespace Experiment {
         /// @param table_name Name of the table used with the specified identifier.
         template <class T>
         void trial (Chomp &ch, Lumberjack &lu, const std::string &table_name) {
-            INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/data/config.ini"));
+            INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
             Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
             Star focus;
             

@@ -33,7 +33,7 @@
 #include "identification/pyramid.h"
 
 /// INIReader to hold configuration associated with table generation.
-INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/data/config.ini"));
+INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
 
 /// @brief Namespace containing all table 'hashes' for Nibble table generation.
 ///
