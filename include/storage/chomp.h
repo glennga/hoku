@@ -88,10 +88,10 @@ class Chomp : public Nibble {
     Star::list all_hip_stars;
     
     /// String of the Nibble table name holding all of the bright stars in the Hipparcos.
-    const std::string BRIGHT_TABLE = "HIP_BRIGHT";
+    std::string bright_table;
     
     /// String of the Nibble table name holding all of the stars in the Hipparcos.
-    const std::string HIP_TABLE = "HIP";
+    std::string hip_table;
     
     // Path of the ASCII Hipparcos Star catalog.
     const std::string HIP_CATALOG_LOCATION = PROJECT_LOCATION + "/data/hip2.dat";

@@ -16,11 +16,6 @@
 /// - b query -> Run the query trials with the B method.
 /// - b reduction -> Run the reduction trials with the B method.
 /// - b identification -> Run the identification trials with the B method.
-///
-/// To create lumberjack tables...
-/// - create-table query -> Create the query table in the lumberjack database.
-/// - create-table reduction -> Create the reduction table in the lumberjack database.
-/// - create-table identification -> Create the identification table in the lumberjack database.
 /// @endcode{.cpp}
 /// @example
 /// @code{.cpp}
@@ -39,35 +34,43 @@
 #include "identification/pyramid.h"
 #include "experiment/experiment.h"
 
-/// Convert the given user argument specifying the experiment name, to its appropriate hash.
-///
-/// @param experiment_in Input given by the user, to identify the type of experiment table.
-/// @return Index of the name space below. 3 is given if the given input is not in the name space.
-int experiment_hash (const std::string &experiment_in) {
-    std::array<std::string, 5> space = {"query", "reduction", "identification"};
-    return static_cast<int> (std::distance(space.begin(), std::find(space.begin(), space.end(), experiment_in)));
-}
+/// INIReader to hold configuration associated with experiments.
+INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
 
-/// Convert the given user argument specifying the experiment name, to its appropriate table name in Lumberjack.
+/// @brief Namespace containing all table 'hashes' for experimentation.
 ///
-/// @param experiment_in Input given by the user, to identify the type of experiment table.
-/// @return Name of the table to log to in the Lumberjack database.
-std::string experiment_table (const std::string &experiment_in) {
-    switch (experiment_hash(experiment_in)) {
-        case 0: return "QUERY";
-        case 1: return "REDUCTION";
-        case 2: return "IDENTIFICATION";
-        default: throw std::runtime_error(std::string("Experiment name is not in the space of trial names."));
+/// Hash functions used in experimentation (finding Lumberjack tables, identifier methods).
+namespace EHA {
+    /// Convert the given user argument specifying the experiment name, to its appropriate hash.
+    ///
+    /// @param experiment_in Input given by the user, to identify the type of experiment table.
+    /// @return Index of the name space below. 3 is given if the given input is not in the name space.
+    int experiment_to_hash (const std::string &experiment_in) {
+        std::array<std::string, 3> space = {"query", "reduction", "identification"};
+        return static_cast<int> (std::distance(space.begin(), std::find(space.begin(), space.end(), experiment_in)));
     }
-}
-
-/// Convert the given user argument specifying the identifier name, to its appropriate hash.
-///
-/// @param identifier_in Input given by the user, to identify the type of experiment table.
-/// @return Index of the name space below. 6 is given if the given input is not in the name space.
-int identifier_hash (const std::string &identifier_in) {
-    std::array<std::string, 6> space = {"angle", "interior", "sphere", "plane", "pyramid", "composite"};
-    return static_cast<int> (std::distance(space.begin(), std::find(space.begin(), space.end(), identifier_in)));
+    
+    /// Convert the given user argument specifying the experiment name, to its appropriate table name in Lumberjack.
+    ///
+    /// @param experiment_in Input given by the user, to identify the type of experiment table.
+    /// @return Name of the table to log to in the Lumberjack database.
+    std::string experiment_to_experiment_table (const std::string &experiment_in) {
+        switch (experiment_to_hash(experiment_in)) {
+            case 0: return cf.Get("query-experiment", "lu", "");
+            case 1: return cf.Get("reduction-experiment", "lu", "");
+            case 2: return cf.Get("identification-experiment", "lu", "");
+            default: throw std::runtime_error(std::string("Experiment name is not in the space of trial names."));
+        }
+    }
+    
+    /// Convert the given user argument specifying the identifier name, to its appropriate hash.
+    ///
+    /// @param identifier_in Input given by the user, to identify the type of experiment table.
+    /// @return Index of the name space below. 6 is given if the given input is not in the name space.
+    int identifier_to_hash (const std::string &identifier_in) {
+        std::array<std::string, 6> space = {"angle", "interior", "sphere", "plane", "pyramid", "composite"};
+        return static_cast<int> (std::distance(space.begin(), std::find(space.begin(), space.end(), identifier_in)));
+    }
 }
 
 /// Create the appropriate lumberjack table.
@@ -75,12 +78,13 @@ int identifier_hash (const std::string &identifier_in) {
 /// @param experiment_in Input given by the user, to identify the type of experiment table to create.
 /// @return TABLE_NOT_CREATED if the table already exists. Otherwise, 0 if successful.
 int create_lumberjack_table (const std::string &experiment_in) {
+    std::string table = EHA::experiment_to_experiment_table(experiment_in);
     Chomp ch;
     
-    switch (experiment_hash(experiment_in)) {
-        case 0: return Lumberjack::create_table("QUERY", Experiment::Query::SCHEMA);
-        case 2: return Lumberjack::create_table("REDUCTION", Experiment::Reduction::SCHEMA);
-        case 3: return Lumberjack::create_table("IDENTIFICATION", Experiment::Map::SCHEMA);
+    switch (EHA::experiment_to_hash(experiment_in)) {
+        case 0: return Lumberjack::create_table(table, Experiment::Query::SCHEMA);
+        case 1: return Lumberjack::create_table(table, Experiment::Reduction::SCHEMA);
+        case 2: return Lumberjack::create_table(table, Experiment::Map::SCHEMA);
         default: throw std::runtime_error(std::string("Experiment name is not in the space of trial names."));
     }
 }
@@ -91,30 +95,31 @@ int create_lumberjack_table (const std::string &experiment_in) {
 /// @param identifier_in Input given by the user, to identify the type of experiment table to log to.
 /// @param experiment_in Input given by the user, to identify the type of identifier to use for the experiment.
 void perform_trial (Lumberjack &lu, const std::string &identifier_in, const std::string &experiment_in) {
-    std::array<std::string, 6> table_names = {"ANGLE_20", "INTERIOR_20", "SPHERE_20", "PLANE_20", "PYRAMID_20",
-        "COMPOSITE_20"};
+    std::array<std::string, 6> table_names = {cf.Get("table-names", "angle", ""), cf.Get("table-names", "interior", ""),
+        cf.Get("table-names", "sphere", ""), cf.Get("table-names", "plane", ""), cf.Get("table-names", "pyramid", ""),
+        cf.Get("table-names", "composite", "")};
     Chomp ch;
     
-    switch ((identifier_hash(identifier_in) * 5) + experiment_hash(experiment_in)) {
-        case 0: return Experiment::Query::trial<Angle>(ch, lu, table_names[0]);
-        case 1: return Experiment::Reduction::trial<Angle>(ch, lu, table_names[0]);
-        case 2: return Experiment::Map::trial<Angle>(ch, lu, table_names[0]);
+    switch ((EHA::identifier_to_hash(identifier_in) * 5) + EHA::experiment_to_hash(experiment_in)) {
+        case 0: return Experiment::Query::trial<Angle>(ch, lu, cf, table_names[0]);
+        case 1: return Experiment::Reduction::trial<Angle>(ch, lu, cf, table_names[0]);
+        case 2: return Experiment::Map::trial<Angle>(ch, lu, cf, table_names[0]);
         
         case 3: throw std::runtime_error(std::string("Not implemented."));
         case 4: throw std::runtime_error(std::string("Not implemented."));
         case 5: throw std::runtime_error(std::string("Not implemented."));
         
-        case 6: return Experiment::Query::trial<Sphere>(ch, lu, table_names[1]);
-        case 7: return Experiment::Reduction::trial<Sphere>(ch, lu, table_names[1]);
-        case 8: return Experiment::Map::trial<Sphere>(ch, lu, table_names[1]);
+        case 6: return Experiment::Query::trial<Sphere>(ch, lu, cf, table_names[1]);
+        case 7: return Experiment::Reduction::trial<Sphere>(ch, lu, cf, table_names[1]);
+        case 8: return Experiment::Map::trial<Sphere>(ch, lu, cf, table_names[1]);
         
-        case 9: return Experiment::Query::trial<Plane>(ch, lu, table_names[2]);
-        case 10: return Experiment::Reduction::trial<Plane>(ch, lu, table_names[2]);
-        case 11: return Experiment::Map::trial<Plane>(ch, lu, table_names[2]);
+        case 9: return Experiment::Query::trial<Plane>(ch, lu, cf, table_names[2]);
+        case 10: return Experiment::Reduction::trial<Plane>(ch, lu, cf, table_names[2]);
+        case 11: return Experiment::Map::trial<Plane>(ch, lu, cf, table_names[2]);
         
-        case 12: return Experiment::Query::trial<Pyramid>(ch, lu, table_names[3]);
-        case 13: return Experiment::Reduction::trial<Pyramid>(ch, lu, table_names[3]);
-        case 14: return Experiment::Map::trial<Pyramid>(ch, lu, table_names[3]);
+        case 12: return Experiment::Query::trial<Pyramid>(ch, lu, cf, table_names[3]);
+        case 13: return Experiment::Reduction::trial<Pyramid>(ch, lu, cf, table_names[3]);
+        case 14: return Experiment::Map::trial<Pyramid>(ch, lu, cf, table_names[3]);
         
         case 15: throw std::runtime_error(std::string("Not implemented."));
         case 16: throw std::runtime_error(std::string("Not implemented."));
@@ -124,28 +129,21 @@ void perform_trial (Lumberjack &lu, const std::string &identifier_in, const std:
     }
 }
 
-/// Select the desired identification method (or 'create-table' to create a table) given the first argument. In the
-/// second argument, indicate the type of trial desired.
+/// Select the desired identification method given the first argument. In the second argument, indicate the type of
+/// trial desired.
 ///
 /// @code{.cpp}
 /// To perform and log experiments...
 /// - angle a -> Run trial A with the Angle method.
+/// - interior a -> Run trial A with the InteriorAngle method.
 /// - sphere a -> Run trial A with the SphericalTriangle method.
 /// - plane a -> Run trial A with the PlanarTriangle method.
 /// - pyramid a -> Run trial A with the Pyramid method.
+/// - composite a -> Run trial A with the CompositePyramid method.
 ///
 /// - b query -> Run the query trials with the B method.
-/// - b first-identification -> Run the first identification trials with the B method.
 /// - b reduction -> Run the reduction trials with the B method.
 /// - b identification -> Run the identification trials with the B method.
-/// - b crown -> Run the crown trials with the B method.
-///
-/// To create lumberjack tables...
-/// - create-table query -> Create the query table in the lumberjack database.
-/// - create-table first-identification -> Create the first identification table in the lumberjack database.
-/// - create-table reduction -> Create the reduction table in the lumberjack database.
-/// - create-table identification -> Create the identification table in the lumberjack database.
-/// - create-table crown -> Create the crown table in the lumberjack database.
 /// @endcode{.cpp}
 ///
 /// @param argc Argument count. This must be equal to 3.
@@ -179,15 +177,18 @@ int main (int argc, char *argv[]) {
         }
     }
     
-    // Create the desired table if specified. Capitalize our trial name.
-    std::string arg_1 = std::string(argv[1]), trial_name = std::string(argv[1]);
-    if (arg_1 == "create-table") {
-        return create_lumberjack_table(trial_name);
+    // Attempt to connect to the Lumberjack database. 
+    std::string identification = std::string(argv[1]), trial_name = std::string(argv[1]);
+    try {
+        Lumberjack lu(EHA::experiment_to_experiment_table(std::string(argv[2])), identification, l.str());
     }
-    arg_1[0] = static_cast<char> (toupper(arg_1[0]));
+    catch (const std::exception &e) {
+        create_lumberjack_table(trial_name);
+    }
     
-    // Perform our trial.
-    Lumberjack lu(experiment_table(std::string(argv[2])), arg_1, l.str());
+    // Capitalize our trial name. Perform our trial.
+    identification[0] = static_cast<char> (toupper(identification[0]));
+    Lumberjack lu(EHA::experiment_to_experiment_table(std::string(argv[2])), identification, l.str());
     perform_trial(lu, std::string(argv[1]), std::string(argv[2]));
     return 0;
 }

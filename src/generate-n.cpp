@@ -25,7 +25,6 @@
 
 #include <iostream>
 #include <algorithm>
-#include "third-party/inih/INIReader.h"
 
 #include "identification/angle.h"
 #include "identification/spherical-triangle.h"

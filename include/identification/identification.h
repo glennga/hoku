@@ -7,6 +7,7 @@
 #define HOKU_IDENTIFICATION_H
 
 #include <memory>
+#include "third-party/inih/INIReader.h"
 
 #include "storage/chomp.h"
 #include "math/rotation.h"
@@ -23,6 +24,7 @@ class Identification {
         double sigma_query; ///< Query must be within 3 * sigma_query.
         unsigned int sql_limit; ///< While performing a SQL query, limit results by this number.
         bool pass_r_set_cardinality; ///< If false, the restrict |R| = 1 is lifted. R_1 is returned instead.
+        bool favor_bright_stars; ///< If false, do not favor bright stars in resulting set.
         double sigma_overlay; ///< Resultant of inertial->body rotation must within 3 * sigma_overlay of *a* body.
         unsigned int nu_max; ///< Maximum number of query star comparisons before returning an empty list.
         std::shared_ptr<unsigned int> nu; ///< Pointer to the location to hold the count of query star comparisons.
@@ -38,6 +40,9 @@ class Identification {
     
     /// Default R set cardinality flag for all identification methods.
     static constexpr bool DEFAULT_PASS_R_SET_CARDINALITY = true;
+    
+    /// Default favor bright stars flag for all identification methods.
+    static constexpr bool DEFAULT_FAVOR_BRIGHT_STARS = false;
     
     /// Default sigma overlay (for matching) for all identification methods.
     static constexpr double DEFAULT_SIGMA_OVERLAY = std::numeric_limits<double>::epsilon() * 100;
@@ -62,6 +67,7 @@ class Identification {
   
   public:
     Identification ();
+    static void collect_parameters(Parameters &p, INIReader &cf);
     
     virtual std::vector<labels_list> query (const Star::list &s) = 0;
     virtual labels_list reduce () = 0;

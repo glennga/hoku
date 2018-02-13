@@ -3,6 +3,8 @@
 ///
 /// Source file for Identification class, which holds all common data between all identification processes.
 
+#include "third-party/inih/INIReader.h"
+
 #include "benchmark/benchmark.h"
 #include "identification/identification.h"
 
@@ -17,12 +19,42 @@ const Star::list Identification::EXCEEDED_NU_MAX = {Star::zero()};
 
 /// Default parameters for a general identification object.
 const Identification::Parameters Identification::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
-    DEFAULT_PASS_R_SET_CARDINALITY, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_F, DEFAULT_TABLE_NAME};
+    DEFAULT_PASS_R_SET_CARDINALITY, DEFAULT_FAVOR_BRIGHT_STARS, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU,
+    DEFAULT_F, DEFAULT_TABLE_NAME};
 
 /// Constructor. We set our field-of-view to the default here.
 Identification::Identification () {
     this->parameters = DEFAULT_PARAMETERS;
     this->fov = Benchmark::NO_FOV;
+}
+
+/// Given the reference to a Parameter struct and a configuration file reader, insert all the appropriate parameters
+/// into the Parameter struct.
+///
+/// @param p Reference to the Parameter struct to update.
+/// @param cf Reference to the configuration file reader to collect parameters from.
+void Identification::collect_parameters (Parameters &p, INIReader &cf) {
+    p.sigma_query = cf.GetReal("id-parameters", "sq", DEFAULT_SIGMA_QUERY);
+    p.sql_limit = static_cast<unsigned>(cf.GetInteger("id-parameters", "sl", DEFAULT_SQL_LIMIT));
+    p.pass_r_set_cardinality = cf.GetBoolean("id-parameters", "prsc", DEFAULT_PASS_R_SET_CARDINALITY);
+    p.favor_bright_stars = cf.GetBoolean("id-parameters", "fbr", DEFAULT_FAVOR_BRIGHT_STARS);
+    p.sigma_overlay = cf.GetReal("id-parameters", "so", DEFAULT_SIGMA_OVERLAY);
+    p.nu_max = static_cast<unsigned>(cf.GetInteger("id-parameters", "nu-m", DEFAULT_NU_MAX));
+    
+    const std::array<std::string, 3> ws_id = {"TRIAD", "QUEST", "Q"};
+    const std::array<Rotation::wahba_function, 3> ws = {Rotation::triad, Rotation::quest, Rotation::q_exact};
+    
+    // Determine the Wahba solver.
+    std::string wabha_solver = cf.Get("id-parameters", "wbs", "");
+    for (unsigned int i = 0; i < ws_id.size(); i++) {
+        if (ws_id.size() == wabha_solver.size() && std::equal(ws_id[i].begin(), ws_id[i].end(), wabha_solver.begin(),
+                                                              [] (unsigned char a, unsigned char b) {
+                                                                  return std::tolower(a) == std::tolower(b);
+                                                              })) {
+            p.f = ws[i];
+            return;
+        }
+    }
 }
 
 /// Rotate every point the given rotation and check if the angle of separation between any two stars is within a
@@ -58,7 +90,7 @@ Star::list Identification::find_matches (const Star::list &candidates, const Rot
 /// problem.
 ///
 /// @return The rotation from the R set to the B set.
-Rotation Identification::align() {
+Rotation Identification::align () {
     // Perform the identification procedure.
     Star::list a = identify(), inertial;
     
