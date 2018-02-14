@@ -53,7 +53,7 @@ class SphericalTriangle : public BaseTriangle {
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
-    std::vector<Star::trio> match_stars (const index_trio &);
+    std::vector<Star::trio> query_for_trios (const index_trio &);
 };
 
 /// Alias for the SphericalTriangle class. 'Sphere' distinguishes the process I am testing here enough from the 5 other

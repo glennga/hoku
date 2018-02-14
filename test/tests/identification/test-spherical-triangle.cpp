@@ -41,11 +41,11 @@ TEST(SphereQuery, MatchStarsFOV) {
     Chomp ch;
     Sphere::Parameters par = Sphere::DEFAULT_PARAMETERS;
     Sphere a(Benchmark(ch, 10), par);
-    a.input[0] = Star::reset_label(ch.query_hip(3));
-    a.input[1] = Star::reset_label(ch.query_hip(4));
-    a.input[2] = Star::reset_label(ch.query_hip(5));
+    a.big_i[0] = Star::reset_label(ch.query_hip(3));
+    a.big_i[1] = Star::reset_label(ch.query_hip(4));
+    a.big_i[2] = Star::reset_label(ch.query_hip(5));
     
-    std::vector<Star::trio> b = a.match_stars(Sphere::STARTING_INDEX_TRIO);
+    std::vector<Star::trio> b = a.query_for_trios(Sphere::STARTING_INDEX_TRIO);
     EXPECT_THAT(b[0], Each(Star::zero()));
 }
 
@@ -55,11 +55,11 @@ TEST(SphereQuery, MatchStarsNone) {
     par.sigma_query = std::numeric_limits<double>::epsilon();
     Chomp ch;
     Sphere a(Benchmark(ch, 10), par);
-    a.input[0] = Star(1, 1, 1.1);
-    a.input[1] = Star(1, 1, 1);
-    a.input[2] = Star(1.1, 1, 1);
+    a.big_i[0] = Star(1, 1, 1.1);
+    a.big_i[1] = Star(1, 1, 1);
+    a.big_i[2] = Star(1.1, 1, 1);
     
-    std::vector<Star::trio> b = a.match_stars(Sphere::STARTING_INDEX_TRIO);
+    std::vector<Star::trio> b = a.query_for_trios(Sphere::STARTING_INDEX_TRIO);
     EXPECT_THAT(b[0], Each(Star::zero()));
 }
 
@@ -70,7 +70,7 @@ TEST(SphereQuery, MatchStarsResults) {
     Chomp ch;
     Benchmark input(ch, 20);
     Sphere a(input, par);
-    std::vector<Star::trio> b = a.match_stars(Sphere::STARTING_INDEX_TRIO);
+    std::vector<Star::trio> b = a.query_for_trios(Sphere::STARTING_INDEX_TRIO);
     
     // Check that original input trio exists in search.
     for (const Star::trio &t : b) {
@@ -116,7 +116,7 @@ TEST(SphereMatch, RotatingCorrectInput) {
         rev_input.push_back(Rotation::rotate(rotated, f));
     }
     
-    std::vector<Star> h = g.find_matches(rev_input, c);
+    std::vector<Star> h = g.find_positive_overlay(rev_input, c);
     ASSERT_EQ(h.size(), input.stars.size());
     for (unsigned int q = 0; q < h.size(); q++) {
         EXPECT_EQ(h[q].get_label(), input.stars[q].get_label());
@@ -144,7 +144,7 @@ TEST(SphereMatch, RotatingErrorInput) {
     
     // Append focus as error.
     rev_input.push_back(input.focus);
-    std::vector<Star> h = g.find_matches(rev_input, c);
+    std::vector<Star> h = g.find_positive_overlay(rev_input, c);
     ASSERT_EQ(h.size(), input.stars.size());
     for (unsigned int q = 0; q < h.size(); q++) {
         EXPECT_EQ(h[q].get_label(), input.stars[q].get_label());
@@ -175,7 +175,7 @@ TEST(SphereMatch, RotatingDuplicateInput) {
     rev_input.push_back(rev_input[0]);
     rev_input.push_back(rev_input[0]);
     
-    std::vector<Star> h = g.find_matches(rev_input, c);
+    std::vector<Star> h = g.find_positive_overlay(rev_input, c);
     ASSERT_EQ(h.size(), input.stars.size());
     for (unsigned int q = 0; q < h.size(); q++) {
         EXPECT_EQ(h[q].get_label(), input.stars[q].get_label());

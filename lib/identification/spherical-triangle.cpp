@@ -19,7 +19,7 @@ const Identification::Parameters Sphere::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUE
 /// @param input Working Benchmark instance. We are **only** copying the star set and the fov.
 /// @param parameters Parameters to use for identification.
 SphericalTriangle::SphericalTriangle (const Benchmark &input, const Parameters &parameters) : BaseTriangle() {
-    input.present_image(this->input, this->fov);
+    input.present_image(this->big_i, this->fov);
     this->parameters = parameters;
     
     ch.select_table(this->parameters.table_name);
@@ -42,11 +42,11 @@ int SphericalTriangle::generate_table (const double fov, const std::string &tabl
 /// Given a trio of body stars, find matching trios of inertial stars using their respective spherical areas and polar
 /// moments.
 ///
-/// @param i_b Index trio of stars in body (B) frame.
+/// @param c Index trio of stars ('combination' of I) in body frame.
 /// @return NO_CANDIDATE_STARS_FOUND if stars are not within the fov or if no matches currently exist.
 /// Otherwise, vector of trios whose areas and moments are close.
-std::vector<Star::trio> Sphere::match_stars (const index_trio &i_b) {
-    return m_stars(i_b, Trio::spherical_area, [] (const Star &b_1, const Star &b_2, const Star &b_3) {
+std::vector<Star::trio> Sphere::query_for_trios (const index_trio &c) {
+    return base_query_for_trios(c, Trio::spherical_area, [] (const Star &b_1, const Star &b_2, const Star &b_3) {
         return Trio::spherical_moment(b_1, b_2, b_3, DEFAULT_TD_H);
     });
 }
@@ -67,15 +67,7 @@ std::vector<Identification::labels_list> Sphere::query (const Star::list &s) {
         throw std::runtime_error(std::string("Input list does not have exactly three stars."));
     }
     
-    std::vector<labels_list> h = e_query(Trio::spherical_area(s[0], s[1], s[2]),
-                                         Trio::spherical_moment(s[0], s[1], s[2]));
-    std::vector<labels_list> h_bar = {};
-    
-    // Convert our labels to lists.
-    std::for_each(h.begin(), h.end(), [&h_bar] (const labels_list &ell) {
-        h_bar.emplace_back(labels_list {ell[0], ell[1], ell[2]});
-    });
-    return h_bar;
+    return e_query(Trio::spherical_area(s[0], s[1], s[2]), Trio::spherical_moment(s[0], s[1], s[2]));
 }
 
 /// Find the **best** matching pair to the first three stars in our benchmark using the appropriate triangle table.
@@ -108,7 +100,7 @@ Identification::labels_list Sphere::reduce () {
 ///
 /// @param input The set of benchmark data to work with.
 /// @param p Adjustments to the identification process.
-/// @return NO_CONFIDENT_IDENTITY if an identification cannot be found exhaustively. EXCEEDED_NU_MAX if an
+/// @return NO_CONFIDENT_A if an identification cannot be found exhaustively. EXCEEDED_NU_MAX if an
 /// identification cannot be found within a certain number of query picks. Otherwise, body stars b with the attached
 /// labels of the inertial pair r.
 Star::list Sphere::identify () {

@@ -54,12 +54,12 @@ class Pyramid : public Identification {
 
 #if !defined ENABLE_TESTING_ACCESS
   protected:
-    Star::list common_stars (const labels_list_list &r_ab, const labels_list_list &r_ac, const Star::list &f);
-    virtual bool verification (const Star::trio &r, const Star::trio &b_f);
-    virtual Star::trio find_candidate_trio (const Star::trio &);
-    Star::list singular_identification (const Star::list &b);
+    Star::list common (const labels_list_list &big_r_ab_ell, const labels_list_list &big_r_ac_ell, const Star::list &removed);
+    virtual bool verification (const Star::trio &r, const Star::trio &b);
+    virtual Star::trio find_catalog_stars (const Star::trio &);
+    Star::list identify_as_list (const Star::list &b);
     
-    static const Star::trio NO_CANDIDATE_TRIANGLE_FOUND;
+    static const Star::trio NO_CONFIDENT_R_FOUND;
 #endif
 
 #if !defined ENABLE_TESTING_ACCESS

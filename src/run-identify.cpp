@@ -71,7 +71,7 @@ Star::list parse_csv (std::ifstream &image) {
             double x = s_c[0] - hf, y = s_c[1] - hf;
             
             // Project the star to 3D, and save it.
-            s_i.push_back(Mercator::transform_point(x, y, ddp).as_unit());
+            s_i.push_back(Mercator::transform_point(x, y, ddp).normalize());
         }
     }
     catch (std::exception &e) {

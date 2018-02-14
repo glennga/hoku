@@ -53,7 +53,7 @@ class Angle : public Identification {
 #endif
     labels_list query_for_pair (double theta);
     Star::pair find_candidate_pair (const Star &b_a, const Star &b_b);
-    Star::list singular_identification (const Star::list &candidates, const Star::list &r, const Star::list &b);
+    Star::list direct_match_test (const Star::list &big_p, const Star::list &r, const Star::list &b);
 };
 
 #endif /* HOKU_ANGLE_H */

@@ -119,8 +119,8 @@ Star Trio::planar_centroid () const {
 /// @return Cut trio of stars {c_12, c_23, c_31}.
 Trio Trio::cut_triangle (const Star &c_1, const Star &c_2, const Star &c_3, const Star &keep) {
     // Keep desired stars. Only include those who are directly related to the midpoint.
-    return {(keep == c_3) ? c_3 : (c_1 + c_2).as_unit(), (keep == c_2) ? c_2 : (c_1 + c_3).as_unit(),
-        (keep == c_1) ? c_1 : (c_2 + c_3).as_unit()};
+    return {(keep == c_3) ? c_3 : (c_1 + c_2).normalize(), (keep == c_2) ? c_2 : (c_1 + c_3).normalize(),
+        (keep == c_1) ? c_1 : (c_2 + c_3).normalize()};
 }
 
 /// Recursively determine the spherical moment of a trio. This is a divide-and-conquer approach, creating four

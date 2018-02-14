@@ -37,7 +37,7 @@ TEST(PyramidTrio, CandidateTrioFind) {
     Identification::Parameters par = Pyramid::DEFAULT_PARAMETERS;
     par.sigma_query = 10e-7;
     Pyramid a(input, par);
-    Pyramid::star_trio b = a.find_candidate_trio({a.input[0], a.input[1], a.input[2]});
+    Pyramid::star_trio b = a.find_candidate_trio({a.big_i[0], a.big_i[1], a.big_i[2]});
     
     EXPECT_EQ(input.stars[0].get_label(), b[0].get_label());
     EXPECT_EQ(input.stars[1].get_label(), b[1].get_label());

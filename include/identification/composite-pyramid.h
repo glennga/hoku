@@ -47,8 +47,8 @@ class CompositePyramid : public Pyramid {
   private:
 #endif
     labels_list_list query_for_trios (double, double);
-    bool verification (const  Star::trio &r, const  Star::trio &b_f) override;
-    Star::trio find_candidate_trio (const  Star::trio &) override;
+    bool verification (const  Star::trio &r, const  Star::trio &b) override;
+    Star::trio find_catalog_stars (const Star::trio &) override;
 };
 
 /// Alias for the CompositePyramid class. 'Composite' distinguishes the process I am testing here enough from the 5

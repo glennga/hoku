@@ -76,8 +76,8 @@ class Identification {
     Rotation align ();
     Star::list identify_all ();
     
-    static const Star::list NO_CONFIDENT_IDENTITY;
-    static const labels_list NO_CANDIDATES_FOUND;
+    static const Star::list NO_CONFIDENT_A;
+    static const labels_list EMPTY_BIG_R;
     
     static const Star::list EXCEEDED_NU_MAX;
     static const Parameters DEFAULT_PARAMETERS;
@@ -85,14 +85,14 @@ class Identification {
 #if !defined ENABLE_TESTING_ACCESS
   protected:
 #endif
-    Star::list find_matches (const Star::list &candidates, const Rotation &q);
-    void sort_brightness (std::vector<labels_list> &candidates);
+    Star::list find_positive_overlay (const Star::list &big_p, const Rotation &q);
+    void sort_brightness (std::vector<labels_list> &big_r_ell);
 
 #if !defined ENABLE_TESTING_ACCESS
   protected:
 #endif
     /// The star set we are working with. The catalog ID values are all set to 0 here.
-    Star::list input;
+    Star::list big_i;
     
     /// Current working parameters.
     Parameters parameters;

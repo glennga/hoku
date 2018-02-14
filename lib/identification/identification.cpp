@@ -3,16 +3,17 @@
 ///
 /// Source file for Identification class, which holds all common data between all identification processes.
 
+#include <numeric>
 #include "third-party/inih/INIReader.h"
 
 #include "benchmark/benchmark.h"
 #include "identification/identification.h"
 
 /// Returned when no candidates are found from a query.
-const Identification::labels_list Identification::NO_CANDIDATES_FOUND = {-1, -1};
+const Identification::labels_list Identification::EMPTY_BIG_R = {-1, -1};
 
 /// Returned when there exists no confident identity from an identification trial.
-const Star::list Identification::NO_CONFIDENT_IDENTITY = {Star::define_label(Star::zero(), -1)};
+const Star::list Identification::NO_CONFIDENT_A = {Star::define_label(Star::zero(), -1)};
 
 /// Returned when we count past our defined max nu from a crown or identification trial.
 const Star::list Identification::EXCEEDED_NU_MAX = {Star::zero()};
@@ -45,7 +46,7 @@ void Identification::collect_parameters (Parameters &p, INIReader &cf) {
     const std::array<Rotation::wahba_function, 3> ws = {Rotation::triad, Rotation::quest, Rotation::q_exact};
     
     // Determine the Wahba solver.
-    std::string wabha_solver = cf.Get("id-parameters", "wbs", "");
+    std::string wabha_solver = cf.Get("id-parameters", "wbs", "TRIAD");
     for (unsigned int i = 0; i < ws_id.size(); i++) {
         if (ws_id.size() == wabha_solver.size() && std::equal(ws_id[i].begin(), ws_id[i].end(), wabha_solver.begin(),
                                                               [] (unsigned char a, unsigned char b) {
@@ -60,42 +61,44 @@ void Identification::collect_parameters (Parameters &p, INIReader &cf) {
 /// Rotate every point the given rotation and check if the angle of separation between any two stars is within a
 /// given limit sigma.
 ///
-/// @param candidates All stars to check against the body star set.
+/// @param big_p All stars to check against the existing image body star set.
 /// @param q The rotation to apply to all stars.
 /// @return Set of matching stars found in candidates and the body sets.
-Star::list Identification::find_matches (const Star::list &candidates, const Rotation &q) {
-    Star::list matches, non_matched = this->input;
+Star::list Identification::find_positive_overlay (const Star::list &big_p, const Rotation &q) {
     double epsilon = 3.0 * this->parameters.sigma_overlay;
-    matches.reserve(this->input.size());
+    Star::list m;
+    m.reserve(big_i.size());
     
-    for (const Star &candidate : candidates) {
-        Star r_prime = Rotation::rotate(candidate, q);
-        for (unsigned int i = 0; i < non_matched.size(); i++) {
-            if (Star::angle_between(r_prime, non_matched[i]) < epsilon) {
+    for (const Star &p_i : big_p) {
+        Star r_prime = Rotation::rotate(p_i, q);
+        for (unsigned int i = 0; i < big_i.size(); i++) {
+            if (Star::angle_between(r_prime, big_i[i]) < epsilon) {
                 // Add this match to the list by noting the candidate star's catalog ID.
-                matches.emplace_back(
-                    Star(non_matched[i][0], non_matched[i][1], non_matched[i][2], candidate.get_label()));
+                m.emplace_back(Star(big_i[i][0], big_i[i][1], big_i[i][2], p_i.get_label()));
                 
                 // Remove the current star from the searching set. End the search for this star.
-                non_matched.erase(non_matched.begin() + i);
+                big_i.erase(big_i.begin() + i);
                 break;
             }
         }
     }
     
-    return matches;
+    return m;
 }
 
-/// Sort the given list of candidate label lists by their average brightness.
+/// Sort the given list of candidate label lists by their average brightness. Note: apparent magnitude has decreasing
+/// scale, smaller = brighter.
 ///
-/// @param candidates Reference to a list of lists of catalog labels to sort.
-void Identification::sort_brightness (std::vector<labels_list> &candidates) {
-    auto grab_b = [this] (const int ell) -> double {
-        return this->ch.query_hip(ell).get_magnitude();
+/// @param big_r_ell Reference to a list of lists of catalog labels to sort.
+void Identification::sort_brightness (std::vector<labels_list> &big_r_ell) {
+    auto sum_m = [this] (const labels_list &k) -> double {
+        return std::accumulate(k.begin(), k.end(), 0.0, [this] (const double &m_prev, const int &r_ell) -> double {
+            return m_prev + this->ch.query_hip(r_ell).get_magnitude();
+        });
     };
     
-    std::sort(candidates.begin(), candidates.end(), [&grab_b] (const labels_list &i, const labels_list &j) {
-        return (grab_b(i[0]) + grab_b(i[1]) + grab_b(i[2])) > (grab_b(j[0]) + grab_b(j[1]) + grab_b(j[2]));
+    std::sort(big_r_ell.begin(), big_r_ell.end(), [&sum_m] (const labels_list &r_ell_i, const labels_list &r_ell_j) {
+        return sum_m(r_ell_i) / r_ell_i.size() < sum_m(r_ell_j) / r_ell_j.size();
     });
 }
 
@@ -105,16 +108,16 @@ void Identification::sort_brightness (std::vector<labels_list> &candidates) {
 /// @return The rotation from the R set to the B set.
 Rotation Identification::align () {
     // Perform the identification procedure.
-    Star::list a = identify(), inertial;
+    Star::list b_d = identify(), inertial;
     
-    // 'a' contains a list of labeled image stars. Determine the matching catalog stars.
-    inertial.reserve(a.size());
-    for (const Star &s : a) {
+    // 'b_d' contains a list of labeled image stars. Determine the matching catalog stars.
+    inertial.reserve(b_d.size());
+    for (const Star &s : b_d) {
         inertial.push_back(ch.query_hip(s.get_label()));
     }
     
     // Return the result of applying the Wahba solver with the image and catalog stars.
-    return parameters.f(inertial, a);
+    return parameters.f(b_d, inertial);
 }
 
 /// Extends the identification process by attempting to identify all stars in the image.
@@ -122,14 +125,14 @@ Rotation Identification::align () {
 /// @return List of all identified stars.
 Star::list Identification::identify_all () {
     // Perform the identification procedure.
-    Star::list a = identify(), inertial;
+    Star::list b_d = identify(), inertial;
     
-    // 'a' contains a list of labeled image stars. Determine the matching catalog stars.
-    inertial.reserve(a.size());
-    for (const Star &s : a) {
+    // 'b_d' contains a list of labeled image stars. Determine the matching catalog stars.
+    inertial.reserve(b_d.size());
+    for (const Star &s : b_d) {
         inertial.push_back(ch.query_hip(s.get_label()));
     }
     
     // Return the result of applying the Wahba solver and finding all matches with this.
-    return find_matches(inertial, parameters.f(inertial, a));
+    return find_positive_overlay(inertial, parameters.f(b_d, inertial));
 }

@@ -16,13 +16,14 @@
 /// @param k The k'th component from the observer to the star.
 /// @param label The catalog ID of the star.
 /// @param m Apparent magnitude of the given star.
-/// @param set_unit If true, normalize the star. Otherwise, directly set the i, j, and k.
-Star::Star (const double i, const double j, const double k, const int label, const double m, const bool set_unit) {
-    if (!set_unit) {
+/// @param apply_normalize If true, normalize the star. Otherwise, directly set the i, j, and k.
+Star::Star (const double i, const double j, const double k, const int label, const double m,
+            const bool apply_normalize) {
+    if (!apply_normalize) {
         this->i = i, this->j = j, this->k = k;
     }
     else {
-        Star s = Star(i, j, k).as_unit();
+        Star s = Star(i, j, k).normalize();
         this->i = s.i, this->j = s.j, this->k = s.k;
     }
     
@@ -37,7 +38,7 @@ Star::Star (const double i, const double j, const double k, const int label, con
 
 /// Return all components in the current star as a string object.
 ///
-/// @return String of components in form of (i:j:k:m:hr).
+/// @return String of components in form of (i:j:k:m:label).
 std::string Star::str () const {
     std::stringstream components;
     
@@ -55,9 +56,9 @@ double Star::operator[] (const unsigned int n) const {
     return n > 2 ? INVALID_ELEMENT_ACCESSED : std::array<double, 3> {i, j, k}[n];
 }
 
-/// Accessor method for catalog ID of the star.
+/// Accessor method for catalog (Hipparcos) ID of the star.
 ///
-/// @return Catalog ID of the current star.
+/// @return Catalog (Hipparcos) ID of the current star.
 int Star::get_label () const {
     return this->label;
 }
@@ -103,7 +104,7 @@ double Star::norm () const {
 /// Find the unit vector of the current star.
 ///
 /// @return Star with normalized components.
-Star Star::as_unit () const {
+Star Star::normalize () const {
     double norm = this->norm();
     
     // Vector with no length, return original star.
@@ -145,7 +146,7 @@ Star Star::zero () {
 /// @return Star with random, normalized components and a catalog ID = NO_LABEL.
 Star Star::chance () {
     return Star(RandomDraw::draw_real(-1.0, 1.0), RandomDraw::draw_real(-1.0, 1.0), RandomDraw::draw_real(-1.0, 1.0),
-                NO_LABEL).as_unit();
+                NO_LABEL).normalize();
 }
 
 /// Generate a random star with normalized components. Using C++11 random functions. Instead of assigning a catalog ID
@@ -185,7 +186,7 @@ Star Star::cross (const Star &s_1, const Star &s_2) {
 /// @param s_2 Star to find angle from s_1.
 /// @return Angle between s_1 and s_2 in degrees.
 double Star::angle_between (const Star &s_1, const Star &s_2) {
-    return (s_1 == s_2) ? 0 : acos(dot(s_1.as_unit(), s_2.as_unit())) * (180.0 / M_PI);
+    return (s_1 == s_2) ? 0 : acos(dot(s_1.normalize(), s_2.normalize())) * (180.0 / M_PI);
 }
 
 /// Determines if the angle between rho and beta is within theta degrees.
@@ -204,7 +205,7 @@ bool Star::within_angle (const Star &s_1, const Star &s_2, const double theta) {
 /// @param theta All stars in s_l must be theta degrees from each other.
 /// @return True if angle between all stars are less than theta. False otherwise.
 bool Star::within_angle (const list &s_l, const double theta) {
-    // Fancy for loop wrapping... (: All distinct permutations of s_l.
+    // Fancy for loop wrapping... (: All distinct combination pairs of s_l.
     for (unsigned int i = 0, j = 1; i < s_l.size() - 1; j = (j < s_l.size() - 1) ? j + 1 : 1 + ++i) {
         if (!within_angle(s_l[i], s_l[j], theta)) {
             return false;

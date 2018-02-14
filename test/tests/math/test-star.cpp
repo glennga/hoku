@@ -51,13 +51,13 @@ TEST(StarComputation, Norm) {
 
 /// Check if the norm of a generated unit vector is equal to one.
 TEST(StarNorm, Unit) {
-    Star a = Star::chance() * 85.0, b = a.as_unit();
+    Star a = Star::chance() * 85.0, b = a.normalize();
     EXPECT_DOUBLE_EQ(b.norm(), 1.0);
 }
 
 /// Check if an attempt to find the length of a <0, 0, 0> star is made.
 TEST(StarNorm, UnitZeroStar) {
-    Star a = Star::zero(), b = a.as_unit();
+    Star a = Star::zero(), b = a.normalize();
     EXPECT_EQ(a, b);
 }
 
