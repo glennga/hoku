@@ -14,13 +14,13 @@
 TEST(BenchmarkImage, StarShuffle) {
     Chomp ch;
     Benchmark input(ch, 15);
-    Star a = input.stars[0], b(0, 0, 0);
+    Star a = input.b[0], b(0, 0, 0);
     
     input.shuffle();
-    b = input.stars[0];
+    b = input.b[0];
     input.shuffle();
     EXPECT_FALSE(a == b);
-    EXPECT_FALSE(b == input.stars[0]);
+    EXPECT_FALSE(b == input.b[0]);
 }
 
 /// Check that the file current_plot log file is formatted correctly.
@@ -49,8 +49,8 @@ TEST(BenchmarkLog, CurrentPlotFile) {
     EXPECT_EQ(d, std::string(e));
     
     std::getline(current_plot_from_input, d);
-    sprintf(e, "%0.16f %0.16f %0.16f %d", input.stars[0][0], input.stars[0][1], input.stars[0][2],
-            input.stars[0].get_label());
+    sprintf(e, "%0.16f %0.16f %0.16f %d", input.b[0][0], input.b[0][1], input.b[0][2],
+            input.b[0].get_label());
     EXPECT_EQ(d, std::string(e));
 }
 
@@ -86,7 +86,7 @@ TEST(BenchmarkError, NearFocus) {
     input.remove_light(3, 4);
     input.shift_light(3, 1);
     for (int a = 0; a < 5; a++) {
-        EXPECT_TRUE(Star::within_angle(input.stars[a], input.focus, input.fov / 2));
+        EXPECT_TRUE(Star::within_angle(input.b[a], input.center, input.fov / 2));
     }
 }
 
@@ -94,50 +94,50 @@ TEST(BenchmarkError, NearFocus) {
 TEST(BenchmarkError, ExtraLightAdded) {
     Chomp ch;
     Benchmark input(ch, 15);
-    unsigned long long a = input.stars.size();
+    unsigned long long a = input.b.size();
     input.add_extra_light(3);
-    EXPECT_EQ(input.stars.size(), a + 3);
+    EXPECT_EQ(input.b.size(), a + 3);
 }
 
 /// Check that stars have been removed in light removal method.
 TEST(BenchmarkError, RemovedLightRemoved) {
     Chomp ch;
     Benchmark input(ch, 15);
-    unsigned long long a = input.stars.size();
+    unsigned long long a = input.b.size();
     input.remove_light(3, 15);
-    EXPECT_LT(input.stars.size(), a);
+    EXPECT_LT(input.b.size(), a);
 }
 
 // Check that stars have been shifted in light shift method.
 TEST(BenchmarkError, ShiftedLightMoved) {
     Chomp ch;
     Benchmark input(ch, 15);
-    std::vector<Star> a = input.stars;
+    std::vector<Star> a = input.b;
     input.shift_light(3, 0.1);
     int b = 0;
     
     // |original|*|modified| = (number of different pairs) + |original| - 3
     for (Star original : a) {
-        for (Star modified : input.stars) {
+        for (Star modified : input.b) {
             if (!(original == modified)) {
                 b++;
             }
         }
     }
-    EXPECT_EQ(a.size() * input.stars.size(), b + a.size() - 3);
+    EXPECT_EQ(a.size() * input.b.size(), b + a.size() - 3);
 }
 
 // Check that stars have been shifted in light barrel method.
 TEST(BenchmarkError, BarreledLightMoved) {
     Chomp ch;
     Benchmark input(ch, 15);
-    std::vector<Star> a = input.stars;
+    std::vector<Star> a = input.b;
     input.barrel_light(0.00001);
     int b = 0;
     
     // All stars should be modified.
     for (Star original : a) {
-        for (Star modified : input.stars) {
+        for (Star modified : input.b) {
             if (original == modified) {
                 b++;
             }
@@ -183,26 +183,26 @@ TEST(BenchmarkImage, DisplayBarreled) {
 TEST(BenchmarkImage, Compare) {
     Chomp ch;
     Benchmark a(ch, 15);
-    Star::list b = a.stars;
+    Star::list b = a.b;
     
     // Erase two stars from set B.
     b.erase(b.begin() + 0);
     b.erase(b.begin() + 1);
     b.emplace_back(Star(5, 5, 5));
-    EXPECT_NE(a.stars.size(), Benchmark::compare_stars(a, b));
-    EXPECT_EQ(a.stars.size(), Benchmark::compare_stars(a, b) + 2);
+    EXPECT_NE(a.b.size(), Benchmark::compare_stars(a, b));
+    EXPECT_EQ(a.b.size(), Benchmark::compare_stars(a, b) + 2);
 }
 
 /// Check that an error star exists at the front of the stars vector when cap_error is raised.
 TEST(BenchmarkError, CapError) {
     Chomp ch;
     Benchmark input(ch, 15);
-    std::vector<Star> a = input.stars;
+    std::vector<Star> a = input.b;
     input.shift_light(1, 0.1, true);
     bool error_star_at_front = true;
     
     for (const Star &original : a) {
-        if (input.stars[0] == original) {
+        if (input.b[0] == original) {
             error_star_at_front = false;
             break;
         }

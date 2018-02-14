@@ -29,7 +29,7 @@ const std::string Benchmark::PLOT_SCRIPT = "\"" + PROJECT_LOCATION + "/script/py
 /// @param fov Limit a star must be separated from the focus by.
 /// @param m_bar Maximum magnitude a star must be within in the given benchmark.
 Benchmark::Benchmark (Chomp &ch, const double fov, const double m_bar) {
-    this->fov = fov, this->focus = Star::chance(), this->inertial_to_image = Rotation::chance();
+    this->fov = fov, this->center = Star::chance(), this->q_rb = Rotation::chance();
     
     generate_stars(ch, m_bar);
 }
@@ -38,12 +38,12 @@ Benchmark::Benchmark (Chomp &ch, const double fov, const double m_bar) {
 /// and magnitude sensitivity (m_bar).
 ///
 /// @param ch Open connection to Nibble, using Chomp tables.
-/// @param focus Focus star of the given star set.
+/// @param center Focus star of the given star set.
 /// @param q Quaternion to take inertial frame to body frame.
 /// @param fov Limit a star must be separated from the focus by.
 /// @param m_bar Maximum magnitude a star must be within in the given benchmark.
-Benchmark::Benchmark (Chomp &ch, const Star &focus, const Rotation &q, const double fov, const double m_bar) {
-    this->fov = fov, this->focus = focus, this->inertial_to_image = q;
+Benchmark::Benchmark (Chomp &ch, const Star &center, const Rotation &q, const double fov, const double m_bar) {
+    this->fov = fov, this->center = center, this->q_rb = q;
     generate_stars(ch, m_bar);
 }
 
@@ -51,10 +51,10 @@ Benchmark::Benchmark (Chomp &ch, const Star &focus, const Rotation &q, const dou
 /// applied to it.
 ///
 /// @param s Star set to give the current benchmark.
-/// @param focus Focus star of the given star set.
+/// @param center Focus star of the given star set.
 /// @param fov Field of view (degrees) associated with the given star set.
-Benchmark::Benchmark (const Star::list &s, const Star &focus, const double fov) {
-    this->fov = fov, this->stars = s, this->focus = focus;
+Benchmark::Benchmark (const Star::list &s, const Star &center, const double fov) {
+    this->fov = fov, this->b = s, this->center = center;
 }
 
 /// Dummy image. Holds no image or field of view.
@@ -66,7 +66,7 @@ const Benchmark Benchmark::black () {
 
 /// Shuffle the current star set. Uses C++11 random library.
 void Benchmark::shuffle () {
-    std::shuffle(this->stars.begin(), this->stars.end(), RandomDraw::mersenne_twister);
+    std::shuffle(this->b.begin(), this->b.end(), RandomDraw::mersenne_twister);
 }
 
 /// Obtain a set of stars around the current focus vector. This is the 'clean' star set, meaning that all stars in
@@ -77,13 +77,13 @@ void Benchmark::generate_stars (Chomp &ch, const double m_bar) {
     // Expected number of stars = fov * 8. Not too concerned with accuracy here.
     auto expected = static_cast<unsigned int>(this->fov * 4);
     
-    // Find nearby stars. Rotate these stars and the focus.
-    for (const Star &s : ch.nearby_hip_stars(this->focus, this->fov / 2.0, expected)) {
+    // Find nearby stars. Rotate these stars and the center.
+    for (const Star &s : ch.nearby_hip_stars(this->center, this->fov / 2.0, expected)) {
         if (s.get_magnitude() <= m_bar) {
-            this->stars.push_back(Rotation::rotate(s, this->inertial_to_image));
+            this->b.push_back(Rotation::rotate(s, this->q_rb));
         }
     }
-    this->focus = Rotation::rotate(this->focus, this->inertial_to_image);
+    this->center = Rotation::rotate(this->center, this->q_rb);
     
     // Shuffle to maintain randomness.
 #if !defined ENABLE_TESTING_ACCESS
@@ -97,7 +97,7 @@ void Benchmark::generate_stars (Chomp &ch, const double m_bar) {
 /// @return Copy of current star set with catalog IDs set to Star::NO_LABEL.
 Star::list Benchmark::clean_stars () const {
     // Keep the current star set intact.
-    Star::list clean = this->stars;
+    Star::list clean = this->b;
     
     for (Star &s : clean) {
         s = Star::reset_label(s);
@@ -126,11 +126,11 @@ void Benchmark::record_current_plot () {
         throw std::runtime_error(std::string("Unable to open current and/or error files."));
     }
     
-    // Record the focus.
-    current_record << this->focus[0] << " " << this->focus[1] << " " << this->focus[2] << "\n";
+    // Record the center.
+    current_record << this->center[0] << " " << this->center[1] << " " << this->center[2] << "\n";
     
     // Record the stars.
-    for (const Star &s : this->stars) {
+    for (const Star &s : this->b) {
         current_record << s[0] << " " << s[1] << " " << s[2] << " " << s.get_label() << "\n";
     }
     current << current_record.str();
@@ -155,8 +155,8 @@ void Benchmark::display_plot () {
     std::remove(CURRENT_TMP.c_str()), std::remove(ERROR_TMP.c_str());
     
     // Field-of-view and norm are parameters to the plot script.
-    std::string params = " fov=" + std::to_string(this->fov) + " norm=" + std::to_string(this->focus.norm());
-    
+    std::string params = " fov=" + std::to_string(this->fov) + " norm=" + std::to_string(this->center.norm());
+
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
     std::string cmd = std::string("python ") + PLOT_SCRIPT + params;
 #else
@@ -181,20 +181,20 @@ void Benchmark::display_plot () {
 /// @return The number of stars found matching both lists.
 int Benchmark::compare_stars (const Benchmark &b, const Star::list &s_l) {
     Star::list s_candidates = s_l;
-    unsigned int c = 0;
+    unsigned int count = 0;
     
-    for (const Star &s_a : b.stars) {
+    for (const Star &s_a : b.b) {
         for (unsigned int i = 0; i < s_candidates.size(); i++) {
             
             // If we find big_ia match, erase this from our candidates list.
             if (s_a == s_candidates[i]) {
                 s_candidates.erase(s_candidates.begin() + i);
-                c++;
+                count++;
             }
         }
     }
     
-    return c;
+    return count;
 }
 
 /// Append n randomly placed vectors that fall within fov/2 degrees of the focus. This models stray light that may
@@ -208,16 +208,16 @@ void Benchmark::add_extra_light (const unsigned int n, bool cap_error) {
     
     while (current_n < n) {
         Star generated = Star::chance(-current_n - 1);
-        if (Star::within_angle(generated, this->focus, this->fov / 2.0)) {
-            this->stars.emplace_back(generated);
+        if (Star::within_angle(generated, this->center, this->fov / 2.0)) {
+            this->b.emplace_back(generated);
             extra_light.affected.emplace_back(generated);
             current_n++;
         }
     }
     
     // Shuffle to maintain randomness. If desired, an error star remains at the front.
-    std::iter_swap(this->stars.begin(), this->stars.end() - 1);
-    (!cap_error) ? std::shuffle(this->stars.begin() + 1, this->stars.end(), std::mt19937(std::random_device()()))
+    std::iter_swap(this->b.begin(), this->b.end() - 1);
+    (!cap_error) ? std::shuffle(this->b.begin() + 1, this->b.end(), std::mt19937(std::random_device()()))
                  : this->shuffle();
     
     // Remove the first element. Append to error models.
@@ -240,7 +240,7 @@ void Benchmark::remove_light (const unsigned int n, const double psi) {
         // First, generate the light blocking blobs.
         while (current_n < n) {
             Star generated = Star::chance();
-            if (Star::within_angle(generated, this->focus, this->fov / 2.0)) {
+            if (Star::within_angle(generated, this->center, this->fov / 2.0)) {
                 blobs.emplace_back(generated);
                 current_n++;
             }
@@ -248,10 +248,10 @@ void Benchmark::remove_light (const unsigned int n, const double psi) {
         
         // Second, check if any of the stars fall within psi / 2 of a dark spot.
         for (unsigned int i = 0; i < blobs.size(); i++) {
-            for (const Star &star : this->stars) {
-                if (Star::within_angle(blobs[i], star, psi / 2.0)) {
-                    this->stars.erase(this->stars.begin() + i);
-                    removed_light.affected.emplace_back(star);
+            for (const Star &s : this->b) {
+                if (Star::within_angle(blobs[i], s, psi / 2.0)) {
+                    this->b.erase(this->b.begin() + i);
+                    removed_light.affected.emplace_back(s);
                 }
             }
         }
@@ -279,29 +279,29 @@ void Benchmark::shift_light (const unsigned int n, const double sigma, bool cap_
     unsigned int current_n = 0;
     
     // Loop through entire list again if n not met through past run.
-    while (current_n < n || this->stars.size() == current_n + 1) {
+    while (current_n < n || this->b.size() == current_n + 1) {
         bool n_condition = true;
         
         // Check inside if n is met early, break if met.
-        for (unsigned int i = 0; i < this->stars.size() && n_condition; i++) {
-            Star candidate = Rotation::shake(this->stars[i], sigma);
+        for (unsigned int i = 0; i < this->b.size() && n_condition; i++) {
+            Star candidate = Rotation::shake(this->b[i], sigma);
             
-            // If shifted star is near focus, add the shifted star and remove the old.
-            if (Star::within_angle(candidate, this->focus, this->fov / 2.0)) {
-                this->stars.push_back(candidate);
-                this->stars.erase(this->stars.begin() + i);
+            // If shifted star is near center, add the shifted star and remove the old.
+            if (Star::within_angle(candidate, this->center, this->fov / 2.0)) {
+                this->b.push_back(candidate);
+                this->b.erase(this->b.begin() + i);
                 shifted_light.affected.emplace_back(candidate);
                 current_n++;
             }
             
             // If the n-condition is met early, we break.
-            n_condition = (current_n < n || this->stars.size() == current_n + 1);
+            n_condition = (current_n < n || this->b.size() == current_n + 1);
         }
     }
     
     // Shuffle to maintain randomness. If desired, an error star remains at the front.
-    std::iter_swap(this->stars.begin(), this->stars.end() - 1);
-    cap_error ? std::shuffle(this->stars.begin() + 1, this->stars.end(), std::mt19937(std::random_device()()))
+    std::iter_swap(this->b.begin(), this->b.end() - 1);
+    cap_error ? std::shuffle(this->b.begin() + 1, this->b.end(), std::mt19937(std::random_device()()))
               : this->shuffle();
     
     // Remove first element. Append this to the error models.
@@ -317,13 +317,13 @@ void Benchmark::shift_light (const unsigned int n, const double sigma, bool cap_
 void Benchmark::barrel_light (double alpha) {
     ErrorModel barreled_light = {"Barreled Light", "y", {}};
     
-    for (unsigned int i = 0; i < this->stars.size(); i++) {
-        // Determine the distance our current star must be from the focus.
-        double u = Star::angle_between(this->stars[i], this->focus);
+    for (unsigned int i = 0; i < this->b.size(); i++) {
+        // Determine the distance our current star must be from the center.
+        double u = Star::angle_between(this->b[i], this->center);
         double d = u * (1 - alpha * u * u);
         
-        this->stars.push_back(Rotation::push(this->stars[i], this->focus, d));
-        this->stars.erase(this->stars.begin() + i);
+        this->b.push_back(Rotation::push(this->b[i], this->center, d));
+        this->b.erase(this->b.begin() + i);
     }
     
     // Append to our error models.

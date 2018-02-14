@@ -102,7 +102,7 @@ Star Rotation::rotate (const Star &s, const Rotation &q) {
 /// @param d Angle to push s away from f.
 /// @return The star S "pushed away" from f.
 Star Rotation::push (const Star &s, const Star &f, const double d) {
-    // Our axis of rotation is perpendicular to our current star and the focus.
+    // Our axis of rotation is perpendicular to our current star and the center.
     Star axis = Star::cross(s, f);
     
     // Determine our cosine component, and scale our axis vector.

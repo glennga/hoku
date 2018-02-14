@@ -39,9 +39,9 @@ TEST(PyramidTrio, CandidateTrioFind) {
     Pyramid a(input, par);
     Pyramid::star_trio b = a.find_candidate_trio({a.big_i[0], a.big_i[1], a.big_i[2]});
     
-    EXPECT_EQ(input.stars[0].get_label(), b[0].get_label());
-    EXPECT_EQ(input.stars[1].get_label(), b[1].get_label());
-    EXPECT_EQ(input.stars[2].get_label(), b[2].get_label());
+    EXPECT_EQ(input.b[0].get_label(), b[0].get_label());
+    EXPECT_EQ(input.b[1].get_label(), b[1].get_label());
+    EXPECT_EQ(input.b[2].get_label(), b[2].get_label());
 }
 
 /// Check that a clean input returns the expected query result.
@@ -53,8 +53,8 @@ TEST(PyramidTrial, CleanQuery) {
     Pyramid a(Benchmark::black(), p);
     
     // We only use the first two stars for querying here.
-    std::vector<Identification::labels_list> d = a.query({input.stars[0], input.stars[1]});
-    Identification::labels_list ell = {input.stars[0].get_label(), input.stars[1].get_label()};
+    std::vector<Identification::labels_list> d = a.query({input.b[0], input.b[1]});
+    Identification::labels_list ell = {input.b[0].get_label(), input.b[1].get_label()};
     
     std::sort(ell.begin(), ell.end());
     EXPECT_THAT(d, Contains(ell));
@@ -67,8 +67,8 @@ TEST(PyramidTrial, CleanReduction) {
     p.sigma_query = 10e-10;
     Benchmark input(ch, 15);
     Pyramid a(input, p);
-    Identification::labels_list ell = {input.stars[0].get_label(), input.stars[1].get_label(),
-        input.stars[2].get_label()};
+    Identification::labels_list ell = {input.b[0].get_label(), input.b[1].get_label(),
+        input.b[2].get_label()};
     
     std::sort(ell.begin(), ell.end());
     EXPECT_THAT(a.reduce(), UnorderedElementsAre(ell[0], ell[1], ell[2]));
@@ -85,10 +85,10 @@ TEST(PyramidTrial, CleanIdentify) {
     p.nu = std::make_shared<unsigned int>(nu);
     Benchmark input(ch, focus, q, 15, 6.0);
     
-    Star::list b = {Rotation::rotate(input.stars[0], q), Rotation::rotate(input.stars[1], q),
-        Rotation::rotate(input.stars[2], q), Rotation::rotate(input.stars[3], q)};
-    Star::list c = {ch.query_hip(input.stars[0].get_label()), ch.query_hip(input.stars[1].get_label()),
-        ch.query_hip(input.stars[2].get_label()), ch.query_hip(input.stars[3].get_label())};
+    Star::list b = {Rotation::rotate(input.b[0], q), Rotation::rotate(input.b[1], q),
+        Rotation::rotate(input.b[2], q), Rotation::rotate(input.b[3], q)};
+    Star::list c = {ch.query_hip(input.b[0].get_label()), ch.query_hip(input.b[1].get_label()),
+        ch.query_hip(input.b[2].get_label()), ch.query_hip(input.b[3].get_label())};
     
     Pyramid a(Benchmark(b, Rotation::rotate(focus, q), 20), p);
     Star::list f = a.identify();

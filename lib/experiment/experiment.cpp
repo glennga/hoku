@@ -13,41 +13,41 @@
 /// sensitivity (m_bar).
 ///
 /// @param ch Open Nibble connection using Chomp methods.
-/// @param body Reference to location of the body stars.
-/// @param focus Reference to location of the focus star.
+/// @param big_i Reference to location of the body stars.
+/// @param center Reference to location of the focus star.
 /// @param fov Double of the field-of-view stars can exist from the focus.
 /// @param m_bar Minimum magnitude that all stars must be under.
-void Experiment::present_benchmark (Chomp &ch, Star::list &body, Star &focus, const double fov, const double m_bar) {
+void Experiment::present_benchmark (Chomp &ch, Star::list &big_i, Star &center, const double fov, const double m_bar) {
     Rotation q = Rotation::chance();
     
     // We require at-least five stars to exist here.
     do {
-        focus = Star::chance();
-        body.clear(), body.reserve(static_cast<unsigned int> (fov * 4));
+        center = Star::chance();
+        big_i.clear(), big_i.reserve(static_cast<unsigned int> (fov * 4));
         
-        for (const Star &s : ch.nearby_hip_stars(focus, fov / 2.0, static_cast<unsigned int> (fov * 4))) {
+        for (const Star &s : ch.nearby_hip_stars(center, fov / 2.0, static_cast<unsigned int> (fov * 4))) {
             if (s.get_magnitude() < m_bar) {
-                body.emplace_back(Rotation::rotate(s, q));
+                big_i.emplace_back(Rotation::rotate(s, q));
             }
         }
     }
-    while (body.size() < 5);
+    while (big_i.size() < 5);
     
-    // Shuffle and rotate the focus.
-    std::shuffle(body.begin(), body.end(), RandomDraw::mersenne_twister);
-    focus = Rotation::rotate(focus, q);
+    // Shuffle and rotate the center.
+    std::shuffle(big_i.begin(), big_i.end(), RandomDraw::mersenne_twister);
+    center = Rotation::rotate(center, q);
 }
 
 /// Return true if the given body set exists somewhere in a collection of reference sets.
 ///
-/// @param r_set Reference to the reference frame sets. An in-sort place will occur for each element.
-/// @param b Reference to the body frame set. An in-sort place will occur.
+/// @param big_r_ell Reference to the reference frame sets. An in-sort place will occur for each element.
+/// @param big_i_ell Reference to the body frame set. An in-sort place will occur.
 /// @return True if 'b' exists somewhere in r.
-bool Experiment::Query::set_existence (std::vector<Identification::labels_list> &r_set,
-                                       Identification::labels_list &b) {
-    for (Identification::labels_list &r_bar : r_set) {
-        std::sort(r_bar.begin(), r_bar.end()), std::sort(b.begin(), b.end());
-        if (std::equal(r_bar.begin(), r_bar.end(), b.begin())) {
+bool Experiment::Query::set_existence (std::vector<Identification::labels_list> &big_r_ell,
+                                       Identification::labels_list &big_i_ell) {
+    for (Identification::labels_list &r_ell : big_r_ell) {
+        std::sort(r_ell.begin(), r_ell.end()), std::sort(big_i_ell.begin(), big_i_ell.end());
+        if (std::equal(r_ell.begin(), r_ell.end(), big_i_ell.begin())) {
             return true;
         }
     }
@@ -59,13 +59,13 @@ bool Experiment::Query::set_existence (std::vector<Identification::labels_list> 
 ///
 /// @param ch Open Nibble connection using Chomp methods.
 /// @param n Number of stars to generate.
-/// @param focus Reference to center used to query Nibble with.
+/// @param center Reference to center used to query Nibble with.
 /// @param fov Double of the field-of-view stars can exist from the focus.
 /// @return List of n stars who are within fov degrees from each other.
-Star::list Experiment::Query::generate_n_stars (Chomp &ch, const unsigned int n, Star &focus, const double fov) {
-    // Find all stars near some random focus.
-    focus = Star::chance();
-    Star::list s_c = ch.nearby_bright_stars(focus, fov / 2.0, static_cast<unsigned int> (fov * 4)), s;
+Star::list Experiment::Query::generate_n_stars (Chomp &ch, const unsigned int n, Star &center, const double fov) {
+    // Find all stars near some random center.
+    center = Star::chance();
+    Star::list s_c = ch.nearby_bright_stars(center, fov / 2.0, static_cast<unsigned int> (fov * 4)), s;
     std::shuffle(s_c.begin(), s_c.end(), RandomDraw::mersenne_twister);
     
     // Insert n stars to s.
@@ -79,38 +79,38 @@ Star::list Experiment::Query::generate_n_stars (Chomp &ch, const unsigned int n,
     for (Star &s_i : s) {
         s_i = Rotation::rotate(s_i, q);
     }
-    focus = Rotation::rotate(focus, q);
+    center = Rotation::rotate(center, q);
     
     return s;
 }
 
 /// Determine if the stars a body subset matches the given inertial labels.
 ///
-/// @param body All body stars. The first |r_labels| stars will be verified.
-/// @param r_labels Labels from the catalog to match.
+/// @param big_i All body stars. The first |r_labels| stars will be verified.
+/// @param r_ell Labels from the catalog to match.
 /// @return True if the inertial labels match the body labels. False otherwise.
-bool Experiment::Reduction::is_correctly_identified (const Star::list &body,
-                                                     const Identification::labels_list &r_labels) {
-    Identification::labels_list body_labels, inertial_labels = r_labels;
-    for (unsigned int i = 0; i < r_labels.size(); i++) {
-        body_labels.emplace_back(body[i].get_label());
+bool Experiment::Reduction::is_correctly_identified (const Star::list &big_i,
+                                                     const Identification::labels_list &r_ell) {
+    Identification::labels_list b_ell, r_ell_copy = r_ell;
+    for (unsigned int i = 0; i < r_ell.size(); i++) {
+        b_ell.emplace_back(big_i[i].get_label());
     }
     
-    std::sort(body_labels.begin(), body_labels.end());
-    std::sort(inertial_labels.begin(), inertial_labels.end());
-    return std::equal(body_labels.begin(), body_labels.end(), inertial_labels.begin());
+    std::sort(b_ell.begin(), b_ell.end());
+    std::sort(r_ell_copy.begin(), r_ell_copy.end());
+    return std::equal(b_ell.begin(), b_ell.end(), r_ell_copy.begin());
 }
 
 /// Determine if the stars specified in b_ell (our inertial set) correctly matches our body set.
 ///
-/// @param body All body stars. Check if b_ell correctly matches stars in this set.
-/// @param b_ell Subset of our body, but with predicted catalog labels.
+/// @param big_i All body stars. Check if b_ell correctly matches stars in this set.
+/// @param b Subset of our body, but with predicted catalog labels.
 /// @return True if the predicted catalog labels matches the ground truth labels (body set).
-bool Experiment::Map::is_correctly_identified (const Star::list &body, const Star::list &b_ell) {
-    unsigned int c = 0;
-    for (const Star &b : body) {
-        c += (std::find(b_ell.begin(), b_ell.end(), b) != b_ell.end()) ? 1 : 0;
+bool Experiment::Map::is_correctly_identified (const Star::list &big_i, const Star::list &b) {
+    unsigned int count = 0;
+    for (const Star &b : big_i) {
+        count += (std::find(b.begin(), b.end(), b) != b.end()) ? 1 : 0;
     }
     
-    return c == b_ell.size();
+    return count == b.size();
 }

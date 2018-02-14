@@ -23,14 +23,14 @@ TEST(SphereQuery, TrioQuery) {
     par.sigma_query = 0.000000001;
     Sphere p(input, par);
     
-    double a = Trio::spherical_area(input.stars[0], input.stars[1], input.stars[2]);
-    double b = Trio::spherical_moment(input.stars[0], input.stars[1], input.stars[2]);
+    double a = Trio::spherical_area(input.b[0], input.b[1], input.b[2]);
+    double b = Trio::spherical_moment(input.b[0], input.b[1], input.b[2]);
     std::vector<Sphere::label_trio> c = p.query_for_trio(a, b);
     
     // Check that original input trio exists in search.
     for (const Sphere::label_trio &t : c) {
         for (int i = 0; i < 3; i++) {
-            EXPECT_THAT(t, Contains(input.stars[i].get_label()));
+            EXPECT_THAT(t, Contains(input.b[i].get_label()));
         }
     }
 }
@@ -76,7 +76,7 @@ TEST(SphereQuery, MatchStarsResults) {
     for (const Star::trio &t : b) {
         for (int i = 0; i < 3; i++) {
             Identification::labels_list t_ell = {t[0].get_label(), t[1].get_label(), t[2].get_label()};
-            EXPECT_THAT(t_ell, Contains(input.stars[i].get_label()));
+            EXPECT_THAT(t_ell, Contains(input.b[i].get_label()));
         }
     }
 }
@@ -92,9 +92,9 @@ TEST(SphereQuery, PivotResults) {
     
     Star::trio c = a.pivot(Sphere::STARTING_INDEX_TRIO);
     std::vector<int> c_ell = {c[0].get_label(), c[1].get_label(), c[2].get_label()};
-    EXPECT_THAT(c_ell, Contains(input.stars[0].get_label()));
-    EXPECT_THAT(c_ell, Contains(input.stars[1].get_label()));
-    EXPECT_THAT(c_ell, Contains(input.stars[2].get_label()));
+    EXPECT_THAT(c_ell, Contains(input.b[0].get_label()));
+    EXPECT_THAT(c_ell, Contains(input.b[1].get_label()));
+    EXPECT_THAT(c_ell, Contains(input.b[2].get_label()));
 }
 
 /// Check that the rotating match method marks the all stars as matched.
@@ -111,15 +111,15 @@ TEST(SphereMatch, RotatingCorrectInput) {
     Sphere g(input, par);
     
     // Reverse all input by inverse rotation.
-    rev_input.reserve(input.stars.size());
-    for (Star rotated : input.stars) {
+    rev_input.reserve(input.b.size());
+    for (Star rotated : input.b) {
         rev_input.push_back(Rotation::rotate(rotated, f));
     }
     
     std::vector<Star> h = g.find_positive_overlay(rev_input, c);
-    ASSERT_EQ(h.size(), input.stars.size());
+    ASSERT_EQ(h.size(), input.b.size());
     for (unsigned int q = 0; q < h.size(); q++) {
-        EXPECT_EQ(h[q].get_label(), input.stars[q].get_label());
+        EXPECT_EQ(h[q].get_label(), input.b[q].get_label());
     }
 }
 
@@ -137,17 +137,17 @@ TEST(SphereMatch, RotatingErrorInput) {
     Sphere g(input, par);
     
     // Reverse all input by inverse rotation.
-    rev_input.reserve(input.stars.size());
-    for (Star rotated : input.stars) {
+    rev_input.reserve(input.b.size());
+    for (Star rotated : input.b) {
         rev_input.push_back(Rotation::rotate(rotated, f));
     }
     
-    // Append focus as error.
-    rev_input.push_back(input.focus);
+    // Append center as error.
+    rev_input.push_back(input.center);
     std::vector<Star> h = g.find_positive_overlay(rev_input, c);
-    ASSERT_EQ(h.size(), input.stars.size());
+    ASSERT_EQ(h.size(), input.b.size());
     for (unsigned int q = 0; q < h.size(); q++) {
-        EXPECT_EQ(h[q].get_label(), input.stars[q].get_label());
+        EXPECT_EQ(h[q].get_label(), input.b[q].get_label());
     }
 }
 
@@ -165,8 +165,8 @@ TEST(SphereMatch, RotatingDuplicateInput) {
     Sphere g(input, par);
     
     // Reverse all input by inverse rotation.
-    rev_input.reserve(input.stars.size());
-    for (Star rotated : input.stars) {
+    rev_input.reserve(input.b.size());
+    for (Star rotated : input.b) {
         rev_input.push_back(Rotation::rotate(rotated, f));
     }
     
@@ -176,9 +176,9 @@ TEST(SphereMatch, RotatingDuplicateInput) {
     rev_input.push_back(rev_input[0]);
     
     std::vector<Star> h = g.find_positive_overlay(rev_input, c);
-    ASSERT_EQ(h.size(), input.stars.size());
+    ASSERT_EQ(h.size(), input.b.size());
     for (unsigned int q = 0; q < h.size(); q++) {
-        EXPECT_EQ(h[q].get_label(), input.stars[q].get_label());
+        EXPECT_EQ(h[q].get_label(), input.b[q].get_label());
     }
 }
 
@@ -190,9 +190,9 @@ TEST(SphereTrial, CleanQuery) {
     Benchmark input(ch, 15);
     Sphere a(Benchmark::black(), p);
     
-    std::vector<Identification::labels_list> d = a.query({input.stars[0], input.stars[1], input.stars[2]});
-    Identification::labels_list ell = {input.stars[0].get_label(), input.stars[1].get_label(),
-        input.stars[2].get_label()};
+    std::vector<Identification::labels_list> d = a.query({input.b[0], input.b[1], input.b[2]});
+    Identification::labels_list ell = {input.b[0].get_label(), input.b[1].get_label(),
+        input.b[2].get_label()};
     
     std::sort(ell.begin(), ell.end());
     EXPECT_THAT(d, Contains(ell));
@@ -206,8 +206,8 @@ TEST(SphereTrial, CleanReduction) {
     p.sigma_overlay = 0.0001;
     Benchmark input(ch, 15);
     Sphere a(input, p);
-    Identification::labels_list ell = {input.stars[0].get_label(), input.stars[1].get_label(),
-        input.stars[2].get_label()};
+    Identification::labels_list ell = {input.b[0].get_label(), input.b[1].get_label(),
+        input.b[2].get_label()};
     
     std::sort(ell.begin(), ell.end());
     EXPECT_THAT(a.reduce(), UnorderedElementsAre(ell[0], ell[1], ell[2]));
@@ -225,10 +225,10 @@ TEST(SphereTrial, CleanIdentify) {
     p.nu = std::make_shared<unsigned int>(nu);
     Benchmark input(ch, focus, q, 15, 6.0);
     
-    Star::list b = {Rotation::rotate(input.stars[0], q), Rotation::rotate(input.stars[1], q),
-        Rotation::rotate(input.stars[2], q)};
-    Star::list c = {ch.query_hip(input.stars[0].get_label()), ch.query_hip(input.stars[1].get_label()),
-        ch.query_hip(input.stars[2].get_label())};
+    Star::list b = {Rotation::rotate(input.b[0], q), Rotation::rotate(input.b[1], q),
+        Rotation::rotate(input.b[2], q)};
+    Star::list c = {ch.query_hip(input.b[0].get_label()), ch.query_hip(input.b[1].get_label()),
+        ch.query_hip(input.b[2].get_label())};
     
     Sphere a(Benchmark(b, Rotation::rotate(focus, q), 20), p);
     Star::list f = a.identify();

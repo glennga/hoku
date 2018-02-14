@@ -52,8 +52,8 @@ class Benchmark {
   
   public:
     Benchmark (Chomp &ch, double fov, double m_bar = DEFAULT_M_BAR);
-    Benchmark (Chomp &ch, const Star &focus, const Rotation &q, double fov, double m_bar = DEFAULT_M_BAR);
-    Benchmark (const Star::list &s, const Star &focus, double fov);
+    Benchmark (Chomp &ch, const Star &center, const Rotation &q, double fov, double m_bar = DEFAULT_M_BAR);
+    Benchmark (const Star::list &s, const Star &center, double fov);
     static const Benchmark black ();
     
     void generate_stars (Chomp &ch, double m_bar = DEFAULT_M_BAR);
@@ -70,7 +70,7 @@ class Benchmark {
     static int compare_stars (const Benchmark &, const Star::list &);
 
 #if !defined ENABLE_TESTING_ACCESS
-  private:
+    private:
 #endif
     Star::list clean_stars () const;
     void shuffle ();
@@ -81,22 +81,22 @@ class Benchmark {
     static const std::string PLOT_SCRIPT;
 
 #if !defined ENABLE_TESTING_ACCESS
-  private:
+    private:
 #endif
     /// Alias for the list (stack) of ErrorModels.
     using model_list = std::vector<ErrorModel>;
     
-    /// Current list of stars. All stars must be near the focus.
-    Star::list stars;
+    /// Current list of stars in image. All stars must be near the focus.
+    Star::list b;
     
     /// The focal point of the star list. Does not necessarily have to be a BSC5 star itself.
-    Star focus;
+    Star center;
     
     /// All stars must be fov degrees from the focus.
     double fov;
     
     /// Rotation applied to all stars. Moves stars from inertial to image.
-    Rotation inertial_to_image;
+    Rotation q_rb;
     
     /// List (stack) of ErrorModels, which also holds all changed stars.
     model_list error_models;
