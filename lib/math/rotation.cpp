@@ -77,7 +77,7 @@ Rotation::matrix Rotation::matrix_multiply_transpose (const matrix &a, const mat
 /// Rotate the current vector by the given quaternion. Converts the quaternion into a rotation matrix to multiply
 /// with the column vector S. 
 ///
-/// Alternate solution exists here that sticks to quaternions, but I believe the same amount of operations are 
+/// Alternate solution exists here that sticks to quaternions, but I believe a similar amount of operations are
 /// performed: https://math.stackexchange.com/a/535223
 ///
 /// @param s Star to rotate with rotation q.
@@ -110,7 +110,7 @@ Star Rotation::push (const Star &s, const Star &f, const double d) {
     axis = axis * (sqrt((1.0 - c_a) / 2.0) / sqrt(Star::dot(axis, axis)));
     
     // Return the rotated star s by our axis quaternion.
-    return rotate(s, Rotation(sqrt((1.0 + c_a) / 2.0), axis)).as_unit();
+    return rotate(s, Rotation(sqrt((1.0 + c_a) / 2.0), axis)).normalize();
 }
 
 /// Rotate the given star s in a random direction, by a random theta who's distribution is varied by the given sigma.
@@ -146,32 +146,32 @@ Rotation Rotation::chance () {
 /// Deterministic method that finds the quaternion across two different frames given pairs of vectors in each frame.
 /// This solves Wahba's problem. Solution found here: https://en.wikipedia.org/wiki/Triad_method
 ///
-/// @param r 2 element list of stars in frame V.
-/// @param b 2 element list of stars in frame W.
-/// @return The quaternion to rotate from frame V (r set) to W (b set).
-Rotation Rotation::triad (const Star::list &r, const Star::list &b) {
+/// @param v 2 element list of stars in frame V.
+/// @param w 2 element list of stars in frame W.
+/// @return The quaternion to rotate from frame W to V.
+Rotation Rotation::triad (const Star::list &v, const Star::list &w) {
     // Compute triads. Parse them into individual components.
-    Star v_1 = r[0].as_unit(), w_1 = b[0].as_unit();
-    Star v_2 = (Star::cross(r[0].as_unit(), r[1].as_unit())).as_unit();
-    Star w_2 = (Star::cross(b[0].as_unit(), b[1].as_unit())).as_unit();
-    Star v_3 = (Star::cross(r[0].as_unit(), v_2)).as_unit();
-    Star w_3 = (Star::cross(b[0].as_unit(), w_2)).as_unit();
+    Star v_1 = v[0].normalize(), w_1 = w[0].normalize();
+    Star v_2 = (Star::cross(v[0].normalize(), v[1].normalize())).normalize();
+    Star w_2 = (Star::cross(w[0].normalize(), w[1].normalize())).normalize();
+    Star v_3 = (Star::cross(v[0].normalize(), v_2)).normalize();
+    Star w_3 = (Star::cross(w[0].normalize(), w_2)).normalize();
     
     // Each vector represents a column -> [v_1 : v_2 : v_3]
-    matrix v = {Star(v_1[0], v_2[0], v_3[0]), Star(v_1[1], v_2[1], v_3[1]), Star(v_1[2], v_2[2], v_3[2])};
-    matrix w = {Star(w_1[0], w_2[0], w_3[0]), Star(w_1[1], w_2[1], w_3[1]), Star(w_1[2], w_2[2], w_3[2])};
+    matrix m_v = {Star(v_1[0], v_2[0], v_3[0]), Star(v_1[1], v_2[1], v_3[1]), Star(v_1[2], v_2[2], v_3[2])};
+    matrix m_w = {Star(w_1[0], w_2[0], w_3[0]), Star(w_1[1], w_2[1], w_3[1]), Star(w_1[2], w_2[2], w_3[2])};
     
     // Multiple V with W^T to find resulting rotation. Return result as quaternion.
-    return matrix_to_quaternion(matrix_multiply_transpose(v, w));
+    return matrix_to_quaternion(matrix_multiply_transpose(m_v, m_w));
 }
 
 /// Statistical approach to find the quaternion across two different frames given vector observations in both. This
 /// solves Wahba's problem through least squares minimization of the loss function.
 ///
-/// @param r List of stars in frame ...
-/// @param b List of stars in frame ...
-/// @return The quaternion to frame the ... (r set) to ... (b set).
-Rotation Rotation::q_exact (const Star::list &r, const Star::list &b) {
+/// @param v 2 element list of stars in frame V.
+/// @param w 2 element list of stars in frame W.
+/// @return The quaternion to rotate from frame W to V.
+Rotation Rotation::q_exact (const Star::list &v, const Star::list &w) {
     // TODO: Finish the q-Method.
     return Rotation::identity();
 }
@@ -179,10 +179,10 @@ Rotation Rotation::q_exact (const Star::list &r, const Star::list &b) {
 /// Statistical approach to find the quaternion across two different frames given vector observations in both. This
 /// solves Wahba's problem through ....
 ///
-/// @param r List of stars in frame ...
-/// @param b List of stars in frame ...
-/// @return The quaternion to frame the ... (r set) to ... (b set).
-Rotation Rotation::quest (const Star::list &r, const Star::list &b) {
+/// @param v 2 element list of stars in frame V.
+/// @param w 2 element list of stars in frame W.
+/// @return The quaternion to rotate from frame W to V.
+Rotation Rotation::quest (const Star::list &v, const Star::list &w) {
     // TODO: Finish the QUEST Method.
     return Rotation::identity();
 

@@ -9,33 +9,31 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 include_directories(${CMAKE_SOURCE_DIR}/test/include)
 
 ##################################################################
+# Link and Create Executable TestIdentification
+##################################################################
+add_executable(TestIdentification test-identification.cpp)
+target_link_libraries(TestIdentification gtest gmock ${HOKU_LIBS})
+
+##################################################################
 # Link and Create Executable TestAngle
 ##################################################################
 add_executable(TestAngle test-angle.cpp)
-target_link_libraries(TestAngle gtest gmock Angle Identification
-        Benchmark Rotation Chomp Nibble Star SQLiteCpp Sqlite3
-        RandomDraw)
+target_link_libraries(TestAngle gtest gmock ${HOKU_LIBS})
 
 ##################################################################
 # Link and Create Executable TestPlanarTriangle
 ##################################################################
 add_executable(TestPlanarTriangle test-planar-triangle.cpp)
-target_link_libraries(TestPlanarTriangle gtest gmock PlanarTriangle
-        BaseTriangle Identification Benchmark Rotation Chomp Nibble
-        Trio Star SQLiteCpp Sqlite3 RandomDraw)
+target_link_libraries(TestPlanarTriangle gtest gmock ${HOKU_LIBS})
 
 ##################################################################
 # Link and Create Executable TestSphericalTriangle
 ##################################################################
 add_executable(TestSphericalTriangle test-spherical-triangle.cpp)
-target_link_libraries(TestSphericalTriangle gtest gmock SphericalTriangle
-        BaseTriangle Identification Benchmark Rotation Chomp Nibble
-        Trio Star SQLiteCpp Sqlite3 RandomDraw)
+target_link_libraries(TestSphericalTriangle gtest gmock ${HOKU_LIBS})
 
 ##################################################################
 # Link and Create Executable TestPyramid
 ##################################################################
 add_executable(TestPyramid test-pyramid.cpp)
-target_link_libraries(TestPyramid gtest gmock Pyramid Angle Identification
-        Chomp Benchmark Rotation Nibble Star SQLiteCpp Sqlite3
-        RandomDraw)
+target_link_libraries(TestPyramid gtest gmock ${HOKU_LIBS})

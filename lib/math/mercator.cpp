@@ -129,10 +129,8 @@ Mercator::quad Mercator::find_corners (const double a) const {
 /// square. Solution found here:
 /// https://stackoverflow.com/a/12734509
 ///
-/// The given coordinates X, Y must be given in terms of FITS coordinates (i.e. top left = 0, 0, bottom right = N, N).
-///
-/// @param x X FITS coordinate of the image point.
-/// @param y Y FITS coordinate of the image point.
+/// @param x X coordinat of the image point, using (0, 0) as the *image* center.
+/// @param y Y coordinat of the image point, using (0, 0) as the *image* center.
 /// @param dpp Degrees per pixel.
 /// @return The given point (X, Y) as a normalized vector in a 3D Cartesian frame.
 Star Mercator::transform_point (const double x, const double y, const double dpp) {

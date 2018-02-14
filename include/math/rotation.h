@@ -51,9 +51,9 @@ class Rotation {
     static Rotation identity ();
     static Rotation chance ();
     
-    static Rotation triad (const Star::list &r, const Star::list &b);
-    static Rotation q_exact (const Star::list &r, const Star::list &b);
-    static Rotation quest (const Star::list &r, const Star::list &b);
+    static Rotation triad (const Star::list &v, const Star::list &w);
+    static Rotation q_exact (const Star::list &v, const Star::list &w);
+    static Rotation quest (const Star::list &v, const Star::list &w);
 
 #if !defined ENABLE_TESTING_ACCESS
   private:

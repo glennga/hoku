@@ -186,7 +186,7 @@ int Benchmark::compare_stars (const Benchmark &b, const Star::list &s_l) {
     for (const Star &s_a : b.stars) {
         for (unsigned int i = 0; i < s_candidates.size(); i++) {
             
-            // If we find b match, erase this from our candidates list.
+            // If we find big_ia match, erase this from our candidates list.
             if (s_a == s_candidates[i]) {
                 s_candidates.erase(s_candidates.begin() + i);
                 c++;

@@ -69,7 +69,7 @@ TEST(BenchmarkLog, ErrorPlotFile) {
     std::ifstream error_plot_from_input(input.ERROR_TMP);
     ASSERT_TRUE(error_plot_from_input.good());
     
-    // NOTE: Here b truncates a digit, but this is correct otherwise.
+    // NOTE: Here, b truncates a digit, but this is correct otherwise.
     std::getline(error_plot_from_input, a);
     sprintf(b, "%0.16f %0.16f %0.16f %d %s", input.error_models[0].affected[0][0], input.error_models[0].affected[0][1],
             input.error_models[0].affected[0][2], input.error_models[0].affected[0].get_label(),

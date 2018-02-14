@@ -54,28 +54,30 @@ class BaseTriangle : public Identification {
     
     static int generate_triangle_table (double fov, const std::string &table_name, area_function compute_area,
                                         moment_function compute_moment);
-    std::vector<Star::trio> m_stars (const index_trio &i_b, area_function compute_area, moment_function compute_moment);
+    std::vector<Star::trio> base_query_for_trios (const index_trio &c, area_function compute_area,
+                                                  moment_function compute_moment);
     
     static const index_trio STARTING_INDEX_TRIO;
     
     static const std::vector<labels_list> NO_CANDIDATE_TRIOS_FOUND;
     static const std::vector<Star::trio> NO_CANDIDATE_STARS_FOUND;
     static const Star::trio NO_CANDIDATE_STAR_SET_FOUND;
+    
+    virtual std::vector<Star::trio> query_for_trios (const index_trio &) = 0;
 
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
     /// Our index series that we pivot with. Set before each pivot call.
-    std::deque<int> p;
+    std::deque<int> pivot_c;
 
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
     void generate_pivot_list (const index_trio &);
     std::vector<labels_list> query_for_trio (double a, double i);
-    virtual std::vector<Star::trio> match_stars (const index_trio &) = 0;
     Star::trio pivot (const index_trio &, const std::vector<Star::trio> & = {});
-    Star::list singular_identification (const Star::list &candidates, const Star::trio &r, const Star::trio &b);
+    Star::list direct_match_test (const Star::list &big_p, const Star::trio &r, const Star::trio &b);
     
 };
 

@@ -12,5 +12,4 @@ include_directories(${CMAKE_SOURCE_DIR}/test/include)
 # Link and Create Executable TestBenchmark
 ##################################################################
 add_executable(TestBenchmark test-benchmark.cpp)
-target_link_libraries(TestBenchmark gtest Benchmark Rotation
-        Chomp Nibble Star SQLiteCpp Sqlite3 RandomDraw)
+target_link_libraries(TestBenchmark gtest ${HOKU_LIBS})

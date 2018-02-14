@@ -76,10 +76,10 @@ class Chomp : public Nibble {
     Star query_hip (int);
     
     static const Star NONEXISTENT_STAR;
-    static const Star::list NONEXISTENT_STAR_LIST;
+    static const Star::list RESULTANT_EMPTY;
 
 #if !defined ENABLE_TESTING_ACCESS
-  private:
+    private:
 #endif
     /// All stars in the HIP_BRIGHT table, from the 'load_all_stars' method.
     Star::list all_bright_stars;
@@ -97,7 +97,7 @@ class Chomp : public Nibble {
     const std::string HIP_CATALOG_LOCATION = PROJECT_LOCATION + "/data/hip2.dat";
 
 #if !defined ENABLE_TESTING_ACCESS
-  private:
+    private:
 #endif
     int build_k_vector_table (const std::string &, double, double);
     void load_all_stars ();

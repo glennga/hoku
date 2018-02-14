@@ -22,7 +22,7 @@ const double Chomp::DOUBLE_EPSILON = std::numeric_limits<double>::epsilon();
 const Star Chomp::NONEXISTENT_STAR = Star::zero();
 
 /// Returned from bound query methods if the stars do not exist.
-const Star::list Chomp::NONEXISTENT_STAR_LIST = Star::list {};
+const Star::list Chomp::RESULTANT_EMPTY = Star::list {};
 
 /// Constructor. This dynamically allocates a database connection object to nibble.db. If the database does not exist,
 /// it is created. We then proceed to load all stars into RAM from both tables.
@@ -142,21 +142,18 @@ int Chomp::generate_hip_table () {
     return polish_table("label");
 }
 
-/// Search the general stars table for the star with the matching catalog ID. Return a star with the vector components
-/// and catalog ID of this search.
+/// Search the Hipparcos catalog in memory (all_hip_stars) for a star with the matching catalog ID.
 ///
 /// @param label Catalog ID of the star to return.
 /// @return NONEXISTENT_STAR if the star does not exist. Star with the components of the matching catalog ID entry
 /// otherwise.
 Star Chomp::query_hip (int label) {
-    std::string t_table = this->table;
-    
-    select_table(hip_table);
-    tuples_d results = search_table("i, j, k, m", "label = " + std::to_string(label), 1, 1);
-    
-    // Keep our previous table.
-    select_table(t_table);
-    return results.empty() ? NONEXISTENT_STAR : Star(results[0][0], results[0][1], results[0][2], label, results[0][3]);
+    for (const Star &s : all_hip_stars) {
+        if (s.get_label() == label) {
+            return s;
+        }
+    }
+    return NONEXISTENT_STAR;
 }
 
 /// Accessor for all_bright_stars list.
@@ -245,7 +242,8 @@ void Chomp::load_all_stars () {
 /// @param y_a Lower bound of the focus to search for.
 /// @param y_b Upper bound of the focus to search for.
 /// @param limit Maximum number of results to retrieve.
-/// @return A list of results (in form of tuples), in order of that queried from Nibble.
+/// @return RESULTANT_EMPTY if there exists no results returned. Otherwise, A list of results (in form of tuples),
+/// in order of that queried from Nibble.
 Nibble::tuples_d Chomp::simple_bound_query (const std::string &focus, const std::string &fields, const double y_a,
                                             const double y_b, const unsigned int limit) {
     std::ostringstream condition;
@@ -253,7 +251,9 @@ Nibble::tuples_d Chomp::simple_bound_query (const std::string &focus, const std:
     select_table(table);
     condition << focus << " BETWEEN " << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed;
     condition << y_a << " AND " << y_b;
-    return search_table(fields, condition.str(), limit * 3, limit);
+    Nibble::tuples_d result = search_table(fields, condition.str(), limit * 3, limit);
+    
+    return (result.empty()) ? RESULTANT_EMPTY : result;
 }
 
 /// A helper method for the create_k_vector function. Build the K-Vector table for the given table using the
@@ -330,7 +330,6 @@ int Chomp::create_k_vector (const std::string &focus) {
     return build_k_vector_table(focus, m, q);
 }
 
-// TODO: Determine what is wrong with this K-Vector implementation.
 /// Search a table for the specified fields given a focus column using the K-Vector method. Searches for all results
 /// between y_a and y_b.
 ///
@@ -345,6 +344,7 @@ int Chomp::create_k_vector (const std::string &focus) {
 /// that queried from Nibble.
 Nibble::tuples_d Chomp::k_vector_query (const std::string &focus, const std::string &fields, const double y_a,
                                         const double y_b, const unsigned int expected) {
+    // TODO: Determine what is wrong with this K-Vector implementation.
     std::ostringstream condition;
     
     select_table(table);

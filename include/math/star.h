@@ -53,7 +53,7 @@ class Star {
     static constexpr int NO_LABEL = 0;
   
   public:
-    Star (double i, double j, double k, int label = 0, double m = -30.0, bool set_unit = false);
+    Star (double i, double j, double k, int label = 0, double m = -30.0, bool apply_normalize = false);
     Star ();
     
     std::string str () const;
@@ -67,7 +67,7 @@ class Star {
     Star operator* (double kappa) const;
     
     double norm () const;
-    Star as_unit () const;
+    Star normalize () const;
     
     static bool is_equal (const Star &s_1, const Star &s_2, double epsilon = STAR_EQUALITY_PRECISION_DEFAULT);
     bool operator== (const Star &s) const;
