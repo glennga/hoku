@@ -166,7 +166,7 @@ Star::trio Composite::find_catalog_stars (const Star::trio &b_f) {
 /// @return Vector of likely matches found by the composite pyramid method.
 std::vector<Identification::labels_list> Composite::query (const Star::list &s) {
     if (s.size() != QUERY_STAR_SET_SIZE) {
-        throw std::runtime_error(std::string("Input list does not have exactly three stars."));
+        throw std::runtime_error(std::string("Input list does not have exactly three b."));
     }
     double epsilon = 3.0 * this->parameters.sigma_query;
     std::vector<labels_list> big_r_ell = {};

@@ -131,7 +131,7 @@ Star::pair Angle::find_candidate_pair (const Star &b_a, const Star &b_b) {
 /// @return Body stars b with the attached labels of the inertial pair r.
 Star::list Angle::direct_match_test (const Star::list &big_p, const Star::list &r, const Star::list &b) {
     if (r.size() != 2 || b.size() != 2) {
-        throw std::runtime_error(std::string("Input lists does not have exactly two stars."));
+        throw std::runtime_error(std::string("Input lists does not have exactly two b."));
     }
     std::array<Star::list, 2> big_m = {}, big_a = {};
     
@@ -160,7 +160,7 @@ Star::list Angle::direct_match_test (const Star::list &big_p, const Star::list &
 /// @return Vector of likely matches found by the angle method.
 std::vector<Identification::labels_list> Angle::query (const Star::list &s) {
     if (s.size() != QUERY_STAR_SET_SIZE) {
-        throw std::runtime_error(std::string("Input list does not have exactly two stars."));
+        throw std::runtime_error(std::string("Input list does not have exactly two b."));
     }
     double epsilon = 3.0 * this->parameters.sigma_query, theta = Star::angle_between(s[0], s[1]);
     std::vector<labels_list> big_r_ell;

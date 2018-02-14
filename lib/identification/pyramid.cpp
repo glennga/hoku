@@ -217,7 +217,7 @@ Star::list Pyramid::identify_as_list (const Star::list &b) {
 /// @return Vector of likely matches found by the pyramid method.
 std::vector<Identification::labels_list> Pyramid::query (const Star::list &s) {
     if (s.size() != QUERY_STAR_SET_SIZE) {
-        throw std::runtime_error(std::string("Input list does not have exactly three stars."));
+        throw std::runtime_error(std::string("Input list does not have exactly three b."));
     }
     
     auto find_pairs = [this, &s] (const int a, const int b) -> labels_list_list {

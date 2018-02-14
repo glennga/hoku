@@ -34,8 +34,8 @@ namespace Experiment {
         const char *const SCHEMA = "IdentificationMethod TEXT, Timestamp TEXT, SigmaQuery FLOAT, ShiftDeviation FLOAT, "
             "CandidateSetSize FLOAT, SExistence INT";
         
-        Star::list generate_n_stars (Chomp &ch, unsigned int n, Star &focus, double fov);
-        bool set_existence (std::vector<Identification::labels_list> &r_set, Identification::labels_list &b);
+        Star::list generate_n_stars (Chomp &ch, unsigned int n, Star &center, double fov);
+        bool set_existence (std::vector<Identification::labels_list> &big_r_ell, Identification::labels_list &big_i_ell);
         
         /// Generic experiment function for the query trials. Performs a query trial and records the experiment in
         /// the lumberjack. The provided Nibble connection is used for generating the input image.
@@ -86,7 +86,7 @@ namespace Experiment {
         const char *const SCHEMA = "IdentificationMethod TEXT, Timestamp TEXT, SigmaQuery FLOAT, SigmaOverlay FLOAT, "
             "ShiftDeviation FLOAT, CameraSensitivity FLOAT, ResultMatchesInput INT";
         
-        bool is_correctly_identified (const Star::list &body, const Identification::labels_list &r_labels);
+        bool is_correctly_identified (const Star::list &big_i, const Identification::labels_list &r_ell);
         
         /// Generic experiment function for the reduction trials. Performs a reduction trial and records the experiment
         /// in the lumberjack. The provided Nibble connection is used for generating the input image.
@@ -142,7 +142,7 @@ namespace Experiment {
             "ShiftDeviation FLOAT, CameraSensitivity FLOAT, FalseStars INT, ComparisonCount INT, "
             "IsCorrectlyIdentified INT";
         
-        bool is_correctly_identified (const Star::list &body, const Star::list &w);
+        bool is_correctly_identified (const Star::list &big_i, const Star::list &b);
         
         /// Generic experiment function for the identification trials. Performs a identification trial and records the
         /// experiment in the lumberjack. The provided Nibble connection is used for generating the input image.

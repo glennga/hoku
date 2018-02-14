@@ -84,15 +84,15 @@ TEST(FindMatches, CorrectInput) {
     Angle g(input, p);
     
     // Reverse all input by inverse rotation matrix.
-    rev_input.reserve(input.stars.size());
-    for (Star rotated : input.stars) {
+    rev_input.reserve(input.b.size());
+    for (Star rotated : input.b) {
         rev_input.push_back(Rotation::rotate(rotated, f));
     }
     
     std::vector<Star> h = g.find_positive_overlay(rev_input, c);
-    EXPECT_EQ(h.size(), input.stars.size());
+    EXPECT_EQ(h.size(), input.b.size());
     for (unsigned int q = 0; q < h.size(); q++) {
-        EXPECT_EQ(h[q].get_label(), input.stars[q].get_label());
+        EXPECT_EQ(h[q].get_label(), input.b[q].get_label());
     }
 }
 
@@ -110,18 +110,18 @@ TEST(FindMatches, ErrorInput) {
     Angle g(input, p);
     
     // Reverse all input by inverse rotation matrix.
-    rev_input.reserve(input.stars.size());
-    for (Star rotated : input.stars) {
+    rev_input.reserve(input.b.size());
+    for (Star rotated : input.b) {
         rev_input.push_back(Rotation::rotate(rotated, f));
     }
     
-    // Append focus as error.
-    rev_input.push_back(input.focus);
+    // Append center as error.
+    rev_input.push_back(input.center);
     std::vector<Star> h = g.find_positive_overlay(rev_input, c);
-    EXPECT_EQ(h.size(), input.stars.size());
+    EXPECT_EQ(h.size(), input.b.size());
     
     for (unsigned int q = 0; q < h.size(); q++) {
-        EXPECT_EQ(h[q].get_label(), input.stars[q].get_label());
+        EXPECT_EQ(h[q].get_label(), input.b[q].get_label());
     }
 }
 
@@ -139,8 +139,8 @@ TEST(FindMatches, RotatingDuplicateInput) {
     Angle g(input, p);
     
     // Reverse all input by inverse rotation matrix.
-    rev_input.reserve(input.stars.size());
-    for (Star rotated : input.stars) {
+    rev_input.reserve(input.b.size());
+    for (Star rotated : input.b) {
         rev_input.push_back(Rotation::rotate(rotated, f));
     }
     
@@ -149,10 +149,10 @@ TEST(FindMatches, RotatingDuplicateInput) {
     rev_input.push_back(rev_input[0]);
     rev_input.push_back(rev_input[0]);
     std::vector<Star> h = g.find_positive_overlay(rev_input, c);
-    EXPECT_EQ(h.size(), input.stars.size());
+    EXPECT_EQ(h.size(), input.b.size());
     
     for (unsigned int q = 0; q < h.size(); q++) {
-        EXPECT_EQ(h[q].get_label(), input.stars[q].get_label());
+        EXPECT_EQ(h[q].get_label(), input.b[q].get_label());
     }
 }
 
@@ -196,10 +196,10 @@ TEST(AngleIdentifyAll, CleanInput) {
     ASSERT_FALSE(c.empty());
     
     for (unsigned int q = 0; q < c.size() - 1; q++) {
-        auto is_found = std::find_if(input.stars.begin(), input.stars.end(), [&c, q] (const Star &b) -> bool {
+        auto is_found = std::find_if(input.b.begin(), input.b.end(), [&c, q] (const Star &b) -> bool {
             return b.get_label() == c[q].get_label();
         });
-        EXPECT_NE(is_found, input.stars.end());
+        EXPECT_NE(is_found, input.b.end());
     }
 }
 
@@ -217,10 +217,10 @@ TEST(AngleIdentifyAll, ErrorInput) {
     ASSERT_FALSE(c.empty());
     
     for (unsigned int q = 0; q < c.size() - 1; q++) {
-        auto is_found = std::find_if(input.stars.begin(), input.stars.end(), [&c, q] (const Star &b) -> bool {
+        auto is_found = std::find_if(input.b.begin(), input.b.end(), [&c, q] (const Star &b) -> bool {
             return b.get_label() == c[q].get_label();
         });
-        EXPECT_NE(is_found, input.stars.end());
+        EXPECT_NE(is_found, input.b.end());
     }
 }
 

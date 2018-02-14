@@ -18,10 +18,10 @@ TEST(AngleQuery, Pair) {
     Chomp ch;
     Benchmark input(ch, 15);
     
-    double a = Star::angle_between(input.stars[0], input.stars[1]);
+    double a = Star::angle_between(input.b[0], input.b[1]);
     Identification::labels_list b = Angle(input, Angle::DEFAULT_PARAMETERS).query_for_pair(a);
-    std::vector<int> c = {input.stars[0].get_label(), input.stars[1].get_label()};
-    std::vector<int> d = {input.stars[0].get_label(), input.stars[1].get_label()};
+    std::vector<int> c = {input.b[0].get_label(), input.b[1].get_label()};
+    std::vector<int> d = {input.b[0].get_label(), input.b[1].get_label()};
     EXPECT_THAT(c, Contains(b[0]));
     EXPECT_THAT(d, Contains(b[1]));
 }
@@ -54,9 +54,9 @@ TEST(AngleResults, Query) {
     Benchmark input(ch, 15);
     Angle b(input, Angle::DEFAULT_PARAMETERS);
     
-    std::array<Star, 2> c = b.find_candidate_pair(input.stars[0], input.stars[1]);
-    std::vector<int> d = {input.stars[0].get_label(), input.stars[1].get_label()};
-    std::vector<int> e = {input.stars[0].get_label(), input.stars[1].get_label()};
+    std::array<Star, 2> c = b.find_candidate_pair(input.b[0], input.b[1]);
+    std::vector<int> d = {input.b[0].get_label(), input.b[1].get_label()};
+    std::vector<int> e = {input.b[0].get_label(), input.b[1].get_label()};
     EXPECT_THAT(d, Contains(c[0].get_label()));
     EXPECT_THAT(e, Contains(c[1].get_label()));
 }
@@ -79,7 +79,7 @@ TEST(AngleTrial, CleanReduction) {
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
     p.sigma_query = 10e-9;
     Benchmark i = Benchmark::black();
-    i.stars = {ch.query_hip(103215), ch.query_hip(103217)};
+    i.b = {ch.query_hip(103215), ch.query_hip(103217)};
     
     Angle a(i, p);
     EXPECT_THAT(a.reduce(), UnorderedElementsAre(103215, 103217));

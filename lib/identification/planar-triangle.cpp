@@ -59,7 +59,7 @@ std::vector<Star::trio> Plane::query_for_trios (const index_trio &c) {
 /// @return Vector of likely matches found by the planar triangle method.
 std::vector<Identification::labels_list> Plane::query (const Star::list &s) {
     if (s.size() != QUERY_STAR_SET_SIZE) {
-        throw std::runtime_error(std::string("Input list does not have exactly three stars."));
+        throw std::runtime_error(std::string("Input list does not have exactly three b."));
     }
     
     return e_query(Trio::planar_area(s[0], s[1], s[2]), Trio::planar_moment(s[0], s[1], s[2]));

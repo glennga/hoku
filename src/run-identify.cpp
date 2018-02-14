@@ -51,7 +51,7 @@ namespace NBHA {
 Star::list parse_csv (std::ifstream &image) {
     Star::list s_i;
     
-    // Image focus is always at (0, 0) after FITS -> (0, 0) centric coordinate translation.
+    // Image center is always at (0, 0) after FITS -> (0, 0) centric coordinate translation.
     double hf = cf.GetReal("hardware", "cf", 0), ddp = cf.GetReal("hardware", "ddp", 0);
     s_i.push_back(Mercator::transform_point(0, 0, ddp));
     
