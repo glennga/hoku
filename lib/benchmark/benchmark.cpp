@@ -127,6 +127,7 @@ void Benchmark::record_current_plot () {
     }
     
     // Record the center.
+    current_record << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed;
     current_record << this->center[0] << " " << this->center[1] << " " << this->center[2] << "\n";
     
     // Record the stars.

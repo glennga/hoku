@@ -22,7 +22,7 @@ const double Chomp::DOUBLE_EPSILON = std::numeric_limits<double>::epsilon();
 const Star Chomp::NONEXISTENT_STAR = Star::zero();
 
 /// Returned from bound query methods if the stars do not exist.
-const Star::list Chomp::RESULTANT_EMPTY = Star::list {};
+const Nibble::tuples_d Chomp::RESULTANT_EMPTY = {};
 
 /// Constructor. This dynamically allocates a database connection object to nibble.db. If the database does not exist,
 /// it is created. We then proceed to load all stars into RAM from both tables.
