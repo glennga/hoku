@@ -76,7 +76,7 @@ class Chomp : public Nibble {
     Star query_hip (int);
     
     static const Star NONEXISTENT_STAR;
-    static const Star::list RESULTANT_EMPTY;
+    static const tuples_d RESULTANT_EMPTY;
 
 #if !defined ENABLE_TESTING_ACCESS
     private:

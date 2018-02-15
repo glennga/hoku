@@ -40,17 +40,11 @@ TEST(BenchmarkLog, CurrentPlotFile) {
     ASSERT_TRUE(current_plot_from_input.good());
     
     std::getline(current_plot_from_input, d);
-    EXPECT_EQ(15, std::stoi(d));
-    std::getline(current_plot_from_input, d);
-    EXPECT_DOUBLE_EQ(1, std::stod(d));
-    
-    std::getline(current_plot_from_input, d);
-    sprintf(e, "%0.16f %0.16f %0.16f ", c[0], c[1], c[2]);
+    sprintf(e, "%0.16f %0.16f %0.16f", c[0], c[1], c[2]);
     EXPECT_EQ(d, std::string(e));
     
     std::getline(current_plot_from_input, d);
-    sprintf(e, "%0.16f %0.16f %0.16f %d", input.b[0][0], input.b[0][1], input.b[0][2],
-            input.b[0].get_label());
+    sprintf(e, "%0.16f %0.16f %0.16f %d", input.b[0][0], input.b[0][1], input.b[0][2], input.b[0].get_label());
     EXPECT_EQ(d, std::string(e));
 }
 
