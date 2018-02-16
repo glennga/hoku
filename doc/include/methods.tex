@@ -121,19 +121,26 @@ On the other hand if not enough of the catalog is filtered, there is a greater c
 Differences in catalog querying are specified in each paper (K-Vector, KD Trees, \ldots), but in this set of
 experiments all catalog querying uses a B-Tree index.
 The only unique portion of each query that remains are what features each method uses to search the catalog.
-The relational algebra then becomes:
-\begin{equation}
-    \Pi_{r_1, r_2, \ldots, r_k} (\sigma_{(c_f < q_f + 3\epsilon) \bigwedge (c_f > q_f - 3\epsilon)}(C))
-\end{equation}
+A general SQL statement to search each $b$ set becomes:
+\begin{align*}
+    \texttt{SELECT } &r_1, r_2, \ldots, r_k \\
+    \texttt{FROM } &C \\
+    \texttt{WHERE } &(c_{f1} < q_{f1} + 3\epsilon) \texttt{ AND } (c_{f1} > q_{f1} - 3\epsilon) \texttt{ AND } \\
+    &(c_{f2} < q_{f2} + 3\epsilon) \texttt{ AND } (c_{f2} > q_{f2} - 3\epsilon) \texttt{ AND } \\
+    &\vdots \\
+    &(c_{fn} < q_{fn} + 3\epsilon) \texttt{ AND } (c_{fn} > q_{fn} - 3\epsilon)
+\end{align*}
 
 Here, $k$ refers to the number of stars used in the query (e.g. the Angle method uses $k = 2$ stars), $c_f$ refers to
-the catalog feature amongst $r_1, r_2, \ldots, r_k$, $q_f$ refers to the image feature amongst a body set $b$,
-$\epsilon$ refers to the deviation of noise, and $C$ refers to the catalog.
+a catalog feature amongst $r_1, r_2, \ldots, r_k$, $q_f$ refers a the image feature amongst a body set $b$, $n$ in
+$c_{fn}$ and $q_{fn}$ refers to the number of features used to query the catalog, $\epsilon$ refers to the deviation
+of noise, and $C$ refers to the catalog.
 
 Toloei's Composite Pyramid uses the same features as Cole and Crassidus's Planar Triangles method, so only five
 features were tested:
 \begin{itemize}
     \item Angular separation $\theta^{ij}$ between two stars.
+
     \item Angular separations $\theta^{ic}, \theta^{jc}$ and interior angle $\phi$ between three stars.
     \item Planar area $a^{ijk}$ and moment $\imath^{ijk}$ between three stars.
     \item Spherical area $a^{ijk}$ and moment $\imath^{ijk}$ between three stars.
@@ -142,10 +149,14 @@ features were tested:
 
 The feature uniqueness of each identification method were analyzed in terms of three variables:
 \begin{enumerate}
-    \item \label{itm:featureDist} Feature distribution across all possible combinations of stars in the catalog.
+    \item \label{itm:featureDist} Feature frequency (histogram) across all possible combinations of stars in the
+    catalog.
     \item \label{itm:hitCountFeature} \textit{Query hits} from single catalog candidate searches.
     \item $|R|$ from single catalog candidate searches.
 \end{enumerate}
+
+The ideal frequency distribution for an identification method's features would be low and sparse.
+
 
 TODO: Talk about the selectivity of each statement here?
 TODO: Still need to determine how distribution is going to be quantitatively analyzed.
