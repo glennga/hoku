@@ -8,6 +8,8 @@
 #ifndef HOKU_CHOMP_H
 #define HOKU_CHOMP_H
 
+#include "third-party/inih/INIReader.h"
+
 #include "storage/nibble.h"
 
 /// @brief Class for accessing the Hipparcos catalog.
@@ -60,8 +62,7 @@ class Chomp : public Nibble {
     
     Chomp ();
     
-    int generate_bright_table ();
-    int generate_hip_table ();
+    int generate_table(INIReader &cf, bool m_flag = true);
     
     int create_k_vector (const std::string &);
     tuples_d k_vector_query (const std::string &, const std::string &, double, double, unsigned int);
@@ -99,11 +100,13 @@ class Chomp : public Nibble {
 #if !defined ENABLE_TESTING_ACCESS
     private:
 #endif
+    static const double DOUBLE_EPSILON;
+
     int build_k_vector_table (const std::string &, double, double);
     void load_all_stars ();
     
-    static std::array<double, 7> components_from_line (const std::string &);
-    static const double DOUBLE_EPSILON;
+    static std::array<double, 7> components_from_line (const std::string &, double y_t);
+    static double year_difference(INIReader &cf);
 };
 
 #endif /* HOKU_CHOMP_H */

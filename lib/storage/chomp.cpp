@@ -9,11 +9,9 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include "third-party/inih/INIReader.h"
+#include <iterator>
 
 #include "storage/chomp.h"
-
-/// INIReader to hold configuration associated with table generation.
 
 /// Standard machine epsilon for doubles. This represents the smallest possible change in precision.
 const double Chomp::DOUBLE_EPSILON = std::numeric_limits<double>::epsilon();
@@ -35,26 +33,31 @@ Chomp::Chomp () {
     this->bright_table = cf.Get("table-names", "bright", "");
     this->hip_table = cf.Get("table-names", "hip", "");
     
-    generate_hip_table();
-    generate_bright_table();
+    // Generate the Hipparcos and Bright Hipparcos tables.
+    generate_table(cf, true);
+    generate_table(cf, false);
     load_all_stars();
 }
 
 /// Helper method for catalog table generation methods. Read the star catalog data and compute the {i, j, k} components
-/// given a line from the ASCII catalog.
+/// given a line from the ASCII catalog. Source: http://cdsarc.u-strasbg.fr/viz-bin/Cat?I/311#sRM2.1
 ///
 /// @param entry String containing line from Hipparcos ASCII catalog.
+/// @param y_t Difference in years from the catlaog to the current date.
 /// @return Array of components in order {alpha, delta, i, j, k, m, label}.
-std::array<double, 7> Chomp::components_from_line (const std::string &entry) {
-    std::array<double, 7> components = {0, 0, 0, 0, 0, 0};
+std::array<double, 7> Chomp::components_from_line (const std::string &entry, const double y_t) {
+    std::array<double, 7> components = {0, 0, 0, 0, 0, 0, 0};
     
     try {
-        // Read right ascension. Convert to degrees.
-        double alpha = (180.0 / M_PI) * stof(entry.substr(15, 13), nullptr);
+        // Parse the proper motion of the right ascension and declination.
+        double pm_alpha = stof(entry.substr(51, 8)), pm_delta = stof(entry.substr(60, 8));
         
-        // Read declination. Convert to degrees.
-        double delta = (180.0 / M_PI) * stof(entry.substr(29, 13), nullptr);
+        // Read right ascension. Convert to degrees. Update with correct position.
+        double alpha = ((180.0 / M_PI) * stof(entry.substr(15, 13), nullptr)) + (pm_alpha * y_t * (1 / (3600000.0)));
         
+        // Read declination. Convert to degrees. Update with correct position.
+        double delta = ((180.0 / M_PI) * stof(entry.substr(29, 13), nullptr)) + (pm_delta * y_t * (1 / (3600000.0)));
+    
         // Convert to cartesian w/ r = 1. Reduce to unit vector.
         Star star_entry(1.0 * cos((M_PI / 180.0) * delta) * cos((M_PI / 180.0) * alpha),
                         1.0 * cos((M_PI / 180.0) * delta) * sin(M_PI / 180.0 * alpha),
@@ -73,55 +76,46 @@ std::array<double, 7> Chomp::components_from_line (const std::string &entry) {
     return components;
 }
 
-/// Parse the right ascension, declination, visual magnitude, and catalog ID for each star. The i, j, and k components
-/// are converted from the star's alpha, delta, and an assumed parallax = 1.
+/// TODO: Finish the documentation here.
 ///
-/// @return TABLE_EXISTS if the bright stars table already exists. 0 otherwise.
-int Chomp::generate_bright_table () {
-    std::ifstream catalog(HIP_CATALOG_LOCATION);
-    if (!catalog.is_open()) {
-        throw std::runtime_error(std::string("Catalog file cannot be opened"));
+/// @param cf
+/// @return
+double Chomp::year_difference(INIReader &cf) {
+    std::string time_e = cf.Get("hardware", "time", "");
+    if (time_e == "") {
+        throw std::runtime_error(std::string("'time' in 'CONFIG.ini' is not formatted correctly."));
     }
     
-    SQLite::Transaction transaction(*conn);
-    if (create_table(bright_table, "alpha FLOAT, delta FLOAT, i FLOAT, j FLOAT, k FLOAT, m FLOAT, label INT") == -1) {
-        return TABLE_EXISTS;
+    // Determine the month (first token) and the year (second token).
+    std::stringstream time_ss(time_e);
+    std::vector<std::string> tokens;
+    for (std::string token; getline(time_ss, token, '-');) {
+        tokens.push_back(token);
+    }
+    if (tokens.size() != 2) {
+        throw std::runtime_error(std::string("'time' in 'CONFIG.ini' is not formatted correctly."));
     }
     
-    // We skip the header here.
-    for (int i = 0; i < 5; i++) {
-        std::string entry;
-        getline(catalog, entry);
-    }
-    
-    // Insert into bright stars table.
-    for (std::string entry; getline(catalog, entry);) {
-        std::array<double, 7> c = components_from_line(entry);
-        
-        // Only insert if magnitude < 6.0 (visible light).
-        if (c[5] < 6.0 && !std::equal(c.begin() + 1, c.end(), c.begin())) {
-            insert_into_table("alpha, delta, i, j, k, m, label", tuple_d {c[0], c[1], c[2], c[3], c[4], c[5], c[6]});
-        }
-    }
-    transaction.commit();
-    
-    // Polish table. Sort by catalog ID.
-    return polish_table("label");
+    // Determine the year and month difference. The catalog stores positions at t = J1991.25 (03-1991).
+    double y_t = stof(tokens[1], nullptr) - 1991, m_t = stof(tokens[0], nullptr) - 3;
+    return y_t + m_t;
 }
 
 /// Parse the right ascension, declination, visual magnitude, and catalog ID for each star. The i, j, and k components
-/// are converted from the star's alpha, delta, and an assumed parallax = 1.
+/// are converted from the star's alpha, delta and are moved to their proper location given the current time.
 ///
-/// @return TABLE_EXISTS if the general stars table already exists. 0 otherwise.
-int Chomp::generate_hip_table () {
+/// @param cf Configuration reader holding all parameters to use.
+/// @param m_flag If true, generate restrict the magnitude of each entry and insert only bright stars.
+/// @return TABLE_EXISTS if the bright stars table already exists. 0 otherwise.
+int Chomp::generate_table (INIReader &cf, bool m_flag) {
     std::ifstream catalog(HIP_CATALOG_LOCATION);
     if (!catalog.is_open()) {
-        throw std::runtime_error(std::string("Catalog file cannot be opened"));
+        throw std::runtime_error(std::string("Catalog file cannot be opened."));
     }
     
     SQLite::Transaction transaction(*conn);
-    if (create_table(hip_table, "alpha FLOAT, delta FLOAT, i FLOAT, j FLOAT, k FLOAT, m FLOAT, label INT")
-        == Nibble::TABLE_NOT_CREATED) {
+    if (create_table((m_flag) ? bright_table : hip_table,
+                     "alpha FLOAT, delta FLOAT, i FLOAT, j FLOAT, k FLOAT, m FLOAT, label INT") == TABLE_NOT_CREATED) {
         return TABLE_EXISTS;
     }
     
@@ -131,10 +125,15 @@ int Chomp::generate_hip_table () {
         getline(catalog, entry);
     }
     
-    // Insert into general stars table. There is no magnitude discrimination here.
+    // Insert into bright stars table. Account for the proper motion of each star.
+    double y_t = year_difference(cf), m_bright = cf.GetReal("hardware", "m-bright", 6.0);
     for (std::string entry; getline(catalog, entry);) {
-        std::array<double, 7> c = components_from_line(entry);
-        insert_into_table("alpha, delta, i, j, k, m, label", tuple_d {c[0], c[1], c[2], c[3], c[4], c[5], c[6]});
+        std::array<double, 7> c = components_from_line(entry, y_t);
+        
+        // Only insert if magnitude < m_bright (visible light by detector).
+        if (!m_flag || (c[5] < m_bright && !std::equal(c.begin() + 1, c.end(), c.begin()))) {
+            insert_into_table("alpha, delta, i, j, k, m, label", tuple_d {c[0], c[1], c[2], c[3], c[4], c[5], c[6]});
+        }
     }
     transaction.commit();
     

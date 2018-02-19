@@ -85,18 +85,16 @@ void generate_table (const std::string &choice) {
                   << std::endl;
     };
     
-    double fov = cf.GetReal("hardware", "fov", 0);
     switch (NBHA::choice(choice)) {
         case NBHA::HIP: Chomp();
             return display_result(0);
         
-        case NBHA::ANGLE: return display_result(Angle::generate_table(fov, cf.Get("table-names", "angle", "")));
+        case NBHA::ANGLE: return display_result(Angle::generate_table(cf));
         case NBHA::INTERIOR: throw std::runtime_error(std::string("Not implemented."));
-        case NBHA::SPHERE:return display_result(Sphere::generate_table(fov, cf.Get("table-names", "sphere", "")));
-        case NBHA::PLANE: return display_result(Plane::generate_table(fov, cf.Get("table-names", "plane", "")));
-        case NBHA::PYRAMID:return display_result(Pyramid::generate_table(fov, cf.Get("table-names", "pyramid", "")));
-        case NBHA::COMPOSITE: return display_result(
-                Composite::generate_table(fov, cf.Get("table-names", "composite", "")));
+        case NBHA::SPHERE:return display_result(Sphere::generate_table(cf));
+        case NBHA::PLANE: return display_result(Plane::generate_table(cf));
+        case NBHA::PYRAMID:return display_result(Pyramid::generate_table(cf));
+        case NBHA::COMPOSITE: return display_result(Composite::generate_table(cf));
         default: throw std::runtime_error(std::string("Table choice is not within space {0, 1, 2, 3, 4, 5, 6}."));
     }
 }
@@ -108,29 +106,23 @@ void generate_kvec_table (const std::string &choice) {
     Chomp ch;
     
     // Polish the selected table. Create the K-Vector for the given table using the given focus.
-    auto create_and_polish = [&ch] (const std::string &table, const std::string &focus) -> void {
-        ch.select_table(table);
-        ch.polish_table(focus);
+    auto create_and_polish = [&ch] (const std::string &method) -> void {
+        ch.select_table(cf.Get("table-names", method, ""));
+        ch.polish_table(cf.Get("table-focus", method, ""));
         
-        std::string response = (ch.create_k_vector(focus) == Nibble::TABLE_NOT_CREATED) ? "K-Vector table already "
-            "exists." : "K-Vector table was created successfully.";
+        std::string response = (ch.create_k_vector(cf.Get("table-focus", method, "")) == Nibble::TABLE_NOT_CREATED)
+                               ? "K-Vector table already exists." : "K-Vector table was created successfully.";
         std::cout << response << std::endl;
     };
     
     switch (NBHA::choice(choice)) {
         case NBHA::HIP:throw std::runtime_error(std::string("Cannot generate KVEC table for star catalog table."));
-        
-        case NBHA::ANGLE: return create_and_polish(cf.Get("table-names", "angle", ""),
-                                                   cf.Get("table-focus", "angle", ""));
+        case NBHA::ANGLE: return create_and_polish("angle");
         case NBHA::INTERIOR: throw std::runtime_error(std::string("Not implemented."));
-        case NBHA::SPHERE: return create_and_polish(cf.Get("table-names", "sphere", ""),
-                                                    cf.Get("table-focus", "sphere", ""));
-        case NBHA::PLANE: return create_and_polish(cf.Get("table-names", "plane", ""),
-                                                   cf.Get("table-focus", "plane", ""));
-        case NBHA::PYRAMID: return create_and_polish(cf.Get("table-names", "pyramid", ""),
-                                                     cf.Get("table-focus", "pyramid", ""));
-        case NBHA::COMPOSITE: return create_and_polish(cf.Get("table-names", "composite", ""),
-                                                       cf.Get("table-focus", "composite", ""));
+        case NBHA::SPHERE: return create_and_polish("sphere");
+        case NBHA::PLANE: return create_and_polish("plane");
+        case NBHA::PYRAMID: return create_and_polish("pyramid");
+        case NBHA::COMPOSITE: return create_and_polish("composite");
         default: throw std::runtime_error(std::string("Table choice is not within space {0, 1, 2, 3, 4, 5, 6}."));
     }
 }
