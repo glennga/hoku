@@ -29,14 +29,15 @@ Angle::Angle (const Benchmark &input, const Parameters &p) : Identification() {
 /// Generate the separation table given the specified FOV and table name. This finds the angle of separation between
 /// each distinct permutation of stars, and only stores them if they fall within the corresponding field-of-view.
 ///
-/// @param fov Field of view limit (degrees) that all pairs must be within.
-/// @param table_name Name of the table to generate.
+/// @param cf Configuration reader holding all parameters to use.
 /// @return TABLE_ALREADY_EXISTS if the table already exists. Otherwise, 0 when finished.
-int Angle::generate_table (double fov, const std::string &table_name) {
+int Angle::generate_table (INIReader &cf) {
     Chomp ch;
     SQLite::Transaction transaction(*ch.conn);
+    double fov = cf.GetReal("hardware", "fov", 0);
     
     // Exit early if the table already exists.
+    std::string table_name = cf.Get("table-names", "angle", "");
     if (ch.create_table(table_name, "label_a INT, label_b INT, theta FLOAT") == Nibble::TABLE_NOT_CREATED) {
         return TABLE_ALREADY_EXISTS;
     }

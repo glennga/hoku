@@ -41,7 +41,7 @@ class PlanarTriangle : public BaseTriangle {
     labels_list reduce ();
     Star::list identify ();
     
-    static int generate_table(double fov, const std::string &table_name);
+    static int generate_table(INIReader &cf);
   
   public:
     /// Exact number of query stars required for query experiment.

@@ -29,14 +29,12 @@ SphericalTriangle::SphericalTriangle (const Benchmark &input, const Parameters &
 /// between each distinct permutation of trios, and only stores them if they fall within the corresponding
 /// field-of-view.
 ///
-/// @param fov Field of view limit (degrees) that all pairs must be within.
-/// @param table_name Name of the table to generate.
+/// @param cf Configuration reader holding all parameters to use.
 /// @return TABLE_ALREADY_EXISTS if the table already exists. Otherwise, 0 when finished.
-int SphericalTriangle::generate_table (const double fov, const std::string &table_name) {
-    return generate_triangle_table(fov, table_name, Trio::spherical_area,
-                                   [] (const Star &b_1, const Star &b_2, const Star &b_3) {
-                                       return Trio::spherical_moment(b_1, b_2, b_3, DEFAULT_TD_H);
-                                   });
+int SphericalTriangle::generate_table (INIReader &cf) {
+    return generate_triangle_table(cf, Trio::spherical_area, [] (const Star &b_1, const Star &b_2, const Star &b_3) {
+        return Trio::spherical_moment(b_1, b_2, b_3, DEFAULT_TD_H);
+    });
 }
 
 /// Given a trio of body stars, find matching trios of inertial stars using their respective spherical areas and polar

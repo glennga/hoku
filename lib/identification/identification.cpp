@@ -4,7 +4,6 @@
 /// Source file for Identification class, which holds all common data between all identification processes.
 
 #include <numeric>
-#include "third-party/inih/INIReader.h"
 
 #include "benchmark/benchmark.h"
 #include "identification/identification.h"
@@ -45,7 +44,7 @@ void Identification::collect_parameters (Parameters &p, INIReader &cf) {
     const std::array<std::string, 3> ws_id = {"TRIAD", "QUEST", "Q"};
     const std::array<Rotation::wahba_function, 3> ws = {Rotation::triad, Rotation::quest, Rotation::q_exact};
     
-    // Determine the Wahba solver.
+    // Determine the Wahba solver. This is case-insensitive.
     std::string wabha_solver = cf.Get("id-parameters", "wbs", "TRIAD");
     for (unsigned int i = 0; i < ws_id.size(); i++) {
         if (ws_id.size() == wabha_solver.size() && std::equal(ws_id[i].begin(), ws_id[i].end(), wabha_solver.begin(),

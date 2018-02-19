@@ -38,7 +38,7 @@ class Pyramid : public Identification {
     labels_list reduce ();
     Star::list identify ();
     
-    static int generate_table (double fov, const std::string &table_name);
+    static int generate_table (INIReader &cf);
     
     static const Parameters DEFAULT_PARAMETERS;
   
@@ -54,7 +54,8 @@ class Pyramid : public Identification {
 
 #if !defined ENABLE_TESTING_ACCESS
   protected:
-    Star::list common (const labels_list_list &big_r_ab_ell, const labels_list_list &big_r_ac_ell, const Star::list &removed);
+    Star::list common (const labels_list_list &big_r_ab_ell, const labels_list_list &big_r_ac_ell,
+                       const Star::list &removed);
     virtual bool verification (const Star::trio &r, const Star::trio &b);
     virtual Star::trio find_catalog_stars (const Star::trio &);
     Star::list identify_as_list (const Star::list &b);
