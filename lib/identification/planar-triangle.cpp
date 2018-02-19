@@ -29,11 +29,10 @@ PlanarTriangle::PlanarTriangle (const Benchmark &input, const Parameters &parame
 /// between each distinct permutation of trios, and only stores them if they fall within the corresponding
 /// field-of-view.
 ///
-/// @param fov Field of view limit (degrees) that all pairs must be within.
-/// @param table_name Name of the table to generate.
+/// @param cf Configuration reader holding all parameters to use.
 /// @return TABLE_ALREADY_EXISTS if the table already exists. Otherwise, 0 when finished.
-int PlanarTriangle::generate_table (const double fov, const std::string &table_name) {
-    return generate_triangle_table(fov, table_name, Trio::planar_area, Trio::planar_moment);
+int PlanarTriangle::generate_table (INIReader &cf) {
+    return generate_triangle_table(cf, Trio::planar_area, Trio::planar_moment);
 }
 
 /// Given a trio of body stars, find matching trios of inertial stars using their respective planar areas and polar

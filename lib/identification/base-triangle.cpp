@@ -30,17 +30,17 @@ BaseTriangle::BaseTriangle () : Identification(), pivot_c({}) {
 /// between each distinct permutation of trios, and only stores them if they fall within the corresponding
 /// field-of-view.
 ///
-/// @param fov Field of view limit (degrees) that all pairs must be within.
-/// @param table_name Name of the table to generate.
+/// @param cf Configuration reader holding all parameters to use.
 /// @param compute_area Area function to compute area with.
 /// @param compute_moment Polar moment function to compute moment with.
 /// @return TABLE_ALREADY_EXISTS if the table already exists. Otherwise, 0 when finished.
-int BaseTriangle::generate_triangle_table (const double fov, const std::string &table_name, area_function compute_area,
-                                           moment_function compute_moment) {
+int BaseTriangle::generate_triangle_table (INIReader &cf, area_function compute_area, moment_function compute_moment) {
     Chomp ch;
     SQLite::Transaction initial_transaction(*ch.conn);
+    double fov = cf.GetReal("hardware", "fov", 0);
     
     // Exit early if the table already exists.
+    std::string table_name = cf.Get("table-names", "angle", "");
     if (ch.create_table(table_name, "label_a INT, label_b INT, label_c INT, a FLOAT, i FLOAT")
         == Nibble::TABLE_NOT_CREATED) {
         return TABLE_ALREADY_EXISTS;

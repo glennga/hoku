@@ -27,11 +27,10 @@ CompositePyramid::CompositePyramid (const Benchmark &input, const Parameters &p)
 /// The CompositePyramid method uses the exact same table as the PlanarTriangle method. Wrap PlanarTriangle's
 /// 'generate_table' method.
 ///
-/// @param fov Field of view limit (degrees) that all pairs must be within.
-/// @param table_name Name of the table to generate.
+/// @param cf Configuration reader holding all parameters to use.
 /// @return TABLE_ALREADY_EXISTS if the table already exists. Otherwise, 0 when finished.
-int Composite::generate_table (const double fov, const std::string &table_name) {
-    return Plane::generate_table(fov, table_name);
+int Composite::generate_table (INIReader &cf) {
+    return Plane::generate_table(cf);
 }
 
 /// Find all star pairs whose angle of separation is with 3 * query_sigma (epsilon) degrees of each other.

@@ -32,11 +32,10 @@ Pyramid::Pyramid (const Benchmark &input, const Parameters &p) : Identification(
 
 /// The Pyramid method uses the exact same table as the Angle method. Wrap Angle's 'generate_table' method.
 ///
-/// @param fov Field of view limit (degrees) that all pairs must be within.
-/// @param table_name Name of the table to generate.
+/// @param cf Configuration reader holding all parameters to use.
 /// @return TABLE_ALREADY_EXISTS if the table already exists. Otherwise, 0 when finished.
-int Pyramid::generate_table (const double fov, const std::string &table_name) {
-    return Angle::generate_table(fov, table_name);
+int Pyramid::generate_table (INIReader &cf) {
+    return Angle::generate_table(cf);
 }
 
 /// Find all star pairs whose angle of separation is with 3 * query_sigma (epsilon) degrees of each other.

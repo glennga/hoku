@@ -75,8 +75,31 @@ possible option and consuming time, set this appropriately.
 determining a rotation given vector observations in both frame. For every instance where Wahba's problem occurs, this
 method will be applied.
 
-Download the Nibble database, `nibble.db` [here](https://drive.google.com/file/d/1fxId8hLzxEX9VJxO1-p_1ye_J8NRKlVK/view?usp=sharing),
-and store this in `hoku/data`. This holds all the data each identification method will reference (the catalog). 
+The `nibble.db` database holds all the data each identification method will reference (the catalog). The link 
+[here](https://drive.google.com/file/d/1fxId8hLzxEX9VJxO1-p_1ye_J8NRKlVK/view?usp=sharing) provides this database 
+with the given parameters:
+- Field-of-view (`fov` in `CONFIG.ini`) < 20
+- Maximum apparent magnitude seen by detector (`m-bright` in `CONFIG.ini`) = 6
+- Representation of sky at January 2018 (`time` in `CONFIG.ini`)
+
+For different parameters, modify `CONFIG.ini` and generate your own database using `GenerateN`. This program 
+generates the lookup tables for each identification method. To generate the `nibble.db` lookup tables for the Angle 
+method, enter the following:
+```cmd
+cd hoku/bin
+./GenerateN angle 
+```
+
+To generate the complete `nibble.db`, enter the following:
+```cmd
+cd hoku/bin
+./GenerateN hip
+./Generate angle
+./Generate sphere
+./Generate plane
+./Generate pyramid
+./Generate composite
+```
 
 ## Running Experiments
 There exist three experiments in this research:

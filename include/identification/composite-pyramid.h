@@ -35,7 +35,7 @@ class CompositePyramid : public Pyramid {
     CompositePyramid (const Benchmark &input, const Parameters &p);
     
     std::vector<labels_list> query (const Star::list &s) override;
-    static int generate_table (double fov, const std::string &table_name);
+    static int generate_table (INIReader &cf);
     
     static const Parameters DEFAULT_PARAMETERS;
   
