@@ -52,7 +52,8 @@ class BaseTriangle : public Identification {
     labels_list e_reduction ();
     Star::list e_identify ();
     
-    static int generate_triangle_table (INIReader &cf, area_function compute_area, moment_function compute_moment);
+    static int generate_triangle_table (INIReader &cf, const std::string &triangle_type, area_function compute_area,
+                                        moment_function compute_moment);
     std::vector<Star::trio> base_query_for_trios (const index_trio &c, area_function compute_area,
                                                   moment_function compute_moment);
     

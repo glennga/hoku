@@ -60,7 +60,7 @@ int Angle::generate_table (INIReader &cf) {
     }
     
     transaction.commit();
-    return ch.polish_table("theta");
+    return ch.polish_table(cf.Get("table-focus", "angle", ""));
 }
 
 /// Find **a** matching pair using the appropriate SEP table and by comparing separation angles. Assumes noise is
