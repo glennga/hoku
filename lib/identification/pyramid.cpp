@@ -35,7 +35,7 @@ Pyramid::Pyramid (const Benchmark &input, const Parameters &p) : Identification(
 /// @param cf Configuration reader holding all parameters to use.
 /// @return TABLE_ALREADY_EXISTS if the table already exists. Otherwise, 0 when finished.
 int Pyramid::generate_table (INIReader &cf) {
-    return Angle::generate_table(cf);
+    return Angle::generate_table(cf, "pyramid");
 }
 
 /// Find all star pairs whose angle of separation is with 3 * query_sigma (epsilon) degrees of each other.

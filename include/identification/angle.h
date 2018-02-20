@@ -39,7 +39,7 @@ class Angle : public Identification {
     labels_list reduce ();
     Star::list identify ();
     
-    static int generate_table (INIReader &cf);
+    static int generate_table (INIReader &cf, const std::string &id_name = "angle");
     
     static const Parameters DEFAULT_PARAMETERS;
     static const Star::pair NO_CANDIDATE_PAIR_FOUND;
