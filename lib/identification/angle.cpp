@@ -30,14 +30,15 @@ Angle::Angle (const Benchmark &input, const Parameters &p) : Identification() {
 /// each distinct permutation of stars, and only stores them if they fall within the corresponding field-of-view.
 ///
 /// @param cf Configuration reader holding all parameters to use.
+/// @param id_name If specified, use the table name here instead of the default "angle".
 /// @return TABLE_ALREADY_EXISTS if the table already exists. Otherwise, 0 when finished.
-int Angle::generate_table (INIReader &cf) {
+int Angle::generate_table (INIReader &cf, const std::string &id_name) {
     Chomp ch;
     SQLite::Transaction transaction(*ch.conn);
     double fov = cf.GetReal("hardware", "fov", 0);
     
     // Exit early if the table already exists.
-    std::string table_name = cf.Get("table-names", "angle", "");
+    std::string table_name = cf.Get("table-names", id_name, "");
     if (ch.create_table(table_name, "label_a INT, label_b INT, theta FLOAT") == Nibble::TABLE_NOT_CREATED) {
         return TABLE_ALREADY_EXISTS;
     }
@@ -60,7 +61,7 @@ int Angle::generate_table (INIReader &cf) {
     }
     
     transaction.commit();
-    return ch.polish_table(cf.Get("table-focus", "angle", ""));
+    return ch.polish_table(cf.Get("table-focus", id_name, ""));
 }
 
 /// Find **a** matching pair using the appropriate SEP table and by comparing separation angles. Assumes noise is

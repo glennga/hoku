@@ -41,7 +41,7 @@ class PlanarTriangle : public BaseTriangle {
     labels_list reduce ();
     Star::list identify ();
     
-    static int generate_table(INIReader &cf);
+    static int generate_table(INIReader &cf, const std::string &id_name = "plane");
   
   public:
     /// Exact number of query stars required for query experiment.
