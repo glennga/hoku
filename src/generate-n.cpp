@@ -8,7 +8,7 @@
 /// @code{.cpp}
 /// - hip -> Produce the hip stars table from the Hipparcos catalog.
 /// - angle -> Produce table for Angle method.
-/// - interior -> Produce table for InteriorAngle method.
+/// - dot -> Produce table for DotAngle method.
 /// - sphere -> Produce table for SphericalTriangle method.
 /// - plane -> Produce table for PlanarTriangle method.
 /// - pyramid -> Produce table for Pyramid method.
@@ -27,6 +27,7 @@
 #include <algorithm>
 
 #include "identification/angle.h"
+#include "identification/dot-angle.h"
 #include "identification/spherical-triangle.h"
 #include "identification/planar-triangle.h"
 #include "identification/pyramid.h"
@@ -41,7 +42,7 @@ INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
 namespace NBHA {
     static const int HIP = 0; ///< Index of hip table choice in choice space.
     static const int ANGLE = 1; ///< Index of angle table choice in choice space.
-    static const int INTERIOR = 2; ///< Index of interior table choice in choice space.
+    static const int DOT = 2; ///< Index of dot table choice in choice space.
     static const int SPHERE = 3; ///< Index of sphere table choice in choice space.
     static const int PLANE = 4; ///< Index of plane table choice in choice space.
     static const int PYRAMID = 5; ///< Index of pyramid table choice in choice space.
@@ -52,8 +53,7 @@ namespace NBHA {
     /// @param choice Name associated with table to hash for.
     /// @return Unique integer associated with the choice.
     int choice (const std::string &choice) {
-        std::array<std::string, 7> choice_space = {"hip", "angle", "interior", "sphere", "plane", "pyramid",
-            "composite"};
+        std::array<std::string, 7> choice_space = {"hip", "angle", "dot", "sphere", "plane", "pyramid", "composite"};
         
         return static_cast<int> (std::distance(choice_space.begin(),
                                                std::find(choice_space.begin(), choice_space.end(), choice)));
@@ -90,7 +90,7 @@ void generate_table (const std::string &choice) {
             return display_result(0);
         
         case NBHA::ANGLE: return display_result(Angle::generate_table(cf));
-        case NBHA::INTERIOR: throw std::runtime_error(std::string("Not implemented."));
+        case NBHA::DOT: return display_result(Dot::generate_table(cf));
         case NBHA::SPHERE:return display_result(Sphere::generate_table(cf));
         case NBHA::PLANE: return display_result(Plane::generate_table(cf));
         case NBHA::PYRAMID:return display_result(Pyramid::generate_table(cf));
@@ -118,7 +118,7 @@ void generate_kvec_table (const std::string &choice) {
     switch (NBHA::choice(choice)) {
         case NBHA::HIP:throw std::runtime_error(std::string("Cannot generate KVEC table for star catalog table."));
         case NBHA::ANGLE: return create_and_polish("angle");
-        case NBHA::INTERIOR: throw std::runtime_error(std::string("Not implemented."));
+        case NBHA::DOT: return create_and_polish("dot");
         case NBHA::SPHERE: return create_and_polish("sphere");
         case NBHA::PLANE: return create_and_polish("plane");
         case NBHA::PYRAMID: return create_and_polish("pyramid");
@@ -134,7 +134,7 @@ void generate_kvec_table (const std::string &choice) {
 /// @code{.cpp}
 /// - hip -> Produce the hip stars from the Hipparcos catalog.
 /// - angle -> Produce table for Angle method.
-/// - interior -> Produce table for InteriorAngle method.
+/// - dot -> Produce table for DotAngle method.
 /// - sphere -> Produce table for SphericalTriangle method.
 /// - plane -> Produce table for PlanarTriangle method.
 /// - pyramid -> Produce table for Pyramid method.
@@ -163,7 +163,7 @@ int main (int argc, char *argv[]) {
         std::cout << "Usage: GenerateN [TableSpecification] [GenerateKVector/DeleteTable]" << std::endl;
         return -1;
     }
-    if ((argc >= 2 && !is_valid_arg(argv[1], {"hip", "angle", "interior", "sphere", "plane", "pyramid", "composite"}))
+    if ((argc >= 2 && !is_valid_arg(argv[1], {"hip", "angle", "dot", "sphere", "plane", "pyramid", "composite"}))
         || (argc == 3 && !is_valid_arg(argv[2], {"k", "d"}))) {
         std::cout << "Usage: GenerateN ['hip', 'angle', 'sphere', ...] ['k', 'd']" << std::endl;
         return -1;
