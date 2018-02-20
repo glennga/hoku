@@ -32,7 +32,7 @@ PlanarTriangle::PlanarTriangle (const Benchmark &input, const Parameters &parame
 /// @param cf Configuration reader holding all parameters to use.
 /// @return TABLE_ALREADY_EXISTS if the table already exists. Otherwise, 0 when finished.
 int PlanarTriangle::generate_table (INIReader &cf) {
-    return generate_triangle_table(cf, Trio::planar_area, Trio::planar_moment);
+    return generate_triangle_table(cf, "plane", Trio::planar_area, Trio::planar_moment);
 }
 
 /// Given a trio of body stars, find matching trios of inertial stars using their respective planar areas and polar

@@ -166,3 +166,15 @@ double Trio::spherical_moment (const Star &b_1, const Star &b_2, const Star &b_3
     // Don't return NaN values.
     return (std::isnan(t_i)) ? 0 : t_i;
 }
+
+/// Find the angle between two stars b_1 and b_2, using the central star as the new origin.
+///
+/// @param b_1 Star B_1 of the trio.
+/// @param b_2 Star B_2 of the trio.
+/// @param central Central star of the trio.
+/// @return Angle between b_1 and b_2, with central as the origin.
+double Trio::dot_angle (const Star &b_1, const Star &b_2, const Star &central) {
+    // Move the origin of b_1 and b_2 to the newly defined center. Normalize these.
+    Star b_1c = (b_1 - central).normalize(), b_2c = (b_2 - central).normalize();
+    return Star::angle_between(b_1c, b_2c);
+}

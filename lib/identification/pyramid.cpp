@@ -256,9 +256,10 @@ std::vector<Identification::labels_list> Pyramid::query (const Star::list &s) {
 Identification::labels_list Pyramid::reduce () {
     Star::list r = identify_as_list({big_i[0], big_i[1], big_i[2]});
     if (std::equal(r.begin(), r.end(), NO_CONFIDENT_A.begin())) {
-        return EMPTY_BIG_R;
+        return EMPTY_BIG_R_ELL;
     }
     return labels_list {r[0].get_label(), r[1].get_label(), r[2].get_label()};
+    // TODO: Fix me to iterate through all pairings until it is reduced...
 }
 
 /// Reproduction of the Pyramid method's process from beginning to the orientation determination. Input image is used.

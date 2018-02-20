@@ -77,7 +77,7 @@ class Identification {
     Star::list identify_all ();
     
     static const Star::list NO_CONFIDENT_A;
-    static const labels_list EMPTY_BIG_R;
+    static const labels_list EMPTY_BIG_R_ELL;
     
     static const Star::list EXCEEDED_NU_MAX;
     static const Parameters DEFAULT_PARAMETERS;

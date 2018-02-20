@@ -43,6 +43,8 @@ class Trio {
     static double spherical_area (const Star &b_1, const Star &b_2, const Star &b_3);
     static double spherical_moment (const Star &b_1, const Star &b_2, const Star &b_3, int td_h= 3);
 
+    static double dot_angle (const Star &b_1, const Star &b_2, const Star &central);
+    
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif

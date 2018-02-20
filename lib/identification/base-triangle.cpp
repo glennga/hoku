@@ -31,16 +31,18 @@ BaseTriangle::BaseTriangle () : Identification(), pivot_c({}) {
 /// field-of-view.
 ///
 /// @param cf Configuration reader holding all parameters to use.
+/// @param triangle_type Field lookup for configuration file. Must be "planar-triangle" or "spherical-triangle".
 /// @param compute_area Area function to compute area with.
 /// @param compute_moment Polar moment function to compute moment with.
 /// @return TABLE_ALREADY_EXISTS if the table already exists. Otherwise, 0 when finished.
-int BaseTriangle::generate_triangle_table (INIReader &cf, area_function compute_area, moment_function compute_moment) {
+int BaseTriangle::generate_triangle_table (INIReader &cf, const std::string &triangle_type, area_function compute_area,
+                                           moment_function compute_moment) {
     Chomp ch;
     SQLite::Transaction initial_transaction(*ch.conn);
     double fov = cf.GetReal("hardware", "fov", 0);
     
     // Exit early if the table already exists.
-    std::string table_name = cf.Get("table-names", "angle", "");
+    std::string table_name = cf.Get("table-names", triangle_type, "");
     if (ch.create_table(table_name, "label_a INT, label_b INT, label_c INT, a FLOAT, i FLOAT")
         == Nibble::TABLE_NOT_CREATED) {
         return TABLE_ALREADY_EXISTS;
@@ -76,7 +78,7 @@ int BaseTriangle::generate_triangle_table (INIReader &cf, area_function compute_
     }
     
     // Create an index for area searches. We aren't searching for polar moments.
-    return ch.polish_table("a");
+    return ch.polish_table(cf.Get("table-focus", triangle_type, ""));
 }
 
 /// Find the matching pairs using the appropriate triangle table and by comparing areas and polar moments. Assumes
@@ -262,7 +264,7 @@ Identification::labels_list BaseTriangle::e_reduction () {
     Star::trio p = pivot(STARTING_INDEX_TRIO);
     
     if (std::equal(p.begin(), p.end(), NO_CANDIDATE_STAR_SET_FOUND.begin())) {
-        return EMPTY_BIG_R;
+        return EMPTY_BIG_R_ELL;
     }
     else {
         return {p[0].get_label(), p[1].get_label(), p[2].get_label()};

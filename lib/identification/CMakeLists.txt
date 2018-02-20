@@ -27,6 +27,15 @@ install(TARGETS Angle DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include)
 
 ##################################################################
+# Build Library DotAngle
+##################################################################
+FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/dot-angle.cpp)
+FILE(GLOB INCLUDES ${CMAKE_SOURCE_DIR}/include/identification/dot-angle.h)
+add_library(DotAngle STATIC ${SOURCES} ${INCLUDES})
+install(TARGETS DotAngle DESTINATION lib)
+install(FILES ${INCLUDES} DESTINATION include)
+
+##################################################################
 # Build Library BaseTriangle
 ##################################################################
 FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/base-triangle.cpp)
@@ -63,7 +72,7 @@ install(TARGETS Pyramid DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include)
 
 ##################################################################
-# Build Library Composite Pyramid
+# Build Library CompositePyramid
 ##################################################################
 FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/composite-pyramid.cpp)
 FILE(GLOB INCLUDES ${CMAKE_SOURCE_DIR}/include/identification/composite-pyramid.h)

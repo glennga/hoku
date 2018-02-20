@@ -60,7 +60,7 @@ int Angle::generate_table (INIReader &cf) {
     }
     
     transaction.commit();
-    return ch.polish_table("theta");
+    return ch.polish_table(cf.Get("table-focus", "angle", ""));
 }
 
 /// Find **a** matching pair using the appropriate SEP table and by comparing separation angles. Assumes noise is
@@ -75,13 +75,13 @@ Identification::labels_list Angle::query_for_pair (const double theta) {
     std::vector<labels_list> big_r_ell;
     Nibble::tuples_d big_r_ell_tuples;
     
-    // Query using theta with epsilon bounds. Return EMPTY_BIG_R if nothing is found.
+    // Query using theta with epsilon bounds. Return EMPTY_BIG_R_ELL if nothing is found.
     big_r_ell_tuples = ch.simple_bound_query("theta", "label_a, label_b, theta", theta - epsilon, theta + epsilon,
                                              this->parameters.sql_limit);
     
     // |R| = 1 restriction. Applied with the PASS_R_SET_CARDINALITY flag.
     if (big_r_ell_tuples.empty() || (this->parameters.pass_r_set_cardinality && big_r_ell_tuples.size() > 1)) {
-        return EMPTY_BIG_R;
+        return EMPTY_BIG_R_ELL;
     }
     
     // Create the candidate label list.
@@ -99,12 +99,12 @@ Identification::labels_list Angle::query_for_pair (const double theta) {
 
 /// Given a set of body (frame B) stars, find the matching inertial (frame R) stars.
 ///
-/// @param b_a Star A in frame B to find the match for.
-/// @param b_b Star B in frame B to find the match for.
+/// @param b_i Star I in frame B to find the match for.
+/// @param b_j Star J in frame B to find the match for.
 /// @return NO_CANDIDATE_PAIR_FOUND if no matching pair is found. Otherwise, two inertial stars that match
 /// the given body.
-Star::pair Angle::find_candidate_pair (const Star &b_a, const Star &b_b) {
-    double theta = Star::angle_between(b_a, b_b);
+Star::pair Angle::find_candidate_pair (const Star &b_i, const Star &b_j) {
+    double theta = Star::angle_between(b_i, b_j);
     
     // If the current angle is greater than the current fov, break early.
     if (theta > this->fov) {
@@ -112,13 +112,13 @@ Star::pair Angle::find_candidate_pair (const Star &b_a, const Star &b_b) {
     }
     
     // If no candidate is found, break early.
-    labels_list candidates = this->query_for_pair(theta);
-    if (std::equal(candidates.begin(), candidates.end(), EMPTY_BIG_R.begin())) {
+    labels_list big_r_ell = this->query_for_pair(theta);
+    if (std::equal(big_r_ell.begin(), big_r_ell.end(), EMPTY_BIG_R_ELL.begin())) {
         return NO_CANDIDATE_PAIR_FOUND;
     }
     
     // Otherwise, obtain and return the inertial vectors for the given candidates.
-    return {ch.query_hip(candidates[0]), ch.query_hip(candidates[1])};
+    return {ch.query_hip(big_r_ell[0]), ch.query_hip(big_r_ell[1])};
 }
 
 /// Find the best fitting match of input stars (body) to database stars (catalog) using the given pair as reference.
@@ -194,7 +194,8 @@ std::vector<Identification::labels_list> Angle::query (const Star::list &s) {
 Angle::labels_list Angle::reduce () {
     ch.select_table(parameters.table_name);
     std::vector<labels_list> p = query({big_i[0], big_i[1]});
-    return (p.size() != 1) ? EMPTY_BIG_R : p[0];
+    return (p.size() != 1) ? EMPTY_BIG_R_ELL : p[0];
+    // TODO: Fix me to iterate through all pairings until it is reduced...
 }
 
 /// Reproduction of the Angle method's process from beginning to the orientation determination. Input image is used.

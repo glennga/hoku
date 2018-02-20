@@ -7,7 +7,7 @@
 /// @code{.cpp}
 /// To perform and log experiments...
 /// - angle a -> Run trial A with the Angle method.
-/// - interior a -> Run trial A with the InteriorAngle method.
+/// - dot a -> Run trial A with the DotAngle method.
 /// - sphere a -> Run trial A with the SphericalTriangle method.
 /// - plane a -> Run trial A with the PlanarTriangle method.
 /// - pyramid a -> Run trial A with the Pyramid method.
@@ -29,6 +29,7 @@
 #include <sstream>
 
 #include "identification/angle.h"
+#include "identification/dot-angle.h"
 #include "identification/spherical-triangle.h"
 #include "identification/planar-triangle.h"
 #include "identification/pyramid.h"
@@ -69,7 +70,7 @@ namespace EHA {
     /// @param identifier_in Input given by the user, to identify the type of experiment table.
     /// @return Index of the name space below. 6 is given if the given input is not in the name space.
     int identifier_to_hash (const std::string &identifier_in) {
-        std::array<std::string, 6> space = {"angle", "interior", "sphere", "plane", "pyramid", "composite"};
+        std::array<std::string, 6> space = {"angle", "dot", "sphere", "plane", "pyramid", "composite"};
         return static_cast<int> (std::distance(space.begin(), std::find(space.begin(), space.end(), identifier_in)));
     }
 }
@@ -96,7 +97,7 @@ int create_lumberjack_table (const std::string &experiment_in) {
 /// @param identifier_in Input given by the user, to identify the type of experiment table to log to.
 /// @param experiment_in Input given by the user, to identify the type of identifier to use for the experiment.
 void perform_trial (Lumberjack &lu, const std::string &identifier_in, const std::string &experiment_in) {
-    std::array<std::string, 6> table_names = {cf.Get("table-names", "angle", ""), cf.Get("table-names", "interior", ""),
+    std::array<std::string, 6> table_names = {cf.Get("table-names", "angle", ""), cf.Get("table-names", "dot", ""),
         cf.Get("table-names", "sphere", ""), cf.Get("table-names", "plane", ""), cf.Get("table-names", "pyramid", ""),
         cf.Get("table-names", "composite", "")};
     Chomp ch;
@@ -106,9 +107,9 @@ void perform_trial (Lumberjack &lu, const std::string &identifier_in, const std:
         case 1: return Experiment::Reduction::trial<Angle>(ch, lu, cf, table_names[0]);
         case 2: return Experiment::Map::trial<Angle>(ch, lu, cf, table_names[0]);
         
-        case 3: throw std::runtime_error(std::string("Not implemented."));
-        case 4: throw std::runtime_error(std::string("Not implemented."));
-        case 5: throw std::runtime_error(std::string("Not implemented."));
+        case 3: return Experiment::Query::trial<Dot> (ch, lu, cf, table_names[1]);
+        case 4: return Experiment::Reduction::trial<Dot> (ch, lu, cf, table_names[1]);
+        case 5: return Experiment::Map::trial<Dot> (ch, lu, cf, table_names[1]);
         
         case 6: return Experiment::Query::trial<Sphere>(ch, lu, cf, table_names[2]);
         case 7: return Experiment::Reduction::trial<Sphere>(ch, lu, cf, table_names[2]);
@@ -136,7 +137,7 @@ void perform_trial (Lumberjack &lu, const std::string &identifier_in, const std:
 /// @code{.cpp}
 /// To perform and log experiments...
 /// - angle a -> Run trial A with the Angle method.
-/// - interior a -> Run trial A with the InteriorAngle method.
+/// - dot a -> Run trial A with the DotAngle method.
 /// - sphere a -> Run trial A with the SphericalTriangle method.
 /// - plane a -> Run trial A with the PlanarTriangle method.
 /// - pyramid a -> Run trial A with the Pyramid method.
@@ -170,7 +171,7 @@ int main (int argc, char *argv[]) {
             return std::find(input_space.begin(), input_space.end(), a) != input_space.end();
         };
         
-        if (!is_valid_arg(argv[1], {"angle", "interior", "sphere", "plane", "pyramid", "composite", "create-table"})
+        if (!is_valid_arg(argv[1], {"angle", "dot", "sphere", "plane", "pyramid", "composite", "create-table"})
             || !is_valid_arg(argv[2], {"query", "reduction", "identification"})) {
             std::cout << "Usage: RunTrial ['angle', ... , 'create-table'] ['query', ... , 'identification']"
                       << std::endl;

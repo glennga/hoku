@@ -27,6 +27,7 @@
 
 #include "math/mercator.h"
 #include "identification/angle.h"
+#include "identification/dot-angle.h"
 #include "identification/spherical-triangle.h"
 #include "identification/planar-triangle.h"
 #include "identification/pyramid.h"
@@ -38,7 +39,7 @@ INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
 /// Holds all of the table names used with 'identifier_hash'.
 namespace NBHA {
     /// Array of all table names. Used with 'identifier_hash'.
-    std::array<std::string, 6> id = {cf.Get("table-names", "angle", ""), cf.Get("table-names", "interior", ""),
+    std::array<std::string, 6> id = {cf.Get("table-names", "angle", ""), cf.Get("table-names", "dot", ""),
         cf.Get("table-names", "sphere", ""), cf.Get("table-names", "plane", ""), cf.Get("table-names", "pyramid", ""),
         cf.Get("table-names", "composite", "")};
 }
@@ -86,7 +87,7 @@ Star::list parse_csv (std::ifstream &image) {
 /// @param identifier_in Input given by the user, to identify the type of experiment table.
 /// @return Index of the name space below. 6 is given if the given input is not in the name space.
 int identifier_hash (const std::string &identifier_in) {
-    std::array<std::string, 6> space = {"angle", "interior", "sphere", "plane", "pyramid", "composite"};
+    std::array<std::string, 6> space = {"angle", "dot", "sphere", "plane", "pyramid", "composite"};
     return static_cast<int> (std::distance(space.begin(), std::find(space.begin(), space.end(), identifier_in)));
 }
 
@@ -115,7 +116,7 @@ int run_identity (const std::string &id_method, const Star::list &s_i) {
     
     switch (i) {
         case 0: return identify(Angle(input, p).identify_all());
-        case 1: throw std::runtime_error(std::string("Not implemented."));
+        case 1: return identify(Dot(input, p).identify_all());
         case 2: return identify(Sphere(input, p).identify_all());
         case 3: return identify(Plane(input, p).identify_all());
         case 4: return identify(Pyramid(input, p).identify_all());
@@ -141,9 +142,8 @@ int main (int argc, char *argv[]) {
         std::cout << "Usage: RunIdentify [id method] [image file]" << std::endl;
         return -1;
     }
-    else if (!is_valid_arg(argv[1], {"angle", "interior", "sphere", "plane", "pyramid", "composite"})) {
-        std::cout << "Invalid ID method. Use: ['angle', 'interior', 'sphere', 'plane', 'pyramid', 'composite']"
-                  << std::endl;
+    else if (!is_valid_arg(argv[1], {"angle", "dot", "sphere", "plane", "pyramid", "composite"})) {
+        std::cout << "Invalid ID method. Use: ['angle', 'dot', 'sphere', 'plane', 'pyramid', 'composite']" << std::endl;
         return -1;
     }
     

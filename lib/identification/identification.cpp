@@ -9,7 +9,7 @@
 #include "identification/identification.h"
 
 /// Returned when no candidates are found from a query.
-const Identification::labels_list Identification::EMPTY_BIG_R = {-1, -1};
+const Identification::labels_list Identification::EMPTY_BIG_R_ELL = {-1, -1};
 
 /// Returned when there exists no confident identity from an identification trial.
 const Star::list Identification::NO_CONFIDENT_A = {Star::define_label(Star::zero(), -1)};
