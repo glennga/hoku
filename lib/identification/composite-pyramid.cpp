@@ -30,7 +30,7 @@ CompositePyramid::CompositePyramid (const Benchmark &input, const Parameters &p)
 /// @param cf Configuration reader holding all parameters to use.
 /// @return TABLE_ALREADY_EXISTS if the table already exists. Otherwise, 0 when finished.
 int Composite::generate_table (INIReader &cf) {
-    return Plane::generate_table(cf);
+    return Plane::generate_table(cf, "composite");
 }
 
 /// Find all star pairs whose angle of separation is with 3 * query_sigma (epsilon) degrees of each other.
