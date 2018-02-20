@@ -38,12 +38,13 @@ int Dot::generate_table (INIReader &cf) {
     
     // Exit early if the table already exists.
     std::string table_name = cf.Get("table-names", "dot", "");
-    if (ch.create_table(table_name, "label_a INT, label_b INT, theta FLOAT") == Nibble::TABLE_NOT_CREATED) {
+    if (ch.create_table(table_name, "label_a INT, label_b INT, label_c INT, theta_1 FLOAT, theta_2 FLOAT, phi FLOAT")
+        == Nibble::TABLE_NOT_CREATED) {
         return TABLE_ALREADY_EXISTS;
     }
     ch.select_table(table_name);
     
-    // (i, j, k) are distinct, where no (i, j, k) = (j, k, i), (j, i, k), ....
+    // (i, j, k) are distinct, where no (i, j, c) = (j, c, i), (j, i, c), ....
     Star::list all_stars = ch.bright_as_list();
     for (unsigned int i = 0; i < all_stars.size() - 2; i++) {
         SQLite::Transaction transaction(*ch.conn);
