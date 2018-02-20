@@ -264,7 +264,7 @@ Identification::labels_list BaseTriangle::e_reduction () {
     Star::trio p = pivot(STARTING_INDEX_TRIO);
     
     if (std::equal(p.begin(), p.end(), NO_CANDIDATE_STAR_SET_FOUND.begin())) {
-        return EMPTY_BIG_R;
+        return EMPTY_BIG_R_ELL;
     }
     else {
         return {p[0].get_label(), p[1].get_label(), p[2].get_label()};

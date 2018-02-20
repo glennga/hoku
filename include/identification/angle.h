@@ -52,7 +52,7 @@ class Angle : public Identification {
   private:
 #endif
     labels_list query_for_pair (double theta);
-    Star::pair find_candidate_pair (const Star &b_a, const Star &b_b);
+    Star::pair find_candidate_pair (const Star &b_i, const Star &b_j);
     Star::list direct_match_test (const Star::list &big_p, const Star::list &r, const Star::list &b);
 };
 
