@@ -21,12 +21,6 @@ add_executable(TestRotation test-rotation.cpp)
 target_link_libraries(TestRotation gtest ${HOKU_LIBS})
 
 ##################################################################
-# Link and Create Executable TestAsterism
-##################################################################
-add_executable(TestAsterism test-asterism.cpp)
-target_link_libraries(TestAsterism gtest gmock ${HOKU_LIBS})
-
-##################################################################
 # Link and Create Executable TestMercator
 ##################################################################
 add_executable(TestMercator test-mercator.cpp)

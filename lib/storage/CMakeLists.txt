@@ -25,21 +25,3 @@ FILE(GLOB INCLUDES ${CMAKE_SOURCE_DIR}/include/storage/chomp.h)
 add_library(Chomp STATIC ${SOURCES} ${INCLUDES})
 install(TARGETS Chomp DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include)
-
-##################################################################
-# Build Library KdNode
-##################################################################
-FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/kd-node.cpp)
-FILE(GLOB INCLUDES ${CMAKE_SOURCE_DIR}/include/storage/kd-node.h)
-add_library(KdNode STATIC ${SOURCES} ${INCLUDES})
-install(TARGETS KdNode DESTINATION lib)
-install(FILES ${INCLUDES} DESTINATION include)
-
-##################################################################
-# Build Library QuadNode
-##################################################################
-FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/quad-node.cpp)
-FILE(GLOB INCLUDES ${CMAKE_SOURCE_DIR}/include/storage/quad-node.h)
-add_library(QuadNode STATIC ${SOURCES} ${INCLUDES})
-install(TARGETS QuadNode DESTINATION lib)
-install(FILES ${INCLUDES} DESTINATION include)

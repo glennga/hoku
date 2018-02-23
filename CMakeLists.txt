@@ -52,8 +52,7 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/lib)
 ##################################################################
 set(HOKU_LIBS CompositePyramid Pyramid PlanarTriangle SphericalTriangle
         DotAngle Angle BaseTriangle Identification Benchmark Rotation
-        QuadNode KdNode Chomp Nibble Asterism Mercator Trio Star
-        SQLiteCpp Sqlite3 RandomDraw)
+        Chomp Nibble Mercator Trio Star SQLiteCpp Sqlite3 RandomDraw)
 
 ##################################################################
 # Add Subdirectory Containing Unit Tests (If Desired)
