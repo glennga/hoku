@@ -36,16 +36,15 @@ Star::Star (const double i, const double j, const double k, const int label, con
     this->i = this->j = this->k = this->m = this->label = 0;
 }
 
-/// Return all components in the current star as a string object.
+/// Place all components of S into the given stream.
 ///
-/// @return String of components in form of (i:j:k:m:label).
-std::string Star::str () const {
-    std::stringstream components;
-    
-    // Need to use stream here to set precision.
-    components << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed << "(" << i << ":" << j
-               << ":" << k << ":" << label << ":" << m << ")";
-    return components.str();
+/// @param os Working stream to place star components into.
+/// @param s Star to place into stream.
+/// @return The stream we were just passed.
+std::ostream &operator<< (std::ostream &os, const Star &s) {
+    os << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed << "(" << s.i << ":" << s.j << ":"
+       << s.k << ":" << s.label << ":" << s.m << ")";
+    return os;
 }
 
 /// Access method for the i, j, and k components of the star. Overloads the [] operator.
@@ -70,20 +69,21 @@ double Star::get_magnitude () const {
     return this->m;
 }
 
-/// Add star S to the current star. The resultant takes Star S's catalog ID.
+/// Add star S to the current star. The resultant takes the current star's catalog label **and** magnitude.
 ///
 /// @param s Star to add the current star with.
 /// @return The summation of the current star and star S.
 Star Star::operator+ (const Star &s) const {
-    return {this->i + s.i, this->j + s.j, this->k + s.k, s.label};
+    return {this->i + s.i, this->j + s.j, this->k + s.k, this->label, this->m};
 }
 
-/// Subtract star S from the current star. This subtracts the two vector's components.
+/// Subtract star S from the current star. This subtracts the two vector's components. The resultant takes the current
+/// star's catalog label **and** magnitude.
 ///
 /// @param s Star to subtract the current star with.
 /// @return The resultant of subtracting the current star with star S.
 Star Star::operator- (const Star &s) const {
-    return {this->i - s.i, this->j - s.j, this->k - s.k, s.label};
+    return {this->i - s.i, this->j - s.j, this->k - s.k, this->label, this->m};
 }
 
 /// Scale the current star with the constant kappa.
@@ -91,7 +91,7 @@ Star Star::operator- (const Star &s) const {
 /// @param kappa kappa Every component will be multiplied by this.
 /// @return Resultant of the current star scaled by kappa.
 Star Star::operator* (const double kappa) const {
-    return {this->i * kappa, this->j * kappa, this->k * kappa, this->label};
+    return {this->i * kappa, this->j * kappa, this->k * kappa, this->label, this->m};
 }
 
 /// Find the magnitude of the current star (L2 norm).
@@ -112,7 +112,7 @@ Star Star::normalize () const {
         return *this;
     }
     
-    return {this->i / norm, this->j / norm, this->k / norm, this->label};
+    return {this->i / norm, this->j / norm, this->k / norm, this->label, this->m};
 }
 
 /// Determine if the two values's **components** are within epsilon units of each other.
@@ -136,24 +136,24 @@ bool Star::operator== (const Star &s) const {
 
 /// Return a star with all components set to zero.
 ///
-/// @return Star with components {0, 0, 0} and label = NO_LABEL.
+/// @return Star with components {0, 0, 0}, label = NO_LABEL, and m = NO_MAGNITUDE.
 Star Star::zero () {
-    return {0, 0, 0, NO_LABEL};
+    return {0, 0, 0, NO_LABEL, NO_MAGNITUDE};
 }
 
 /// Generate a random star with normalized components. Using C++11 random functions.
 ///
-/// @return Star with random, normalized components and a catalog ID = NO_LABEL.
+/// @return Star with random, normalized components, a catalog ID = NO_LABEL, and a m = NO_MAGNITUDE.
 Star Star::chance () {
     return Star(RandomDraw::draw_real(-1.0, 1.0), RandomDraw::draw_real(-1.0, 1.0), RandomDraw::draw_real(-1.0, 1.0),
-                NO_LABEL).normalize();
+                NO_LABEL, NO_MAGNITUDE).normalize();
 }
 
 /// Generate a random star with normalized components. Using C++11 random functions. Instead of assigning a catalog ID
 /// of 0, the user can assign one of their own.
 ///
 /// @param label Catalog ID to use with the randomized star.
-/// @return Star with random, normalized components and a catalog ID = 0.
+/// @return Star with random, normalized components and a catalog ID = label.
 Star Star::chance (const int label) {
     Star s = chance();
     s.label = label;
@@ -170,13 +170,14 @@ double Star::dot (const Star &s_1, const Star &s_2) {
     return s_1.i * s_2.i + s_1.j * s_2.j + s_1.k * s_2.k;
 }
 
-/// Finds the cross product of s_1 and s_2 stars. The resultant catalog ID = 0;
+/// Finds the cross product of s_1 and s_2 stars. The resultant catalog ID = NO_LABEL and the m = NO_MAGNITUDE.
 ///
 /// @param s_1 Star to cross with s_2.
 /// @param s_2 Star to cross with s_1.
 /// @return Resultant of s_1 cross s_2.
 Star Star::cross (const Star &s_1, const Star &s_2) {
-    return {s_1.j * s_2.k - s_1.k * s_2.j, s_1.k * s_2.i - s_1.i * s_2.k, s_1.i * s_2.j - s_1.j * s_2.i, 0};
+    return {s_1.j * s_2.k - s_1.k * s_2.j, s_1.k * s_2.i - s_1.i * s_2.k, s_1.i * s_2.j - s_1.j * s_2.i, NO_LABEL,
+        NO_MAGNITUDE};
 }
 
 /// Finds the angle between stars s_1 and s_2. Range of hat(s^1) dot hat(s^2) is [-1.0, 1.0], which is the

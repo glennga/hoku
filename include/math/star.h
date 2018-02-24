@@ -21,13 +21,13 @@
 /// Star s_1, s_2 = Star::chance(), s_3 = Star::zero(), s_4(-10, 10, 4, 0, 0, true);
 ///
 /// // Cross stars {-2, -1, 0} and {3, 2, 1} to produce {-1, 2, -1}.
-/// std::cout << Star::cross(Star(-2, -1, 0), Star(3, 2, 1)).str() << std::endl;
+/// std::cout << Star::cross(Star(-2, -1, 0), Star(3, 2, 1)) << std::endl;
 ///
 /// // Add star {1, 1, 1} to star {5, 5, 5}. Subtract result by {2, 2, 2} to get {4, 4, 4}.
-/// std::cout << (Star(5, 5, 5) + Star(1, 1, 1) - Star(2, 2, 2)).str() << std::endl;
+/// std::cout << Star(5, 5, 5) + Star(1, 1, 1) - Star(2, 2, 2) << std::endl;
 ///
 /// // Determine angle between Star {2, 3, 5} and {5, 6, 7} to get 0.9744339542.
-/// std::cout << (Star::angle_between(Star(2, 3, 5), Star(5, 6, 7)).str() << std::endl;
+/// std::cout << Star::angle_between(Star(2, 3, 5), Star(5, 6, 7)) << std::endl;
 /// @endcode
 class Star {
   public:
@@ -51,13 +51,15 @@ class Star {
     
     /// The default label of all stars.
     static constexpr int NO_LABEL = 0;
+    
+    /// The default magnitude of all stars (brighter than our Sun).
+    static constexpr double NO_MAGNITUDE = -30.0;
   
   public:
-    Star (double i, double j, double k, int label = 0, double m = -30.0, bool apply_normalize = false);
+    Star (double i, double j, double k, int label = NO_LABEL, double m = NO_MAGNITUDE, bool apply_normalize = false);
     Star ();
     
-    std::string str () const;
-    
+    friend std::ostream &operator<< (std::ostream &, const Star &);
     double operator[] (unsigned int n) const;
     int get_label () const;
     double get_magnitude () const;
