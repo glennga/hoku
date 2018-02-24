@@ -5,6 +5,7 @@
 
 #define ENABLE_TESTING_ACCESS
 
+#define _USE_MATH_DEFINES
 #include <cmath>
 #include "gtest/gtest.h"
 
@@ -13,32 +14,26 @@
 /// Check that the components are not altered without apply_normalize being set.
 TEST(StarConstructor, NoUnit) {
     Star a(1, 1, 1);
-    EXPECT_DOUBLE_EQ(a.v.data[0], 1.0);
-    EXPECT_DOUBLE_EQ(a.v.data[1], 1.0);
-    EXPECT_DOUBLE_EQ(a.v.data[2], 1.0);
-}
-
-/// Check that the norm of the generated vector with apply_normalize = true is equal to 1.0.
-TEST(StarConstructor, WithUnit) {
-    Star a(1, 1, 1, 0, 1.0, true);
-    EXPECT_DOUBLE_EQ(a.norm(), 1.0);
+    EXPECT_DOUBLE_EQ(a.data[0], 1.0);
+    EXPECT_DOUBLE_EQ(a.data[1], 1.0);
+    EXPECT_DOUBLE_EQ(a.data[2], 1.0);
 }
 
 /// Check that the string returned by the stream method is correct.
 TEST(StarOperator, Stream) {
     std::stringstream s;
-    s << Star(1, 1, 1, 8, 10, false);
+    s << Star(1, 1, 1, 8, 10);
     EXPECT_EQ(s.str(), "(1.0000000000000000:1.0000000000000000:1.0000000000000000:8:10.0000000000000000)");
 }
 
 /// Check that the components returned by the get methods are as expected.
 TEST(StarOperator, Get) {
     Star a(1, 2, 3, 4);
-    EXPECT_DOUBLE_EQ(a[0], a.v.data[0]);
-    EXPECT_DOUBLE_EQ(a[1], a.v.data[1]);
-    EXPECT_DOUBLE_EQ(a[2], a.v.data[2]);
+    EXPECT_DOUBLE_EQ(a[0], a.data[0]);
+    EXPECT_DOUBLE_EQ(a[1], a.data[1]);
+    EXPECT_DOUBLE_EQ(a[2], a.data[2]);
     EXPECT_EQ(a.get_label(), a.label);
-
+    
     EXPECT_DOUBLE_EQ(a[3], Star::INVALID_ELEMENT_ACCESSED);
 }
 
@@ -59,63 +54,44 @@ TEST(StarOperator, Plus) {
     Star a(1, 1, 1, 4, 10), b(0.5, 0.5, 0.5, 5, 11);
     
     EXPECT_EQ(b + b, a);
-    EXPECT_EQ((b + a).get_label(), b.get_label());
-    EXPECT_EQ((b + a).get_magnitude(), b.get_magnitude());
-    EXPECT_EQ((a + b).get_label(), a.get_label());
-    EXPECT_EQ((a + b).get_magnitude(), a.get_magnitude());
 }
 
 /// Check if two stars are correctly subtracted together.
 TEST(StarOperator, Minus) {
     Star a(1, 1, 1, 4, 10), b(0.5, 0.5, 0.5, 5, 11);
     EXPECT_EQ(a - b, b);
-    
-    EXPECT_EQ((b - a).get_label(), b.get_label());
-    EXPECT_EQ((b - a).get_magnitude(), b.get_magnitude());
-    EXPECT_EQ((a - b).get_label(), a.get_label());
-    EXPECT_EQ((a - b).get_magnitude(), a.get_magnitude());
 }
 
 /// Check if a star is scaled correctly.
 TEST(StarOperator, Scalar) {
     Star a(0, 0, 1, 4, 10);
     
-    EXPECT_DOUBLE_EQ((a * 2).norm(), 2.0);
-    EXPECT_DOUBLE_EQ((a * 2).get_label(), a.get_label());
-    EXPECT_DOUBLE_EQ((a * 2).get_magnitude(), a.get_magnitude());
+    EXPECT_DOUBLE_EQ(Vector3::Magnitude(a * 2), 2.0);
 }
 
 /// Check if the norm is correctly computed for a star. Answers checked through WolframAlpha.
 TEST(StarComputation, Norm) {
-    Star a(1.2, 6.5, 1.8), c = Star(0.1, 0.2, 0.3).normalize();
+    Vector3 a(1.2, 6.5, 1.8), c = Vector3::Normalized(Vector3(0.1, 0.2, 0.3));
     double b = 6.85055;
-    EXPECT_NEAR(a.norm(), b, 0.00001);
-    EXPECT_FLOAT_EQ(c.norm(), 1.0);
+    EXPECT_NEAR(Vector3::Magnitude(a), b, 0.00001);
+    EXPECT_FLOAT_EQ(Vector3::Magnitude(c), 1.0);
 }
 
 /// Check if the normalize function returns the expected star. Answers checked with WolframAlpha.
 TEST(StarNorm, Normalize) {
-    Star a(3, 5, 1, 5, 10), b;
-    b = a.normalize();
+    Star a(3, 5, 1, 5, 10);
+    Vector3 b = Vector3::Normalized(a);
     
-    EXPECT_DOUBLE_EQ(b.norm(), 1.0);
-    EXPECT_DOUBLE_EQ(b[0], 3.0 / sqrt(35.0));
-    EXPECT_DOUBLE_EQ(b[1], sqrt(5.0 / 7.0));
-    EXPECT_DOUBLE_EQ(b[2], 1.0 / sqrt(35.0));
-    EXPECT_EQ(b.get_label(), a.get_label());
-    EXPECT_EQ(b.get_magnitude(), a.get_magnitude());
-}
-
-/// Check if the norm of a generated unit vector is equal to one.
-TEST(StarNorm, Unit) {
-    Star a = Star::chance() * 85.0, b = a.normalize();
-    EXPECT_DOUBLE_EQ(b.norm(), 1.0);
+    EXPECT_DOUBLE_EQ(Vector3::Magnitude(b), 1.0);
+    EXPECT_DOUBLE_EQ(b.data[0], 3.0 / sqrt(35.0));
+    EXPECT_DOUBLE_EQ(b.data[1], sqrt(5.0 / 7.0));
+    EXPECT_DOUBLE_EQ(b.data[2], 1.0 / sqrt(35.0));
 }
 
 /// Check if an attempt to find the length of a <0, 0, 0> star is made.
 TEST(StarNorm, UnitZeroStar) {
-    Star a = Star::zero(), b = a.normalize();
-    EXPECT_EQ(a, b);
+    Vector3 b = Vector3::Normalized(Vector3(0, 0, 0));
+    EXPECT_EQ(Vector3(0, 0, 0), b);
 }
 
 /// Check if two identical stars (component-wise) are determined to be equal.
@@ -125,19 +101,9 @@ TEST(StarEquality, Same) {
     EXPECT_EQ(b, c);
 }
 
-/// Check that the zero star actually contains the vector [0, 0, 0].
-TEST(StarZero, Zero) {
-    Star a = Star::zero();
-    EXPECT_EQ(a[0], 0);
-    EXPECT_EQ(a[1], 0);
-    EXPECT_EQ(a[2], 0);
-    EXPECT_EQ(a.get_label(), Star::NO_LABEL);
-    EXPECT_EQ(a.get_magnitude(), Star::NO_MAGNITUDE);
-}
-
 /// Check if the chance method returns a unit star.
 TEST(StarChance, Unit) {
-    EXPECT_DOUBLE_EQ(Star::chance().norm(), 1.0);
+    EXPECT_DOUBLE_EQ(Vector3::Magnitude(Star::chance()), 1.0);
 }
 
 /// Check if the label number assigned is correct from overloaded chance method.
@@ -154,47 +120,45 @@ TEST(StarChance, Duplicate) {
 /// Check if the dot product of two stars is computed correctly (test one). Answers checked through WolframAlpha.
 TEST(StarComputation, DotOne) {
     Star a(1, 1, 1);
-    EXPECT_DOUBLE_EQ(Star::dot(a, a), 3);
+    EXPECT_DOUBLE_EQ(Vector3::Dot(a, a), 3);
 }
 
 /// Check if the dot product of two stars is computed correctly (test two). Answers checked through WolframAlpha.
 TEST(StarComputation, DotTwo) {
     Star a(1, 1, 1, 5, 2), b(4, 0.8, 123);
-    EXPECT_DOUBLE_EQ(Star::dot(a, b), 127.8);
+    EXPECT_DOUBLE_EQ(Vector3::Dot(a, b), 127.8);
 }
 
 /// Check if the cross product of two stars is computed correctly (test one). Answers checked through WolframAlpha.
 TEST(StarComputation, CrossOne) {
-    Star a(1, 1, 1), b(0, 0, 0), c = Star::cross(a, a);
+    Star a(1, 1, 1), b(0, 0, 0);
+    Vector3 c = Vector3::Cross(a, a);
     EXPECT_EQ(c, b);
-    EXPECT_EQ(c.get_label(), Star::NO_LABEL);
-    EXPECT_EQ(c.get_magnitude(), Star::NO_MAGNITUDE);
 }
 
 /// Check if the cross product of two stars is computed correctly (test two). Answers checked through WolframAlpha.
 TEST(StarComputation, CrossTwo) {
-    Star a(1, 1, 1), b(4, 0.8, 123), c(-122.2, 119, 3.2), d = Star::cross(b, a);
+    Star a(1, 1, 1), b(4, 0.8, 123), c(-122.2, 119, 3.2);
+    Vector3 d = Vector3::Cross(b, a);
     EXPECT_EQ(d, c);
-    EXPECT_EQ(d.get_label(), Star::NO_LABEL);
-    EXPECT_EQ(d.get_magnitude(), Star::NO_MAGNITUDE);
 }
 
 /// Check if the angle between two stars is correctly computed (test one). Answers checked through WolframAlpha.
 TEST(StarComputation, AngleOne) {
     Star a(1, 1, 1, 0, true), b(-1, 1, -1, 0, true);
-    EXPECT_NEAR(Star::angle_between(a, b), 109.5, 0.1);
+    EXPECT_NEAR(Vector3::Angle(a, b) * 180.0 / M_PI, 109.5, 0.1);
 }
 
 /// Check if the angle between two stars is correctly computed (test two). Answers checked through WolframAlpha.
 TEST(StarComputation, AngleTwo) {
     Star a(1, 1, 1.1, 0, true), b(-1, -1, -1, 0, true);
-    EXPECT_NEAR(Star::angle_between(a, b), 177.4, 0.1);
+    EXPECT_NEAR(Vector3::Angle(a, b) * 180.0 / M_PI, 177.4, 0.1);
 }
 
 /// Check that the when calculating the angle between the same stars, NaN is not returned.
 TEST(StarAngle, Same) {
     Star a(1, 1, 1), b(1, 1, 1);
-    EXPECT_FALSE(std::isnan(Star::angle_between(a, b)));
+    EXPECT_FALSE(std::isnan(Vector3::Angle(a, b)));
 }
 
 /// Check that the correct result is returned with within_angle function.

@@ -30,7 +30,7 @@
 /// // Determine angle between Star {2, 3, 5} and {5, 6, 7} to get 0.9744339542.
 /// std::cout << Star::angle_between(Star(2, 3, 5), Star(5, 6, 7)) << std::endl;
 /// @endcode
-class Star {
+class Star : public Vector3 {
   public:
     /// List type, defined as a vector of Stars.
     using list = std::vector<Star>;
@@ -47,9 +47,6 @@ class Star {
     /// Returned when a user attempts to access an item using the [] operator for n > 1.
     static constexpr double INVALID_ELEMENT_ACCESSED = 0;
     
-    /// Precision default for is_equal and '==' methods.
-    static constexpr double STAR_EQUALITY_PRECISION_DEFAULT = std::numeric_limits<double>::epsilon() * 10;
-    
     /// The default label of all stars.
     static constexpr int NO_LABEL = 0;
     
@@ -57,31 +54,19 @@ class Star {
     static constexpr double NO_MAGNITUDE = -30.0;
   
   public:
-    Star (double i, double j, double k, int label = NO_LABEL, double m = NO_MAGNITUDE, bool apply_normalize = false);
+    Star (double i, double j, double k, int label = NO_LABEL, double m = NO_MAGNITUDE);
     Star ();
+    
+    static Star VStar (Vector3 v, int label = NO_LABEL, double m = NO_MAGNITUDE);
     
     friend std::ostream &operator<< (std::ostream &, const Star &);
     double operator[] (unsigned int n) const;
     int get_label () const;
     double get_magnitude () const;
     
-    Star operator+ (const Star &s) const;
-    Star operator- (const Star &s) const;
-    Star operator* (double kappa) const;
-    
-    double norm () const;
-    Star normalize () const;
-    
-    bool operator== (const Star &s) const;
-    
-    static Star zero ();
     static Star chance ();
     static Star chance (int label);
     
-    static double dot (const Star &s_1, const Star &s_2);
-    static Star cross (const Star &s_1, const Star &s_2);
-    
-    static double angle_between (const Star &s_1, const Star &s_2);
     static bool within_angle (const Star &s_1, const Star &s_2, double theta);
     static bool within_angle (const list &s_l, double theta);
     
@@ -91,9 +76,6 @@ class Star {
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
-    /// Our vector components, using GMath.
-    Vector3 v;
-    
     /// Catalog specific ID for the given star.
     int label;
     
