@@ -9,6 +9,12 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 include_directories(${CMAKE_SOURCE_DIR}/test/include)
 
 ##################################################################
+# Link and Create Executable TestRandomDraw
+##################################################################
+add_executable(TestRandomDraw test-random-draw.cpp)
+target_link_libraries(TestRandomDraw gtest gmock ${HOKU_LIBS})
+
+##################################################################
 # Link and Create Executable TestStar
 ##################################################################
 add_executable(TestStar test-star.cpp)
