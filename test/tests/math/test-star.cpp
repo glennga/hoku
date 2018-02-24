@@ -13,9 +13,9 @@
 /// Check that the components are not altered without apply_normalize being set.
 TEST(StarConstructor, NoUnit) {
     Star a(1, 1, 1);
-    EXPECT_DOUBLE_EQ(a.i, 1.0);
-    EXPECT_DOUBLE_EQ(a.j, 1.0);
-    EXPECT_DOUBLE_EQ(a.k, 1.0);
+    EXPECT_DOUBLE_EQ(a.v.data[0], 1.0);
+    EXPECT_DOUBLE_EQ(a.v.data[1], 1.0);
+    EXPECT_DOUBLE_EQ(a.v.data[2], 1.0);
 }
 
 /// Check that the norm of the generated vector with apply_normalize = true is equal to 1.0.
@@ -34,9 +34,9 @@ TEST(StarOperator, Stream) {
 /// Check that the components returned by the get methods are as expected.
 TEST(StarOperator, Get) {
     Star a(1, 2, 3, 4);
-    EXPECT_DOUBLE_EQ(a[0], a.i);
-    EXPECT_DOUBLE_EQ(a[1], a.j);
-    EXPECT_DOUBLE_EQ(a[2], a.k);
+    EXPECT_DOUBLE_EQ(a[0], a.v.data[0]);
+    EXPECT_DOUBLE_EQ(a[1], a.v.data[1]);
+    EXPECT_DOUBLE_EQ(a[2], a.v.data[2]);
     EXPECT_EQ(a.get_label(), a.label);
 
     EXPECT_DOUBLE_EQ(a[3], Star::INVALID_ELEMENT_ACCESSED);
@@ -123,12 +123,6 @@ TEST(StarEquality, Same) {
     Star a(1, 1, 1), b(1, 1, 1), c(1, 1, 1, 123, 0.5);
     EXPECT_EQ(a, b);
     EXPECT_EQ(b, c);
-}
-
-/// Check if two similar stars are equal in the given precision.
-TEST(StarEquality, Precision) {
-    Star a(0, 0, 1), b(0, 0, 1.001);
-    EXPECT_TRUE(Star::is_equal(a, b, 0.0011));
 }
 
 /// Check that the zero star actually contains the vector [0, 0, 0].

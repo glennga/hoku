@@ -9,11 +9,12 @@
 #include <array>
 #include <vector>
 #include <limits>
+#include "third-party/gmath/Vector3.hpp"
 
 /// @brief Class for 3D vector representation of stars.
 ///
-/// The star class is really a 3D vector class in disguise, with methods focusing toward rotation, angular
-/// separation, and label attachment. This is the basis for all of the Hoku research.
+/// The star class is really a wrapper for 3D vectors, with additional methods for the attachment of labels and
+/// magnitudes.  This is the basis for all of the Hoku research.
 ///
 /// @example
 /// @code{.cpp}
@@ -71,7 +72,6 @@ class Star {
     double norm () const;
     Star normalize () const;
     
-    static bool is_equal (const Star &s_1, const Star &s_2, double epsilon = STAR_EQUALITY_PRECISION_DEFAULT);
     bool operator== (const Star &s) const;
     
     static Star zero ();
@@ -91,14 +91,8 @@ class Star {
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
-    /// I Component (element 0) of 3D vector.
-    double i;
-    
-    /// J component (element 1) of 3D vector.
-    double j;
-    
-    /// K component (element 2) of 3D vector.
-    double k;
+    /// Our vector components, using GMath.
+    Vector3 v;
     
     /// Catalog specific ID for the given star.
     int label;

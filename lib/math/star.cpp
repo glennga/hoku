@@ -9,7 +9,7 @@
 #include "math/star.h"
 #include "math/random-draw.h"
 
-/// Constructor. Sets the i, j, and k components, as well as the catalog ID of the Star.
+/// Constructor. Sets the i, j, and k components, as well as the catalog ID and the magnitude of the star.
 ///
 /// @param i The i'th component from the observer to the star.
 /// @param j The j'th component from the observer to the star.
@@ -20,11 +20,10 @@
 Star::Star (const double i, const double j, const double k, const int label, const double m,
             const bool apply_normalize) {
     if (!apply_normalize) {
-        this->i = i, this->j = j, this->k = k;
+        this->v = Vector3(i, j, k);
     }
     else {
-        Star s = Star(i, j, k).normalize();
-        this->i = s.i, this->j = s.j, this->k = s.k;
+        this->v = Vector3::Normalized(Vector3(i, j, k));
     }
     
     this->label = label;
@@ -33,7 +32,7 @@ Star::Star (const double i, const double j, const double k, const int label, con
 
 /// Overloaded constructor. Sets the i, j, k, magnitude, and catalog ID of a star to 0.
 [[deprecated]] Star::Star () {
-    this->i = this->j = this->k = this->m = this->label = 0;
+    this->v = Vector3(0, 0, 0), this->m = this->label = 0;
 }
 
 /// Place all components of S into the given stream.
@@ -42,8 +41,8 @@ Star::Star (const double i, const double j, const double k, const int label, con
 /// @param s Star to place into stream.
 /// @return The stream we were just passed.
 std::ostream &operator<< (std::ostream &os, const Star &s) {
-    os << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed << "(" << s.i << ":" << s.j << ":"
-       << s.k << ":" << s.label << ":" << s.m << ")";
+    os << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed << "(" << s.v.data[0] << ":"
+       << s.v.data[1] << ":" << s.v.data[2] << ":" << s.label << ":" << s.m << ")";
     return os;
 }
 
@@ -52,7 +51,7 @@ std::ostream &operator<< (std::ostream &os, const Star &s) {
 /// @param n Index of {i, j, k} to return.
 /// @return INVALID_ELEMENT_ACCESSED if n > 2. Otherwise component at index n of {i, j, k}.
 double Star::operator[] (const unsigned int n) const {
-    return n > 2 ? INVALID_ELEMENT_ACCESSED : std::array<double, 3> {i, j, k}[n];
+    return n > 2 ? INVALID_ELEMENT_ACCESSED : v.data[n];
 }
 
 /// Accessor method for catalog (Hipparcos) ID of the star.
@@ -74,7 +73,8 @@ double Star::get_magnitude () const {
 /// @param s Star to add the current star with.
 /// @return The summation of the current star and star S.
 Star Star::operator+ (const Star &s) const {
-    return {this->i + s.i, this->j + s.j, this->k + s.k, this->label, this->m};
+    Vector3 r = this->v + s.v;
+    return Star(r.data[0], r.data[1], r.data[2], this->label, this->m);
 }
 
 /// Subtract star S from the current star. This subtracts the two vector's components. The resultant takes the current
@@ -83,7 +83,8 @@ Star Star::operator+ (const Star &s) const {
 /// @param s Star to subtract the current star with.
 /// @return The resultant of subtracting the current star with star S.
 Star Star::operator- (const Star &s) const {
-    return {this->i - s.i, this->j - s.j, this->k - s.k, this->label, this->m};
+    Vector3 r = this->v - s.v;
+    return Star(r.data[0], r.data[1], r.data[2], this->label, this->m);
 }
 
 /// Scale the current star with the constant kappa.
@@ -91,54 +92,43 @@ Star Star::operator- (const Star &s) const {
 /// @param kappa kappa Every component will be multiplied by this.
 /// @return Resultant of the current star scaled by kappa.
 Star Star::operator* (const double kappa) const {
-    return {this->i * kappa, this->j * kappa, this->k * kappa, this->label, this->m};
+    Vector3 r = this->v * kappa;
+    return Star(r.data[0], r.data[1], r.data[2], this->label, this->m);
 }
 
 /// Find the magnitude of the current star (L2 norm).
 ///
 /// @return Magnitude of the current star.
 double Star::norm () const {
-    return sqrt(pow(this->i, 2) + pow(this->j, 2) + pow(this->k, 2));
+    return Vector3::Magnitude(v);
 }
 
 /// Find the unit vector of the current star.
 ///
 /// @return Star with normalized components.
 Star Star::normalize () const {
-    double norm = this->norm();
-    
     // Vector with no length, return original star.
-    if (this->i + this->j + this->k == 0) {
+    if (this->v == Vector3::Zero()) {
         return *this;
     }
     
-    return {this->i / norm, this->j / norm, this->k / norm, this->label, this->m};
+    Vector3 r = Vector3::Normalized(this->v);
+    return Star(r.data[0], r.data[1], r.data[2], this->label, this->m);
 }
 
-/// Determine if the two values's **components** are within epsilon units of each other.
-///
-/// @param s_1 Star to check s_2 against.
-/// @param s_2 Star to check s_1 against.
-/// @param epsilon Error that the differences must be less than.
-/// @return True if all components are the same. False otherwise.
-bool Star::is_equal (const Star &s_1, const Star &s_2, const double epsilon) {
-    return fabs(s_1.i - s_2.i) < epsilon && fabs(s_1.j - s_2.j) < epsilon && fabs(s_1.k - s_2.k) < epsilon;
-}
-
-/// Determine if the two value's **components** are within delta units of each other. This function is a wrapper for
-/// the is_equal function, and uses the default epsilon = STAR_EQUALITY_PRECISION_DEFAULT.
+/// Determine if the two value's **components** are within delta units of each other.
 ///
 /// @param s Star to check current star against.
 /// @return True if all components (besides m and hr) are the same. False otherwise.
 bool Star::operator== (const Star &s) const {
-    return is_equal(s, *this);
+    return this->v == s.v;
 }
 
 /// Return a star with all components set to zero.
 ///
 /// @return Star with components {0, 0, 0}, label = NO_LABEL, and m = NO_MAGNITUDE.
 Star Star::zero () {
-    return {0, 0, 0, NO_LABEL, NO_MAGNITUDE};
+    return Star(0, 0, 0, NO_LABEL, NO_MAGNITUDE);
 }
 
 /// Generate a random star with normalized components. Using C++11 random functions.
@@ -146,7 +136,7 @@ Star Star::zero () {
 /// @return Star with random, normalized components, a catalog ID = NO_LABEL, and a m = NO_MAGNITUDE.
 Star Star::chance () {
     return Star(RandomDraw::draw_real(-1.0, 1.0), RandomDraw::draw_real(-1.0, 1.0), RandomDraw::draw_real(-1.0, 1.0),
-                NO_LABEL, NO_MAGNITUDE).normalize();
+                NO_LABEL, NO_MAGNITUDE, true);
 }
 
 /// Generate a random star with normalized components. Using C++11 random functions. Instead of assigning a catalog ID
@@ -167,7 +157,7 @@ Star Star::chance (const int label) {
 /// @param s_2 Star to dot with s_1.
 /// @return Resultant of s_1 dot s_2.
 double Star::dot (const Star &s_1, const Star &s_2) {
-    return s_1.i * s_2.i + s_1.j * s_2.j + s_1.k * s_2.k;
+    return Vector3::Dot(s_1.v, s_2.v);
 }
 
 /// Finds the cross product of s_1 and s_2 stars. The resultant catalog ID = NO_LABEL and the m = NO_MAGNITUDE.
@@ -176,8 +166,8 @@ double Star::dot (const Star &s_1, const Star &s_2) {
 /// @param s_2 Star to cross with s_1.
 /// @return Resultant of s_1 cross s_2.
 Star Star::cross (const Star &s_1, const Star &s_2) {
-    return {s_1.j * s_2.k - s_1.k * s_2.j, s_1.k * s_2.i - s_1.i * s_2.k, s_1.i * s_2.j - s_1.j * s_2.i, NO_LABEL,
-        NO_MAGNITUDE};
+    Vector3 r = Vector3::Cross(s_1.v, s_2.v);
+    return Star(r.data[0], r.data[1], r.data[2]);
 }
 
 /// Finds the angle between stars s_1 and s_2. Range of hat(s^1) dot hat(s^2) is [-1.0, 1.0], which is the
@@ -187,7 +177,7 @@ Star Star::cross (const Star &s_1, const Star &s_2) {
 /// @param s_2 Star to find angle from s_1.
 /// @return Angle between s_1 and s_2 in degrees.
 double Star::angle_between (const Star &s_1, const Star &s_2) {
-    return (s_1 == s_2) ? 0 : acos(dot(s_1.normalize(), s_2.normalize())) * (180.0 / M_PI);
+    return (s_1 == s_2) ? 0 : Vector3::Angle(s_1.v, s_2.v) * (180.0 / M_PI);
 }
 
 /// Determines if the angle between rho and beta is within theta degrees.
@@ -222,7 +212,7 @@ bool Star::within_angle (const list &s_l, const double theta) {
 /// @param label New label to attach to the star.
 /// @return Same star with the given label.
 Star Star::define_label (const Star &s, int label) {
-    return {s.i, s.j, s.k, label, s.m};
+    return Star(s.v.data[0], s.v.data[1], s.v.data[2], label, s.m);
 }
 
 /// Return the given star with a catalog ID of NO_LABEL.
