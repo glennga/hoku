@@ -52,8 +52,8 @@ class Benchmark {
   
   public:
     Benchmark (Chomp &ch, double fov, double m_bar = DEFAULT_M_BAR);
-    Benchmark (Chomp &ch, const Star &center, const Rotation &q, double fov, double m_bar = DEFAULT_M_BAR);
-    Benchmark (const Star::list &s, const Star &center, double fov);
+    Benchmark (Chomp &ch, const Vector3 &center, const Rotation &q, double fov, double m_bar = DEFAULT_M_BAR);
+    Benchmark (const Star::list &s, const Vector3 &center, double fov);
     static const Benchmark black ();
     
     void generate_stars (Chomp &ch, double m_bar = DEFAULT_M_BAR);
@@ -90,13 +90,13 @@ class Benchmark {
     Star::list b;
     
     /// The focal point of the star list. Does not necessarily have to be a BSC5 star itself.
-    Star center;
+    Vector3 center;
     
     /// All stars must be fov degrees from the focus.
     double fov;
     
     /// Rotation applied to all stars. Moves stars from inertial to image.
-    Rotation q_rb;
+    Rotation q_rb = Rotation::wrap(Quaternion());
     
     /// List (stack) of ErrorModels, which also holds all changed stars.
     model_list error_models;

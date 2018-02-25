@@ -1,5 +1,5 @@
 """"
-This file is used to read the temporary files data/tmp/***.tmp and plot the stars with the id numbers as annotations. 
+This file is used to read the temporary files /tmp/***.tmp and plot the stars with the id numbers as annotations. 
 This is visualized as a translucent 3D sphere cap (representing the Celestial sphere) with the current star vector 
 endpoints projected onto it. 
 
@@ -10,7 +10,7 @@ fontsize
 quiver
 err
 
-data/logs/tmp/cuplt.tmp is formatted as such:
+TEMP/cuplt.tmp is formatted as such:
 focus.i focus.j focus.k
 star_1.i star_1.j star_1.k star_1.label
 .
@@ -18,17 +18,20 @@ star_1.i star_1.j star_1.k star_1.label
 .
 star_n.i star_n.j star_n.k star_n.label
 
-data/logs/tmp/errplt.dat is formatted as such:
+TEMP/tmp/errplt.dat is formatted as such:
 affected_1.i affected_1.j affected_1.k affected_1.label affected_1.plot_color
 .
 .
 .
 affected_n.i affected_n.j affected_n.k affected_n.label affected_n.plot_color
+
+Usage: python3 draw_image.py [arg1] [arg2] [arg3] ...
 """""
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib
+import tempfile
 import numpy as np
 import os
 import sys
@@ -101,7 +104,7 @@ def parse_files():
     focus, stars, errors = [], [], []
 
     # Parse the plot file.
-    with open(os.environ['HOKU_PROJECT_PATH'] + '/data/tmp/cuplt.tmp') as current_plot:
+    with open(tempfile.gettempdir() + '/cuplt.tmp') as current_plot:
         # Record the focus vector.
         for component in current_plot.readline().split():
             focus.append(float(component))
@@ -115,7 +118,7 @@ def parse_files():
 
     # If desired, parse the error file.
     if err_flag:
-        with open(os.environ['HOKU_PROJECT_PATH'] + '/data/tmp/errplt.tmp') as error_plot:
+        with open(tempfile.gettempdir() + '/errplt.tmp') as error_plot:
             for line in error_plot:
                 error = []
 
@@ -205,20 +208,20 @@ def plot():
 
 
 if __name__ == '__main__':
-    # Ensure that there exists no more than four arguments.
-    if len(sys.argv) > 4:
-        print('Usage: python3 visualize_image.py [arg1] [arg2] [arg3]')
+    # Ensure that there exists no more than five arguments.
+    if len(sys.argv) > 5:
+        print('Usage: python3 draw_image.py [arg1] [arg2] [arg3] ...')
         exit(2)
 
     # If the user needs help, display the appropriate message.
     if sys.argv[1].strip() == 'help':
         print('Options: fontsize [1, ..., N], quiver [on, 1, enable], err [on, 1, enable]')
-        exit(0)
+        exit(1)
 
     # Parse each parameter.
     arg_returns = list(map(lambda a: parse_args(sys.argv[a]), range(1, len(sys.argv))))
     if not all(arg_returns):
-        print('Arguments not parsed. Enter \'python3 visualize_image.py help\' for avaiable options.')
+        print('Arguments not parsed. Enter \'python3 draw_image.py help\' for avaiable options.')
         exit(2)
 
     # Set the font size.

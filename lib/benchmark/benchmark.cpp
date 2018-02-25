@@ -13,14 +13,22 @@
 /// String of HOKU_PROJECT_PATH environment variable.
 const std::string Benchmark::PROJECT_LOCATION = std::getenv("HOKU_PROJECT_PATH");
 
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 /// String of the current plot temp file.
-const std::string Benchmark::CURRENT_TMP = PROJECT_LOCATION + "/data/tmp/cuplt.tmp";
+const std::string Benchmark::CURRENT_TMP = "%TEMP%/cuplt.tmp";
 
 /// String of the error plot temp file.
-const std::string Benchmark::ERROR_TMP = PROJECT_LOCATION + "/data/tmp/errplt.tmp";
+const std::string Benchmark::ERROR_TMP = "%TEMP/errplt.tmp";
+#else
+/// String of the current plot temp file.
+const std::string Benchmark::CURRENT_TMP = "/tmp/cuplt.tmp";
+
+/// String of the error plot temp file.
+const std::string Benchmark::ERROR_TMP = "/tmp/errplt.tmp";
+#endif
 
 /// Location of the Python benchmark plotter.
-const std::string Benchmark::PLOT_SCRIPT = "\"" + PROJECT_LOCATION + "/script/python/visualize_image.py\"";
+const std::string Benchmark::PLOT_SCRIPT = "\"" + PROJECT_LOCATION + "/script/python/draw_image.py\"";
 
 /// Constructor. Generate a random focus and rotation. Scale and restrict the image using the given fov and magnitude
 /// sensitivity (m_bar).
@@ -42,7 +50,7 @@ Benchmark::Benchmark (Chomp &ch, const double fov, const double m_bar) {
 /// @param q Quaternion to take inertial frame to body frame.
 /// @param fov Limit a star must be separated from the focus by.
 /// @param m_bar Maximum magnitude a star must be within in the given benchmark.
-Benchmark::Benchmark (Chomp &ch, const Star &center, const Rotation &q, const double fov, const double m_bar) {
+Benchmark::Benchmark (Chomp &ch, const Vector3 &center, const Rotation &q, const double fov, const double m_bar) {
     this->fov = fov, this->center = center, this->q_rb = q;
     generate_stars(ch, m_bar);
 }
@@ -53,7 +61,7 @@ Benchmark::Benchmark (Chomp &ch, const Star &center, const Rotation &q, const do
 /// @param s Star set to give the current benchmark.
 /// @param center Focus star of the given star set.
 /// @param fov Field of view (degrees) associated with the given star set.
-Benchmark::Benchmark (const Star::list &s, const Star &center, const double fov) {
+Benchmark::Benchmark (const Star::list &s, const Vector3 &center, const double fov) {
     this->fov = fov, this->b = s, this->center = center;
 }
 
@@ -61,7 +69,7 @@ Benchmark::Benchmark (const Star::list &s, const Star &center, const double fov)
 ///
 /// @return A dummy image without stars.
 const Benchmark Benchmark::black () {
-    return Benchmark({}, Star::zero(), 0);
+    return Benchmark({}, Vector3::Zero(), 0);
 }
 
 /// Shuffle the current star set. Uses C++11 random library.
@@ -83,7 +91,7 @@ void Benchmark::generate_stars (Chomp &ch, const double m_bar) {
             this->b.push_back(Rotation::rotate(s, this->q_rb));
         }
     }
-    this->center = Rotation::rotate(this->center, this->q_rb);
+    this->center = Rotation::rotate(Star::wrap(this->center), this->q_rb);
     
     // Shuffle to maintain randomness.
 #if !defined ENABLE_TESTING_ACCESS
@@ -153,8 +161,6 @@ void Benchmark::record_current_plot () {
 /// Write the current data in the star set to a file, and let a separate Python script generate the plot. I am most
 /// familiar with Python's MatPlotLib, so this seemed like the most straight-forward approach.
 void Benchmark::display_plot () {
-    std::remove(CURRENT_TMP.c_str()), std::remove(ERROR_TMP.c_str());
-    
     // Field-of-view and norm are parameters to the plot script.
     std::string params = " fov=" + std::to_string(this->fov) + " norm=" + std::to_string(this->center.norm());
 
@@ -164,15 +170,11 @@ void Benchmark::display_plot () {
     std::string cmd = "python3 " + std::string(PLOT_SCRIPT) + params;
 #endif
     
-    if (std::ifstream(CURRENT_TMP) || std::ifstream(ERROR_TMP)) {
-        throw std::runtime_error(std::string("Current and/or error plot files could not deleted."));
-    }
-    
     // Record the current instance, and let Python work its magic!
     this->record_current_plot();
-    std::system(cmd.c_str());
-    
-    std::remove(CURRENT_TMP.c_str()), std::remove(ERROR_TMP.c_str());
+    if (std::system(cmd.c_str())) {
+        throw std::runtime_error(std::string("'python/draw_image.py' exited with an error."));
+    }
 }
 
 /// Compare the number of matching stars that exist between the two stars sets.
@@ -323,7 +325,7 @@ void Benchmark::barrel_light (double alpha) {
         double u = Star::angle_between(this->b[i], this->center);
         double d = u * (1 - alpha * u * u);
         
-        this->b.push_back(Rotation::push(this->b[i], this->center, d));
+        this->b.push_back(Rotation::slerp(this->b[i], this->center, d));
         this->b.erase(this->b.begin() + i);
     }
     
