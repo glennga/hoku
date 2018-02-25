@@ -67,8 +67,8 @@ Star Rotation::shake (const Star &s, const double sigma) {
     Star s_end = Star::chance();
     
     // Push our star in some random direction. Scale our theta to fit [0, 1] in the opposite direction.
-    double t = (Vector3::Angle(s, s_end) == 0) ? 0 : (180.0 / M_PI) * (RandomDraw::draw_normal(0, sigma)
-                                                                           / Vector3::Angle(s, s_end));
+    double t = (Vector3::Angle(s, s_end) == 0) ? 0 : (180.0 / M_PI)
+                                                     * (RandomDraw::draw_normal(0, sigma) / Vector3::Angle(s, s_end));
     return slerp(s, s_end, t);
 }
 

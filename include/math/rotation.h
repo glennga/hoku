@@ -18,7 +18,7 @@
 /// @example
 /// @code{.cpp}
 /// // Rotate {1, 1, 1} by a random rotation.
-/// std::cout << Star::rotate(Star(1, 1, 1), Rotation::chance()).str() << std::endl;
+/// std::cout << Star::rotate(Star(1, 1, 1), Rotation::chance()) << std::endl;
 ///
 /// Star a = Star::chance(), b = Star::chance(), c, d;
 /// Rotation e = Rotation::chance(), f;
@@ -27,11 +27,9 @@
 /// c = Rotation::rotate(a, e);
 /// d = Rotation::rotate(b, e);
 ///
-/// // F is the rotation to take AB frame to CD. F == E.
-/// f = Rotation::rotation_across_frames({a, b}, {c, d});
 ///
 /// // Result should show the same star.
-/// std::cout << Rotation::rotate(a, e).str() + " : " Rotation::rotate(a, f).str() << std::endl;
+/// std::cout << Rotation::rotate(a, e) << " : " Rotation::rotate(a, f) << std::endl;
 /// @endcode
 class Rotation : public Quaternion {
   public:
