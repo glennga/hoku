@@ -21,7 +21,7 @@ add_executable(PerformE perform-e.cpp)
 target_link_libraries(PerformE Experiment Lumberjack ${HOKU_LIBS})
 
 ##################################################################
-# Link and Create Executable RunIdentify
+# Link and Create Executable IdentifyFITS
 ##################################################################
-add_executable(RunIdentify run-identify.cpp)
-target_link_libraries(RunIdentify ${HOKU_LIBS})
+add_executable(IdentifyFITS identify-fits.cpp)
+target_link_libraries(IdentifyFITS ${HOKU_LIBS} ${Boost_LIBRARIES})

@@ -22,13 +22,14 @@ This repository requires the following:
 1. `python3` (with `numpy` and `matplotlib`). Used for the data analysis and visualization.
     1. Install Python 3: [https://www.python.org/downloads/](https://www.python.org/downloads/)
     2. Install Anaconda (`numpy` and `matplotlib`): [https://conda.io/docs/user-guide/install/index.html](https://conda.io/docs/user-guide/install/index.html)
+    3. Install OpenCV for Python: Enter `conda install -c conda-forge opencv`
 2. `CMake 3.7` or above. Used to manage and build the C++ code here.
     1. Install CMake: [https://cmake.org/install/](https://cmake.org/install/)
     2. CMake tutorial with CLion IDE: [https://www.jetbrains.com/help/clion/quick-cmake-tutorial.html](https://www.jetbrains.com/help/clion/quick-cmake-tutorial.html)
 3. `git` or some Git client. Used to clone this repository, and to grab GoogleTest for testing.
     1. Install Git: [https://git-scm.com/book/en/v2/Getting-Started-Installing-Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
     2. Install GitKraken (optional): [https://www.gitkraken.com/](https://www.gitkraken.com/)
-4. `make` and a C++ compiler.
+4. C++ build tools (`make`, compiler, ...).
     1. Use `sudo apt-get install build-essential` on Linux.
     2. Download CLion IDE (optional): [https://www.jetbrains.com/clion/download](https://www.jetbrains.com/clion/download)
 
@@ -130,18 +131,18 @@ TODO: Finish the `visualize_results.py` portion.
 
 ## Star Identification Procedure Usage
 
-### RunIdentify Executable
-To identify stars in an image and view the results, use the executable `RunIdentify`:
+### IdentifyFITS Executable
+To identify stars in an image and view the results, use the executable `IdentifyFITS`:
 ```cmd
 cd hoku/bin
-./RunIdentify [id-method] [image-file]
+./IdentifyFITS [id-method] [image-file]
 ```
 
 The first argument specifies the type of identification method to run. The second argument specifies the stars in 
 the image. To run the Angle identification method on `my-image.csv` with a field of view of 20 degrees, enter the 
 following:
 ```cmd
-./RunIdentify angle my-image.csv
+./IdentifyFITS angle my-image.csv
 ```
 
 The image file must be formatted in a comma separated manner, specifying the centroid coordinates in terms of a 

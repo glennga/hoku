@@ -52,12 +52,3 @@ FILE(GLOB INCLUDES ${CMAKE_SOURCE_DIR}/include/math/mercator.h)
 add_library(Mercator STATIC ${SOURCES} ${INCLUDES})
 install(TARGETS Mercator DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include)
-
-##################################################################
-# Build Library Asterism
-##################################################################
-FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/asterism.cpp)
-FILE(GLOB INCLUDES ${CMAKE_SOURCE_DIR}/include/math/asterism.h)
-add_library(Asterism STATIC ${SOURCES} ${INCLUDES})
-install(TARGETS Asterism DESTINATION lib)
-install(FILES ${INCLUDES} DESTINATION include)

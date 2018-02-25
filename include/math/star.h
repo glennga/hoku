@@ -9,11 +9,12 @@
 #include <array>
 #include <vector>
 #include <limits>
+#include "third-party/gmath/Vector3.hpp"
 
 /// @brief Class for 3D vector representation of stars.
 ///
-/// The star class is really a 3D vector class in disguise, with methods focusing toward rotation, angular
-/// separation, and label attachment. This is the basis for all of the Hoku research.
+/// The star class is really a wrapper for 3D vectors, with additional methods for the attachment of labels and
+/// magnitudes.  This is the basis for all of the Hoku research.
 ///
 /// @example
 /// @code{.cpp}
@@ -21,15 +22,15 @@
 /// Star s_1, s_2 = Star::chance(), s_3 = Star::zero(), s_4(-10, 10, 4, 0, 0, true);
 ///
 /// // Cross stars {-2, -1, 0} and {3, 2, 1} to produce {-1, 2, -1}.
-/// std::cout << Star::cross(Star(-2, -1, 0), Star(3, 2, 1)).str() << std::endl;
+/// std::cout << Star::cross(Star(-2, -1, 0), Star(3, 2, 1)) << std::endl;
 ///
 /// // Add star {1, 1, 1} to star {5, 5, 5}. Subtract result by {2, 2, 2} to get {4, 4, 4}.
-/// std::cout << (Star(5, 5, 5) + Star(1, 1, 1) - Star(2, 2, 2)).str() << std::endl;
+/// std::cout << Star(5, 5, 5) + Star(1, 1, 1) - Star(2, 2, 2) << std::endl;
 ///
 /// // Determine angle between Star {2, 3, 5} and {5, 6, 7} to get 0.9744339542.
-/// std::cout << (Star::angle_between(Star(2, 3, 5), Star(5, 6, 7)).str() << std::endl;
+/// std::cout << Star::angle_between(Star(2, 3, 5), Star(5, 6, 7)) << std::endl;
 /// @endcode
-class Star {
+class Star : public Vector3 {
   public:
     /// List type, defined as a vector of Stars.
     using list = std::vector<Star>;
@@ -46,40 +47,26 @@ class Star {
     /// Returned when a user attempts to access an item using the [] operator for n > 1.
     static constexpr double INVALID_ELEMENT_ACCESSED = 0;
     
-    /// Precision default for is_equal and '==' methods.
-    static constexpr double STAR_EQUALITY_PRECISION_DEFAULT = std::numeric_limits<double>::epsilon() * 10;
-    
     /// The default label of all stars.
     static constexpr int NO_LABEL = 0;
+    
+    /// The default magnitude of all stars (brighter than our Sun).
+    static constexpr double NO_MAGNITUDE = -30.0;
   
   public:
-    Star (double i, double j, double k, int label = 0, double m = -30.0, bool apply_normalize = false);
+    Star (double i, double j, double k, int label = NO_LABEL, double m = NO_MAGNITUDE);
     Star ();
     
-    std::string str () const;
-    
+    static Star wrap (Vector3 v, int label = NO_LABEL, double m = NO_MAGNITUDE);
+    friend std::ostream &operator<< (std::ostream &os, const Star &s);
     double operator[] (unsigned int n) const;
+    
     int get_label () const;
     double get_magnitude () const;
     
-    Star operator+ (const Star &s) const;
-    Star operator- (const Star &s) const;
-    Star operator* (double kappa) const;
-    
-    double norm () const;
-    Star normalize () const;
-    
-    static bool is_equal (const Star &s_1, const Star &s_2, double epsilon = STAR_EQUALITY_PRECISION_DEFAULT);
-    bool operator== (const Star &s) const;
-    
-    static Star zero ();
     static Star chance ();
     static Star chance (int label);
     
-    static double dot (const Star &s_1, const Star &s_2);
-    static Star cross (const Star &s_1, const Star &s_2);
-    
-    static double angle_between (const Star &s_1, const Star &s_2);
     static bool within_angle (const Star &s_1, const Star &s_2, double theta);
     static bool within_angle (const list &s_l, double theta);
     
@@ -89,15 +76,6 @@ class Star {
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
-    /// I Component (element 0) of 3D vector.
-    double i;
-    
-    /// J component (element 1) of 3D vector.
-    double j;
-    
-    /// K component (element 2) of 3D vector.
-    double k;
-    
     /// Catalog specific ID for the given star.
     int label;
     
