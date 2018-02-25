@@ -20,19 +20,21 @@ Star::Star (const double i, const double j, const double k, const int label, con
     this->label = label, this->m = m;
 }
 
-/// TODO: Finish the documentation here.
-///
-/// @param v
-/// @param label
-/// @param m
-Star Star::VStar (Vector3 v, int label, double m) {
-    return Star(v.data[0], v.data[1], v.data[2], label, m);
-}
-
 /// Overloaded constructor. Sets the i, j, k, magnitude, and catalog ID of a star to 0.
 [[deprecated]] Star::Star () : Vector3(0, 0, 0) {
     this->m = this->label = 0;
 }
+
+/// Wrap the given GMath vector with a label and magnitude (inside a Star object).
+///
+/// @param v GMath vector to wrap.
+/// @param label Label to attach to vector.
+/// @param m Magnitude to attach to vector.
+/// @return A Star object with the components in V, and the given label and m.
+Star Star::wrap (Vector3 v, int label, double m) {
+    return Star(v.data[0], v.data[1], v.data[2], label, m);
+}
+
 
 /// Place all components of S into the given stream.
 ///
@@ -72,7 +74,7 @@ double Star::get_magnitude () const {
 /// @return Star with random, normalized components, a catalog ID = NO_LABEL, and a m = NO_MAGNITUDE.
 Star Star::chance () {
     double a[] = {RandomDraw::draw_real(-1.0, 1.0), RandomDraw::draw_real(-1.0, 1.0), RandomDraw::draw_real(-1.0, 1.0)};
-    return VStar(Vector3::Normalized(Vector3(a[0], a[1], a[2])), NO_LABEL, NO_MAGNITUDE);
+    return wrap(Vector3::Normalized(Vector3(a[0], a[1], a[2])), NO_LABEL, NO_MAGNITUDE);
 }
 
 /// Generate a random star with normalized components. Using C++11 random functions. Instead of assigning a catalog ID

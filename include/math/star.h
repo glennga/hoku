@@ -57,10 +57,10 @@ class Star : public Vector3 {
     Star (double i, double j, double k, int label = NO_LABEL, double m = NO_MAGNITUDE);
     Star ();
     
-    static Star VStar (Vector3 v, int label = NO_LABEL, double m = NO_MAGNITUDE);
-    
-    friend std::ostream &operator<< (std::ostream &, const Star &);
+    static Star wrap (Vector3 v, int label = NO_LABEL, double m = NO_MAGNITUDE);
+    friend std::ostream &operator<< (std::ostream &os, const Star &s);
     double operator[] (unsigned int n) const;
+    
     int get_label () const;
     double get_magnitude () const;
     
