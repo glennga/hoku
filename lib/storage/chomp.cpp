@@ -17,17 +17,14 @@
 const double Chomp::DOUBLE_EPSILON = std::numeric_limits<double>::epsilon();
 
 /// Returned from query method if the specified star does not exist.
-const Star Chomp::NONEXISTENT_STAR = Star::zero();
+const Star Chomp::NONEXISTENT_STAR = Star::wrap(Vector3::Zero());
 
 /// Returned from bound query methods if the stars do not exist.
 const Nibble::tuples_d Chomp::RESULTANT_EMPTY = {};
 
 /// Constructor. This dynamically allocates a database connection object to nibble.db. If the database does not exist,
 /// it is created. We then proceed to load all stars into RAM from both tables.
-Chomp::Chomp () {
-    const int FLAGS = SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE;
-    this->conn = std::make_unique<SQLite::Database>(DATABASE_LOCATION, FLAGS);
-    
+Chomp::Chomp () : Nibble() {
     // Parse the table names.
     INIReader cf(std::string(std::getenv("HOKU_PROJECT_PATH")) + std::string("/CONFIG.ini"));
     this->bright_table = cf.Get("table-names", "bright", "");
@@ -37,6 +34,24 @@ Chomp::Chomp () {
     generate_table(cf, true);
     generate_table(cf, false);
     load_all_stars();
+}
+
+/// Overloaded constructor. This loads a single, specified table into memory. All future queries must involve solely
+/// this table. The HIP and HIP_BRIGHT tables will still be stored into the list.
+///
+/// @param table_name Name of the table to load into memory.
+/// @param focus Name of the focus column to polish table with.
+Chomp::Chomp (const std::string &table_name, const std::string &focus) : Nibble(table_name, focus) {
+    Chomp ch_t;
+    
+    // Parse the table names (for consistency).
+    INIReader cf(std::string(std::getenv("HOKU_PROJECT_PATH")) + std::string("/CONFIG.ini"));
+    this->bright_table = cf.Get("table-names", "bright", "");
+    this->hip_table = cf.Get("table-names", "hip", "");
+    
+    // Store the star lists. These are used by Chomp query methods.
+    this->all_bright_stars = ch_t.all_bright_stars;
+    this->all_hip_stars = ch_t.all_hip_stars;
 }
 
 /// Helper method for catalog table generation methods. Read the star catalog data and compute the {i, j, k} components
@@ -59,15 +74,13 @@ std::array<double, 7> Chomp::components_from_line (const std::string &entry, con
         double delta = ((180.0 / M_PI) * stof(entry.substr(29, 13), nullptr)) + (pm_delta * y_t * (1 / (3600000.0)));
     
         // Convert to cartesian w/ r = 1. Reduce to unit vector.
-        Star star_entry(1.0 * cos((M_PI / 180.0) * delta) * cos((M_PI / 180.0) * alpha),
-                        1.0 * cos((M_PI / 180.0) * delta) * sin(M_PI / 180.0 * alpha),
-                        1.0 * sin((M_PI / 180.0) * delta), 0, true);
+        Vector3 s = Vector3::Normalized(Vector3::FromSpherical(1.0, delta, alpha));
         
         // Parse apparent magnitude and label.
         double m = stof(entry.substr(129, 7), nullptr);
         double ell = stof(entry.substr(0, 6), nullptr);
         
-        components = {alpha, delta, star_entry[0], star_entry[1], star_entry[2], m, ell};
+        components = {alpha, delta, s.data[0], s.data[1], s.data[2], m, ell};
     }
     catch (std::exception &e) {
         // Ignore entries without recorded alpha or delta.
@@ -160,13 +173,6 @@ Star Chomp::query_hip (int label) {
 /// @return List with all stars in the Nibble table with a magnitude less than 6.0.
 Star::list Chomp::bright_as_list () {
     return this->all_bright_stars;
-}
-
-/// Accessor for all_hip_stars list.
-///
-/// @return List with all stars in the Nibble table.
-Star::list Chomp::hip_as_list () {
-    return this->all_hip_stars;
 }
 
 /// Given a focus star and a field of view limit, find all bright stars around the focus.
@@ -344,13 +350,8 @@ int Chomp::create_k_vector (const std::string &focus) {
 Nibble::tuples_d Chomp::k_vector_query (const std::string &focus, const std::string &fields, const double y_a,
                                         const double y_b, const unsigned int expected) {
     // TODO: Determine what is wrong with this K-Vector implementation.
-    std::ostringstream condition;
-    
-    select_table(table);
-    condition << focus << " BETWEEN " << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed;
-    condition << y_a << " AND " << y_b;
-    return search_table(fields, condition.str(), expected, expected);
-    
+    return simple_bound_query(focus, fields, y_a, y_b, expected);
+
     //    tuples_d s_endpoints;
     //    std::string sql, s_table = table;
     //

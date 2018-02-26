@@ -48,21 +48,19 @@ class Chomp : public Nibble {
     /// Length of the general stars table. Necessary if loading all stars into RAM.
     static constexpr unsigned int HIP_TABLE_LENGTH = 117956;
     
-    /// Largest catalog ID in the bright stars table.
-    static constexpr unsigned int BRIGHT_TABLE_MAX_LABEL = 117930;
-    
-    /// Smallest catalog ID in the bright stars table.
-    static constexpr unsigned int BRIGHT_TABLE_MIN_LABEL = 88;
-    
     /// Returned from table generators when the table already exists in the database.
     static constexpr int TABLE_EXISTS = -1;
+    
+    /// Open and unique database connection object for an in-memory database.
+    std::unique_ptr<SQLite::Database> m_conn;
   
   public:
     using Nibble::tuples_d;
     
     Chomp ();
+    Chomp (const std::string &table_name, const std::string &focus);
     
-    int generate_table(INIReader &cf, bool m_flag = true);
+    int generate_table (INIReader &cf, bool m_flag = true);
     
     int create_k_vector (const std::string &);
     tuples_d k_vector_query (const std::string &, const std::string &, double, double, unsigned int);
@@ -73,15 +71,17 @@ class Chomp : public Nibble {
     Star::list nearby_hip_stars (const Star &, double, unsigned int);
     
     Star::list bright_as_list ();
-    Star::list hip_as_list ();
     Star query_hip (int);
     
     static const Star NONEXISTENT_STAR;
     static const tuples_d RESULTANT_EMPTY;
 
 #if !defined ENABLE_TESTING_ACCESS
-    private:
+  private:
 #endif
+    /// All tables loaded into the in-memory database.
+    std::vector<std::string> m_tables;
+    
     /// All stars in the HIP_BRIGHT table, from the 'load_all_stars' method.
     Star::list all_bright_stars;
     
@@ -98,15 +98,15 @@ class Chomp : public Nibble {
     const std::string HIP_CATALOG_LOCATION = PROJECT_LOCATION + "/data/hip2.dat";
 
 #if !defined ENABLE_TESTING_ACCESS
-    private:
+  private:
 #endif
     static const double DOUBLE_EPSILON;
-
+    
     int build_k_vector_table (const std::string &, double, double);
     void load_all_stars ();
     
     static std::array<double, 7> components_from_line (const std::string &, double y_t);
-    static double year_difference(INIReader &cf);
+    static double year_difference (INIReader &cf);
 };
 
 #endif /* HOKU_CHOMP_H */

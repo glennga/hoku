@@ -51,10 +51,11 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/lib)
 # Required Libraries for External Usage
 ##################################################################
 set(HOKU_MATH_LIBS Mercator Rotation Trio Star RandomDraw)
+set(HOKU_STORAGE_LIBS Chomp Nibble SQLiteCpp Sqlite3)
 
 set(HOKU_LIBS CompositePyramid Pyramid PlanarTriangle SphericalTriangle
         DotAngle Angle BaseTriangle Identification Benchmark
-        Chomp Nibble SQLiteCpp Sqlite3 ${HOKU_MATH_LIBS})
+        ${HOKU_STORAGE_LIBS} ${HOKU_MATH_LIBS})
 
 ##################################################################
 # Add Subdirectory Containing Unit Tests (If Desired)
