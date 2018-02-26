@@ -79,7 +79,7 @@ void Nibble::select_table (const std::string &table, const bool check_existence)
 /// @param fields The columns to search for in the current table.
 /// @param constraint The SQL string to be used with the WHERE clause.
 /// @param expected Expected number of results to be returned. Better to overshoot.
-/// @param limit Limit the results searched for with this.
+/// @param limit Limit the results searched for with this. Use NO_LIMIT to avoid this constraint.
 /// @return List of results returned from query, ordered by tuple in table.
 Nibble::tuples_d Nibble::search_table (const std::string &fields, const std::string &constraint,
                                        const unsigned int expected, const int limit) {
@@ -90,7 +90,7 @@ Nibble::tuples_d Nibble::search_table (const std::string &fields, const std::str
     sql = "SELECT " + fields + " FROM " + table + " WHERE " + constraint;
     
     // Do not use the limit constraint if limit is not specified.
-    if (limit > 0) {
+    if (limit != NO_LIMIT) {
         sql += " LIMIT " + std::to_string(limit);
     }
     
@@ -112,7 +112,7 @@ Nibble::tuples_d Nibble::search_table (const std::string &fields, const std::str
 ///
 /// @param fields The columns to search for in the current table.
 /// @param expected Expected number of results to be returned. Better to overshoot.
-/// @param limit Limit the results searched for with this.
+/// @param limit Limit the results searched for with this. Use NO_LIMIT to avoid this constraint.
 /// @return List of results returned from query, ordered by tuple in table.
 Nibble::tuples_d Nibble::search_table (const std::string &fields, const unsigned int expected, const int limit) {
     tuples_d result;
@@ -122,7 +122,7 @@ Nibble::tuples_d Nibble::search_table (const std::string &fields, const unsigned
     sql = "SELECT " + fields + " FROM " + table;
     
     // Do not use limit constraint if limit is not specified.
-    if (limit > 0) {
+    if (limit != NO_LIMIT) {
         sql += " LIMIT " + std::to_string(limit);
     }
     
