@@ -58,7 +58,7 @@ Chomp::Chomp (const std::string &table_name, const std::string &focus) : Nibble(
 /// given a line from the ASCII catalog. Source: http://cdsarc.u-strasbg.fr/viz-bin/Cat?I/311#sRM2.1
 ///
 /// @param entry String containing line from Hipparcos ASCII catalog.
-/// @param y_t Difference in years from the catlaog to the current date.
+/// @param y_t Difference in years from the catalog to the current date.
 /// @return Array of components in order {alpha, delta, i, j, k, m, label}.
 std::array<double, 7> Chomp::components_from_line (const std::string &entry, const double y_t) {
     std::array<double, 7> components = {0, 0, 0, 0, 0, 0, 0};
@@ -72,13 +72,13 @@ std::array<double, 7> Chomp::components_from_line (const std::string &entry, con
         
         // Read declination. Convert to degrees. Update with correct position.
         double delta = ((180.0 / M_PI) * stof(entry.substr(29, 13), nullptr)) + (pm_delta * y_t * (1 / (3600000.0)));
-    
+        
         // Convert to cartesian w/ r = 1. Reduce to unit vector.
-        Vector3 s = Vector3::Normalized(Vector3::FromSpherical(1.0, delta, alpha));
+        double r[] = {(M_PI / 180.0) * alpha, (M_PI / 180.0) * delta};
+        Vector3 s = Vector3::Normalized(Vector3(cos(r[0]) * cos(r[1]), sin(r[0]) * cos(r[1]), sin(r[1])));
         
         // Parse apparent magnitude and label.
-        double m = stof(entry.substr(129, 7), nullptr);
-        double ell = stof(entry.substr(0, 6), nullptr);
+        double m = stof(entry.substr(129, 7), nullptr), ell = stof(entry.substr(0, 6), nullptr);
         
         components = {alpha, delta, s.data[0], s.data[1], s.data[2], m, ell};
     }
@@ -89,11 +89,12 @@ std::array<double, 7> Chomp::components_from_line (const std::string &entry, con
     return components;
 }
 
-/// TODO: Finish the documentation here.
+/// Determine the difference in years between the time of the catalog recording (J1991.25) and the time specified in
+/// the configuration file.
 ///
-/// @param cf
-/// @return
-double Chomp::year_difference(INIReader &cf) {
+/// @param cf Configuration reader holding all parameters to use.
+/// @return Difference in years from J1991.25 and the month & year specified in CONFIG.ini.
+double Chomp::year_difference (INIReader &cf) {
     std::string time_e = cf.Get("hardware", "time", "");
     if (time_e == "") {
         throw std::runtime_error(std::string("'time' in 'CONFIG.ini' is not formatted correctly."));
@@ -121,7 +122,7 @@ double Chomp::year_difference(INIReader &cf) {
 /// @param m_flag If true, generate restrict the magnitude of each entry and insert only bright stars.
 /// @return TABLE_EXISTS if the bright stars table already exists. 0 otherwise.
 int Chomp::generate_table (INIReader &cf, bool m_flag) {
-    std::ifstream catalog(HIP_CATALOG_LOCATION);
+    std::ifstream catalog(PROJECT_LOCATION + "/data/hip2.dat");
     if (!catalog.is_open()) {
         throw std::runtime_error(std::string("Catalog file cannot be opened."));
     }
@@ -306,7 +307,8 @@ int Chomp::build_k_vector_table (const std::string &focus_column, const double m
     return 0;
 }
 
-/// Create the K-Vector for the given for the given table using the specified focus column.
+/// Create the K-Vector for the given for the given table using the specified focus column. Note that this technique
+/// works best for linearly distributed data (i.e. the angles between each combination of two stars).
 ///
 /// @param focus Name of the column to construct K-Vector with.
 /// @return TABLE_NOT_CREATED if the table already exists. Otherwise, 0 when finished.
@@ -349,39 +351,36 @@ int Chomp::create_k_vector (const std::string &focus) {
 /// that queried from Nibble.
 Nibble::tuples_d Chomp::k_vector_query (const std::string &focus, const std::string &fields, const double y_a,
                                         const double y_b, const unsigned int expected) {
-    // TODO: Determine what is wrong with this K-Vector implementation.
-    return simple_bound_query(focus, fields, y_a, y_b, expected);
-
-    //    tuples_d s_endpoints;
-    //    std::string sql, s_table = table;
-    //
-    //    // Search for last and first element of sorted table.
-    //    std::string sql_for_max_id = std::string("(SELECT MAX(rowid) FROM ") + table + ")";
-    //    double focus_n = search_single(focus, "rowid = " + sql_for_max_id);
-    //    double focus_0 = search_single(focus, "rowid = 1");
-    //
-    //    // Determine Z equation, this creates slightly steeper line.
-    //    double n = search_single("MAX(rowid)");
-    //    double m = (focus_n - focus_0 + (2.0 * DOUBLE_EPSILON)) / (int) (n - 1);
-    //    double q = focus_0 - m - DOUBLE_EPSILON;
-    //
-    //    // Determine indices of search, and perform search.
-    //    double j_b = floor((y_a - q) / m);
-    //    double j_t = ceil((y_b - q) / m);
-    //
-    //    // Get index to s-vector (original table).
-    //    select_table(s_table + "_KVEC");
-    //    sql = "rowid BETWEEN " + std::to_string((int) j_b) + " AND " + std::to_string((int) j_t);
-    //    s_endpoints = search_table("k_value", sql, expected / 2);
-    //
-    //    select_table(s_table);
-    //
-    //    if (!s_endpoints.empty()) {
-    //        sql = "rowid BETWEEN " + std::to_string(s_endpoints.front()[0]) + " AND " + std::to_string(
-    //                s_endpoints.back()[0]);
-    //        return search_table(fields, sql, expected);
-    //    }
-    //    else {
-    //        return {};
-    //    }
+    tuples_d s_endpoints;
+    std::string sql, s_table = table;
+    
+    // Search for last and first element of sorted table.
+    std::string sql_for_max_id = std::string("(SELECT MAX(rowid) FROM ") + table + ")";
+    double focus_n = search_single(focus, "rowid = " + sql_for_max_id);
+    double focus_0 = search_single(focus, "rowid = 1");
+    
+    // Determine Z equation, this creates slightly steeper line.
+    double n = search_single("MAX(rowid)");
+    double m = (focus_n - focus_0 + (2.0 * DOUBLE_EPSILON)) / (int) (n - 1);
+    double q = focus_0 - m - DOUBLE_EPSILON;
+    
+    // Determine indices of search, and perform search.
+    double j_b = floor((y_a - q) / m);
+    double j_t = ceil((y_b - q) / m);
+    
+    // Get index to s-vector (original table).
+    select_table(s_table + "_KVEC");
+    sql = "rowid BETWEEN " + std::to_string((int) j_b) + " AND " + std::to_string((int) j_t);
+    s_endpoints = search_table("k_value", sql, expected / 2);
+    
+    select_table(s_table);
+    
+    if (!s_endpoints.empty()) {
+        sql =
+            "rowid BETWEEN " + std::to_string(s_endpoints.front()[0]) + " AND " + std::to_string(s_endpoints.back()[0]);
+        return search_table(fields, sql, expected);
+    }
+    else {
+        return {};
+    }
 }

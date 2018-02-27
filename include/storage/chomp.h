@@ -50,9 +50,6 @@ class Chomp : public Nibble {
     
     /// Returned from table generators when the table already exists in the database.
     static constexpr int TABLE_EXISTS = -1;
-    
-    /// Open and unique database connection object for an in-memory database.
-    std::unique_ptr<SQLite::Database> m_conn;
   
   public:
     using Nibble::tuples_d;
@@ -62,26 +59,24 @@ class Chomp : public Nibble {
     
     int generate_table (INIReader &cf, bool m_flag = true);
     
-    int create_k_vector (const std::string &);
-    tuples_d k_vector_query (const std::string &, const std::string &, double, double, unsigned int);
+    int create_k_vector (const std::string &focus);
+    tuples_d k_vector_query (const std::string &focus, const std::string &fields, double y_a, double y_b,
+                             unsigned int expected);
+    tuples_d simple_bound_query (const std::string &focus, const std::string &fields, double y_a, double y_b,
+                                 unsigned int limit);
     
-    tuples_d simple_bound_query (const std::string &, const std::string &, double, double, unsigned int);
-    
-    Star::list nearby_bright_stars (const Star &, double, unsigned int);
-    Star::list nearby_hip_stars (const Star &, double, unsigned int);
+    Star::list nearby_bright_stars (const Star &focus, double fov, unsigned int expected);
+    Star::list nearby_hip_stars (const Star &focus, double fov, unsigned int expected);
     
     Star::list bright_as_list ();
-    Star query_hip (int);
+    Star query_hip (int label);
     
     static const Star NONEXISTENT_STAR;
     static const tuples_d RESULTANT_EMPTY;
 
 #if !defined ENABLE_TESTING_ACCESS
-  private:
+    private:
 #endif
-    /// All tables loaded into the in-memory database.
-    std::vector<std::string> m_tables;
-    
     /// All stars in the HIP_BRIGHT table, from the 'load_all_stars' method.
     Star::list all_bright_stars;
     
@@ -93,19 +88,15 @@ class Chomp : public Nibble {
     
     /// String of the Nibble table name holding all of the stars in the Hipparcos.
     std::string hip_table;
-    
-    // Path of the ASCII Hipparcos Star catalog.
-    const std::string HIP_CATALOG_LOCATION = PROJECT_LOCATION + "/data/hip2.dat";
-
 #if !defined ENABLE_TESTING_ACCESS
-  private:
+    private:
 #endif
     static const double DOUBLE_EPSILON;
     
-    int build_k_vector_table (const std::string &, double, double);
+    int build_k_vector_table (const std::string &focus_column, double m, double q);
     void load_all_stars ();
     
-    static std::array<double, 7> components_from_line (const std::string &, double y_t);
+    static std::array<double, 7> components_from_line (const std::string &entry, double y_t);
     static double year_difference (INIReader &cf);
 };
 

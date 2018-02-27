@@ -63,11 +63,9 @@ Nibble::Nibble (const std::string &table_name, const std::string &focus) {
 /// @param check_existence If desired, can check table existence and throw error if not found.
 void Nibble::select_table (const std::string &table, const bool check_existence) {
     if (check_existence) {
-        SQLite::Statement query(*conn, "SELECT name FROM sqlite_master WHERE type='table' AND name='" + table + "\'");
-        while (query.executeStep()) {
-            if (query.getColumnCount() == 0) {
-                throw std::runtime_error(std::string("Table does not exist. 'check_existence' flag raised"));
-            }
+        SQLite::Statement query(*conn, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='" + table + "\'");
+        if (!query.executeStep()) {
+            throw std::runtime_error(std::string("Table does not exist. 'check_existence' flag raised"));
         }
     }
     

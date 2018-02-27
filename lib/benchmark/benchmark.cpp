@@ -15,10 +15,10 @@ const std::string Benchmark::PROJECT_LOCATION = std::getenv("HOKU_PROJECT_PATH")
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 /// String of the current plot temp file.
-const std::string Benchmark::CURRENT_TMP = "%TEMP%/cuplt.tmp";
+const std::string Benchmark::CURRENT_TMP = std::getenv("TEMP") + "/cuplt.tmp";
 
 /// String of the error plot temp file.
-const std::string Benchmark::ERROR_TMP = "%TEMP/errplt.tmp";
+const std::string Benchmark::ERROR_TMP = std::getenv("TEMP") + "/errplt.tmp";
 #else
 /// String of the current plot temp file.
 const std::string Benchmark::CURRENT_TMP = "/tmp/cuplt.tmp";
