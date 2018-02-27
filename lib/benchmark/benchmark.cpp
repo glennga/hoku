@@ -15,10 +15,10 @@ const std::string Benchmark::PROJECT_LOCATION = std::getenv("HOKU_PROJECT_PATH")
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 /// String of the current plot temp file.
-const std::string Benchmark::CURRENT_TMP = std::getenv("TEMP") + "/cuplt.tmp";
+const std::string Benchmark::CURRENT_TMP = std::string(std::getenv("TEMP")) + "/cuplt.tmp";
 
 /// String of the error plot temp file.
-const std::string Benchmark::ERROR_TMP = std::getenv("TEMP") + "/errplt.tmp";
+const std::string Benchmark::ERROR_TMP = std::string(std::getenv("TEMP")) + "/errplt.tmp";
 #else
 /// String of the current plot temp file.
 const std::string Benchmark::CURRENT_TMP = "/tmp/cuplt.tmp";
@@ -38,7 +38,6 @@ const std::string Benchmark::PLOT_SCRIPT = "\"" + PROJECT_LOCATION + "/script/py
 /// @param m_bar Maximum magnitude a star must be within in the given benchmark.
 Benchmark::Benchmark (Chomp &ch, const double fov, const double m_bar) {
     this->fov = fov, this->center = Star::chance(), this->q_rb = Rotation::chance();
-    
     generate_stars(ch, m_bar);
 }
 
@@ -136,7 +135,7 @@ void Benchmark::record_current_plot () {
     
     // Record the center.
     current_record << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed;
-    current_record << this->center[0] << " " << this->center[1] << " " << this->center[2] << "\n";
+    current_record << this->center.data[0] << " " << this->center.data[1] << " " << this->center.data[2] << "\n";
     
     // Record the stars.
     for (const Star &s : this->b) {
@@ -162,7 +161,8 @@ void Benchmark::record_current_plot () {
 /// familiar with Python's MatPlotLib, so this seemed like the most straight-forward approach.
 void Benchmark::display_plot () {
     // Field-of-view and norm are parameters to the plot script.
-    std::string params = " fov=" + std::to_string(this->fov) + " norm=" + std::to_string(this->center.norm());
+    std::string params =
+        " fov=" + std::to_string(this->fov) + " norm=" + std::to_string(Vector3::Magnitude(this->center));
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
     std::string cmd = std::string("python ") + PLOT_SCRIPT + params;
@@ -177,29 +177,6 @@ void Benchmark::display_plot () {
     }
 }
 
-/// Compare the number of matching stars that exist between the two stars sets.
-///
-/// @param b Benchmark containing star list to compare with s_l.
-/// @param s_l Star list to compare with B.
-/// @return The number of stars found matching both lists.
-int Benchmark::compare_stars (const Benchmark &b, const Star::list &s_l) {
-    Star::list s_candidates = s_l;
-    unsigned int count = 0;
-    
-    for (const Star &s_a : b.b) {
-        for (unsigned int i = 0; i < s_candidates.size(); i++) {
-            
-            // If we find big_ia match, erase this from our candidates list.
-            if (s_a == s_candidates[i]) {
-                s_candidates.erase(s_candidates.begin() + i);
-                count++;
-            }
-        }
-    }
-    
-    return count;
-}
-
 /// Append n randomly placed vectors that fall within fov/2 degrees of the focus. This models stray light that may
 /// randomly wander into the detector.
 ///
@@ -207,7 +184,7 @@ int Benchmark::compare_stars (const Benchmark &b, const Star::list &s_l) {
 /// @param cap_error Flag to move an error star to the front of the star list.
 void Benchmark::add_extra_light (const unsigned int n, bool cap_error) {
     unsigned int current_n = 0;
-    ErrorModel extra_light = {"Extra Light", "r", {Star::zero()}};
+    ErrorModel extra_light = {"Extra Light", "r", {Star::wrap(Vector3::Zero())}};
     
     while (current_n < n) {
         Star generated = Star::chance(-current_n - 1);
@@ -236,7 +213,7 @@ void Benchmark::add_extra_light (const unsigned int n, bool cap_error) {
 void Benchmark::remove_light (const unsigned int n, const double psi) {
     unsigned int current_n = 0;
     std::vector<Star> blobs;
-    ErrorModel removed_light = {"Removed Light", "0.5", {Star::zero()}};
+    ErrorModel removed_light = {"Removed Light", "0.5", {Star::wrap(Vector3::Zero())}};
     bool is_affected = false;
     
     while (!is_affected) {
@@ -278,7 +255,7 @@ void Benchmark::remove_light (const unsigned int n, const double psi) {
 /// @param sigma Amount to shift stars by, in terms of degrees.
 /// @param cap_error Flag to move an error star to the front of the star list.
 void Benchmark::shift_light (const unsigned int n, const double sigma, bool cap_error) {
-    ErrorModel shifted_light = {"Shifted Light", "g", {Star::zero()}};
+    ErrorModel shifted_light = {"Shifted Light", "g", {Star::wrap(Vector3::Zero())}};
     unsigned int current_n = 0;
     
     // Loop through entire list again if n not met through past run.
@@ -322,7 +299,7 @@ void Benchmark::barrel_light (double alpha) {
     
     for (unsigned int i = 0; i < this->b.size(); i++) {
         // Determine the distance our current star must be from the center.
-        double u = Star::angle_between(this->b[i], this->center);
+        double u = (180.0 / M_PI) * Star::Angle(this->b[i], this->center);
         double d = u * (1 - alpha * u * u);
         
         this->b.push_back(Rotation::slerp(this->b[i], this->center, d));

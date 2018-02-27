@@ -12,4 +12,5 @@ include_directories(${CMAKE_SOURCE_DIR}/test/include)
 # Link and Create Executable TestBenchmark
 ##################################################################
 add_executable(TestBenchmark test-benchmark.cpp)
-target_link_libraries(TestBenchmark gtest ${HOKU_LIBS})
+target_link_libraries(TestBenchmark gtest Benchmark
+        ${HOKU_STORAGE_LIBS} ${HOKU_MATH_LIBS})
