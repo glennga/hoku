@@ -33,7 +33,7 @@ SphericalTriangle::SphericalTriangle (const Benchmark &input, const Parameters &
 /// @return TABLE_ALREADY_EXISTS if the table already exists. Otherwise, 0 when finished.
 int SphericalTriangle::generate_table (INIReader &cf) {
     return generate_triangle_table(cf, "sphere", Trio::spherical_area,
-                                   [] (const Star &b_1, const Star &b_2, const Star &b_3) {
+                                   [] (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &b_3) {
                                        return Trio::spherical_moment(b_1, b_2, b_3, DEFAULT_TD_H);
                                    });
 }
@@ -45,9 +45,10 @@ int SphericalTriangle::generate_table (INIReader &cf) {
 /// @return NO_CANDIDATE_STARS_FOUND if stars are not within the fov or if no matches currently exist.
 /// Otherwise, vector of trios whose areas and moments are close.
 std::vector<Star::trio> Sphere::query_for_trios (const index_trio &c) {
-    return base_query_for_trios(c, Trio::spherical_area, [] (const Star &b_1, const Star &b_2, const Star &b_3) {
-        return Trio::spherical_moment(b_1, b_2, b_3, DEFAULT_TD_H);
-    });
+    return base_query_for_trios(c, Trio::spherical_area,
+                                [] (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &b_3) {
+                                    return Trio::spherical_moment(b_1, b_2, b_3, DEFAULT_TD_H);
+                                });
 }
 
 /// Find the matching pairs using the appropriate triangle table and by comparing areas and polar moments. Input image

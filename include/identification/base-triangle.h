@@ -28,10 +28,10 @@ class BaseTriangle : public Identification {
     using index_trio = std::array<int, 3>;
     
     /// Alias for an area function in the Trio class.
-    using area_function = double (*) (const Star &, const Star &, const Star &);
+    using area_function = double (*) (const Vector3 &, const Vector3 &, const Vector3 &);
     
     /// Alias for a moment function in the Trio class.
-    using moment_function =  double (*) (const Star &, const Star &, const Star &);
+    using moment_function =  double (*) (const Vector3 &, const Vector3 &, const Vector3 &);
     
     /// Return the first element, and deque the first element.
     ///

@@ -14,7 +14,12 @@
 
 /// Check that the parameter collector method transfers the appropriate parameters.
 TEST(ParameterCollect, CleanInput) {
-    std::ofstream f1(std::string(std::getenv("HOKU_PROJECT_PATH")) + "/data/tmp/TESTCONFIG1.ini");
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+    std::string temp_path = std::getenv("TEMP");
+#else
+    std::string temp_path = "/tmp";
+#endif
+    std::ofstream f1(temp_path + "/TESTCONFIG1.ini");
     ASSERT_TRUE(f1.is_open());
     
     f1 << "[id-parameters]             ; Values used in 'Parameters' struct.\n"
@@ -27,7 +32,7 @@ TEST(ParameterCollect, CleanInput) {
         "wbs = TRIAD                 ; Function used to solve Wabha (possible TRIAD, QUEST, Q)";
     f1.close();
     
-    INIReader cf1(std::string(std::getenv("HOKU_PROJECT_PATH")) + "/data/tmp/TESTCONFIG1.ini");
+    INIReader cf1(temp_path + "/TESTCONFIG1.ini");
     Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
     Identification::collect_parameters(p, cf1);
     
@@ -38,12 +43,16 @@ TEST(ParameterCollect, CleanInput) {
     EXPECT_FLOAT_EQ(p.sigma_overlay, 0.00000001);
     EXPECT_EQ(p.nu_max, 50000);
     EXPECT_EQ(p.f, Rotation::triad);
-    std::remove((std::string(std::getenv("HOKU_PROJECT_PATH")) + "/data/tmp/TESTCONFIG1.ini").c_str());
 }
 
 /// Check that the parameter collector method uses default parameters under improper conditions.
 TEST(ParameterCollect, ErrorInput) {
-    std::ofstream f2(std::string(std::getenv("HOKU_PROJECT_PATH")) + "/data/tmp/TESTCONFIG2.ini");
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+    std::string temp_path = std::getenv("TEMP");
+#else
+    std::string temp_path = "/tmp";
+#endif
+    std::ofstream f2(temp_path + "/TESTCONFIG2.ini");
     ASSERT_TRUE(f2.is_open());
     
     f2 << "[id-parameters]             ; Values used in 'Parameters' struct.\n"
@@ -56,7 +65,7 @@ TEST(ParameterCollect, ErrorInput) {
         "wbs = TY                    ; Function used to solve Wabha (possible TRIAD, QUEST, Q)";
     f2.close();
     
-    INIReader cf2(std::string(std::getenv("HOKU_PROJECT_PATH")) + "/data/tmp/TESTCONFIG2.ini");
+    INIReader cf2(temp_path + "/TESTCONFIG2.ini");
     Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
     Identification::collect_parameters(p, cf2);
     
@@ -67,7 +76,6 @@ TEST(ParameterCollect, ErrorInput) {
     EXPECT_FLOAT_EQ(p.sigma_overlay, 0.001);
     EXPECT_EQ(p.nu_max, 5);
     EXPECT_EQ(p.f, Rotation::triad);
-    std::remove((std::string(std::getenv("HOKU_PROJECT_PATH")) + "/data/tmp/TESTCONFIG2.ini").c_str());
 }
 
 /// Check that the rotating match method marks the all stars as matched.
@@ -116,7 +124,7 @@ TEST(FindMatches, ErrorInput) {
     }
     
     // Append center as error.
-    rev_input.push_back(input.center);
+    rev_input.push_back(Star::wrap(input.center));
     std::vector<Star> h = g.find_positive_overlay(rev_input, c);
     EXPECT_EQ(h.size(), input.b.size());
     
@@ -181,6 +189,8 @@ TEST(SortBrightness, BrightestStart) {
 
 /// Check that the alignment output used by the Angle method returns a similar rotation.
 TEST(AngleAlign, CleanInput) {
+    
+    
     // TODO: Finish a test for comparing the ground-truth quaternion and the resultant from the alignment.
 }
 

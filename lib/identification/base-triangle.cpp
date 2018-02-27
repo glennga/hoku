@@ -14,16 +14,19 @@
 const std::vector<BaseTriangle::labels_list> BaseTriangle::NO_CANDIDATE_TRIOS_FOUND = {{-1, -1, -1}};
 
 /// Returned when no candidates can be found from a match step.
-const std::vector<Star::trio> BaseTriangle::NO_CANDIDATE_STARS_FOUND = {{Star::zero(), Star::zero(), Star::zero()}};
+const std::vector<Star::trio> BaseTriangle::NO_CANDIDATE_STARS_FOUND = {
+    {Star::wrap(Vector3::Zero()), Star::wrap(Vector3::Zero()), Star::wrap(Vector3::Zero())}};
 
 /// Returned with an unsuccessful pivoting step.
-const Star::trio BaseTriangle::NO_CANDIDATE_STAR_SET_FOUND = {Star::zero(), Star::zero(), Star::zero()};
+const Star::trio BaseTriangle::NO_CANDIDATE_STAR_SET_FOUND = {Star::wrap(Vector3::Zero()), Star::wrap(Vector3::Zero()),
+    Star::wrap(Vector3::Zero())};
 
 /// Starting index trio to perform pivot with.
 const BaseTriangle::index_trio BaseTriangle::STARTING_INDEX_TRIO = {0, 1, 2};
 
 /// Constructor. Initializes our permutation stack.
-BaseTriangle::BaseTriangle () : Identification(), pivot_c({}) {
+BaseTriangle::BaseTriangle () : Identification() {
+    pivot_c = {};
 }
 
 /// Generate the triangle table given the specified FOV and table name. This find the area and polar moment
@@ -64,7 +67,7 @@ int BaseTriangle::generate_triangle_table (INIReader &cf, const std::string &tri
                     double i_t = compute_moment(all_stars[i], all_stars[j], all_stars[k]);
                     
                     // Prevent insertion of trios with non realistic moments/areas.
-                    if (a_t > 0 && !std::isnan(i_t)) {
+                    if (a_t > 0 && !std::isnan(i_t) && i_t > 0) {
                         ch.insert_into_table("label_a, label_b, label_c, a, i",
                                              Nibble::tuple_d {static_cast<double>(all_stars[i].get_label()),
                                                  static_cast<double>(all_stars[j].get_label()),
@@ -260,15 +263,21 @@ std::vector<BaseTriangle::labels_list> BaseTriangle::e_query (double a, double i
 ///
 /// @return NO_CANDIDATES_FOUND if no candidates found. Otherwise, a single elements that best meets the criteria.
 Identification::labels_list BaseTriangle::e_reduction () {
-    generate_pivot_list(STARTING_INDEX_TRIO);
-    Star::trio p = pivot(STARTING_INDEX_TRIO);
-    
-    if (std::equal(p.begin(), p.end(), NO_CANDIDATE_STAR_SET_FOUND.begin())) {
-        return EMPTY_BIG_R_ELL;
+    for (int i = 0; i < static_cast<signed> (big_i.size() - 2); i++) {
+        for (int j = i + 1; j < static_cast<signed> (big_i.size() - 1); j++) {
+            for (int k = j + 1; k < static_cast<signed> (big_i.size()); k++) {
+                generate_pivot_list({i, j, k});
+                Star::trio p = pivot({i, j, k});
+                
+                // Require that the pivot produces a meaningful result.
+                if (std::equal(p.begin(), p.end(), NO_CANDIDATE_STAR_SET_FOUND.begin())) {
+                    continue;
+                }
+                return {p[0].get_label(), p[0].get_label(), p[0].get_label()};
+            }
+        }
     }
-    else {
-        return {p[0].get_label(), p[1].get_label(), p[2].get_label()};
-    }
+    return EMPTY_BIG_R_ELL;
 }
 
 /// Find the rotation from the images in our current benchmark to our inertial frame (i.e. the catalog).

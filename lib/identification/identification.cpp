@@ -12,10 +12,10 @@
 const Identification::labels_list Identification::EMPTY_BIG_R_ELL = {-1, -1};
 
 /// Returned when there exists no confident identity from an identification trial.
-const Star::list Identification::NO_CONFIDENT_A = {Star::define_label(Star::zero(), -1)};
+const Star::list Identification::NO_CONFIDENT_A = {Star::wrap(Vector3::Zero(), -1)};
 
 /// Returned when we count past our defined max nu from a crown or identification trial.
-const Star::list Identification::EXCEEDED_NU_MAX = {Star::zero()};
+const Star::list Identification::EXCEEDED_NU_MAX = {Star::wrap(Vector3::Zero())};
 
 /// Default parameters for a general identification object.
 const Identification::Parameters Identification::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
@@ -71,7 +71,7 @@ Star::list Identification::find_positive_overlay (const Star::list &big_p, const
     for (const Star &p_i : big_p) {
         Star r_prime = Rotation::rotate(p_i, q);
         for (unsigned int i = 0; i < big_i.size(); i++) {
-            if (Star::angle_between(r_prime, big_i[i]) < epsilon) {
+            if (Star::within_angle(r_prime, big_i[i], epsilon)) {
                 // Add this match to the list by noting the candidate star's catalog ID.
                 m.emplace_back(Star(big_i[i][0], big_i[i][1], big_i[i][2], p_i.get_label()));
                 

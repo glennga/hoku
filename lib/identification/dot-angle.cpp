@@ -15,7 +15,8 @@ const Identification::Parameters Dot::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY,
     DEFAULT_F, "INTERIOR_20"};
 
 /// Returned when no candidate pair is found from a query.
-const Star::trio Dot::NO_CANDIDATE_TRIO_FOUND = {Star::zero(), Star::zero(), Star::zero()};
+const Star::trio Dot::NO_CANDIDATE_TRIO_FOUND = {Star::wrap(Vector3::Zero()), Star::wrap(Vector3::Zero()),
+    Star::wrap(Vector3::Zero())};
 
 /// Constructor. Sets the benchmark data, fov, parameters, and current working table.
 ///
@@ -53,8 +54,8 @@ int Dot::generate_table (INIReader &cf) {
             for (unsigned int c = j + 1; c < all_stars.size(); c++) {
                 
                 // Compute each feature (theta^1, theta^2, phi).
-                double theta_1 = Star::angle_between(all_stars[c], all_stars[i]);
-                double theta_2 = Star::angle_between(all_stars[c], all_stars[j]);
+                double theta_1 = (M_PI / 180.0) * Vector3::Angle(all_stars[c], all_stars[i]);
+                double theta_2 = (M_PI / 180.0) * Vector3::Angle(all_stars[c], all_stars[j]);
                 double phi = Trio::dot_angle(all_stars[i], all_stars[j], all_stars[c]);
                 
                 // Condition 6d: theta^1 < theta^2. If this is not met, switch the stars.
@@ -129,7 +130,7 @@ Identification::labels_list Dot::query_for_trio (double theta_1, double theta_2,
 /// @return NO_CANDIDATE_TRIO_FOUND if no matching pair is found. Otherwise, three inertial stars that match
 /// the given body in order [b_i, b_j, b_c].
 Star::trio Dot::find_candidate_trio (const Star &b_i, const Star &b_j, const Star &b_c) {
-    double theta_1 = Star::angle_between(b_c, b_i), theta_2 = Star::angle_between(b_c, b_j);
+    double theta_1 = (180.0 / M_PI) * Vector3::Angle(b_c, b_i), theta_2 = (180.0 / M_PI) * Vector3::Angle(b_c, b_j);
     double phi = Trio::dot_angle(b_i, b_j, b_c);
     
     // Ensure that condition 6d holds. Exit early if this is not met.
@@ -161,7 +162,7 @@ std::vector<Identification::labels_list> Dot::query (const Star::list &s) {
     if (s.size() != QUERY_STAR_SET_SIZE) {
         throw std::runtime_error(std::string("Input list does not have exactly three b."));
     }
-    double theta_1 = Star::angle_between(s[2], s[0]), theta_2 = Star::angle_between(s[2], s[1]);
+    double theta_1 = (180.0 / M_PI) * Vector3::Angle(s[2], s[0]), theta_2 = (180.0 / M_PI) * Vector3::Angle(s[2], s[1]);
     double phi = Trio::dot_angle(s[0], s[1], s[2]);
     
     // Noise is normally distributed. All queries within 3 sigma of theta.
@@ -199,12 +200,26 @@ std::vector<Identification::labels_list> Dot::query (const Star::list &s) {
 ///     - sql_limit
 /// @endcode
 ///
-/// @return NO_CANDIDATES_FOUND if there does not exist exactly one image star. Otherwise, a single match configuration
-/// found by the angle method.
+/// @return EMPTY_BIG_R_ELL if there does not exist exactly one image star set. Otherwise, a single match configuration
+/// found by the query method.
 Dot::labels_list Dot::reduce () {
     ch.select_table(parameters.table_name);
-    return {};
-    // TODO: Fix me to iterate through all pairings until it is reduced...
+    
+    for (unsigned int i = 0; i < big_i.size() - 2; i++) {
+        for (unsigned int j = i + 1; j < big_i.size() - 1; j++) {
+            for (unsigned int c = j + 1; c < big_i.size(); c++) {
+                Star::trio big_r = find_candidate_trio (big_i[i], big_i[j], big_i[c]);
+                
+                // The reduction step: |R| = 1.
+                if (std::equal(big_r.begin(), big_r.end(), NO_CANDIDATE_TRIO_FOUND.begin())) {
+                    continue;
+                }
+                
+                return {big_r[0].get_label(), big_r[1].get_label(), big_r[2].get_label()};
+            }
+        }
+    }
+    return EMPTY_BIG_R_ELL;
 }
 
 /// Reproduction of the DotAngle method's process from beginning to the orientation determination. Input image is used.
