@@ -17,14 +17,14 @@
 /// ballpark estimates.
 TEST(MercatorTransform, Point) {
     for (unsigned int i = 0; i < 20; i++) {
-        Vector2 a(RandomDraw::draw_real(0, 5000), RandomDraw::draw_real(0, 5000));
-        Vector2 b(RandomDraw::draw_real(0, 5000), RandomDraw::draw_real(0, 5000));
-        double distance = Vector2::Distance(a, b);
+        Vector2 a(RandomDraw::draw_real(-2500, 2500), RandomDraw::draw_real(-2500, 2500));
+        Vector2 b(RandomDraw::draw_real(-2500, 2500), RandomDraw::draw_real(-2500, 2500));
+        double distance = Vector2::Distance(a, b) * (5.0 / 5000.0);
         
         Vector3 c = Mercator::transform_point(a.X, a.Y, 5.0 / 5000.0);
         Vector3 d = Mercator::transform_point(b.X, b.Y, 5.0 / 5000.0);
         double theta = (180.0 / M_PI) * Vector3::Angle(c, d);
-        EXPECT_NEAR(theta, distance * (5.0 / 5000.0), 3.0);
+        EXPECT_NEAR(theta, distance, 5.0);
     }
 }
 

@@ -18,5 +18,7 @@
 /// @param dpp Degrees per pixel.
 /// @return The given point (X, Y) as a normalized vector in a 3D Cartesian frame.
 Vector3 Mercator::transform_point (const double x, const double y, const double dpp) {
-    return Vector3::FromSpherical(1.0, (x * dpp / 90.0), 2 * atan(exp(y * dpp / 90.0)) - (M_PI / 2));
+    // TODO: Function is pretty inaccurate... Fix this.
+    double lon = (M_PI / 180.0) * x * dpp, lat = (M_PI / 180.0) * (2.0 * atan(exp(y * dpp))) - M_PI / 2.0;
+    return Vector3::Normalized(Vector3(cos(lat) * cos(lon), cos(lat) * sin(lon), sin(lat)));
 }
