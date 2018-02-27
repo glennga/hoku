@@ -95,7 +95,7 @@ Star Star::chance (const int label) {
 /// @param s_2 Star to find angle from s_1.
 /// @param theta The angle between s_1 and s_2 must be between this.
 /// @return True if angle between s_1 and s_2 is less than theta. False otherwise.
-bool Star::within_angle (const Star &s_1, const Star &s_2, const double theta) {
+bool Star::within_angle (const Vector3 &s_1, const Vector3 &s_2, const double theta) {
     return Vector3::Angle(s_1, s_2) * (180.0 / M_PI) < theta;
 }
 

@@ -67,7 +67,7 @@ class Star : public Vector3 {
     static Star chance ();
     static Star chance (int label);
     
-    static bool within_angle (const Star &s_1, const Star &s_2, double theta);
+    static bool within_angle (const Vector3 &s_1, const Vector3 &s_2, double theta);
     static bool within_angle (const list &s_l, double theta);
     
     static Star define_label (const Star &s, int label);

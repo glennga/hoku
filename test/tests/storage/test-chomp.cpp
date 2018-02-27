@@ -226,7 +226,7 @@ TEST(ChompQuery, SimpleBound) {
     ch.select_table("ANGLE_20");
     Nibble::tuples_d a = ch.simple_bound_query("theta", "theta", 5.004, 5.005, 90);
     for (Nibble::tuple_d &q : a) {
-        EXPECT_THAT(q[0], IsBetween(5.003, 5.006));
+        EXPECT_THAT(q[0], IsBetween(5.004, 5.005));
     }
 }
 

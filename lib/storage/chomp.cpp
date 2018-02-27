@@ -182,7 +182,7 @@ Star::list Chomp::bright_as_list () {
 /// @param fov Limit a star must be separated from the focus by.
 /// @param expected Expected number of stars around the focus. Better to overshoot.
 /// @return Array with all nearby bright stars.
-Star::list Chomp::nearby_bright_stars (const Star &focus, const double fov, const unsigned int expected) {
+Star::list Chomp::nearby_bright_stars (const Vector3 &focus, const double fov, const unsigned int expected) {
     Star::list nearby;
     nearby.reserve(expected);
     
@@ -201,7 +201,7 @@ Star::list Chomp::nearby_bright_stars (const Star &focus, const double fov, cons
 /// @param fov Limit a star must be separated from the focus by.
 /// @param expected Expected number of star around the focus. Better to overshoot.
 /// @return Array with all nearby stars (no magnitude restriction).
-Star::list Chomp::nearby_hip_stars (const Star &focus, const double fov, const unsigned int expected) {
+Star::list Chomp::nearby_hip_stars (const Vector3 &focus, const double fov, const unsigned int expected) {
     Star::list nearby;
     nearby.reserve(expected);
     

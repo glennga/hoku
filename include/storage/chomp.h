@@ -65,8 +65,8 @@ class Chomp : public Nibble {
     tuples_d simple_bound_query (const std::string &focus, const std::string &fields, double y_a, double y_b,
                                  unsigned int limit);
     
-    Star::list nearby_bright_stars (const Star &focus, double fov, unsigned int expected);
-    Star::list nearby_hip_stars (const Star &focus, double fov, unsigned int expected);
+    Star::list nearby_bright_stars (const Vector3 &focus, double fov, unsigned int expected);
+    Star::list nearby_hip_stars (const Vector3 &focus, double fov, unsigned int expected);
     
     Star::list bright_as_list ();
     Star query_hip (int label);
