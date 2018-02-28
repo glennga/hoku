@@ -54,8 +54,8 @@ int Dot::generate_table (INIReader &cf) {
             for (unsigned int c = j + 1; c < all_stars.size(); c++) {
                 
                 // Compute each feature (theta^1, theta^2, phi).
-                double theta_1 = (M_PI / 180.0) * Vector3::Angle(all_stars[c], all_stars[i]);
-                double theta_2 = (M_PI / 180.0) * Vector3::Angle(all_stars[c], all_stars[j]);
+                double theta_1 = (180.0 / M_PI) * Vector3::Angle(all_stars[c], all_stars[i]);
+                double theta_2 = (180.0 / M_PI) * Vector3::Angle(all_stars[c], all_stars[j]);
                 double phi = Trio::dot_angle(all_stars[i], all_stars[j], all_stars[c]);
                 
                 // Condition 6d: theta^1 < theta^2. If this is not met, switch the stars.

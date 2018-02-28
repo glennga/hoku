@@ -15,10 +15,11 @@ const Identification::Parameters Pyramid::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QU
     DEFAULT_F, "PYRAMID_20"};
 
 /// Returned when there exists no common stars between the label list pairs.
-const Star::list Pyramid::NO_COMMON_FOUND = {Star::zero()};
+const Star::list Pyramid::NO_COMMON_FOUND = {Star::wrap(Vector3::Zero())};
 
 /// Returned when there exists no candidate triangle to be found for the given three stars.
-const Star::trio Pyramid::NO_CONFIDENT_R_FOUND = {Star::zero(), Star::zero(), Star::zero()};
+const Star::trio Pyramid::NO_CONFIDENT_R_FOUND = {Star::wrap(Vector3::Zero()), Star::wrap(Vector3::Zero()),
+    Star::wrap(Vector3::Zero())};
 
 /// Constructor. Sets the benchmark data, fov, parameters, and current working table.
 ///
@@ -118,7 +119,7 @@ bool Pyramid::verification (const Star::trio &r, const Star::trio &b) {
     
     // Find all star pairs between IE, JE, and KE.
     auto find_pairs = [this, &b_e, &b] (const int a) -> labels_list_list {
-        return this->query_for_pairs(Star::angle_between(b[a], b_e));
+        return this->query_for_pairs((180.0 / M_PI) * Vector3::Angle(b[a], b_e));
     };
     labels_list_list big_r_ie_ell = find_pairs(0), big_r_je_ell = find_pairs(1);
     labels_list_list big_r_ke_ell = find_pairs(2), big_r_ie_join_je_ell;
@@ -146,7 +147,7 @@ bool Pyramid::verification (const Star::trio &r, const Star::trio &b) {
 /// inertial frame.
 Star::trio Pyramid::find_catalog_stars (const Star::trio &b) {
     auto find_pairs = [this, &b] (const int m, const int n) -> labels_list_list {
-        return this->query_for_pairs(Star::angle_between(b[m], b[n]));
+        return this->query_for_pairs((180.0 / M_PI) * Vector3::Angle(b[m], b[n]));
     };
     labels_list_list big_r_ij_ell = find_pairs(0, 1), big_r_ik_ell = find_pairs(0, 2), big_r_jk_ell = find_pairs(1, 2);
     
@@ -220,7 +221,7 @@ std::vector<Identification::labels_list> Pyramid::query (const Star::list &s) {
     }
     
     auto find_pairs = [this, &s] (const int a, const int b) -> labels_list_list {
-        return this->query_for_pairs(Star::angle_between(s[a], s[b]));
+        return this->query_for_pairs((180.0 / M_PI) * Vector3::Angle(s[a], s[b]));
     };
     labels_list_list big_r_ij_ell = find_pairs(0, 1), big_r_ik_ell = find_pairs(0, 2), big_r_jk_ell = find_pairs(1, 2);
     
@@ -251,15 +252,24 @@ std::vector<Identification::labels_list> Pyramid::query (const Star::list &s) {
 ///     - sql_limit
 /// @endcode
 ///
-/// @return NO_CANDIDATES_FOUND if a candidate quad cannot be found. Otherwise, a single match configuration found
+/// @return EMPTY_BIG_R_ELL if a candidate quad cannot be found. Otherwise, a single match configuration found
 /// by the angle method.
 Identification::labels_list Pyramid::reduce () {
-    Star::list r = identify_as_list({big_i[0], big_i[1], big_i[2]});
-    if (std::equal(r.begin(), r.end(), NO_CONFIDENT_A.begin())) {
-        return EMPTY_BIG_R_ELL;
+    for (unsigned int dj = 1; dj < big_i.size() - 1; dj++) {
+        for (unsigned int dk = 1; dk < big_i.size() - dj - 1; dk++) {
+            for (unsigned int di = 0; di < big_i.size() - dj - dk - 1; di++) {
+                Star::list r = identify_as_list({big_i[0], big_i[1], big_i[2]});
+                
+                // The reduction step: |R| = 1.
+                if (std::equal(r.begin(), r.end(), NO_CONFIDENT_A.begin())) {
+                    continue;
+                }
+                return labels_list {r[0].get_label(), r[1].get_label(), r[2].get_label()};
+            }
+        }
     }
-    return labels_list {r[0].get_label(), r[1].get_label(), r[2].get_label()};
-    // TODO: Fix me to iterate through all pairings until it is reduced...
+    
+    return EMPTY_BIG_R_ELL;
 }
 
 /// Reproduction of the Pyramid method's process from beginning to the orientation determination. Input image is used.
