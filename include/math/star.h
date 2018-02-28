@@ -19,7 +19,7 @@
 /// @example
 /// @code{.cpp}
 /// // Define stars (in order): {0, 0, 0}, {random, random, random}, {0, 0, 0}, {-0.680414, 0.680414, 0.272166}
-/// Star s_1, s_2 = Star::chance(), s_3 = Star::zero(), s_4(-10, 10, 4, 0, 0, true);
+/// Star s_1, s_2 = Star::chance(), s_3 = Star::wrap(Vector3::Zero()), s_4(-10, 10, 4, 0, 0, true);
 ///
 /// // Cross stars {-2, -1, 0} and {3, 2, 1} to produce {-1, 2, -1}.
 /// std::cout << Star::cross(Star(-2, -1, 0), Star(3, 2, 1)) << std::endl;
@@ -28,7 +28,7 @@
 /// std::cout << Star(5, 5, 5) + Star(1, 1, 1) - Star(2, 2, 2) << std::endl;
 ///
 /// // Determine angle between Star {2, 3, 5} and {5, 6, 7} to get 0.9744339542.
-/// std::cout << Star::angle_between(Star(2, 3, 5), Star(5, 6, 7)) << std::endl;
+/// std::cout << (180.0 / M_PI) * Vector3::Angle(Star(2, 3, 5), Star(5, 6, 7)) << std::endl;
 /// @endcode
 class Star : public Vector3 {
   public:
