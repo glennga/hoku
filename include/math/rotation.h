@@ -6,8 +6,10 @@
 #ifndef HOKU_ROTATION_H
 #define HOKU_ROTATION_H
 
-#include "math/star.h"
+#include "third-party/gmath/Matrix3x3.hpp"
 #include "third-party/gmath/Quaternion.hpp"
+
+#include "math/star.h"
 
 /// @brief Class to represent quaternions, with methods to solve Wahba's problem.
 ///
@@ -43,14 +45,14 @@ class Rotation : public Quaternion {
     friend std::ostream &operator<< (std::ostream &os, const Rotation &q);
     
     static Star rotate (const Star &s, const Rotation &q);
-    static Star slerp (const Star &s, const Vector3 &f, const double t);
+    static Star slerp (const Star &s, const Vector3 &f, double t);
     static Star shake (const Star &s, double sigma);
     
     static Rotation identity ();
     static Rotation chance ();
     
     static Rotation triad (const Star::list &v, const Star::list &w);
-    static Rotation q_exact (const Star::list &v, const Star::list &w);
+    static Rotation svd (const Star::list &v, const Star::list &w);
     static Rotation quest (const Star::list &v, const Star::list &w);
 };
 

@@ -41,8 +41,8 @@ void Identification::collect_parameters (Parameters &p, INIReader &cf) {
     p.sigma_overlay = cf.GetReal("id-parameters", "so", DEFAULT_SIGMA_OVERLAY);
     p.nu_max = static_cast<unsigned>(cf.GetInteger("id-parameters", "nu-m", DEFAULT_NU_MAX));
     
-    const std::array<std::string, 3> ws_id = {"TRIAD", "QUEST", "Q"};
-    const std::array<Rotation::wahba_function, 3> ws = {Rotation::triad, Rotation::quest, Rotation::q_exact};
+    const std::array<std::string, 3> ws_id = {"TRIAD", "QUEST", "SVD"};
+    const std::array<Rotation::wahba_function, 3> ws = {Rotation::triad, Rotation::quest, Rotation::svd};
     
     // Determine the Wahba solver. This is case-insensitive.
     std::string wabha_solver = cf.Get("id-parameters", "wbs", "TRIAD");

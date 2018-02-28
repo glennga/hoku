@@ -6,7 +6,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <iomanip>
-#include "third-party/gmath/Matrix3x3.hpp"
+#include "third-party/Eigen/Dense"
 
 #include "math/random-draw.h"
 #include "math/rotation.h"
@@ -18,7 +18,7 @@
 /// @param j J component of the quaternion to set.
 /// @param k K component of the quaternion to set.
 Rotation::Rotation (const double w, const double i, const double j, const double k) : Quaternion(i, j, k, w) {
-
+    
 }
 
 /// Wrap the given GMath quaternion inside a Rotation object.
@@ -87,8 +87,8 @@ Rotation Rotation::chance () {
     return wrap(Quaternion::Normalized(Quaternion::FromToRotation(Star::chance(), Star::chance())));
 }
 
-/// Deterministic method that finds the quaternion across two different frames given pairs of vectors in each frame.
-/// This solves Wahba's problem. Solution found here: https://en.wikipedia.org/wiki/Triad_method
+/// Approach to finds the quaternion across two different frames given pairs of vectors in each frame. This solves
+/// Wahba's problem. Solution found here: https://en.wikipedia.org/wiki/Triad_method
 ///
 /// @param v 2 element list of stars in frame V.
 /// @param w 2 element list of stars in frame W.
@@ -108,18 +108,38 @@ Rotation Rotation::triad (const Star::list &v, const Star::list &w) {
     return wrap(Matrix3x3::ToQuaternion(m_v * Matrix3x3(w_1, w_2, w_3)));
 }
 
-/// Statistical approach to find the quaternion across two different frames given vector observations in both. This
-/// solves Wahba's problem through least squares minimization of the loss function.
+/// Approach to find the quaternion across two difference frames given vector observations in both. This solves
+/// Wahba's problem using SVD to minimize the loss function.
 ///
-/// @param v 2 element list of stars in frame V.
-/// @param w 2 element list of stars in frame W.
+/// @param v List of stars in frame V. The condition |v| = |w| must hold.
+/// @param w List of stars in frame W. The condition |v| = |w| must hold.
 /// @return The quaternion to rotate from frame W to V.
-Rotation Rotation::q_exact (const Star::list &v, const Star::list &w) {
-    // TODO: Finish the q-Method.
-    return Rotation::triad(v, w);
+Rotation Rotation::svd (const Star::list &v, const Star::list &w) {
+    // Construct the B matrix by summing the outer products (b_i (X) r_i^T). Each observation is of equal weight.
+    Matrix3x3 big_b = Matrix3x3::Zero(), big_u, big_v, big_a;
+    for (unsigned int i = 0; i < v.size(); i++) {
+        big_b += Matrix3x3(v[i].X * w[i], v[i].Y * w[i], v[i].Z * w[i]);
+    }
+    
+    // Perform SVD to get our U and V matrices using Eigen.
+    Eigen::Matrix<double, 3, 3> big_b_e, big_u_e, big_v_e;
+    big_b_e << big_b.D00, big_b.D01, big_b.D02, big_b.D10, big_b.D11, big_b.D12, big_b.D20, big_b.D21, big_b.D22;
+    Eigen::JacobiSVD<Eigen::Matrix<double, 3, 3>> svd(big_b_e, Eigen::ComputeFullU | Eigen::ComputeFullV);
+    big_u_e = svd.matrixU(), big_v_e = svd.matrixV();
+    
+    // Transform this back into GMath.
+    big_u = Matrix3x3(big_u_e(0, 0), big_u_e(0, 1), big_u_e(0, 2), big_u_e(1, 0), big_u_e(1, 1), big_u_e(1, 2),
+                      big_u_e(2, 0), big_u_e(2, 1), big_u_e(2, 2));
+    big_v = Matrix3x3(big_v_e(0, 0), big_v_e(0, 1), big_v_e(0, 2), big_v_e(1, 0), big_v_e(1, 1), big_v_e(1, 2),
+                      big_v_e(2, 0), big_v_e(2, 1), big_v_e(2, 2));
+    
+    // Compute the optimal rotation matrix. Return this as a quaternion.
+    double det_uv = Matrix3x3::Determinate(big_u) * Matrix3x3::Determinate(big_v);
+    big_a = (big_u * Matrix3x3(Vector3::Right(), Vector3::Up(), Vector3(0, 0, det_uv))) * Matrix3x3::Transpose(big_v);
+    return Rotation::wrap(Matrix3x3::ToQuaternion(big_a));
 }
 
-/// Statistical approach to find the quaternion across two different frames given vector observations in both. This
+/// Approach to find the quaternion across two different frames given vector observations in both. This
 /// solves Wahba's problem through ....
 ///
 /// @param v 2 element list of stars in frame V.
