@@ -33,7 +33,7 @@ class Identification {
     };
     
     /// Default sigma query for all identification methods.
-    static constexpr double DEFAULT_SIGMA_QUERY = std::numeric_limits<double>::epsilon() * 100;
+    static constexpr double DEFAULT_SIGMA_QUERY = std::numeric_limits<double>::epsilon() * 10000;
     
     /// Default SQL limit for all identification methods.
     static constexpr unsigned int DEFAULT_SQL_LIMIT = 500;
@@ -45,7 +45,7 @@ class Identification {
     static constexpr bool DEFAULT_FAVOR_BRIGHT_STARS = false;
     
     /// Default sigma overlay (for matching) for all identification methods.
-    static constexpr double DEFAULT_SIGMA_OVERLAY = std::numeric_limits<double>::epsilon() * 100;
+    static constexpr double DEFAULT_SIGMA_OVERLAY = std::numeric_limits<double>::epsilon() * 10000;
     
     /// Default nu max (comparison counts) for all identification methods.
     static constexpr unsigned int DEFAULT_NU_MAX = 50000;
