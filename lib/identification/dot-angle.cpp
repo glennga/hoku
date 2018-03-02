@@ -95,8 +95,7 @@ Identification::labels_list Dot::query_for_trio (double theta_1, double theta_2,
     // Apply entire query filter. Return EMPTY_BIG_R_ELL if nothing is found.
     big_r_ell.reserve(theta_1_match.size());
     for (Chomp::tuple_d t : theta_1_match) {
-        if (t[3] >= theta_2 - 3 * epsilon && t[3] < theta_2 + 3 * epsilon && t[4] >= phi - 3 * epsilon
-            && t[4] < phi + 3 * epsilon) {
+        if (t[3] >= theta_2 - epsilon && t[3] < theta_2 + epsilon && t[4] >= phi - epsilon && t[4] < phi + epsilon) {
             big_r_ell.push_back(labels_list {static_cast<int> (t[0]), static_cast<int> (t[1]), static_cast<int>(t[2])});
         }
     }

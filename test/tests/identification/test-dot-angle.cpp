@@ -37,7 +37,7 @@ TEST(DotAngleConstructor, Constructor) {
     EXPECT_EQ(a.parameters.table_name, p.table_name);
 }
 
-/// Check the existence and the structure of the Angle table.
+/// Check the existence and the structure of the DotAngle table.
 TEST(DotAngleTable, ExistenceStructure) {
     INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
     Dot::generate_table(cf);
@@ -204,7 +204,6 @@ TEST(DotAngleResults, Query) {
     p.sigma_query = 0.001, p.sql_limit = 100000;
     Dot b(input, p);
 
-    // TODO: Some results not showing up... Need to diagnose this.
     Star::trio c = b.find_candidate_trio(input.b[0], input.b[1], input.b[2]);
     if (std::equal(c.begin(), c.end(), Dot::NO_CANDIDATE_TRIO_FOUND.begin())) {
         c = b.find_candidate_trio(input.b[1], input.b[0], input.b[2]);
@@ -215,75 +214,79 @@ TEST(DotAngleResults, Query) {
     EXPECT_THAT(d, Contains(c[2].get_label()));
 }
 
-///// Check that a clean input returns the expected query result.
-//TEST(AngleTrial, CleanQuery) {
-//    Chomp ch;
-//    Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
-//    p.sigma_query = 10e-7, p.pass_r_set_cardinality = false;
-//    Angle a(Benchmark::black(), p);
-//    Star b = ch.query_hip(22667), c = ch.query_hip(27913);
-//
-//    std::vector<Identification::labels_list> d = a.query({b, c});
-//    EXPECT_THAT(d, Contains(Identification::labels_list {22667, 27913}));
-//}
-//
-///// Check that a clean input returns the correct stars from a set of candidates.
-//TEST(AngleTrial, CleanReduction) {
-//    Chomp ch;
-//    Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
-//    p.sigma_overlay = 0.0001, p.sigma_query = 0.000000001;
-//
-//    Benchmark i({ch.query_hip(22667), ch.query_hip(27913)}, ch.query_hip(22667), 20);
-//    Angle a(i, p);
-//    EXPECT_THAT(a.reduce(), UnorderedElementsAre(22667, 27913));
-//}
-//
-///// Check that a clean input returns the expected identification of stars.
-//TEST(AngleTrial, CleanIdentify) {
-//    Chomp ch;
-//    Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
-//    p.nu = std::make_shared<unsigned int>(0);
-//    p.sigma_query = 10e-9;
-//    p.sigma_overlay = 0.000001;
-//
-//    Rotation q = Rotation::chance();
-//    Star b = ch.query_hip(22667), c = ch.query_hip(27913);
-//    Star d = Rotation::rotate(b, q), e = Rotation::rotate(c, q);
-//
-//    Angle a(Benchmark({d, e}, d, 20), p);
-//    Star::list f = a.identify();
-//    EXPECT_THAT(f, Contains(Star::define_label(d, 22667)));
-//    EXPECT_THAT(f, Contains(Star::define_label(e, 27913)));
-//}
-//
-///// Check that the nu_max is respected in identification.
-//TEST(AngleTrial, ExceededNu) {
-//    Chomp ch;
-//    Benchmark input(ch, 15);
-//    input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
-//    Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
-//    p.nu = std::make_shared<unsigned int>(0), p.nu_max = 10;
-//    p.sigma_query = std::numeric_limits<double>::epsilon();
-//    p.sigma_overlay = std::numeric_limits<double>::epsilon();
-//    Angle a(input, p);
-//
-//    EXPECT_EQ(a.identify()[0], Angle::EXCEEDED_NU_MAX[0]);
-//    EXPECT_EQ(*p.nu, p.nu_max + 1);
-//}
-//
-///// Check that the correct result is returned when no map is found.
-//TEST(AngleTrial, NoMapFound) {
-//    Chomp ch;
-//    Benchmark input(ch, 7);
-//    input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
-//    Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
-//    p.nu = std::make_shared<unsigned int>(0), p.nu_max = std::numeric_limits<unsigned int>::max();
-//    p.sigma_query = std::numeric_limits<double>::epsilon();
-//    p.sigma_overlay = std::numeric_limits<double>::epsilon();
-//    Angle a(input, p);
-//
-//    EXPECT_EQ(a.identify()[0], Angle::NO_CONFIDENT_A[0]);
-//}
+/// Check that a clean input returns the expected query result.
+TEST(DotAngleTrial, CleanQuery) {
+    Chomp ch;
+    Dot::Parameters p = Dot::DEFAULT_PARAMETERS;
+    p.sigma_query = 10e-7, p.pass_r_set_cardinality = false;
+    Dot a(Benchmark::black(), p);
+    Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532)};
+
+    std::vector<Identification::labels_list> d = a.query(b);
+    EXPECT_EQ(d[0][0], 102531);
+    EXPECT_EQ(d[0][1], 95498);
+    EXPECT_EQ(d[0][2], 102532);
+}
+
+/// Check that a clean input returns the correct stars from a set of candidates.
+TEST(DotAngleTrial, CleanReduction) {
+    Chomp ch;
+    Dot::Parameters p = Dot::DEFAULT_PARAMETERS;
+    p.sigma_overlay = 0.0001, p.sigma_query = 0.000000001;
+    
+    Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532)};
+    Benchmark i(b, b[0], 20);
+    Dot a(i, p);
+    EXPECT_THAT(a.reduce(), UnorderedElementsAre(102531, 95498, 102532));
+}
+
+/// Check that a clean input returns the expected identification of stars.
+TEST(DotAngleTrial, CleanIdentify) {
+    Chomp ch;
+    Dot::Parameters p = Dot::DEFAULT_PARAMETERS;
+    p.nu = std::make_shared<unsigned int>(0);
+    p.sigma_query = 10e-9;
+    p.sigma_overlay = 0.000001;
+
+    Rotation q = Rotation::chance();
+    Star b = ch.query_hip(102531), c = ch.query_hip(95498), d = ch.query_hip(102532);
+    Star e = Rotation::rotate(b, q), f = Rotation::rotate(c, q), g = Rotation::rotate(d, q);
+
+    Dot a(Benchmark({e, f, g}, e, 20), p);
+    Star::list h = a.identify();
+    EXPECT_THAT(h, Contains(Star::define_label(e, 102531)));
+    EXPECT_THAT(h, Contains(Star::define_label(f, 95498)));
+    EXPECT_THAT(h, Contains(Star::define_label(g, 102532)));
+}
+
+/// Check that the nu_max is respected in identification.
+TEST(DotAngleTrial, ExceededNu) {
+    Chomp ch;
+    Benchmark input(ch, 15);
+    input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
+    Dot::Parameters p = Dot::DEFAULT_PARAMETERS;
+    p.nu = std::make_shared<unsigned int>(0), p.nu_max = 10;
+    p.sigma_query = std::numeric_limits<double>::epsilon();
+    p.sigma_overlay = std::numeric_limits<double>::epsilon();
+    Dot a(input, p);
+
+    EXPECT_EQ(a.identify()[0], Dot::EXCEEDED_NU_MAX[0]);
+    EXPECT_EQ(*p.nu, p.nu_max + 1);
+}
+
+/// Check that the correct result is returned when no map is found.
+TEST(DotAngleTrial, NoMapFound) {
+    Chomp ch;
+    Benchmark input(ch, 7);
+    input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
+    Dot::Parameters p = Dot::DEFAULT_PARAMETERS;
+    p.nu = std::make_shared<unsigned int>(0), p.nu_max = std::numeric_limits<unsigned int>::max();
+    p.sigma_query = std::numeric_limits<double>::epsilon();
+    p.sigma_overlay = std::numeric_limits<double>::epsilon();
+    Dot a(input, p);
+
+    EXPECT_EQ(a.identify()[0], Dot::NO_CONFIDENT_A[0]);
+}
 
 /// Runs all tests defined in this file.
 ///
