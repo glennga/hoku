@@ -97,8 +97,8 @@ TEST(AngleQuery, ExpectedFailure) {
     
     // |R| restriction should prevent an answer from being displayed.
     p.sigma_query = 0.01;
-    double d = (180.0 / M_PI) * Vector3::Angle(input.b[0], input.b[1]);
-    Identification::labels_list c = Angle(input, p).query_for_pair(d);
+    double d = (180.0 / M_PI) * Vector3::Angle(input2.b[0], input2.b[1]);
+    Identification::labels_list c = Angle(input2, p).query_for_pair(d);
     EXPECT_THAT(Angle::EMPTY_BIG_R_ELL, Contains(c[0]));
     EXPECT_THAT(Angle::EMPTY_BIG_R_ELL, Contains(c[1]));
 }

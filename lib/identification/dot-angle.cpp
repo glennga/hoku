@@ -12,7 +12,7 @@
 /// Default parameters for the dot angle identification method.
 const Identification::Parameters Dot::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
     DEFAULT_PASS_R_SET_CARDINALITY, DEFAULT_FAVOR_BRIGHT_STARS, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU,
-    DEFAULT_F, "INTERIOR_20"};
+    DEFAULT_F, "DOT_20"};
 
 /// Returned when no candidate pair is found from a query.
 const Star::trio Dot::NO_CANDIDATE_TRIO_FOUND = {Star::wrap(Vector3::Zero()), Star::wrap(Vector3::Zero()),
@@ -34,8 +34,8 @@ DotAngle::DotAngle (const Benchmark &input, const Parameters &p) : Identificatio
 /// @param cf Configuration reader holding all parameters to use.
 /// @return TABLE_ALREADY_EXISTS if the table already exists. Otherwise, 0 when finished.
 int Dot::generate_table (INIReader &cf) {
-    Chomp ch;
     double fov = cf.GetReal("hardware", "fov", 0);
+    Chomp ch;
     
     // Exit early if the table already exists.
     std::string table_name = cf.Get("table-names", "dot", "");
@@ -45,37 +45,34 @@ int Dot::generate_table (INIReader &cf) {
     }
     ch.select_table(table_name);
     
-    // (i, j, k) are distinct, where no (i, j, c) = (j, c, i), (j, i, c), ....
+    // Iterate through all possible permutations of i, j, c...
     Star::list all_stars = ch.bright_as_list();
-    for (unsigned int i = 0; i < all_stars.size() - 2; i++) {
+    for (unsigned int i = 0; i < all_stars.size(); i++) {
         SQLite::Transaction transaction(*ch.conn);
         std::cout << "\r" << "Current *I* Star: " << all_stars[i].get_label();
-        for (unsigned int j = i + 1; j < all_stars.size() - 1; j++) {
-            for (unsigned int c = j + 1; c < all_stars.size(); c++) {
+        
+        for (unsigned int j = 0; j < all_stars.size(); j++) {
+            for (unsigned int c = 0; c < all_stars.size(); c++) {
+                if (i == j || i == c || j == c) {
+                    continue;
+                }
                 
                 // Compute each feature (theta^1, theta^2, phi).
                 double theta_1 = (180.0 / M_PI) * Vector3::Angle(all_stars[c], all_stars[i]);
                 double theta_2 = (180.0 / M_PI) * Vector3::Angle(all_stars[c], all_stars[j]);
                 double phi = Trio::dot_angle(all_stars[i], all_stars[j], all_stars[c]);
                 
-                // Condition 6d: theta^1 < theta^2. If this is not met, switch the stars.
+                // Condition 6d: theta^1 < theta^2.
                 if (theta_1 < theta_2 && Star::within_angle({all_stars[i], all_stars[j], all_stars[c]}, fov)) {
                     ch.insert_into_table("label_a, label_b, label_c, theta_1, theta_2, phi",
                                          Nibble::tuple_d {static_cast<double> (all_stars[i].get_label()),
                                              static_cast<double>(all_stars[j].get_label()),
                                              static_cast<double> (all_stars[c].get_label()), theta_1, theta_2, phi});
                 }
-                else if (Star::within_angle({all_stars[i], all_stars[j], all_stars[c]}, fov)) {
-                    ch.insert_into_table("label_a, label_b, label_c, theta_1, theta_2, phi",
-                                         Nibble::tuple_d {static_cast<double> (all_stars[j].get_label()),
-                                             static_cast<double>(all_stars[i].get_label()),
-                                             static_cast<double> (all_stars[c].get_label()), theta_2, theta_1, phi});
-                }
             }
         }
         transaction.commit();
     }
-    
     return ch.polish_table(cf.Get("table-focus", "dot", ""));
 }
 
@@ -88,29 +85,25 @@ int Dot::generate_table (INIReader &cf) {
 Identification::labels_list Dot::query_for_trio (double theta_1, double theta_2, double phi) {
     // Noise is normally distributed. All queries within 3 sigma of theta.
     double epsilon = 3.0 * this->parameters.sigma_query;
-    Nibble::tuples_d big_r_ell_tuples, theta_1_match;
     std::vector<labels_list> big_r_ell;
+    Nibble::tuples_d theta_1_match;
     
     // Query using theta_1 with epsilon bounds.
     theta_1_match = ch.simple_bound_query("theta_1", "label_a, label_b, label_c, theta_2, phi", theta_1 - epsilon,
                                           theta_1 + epsilon, this->parameters.sql_limit);
     
     // Apply entire query filter. Return EMPTY_BIG_R_ELL if nothing is found.
-    big_r_ell_tuples.reserve(theta_1_match.size());
+    big_r_ell.reserve(theta_1_match.size());
     for (Chomp::tuple_d t : theta_1_match) {
-        if (t[3] >= theta_2 - epsilon && t[3] < theta_2 + epsilon && t[4] >= phi - epsilon && t[4] < phi + epsilon) {
+        if (t[3] >= theta_2 - 3 * epsilon && t[3] < theta_2 + 3 * epsilon && t[4] >= phi - 3 * epsilon
+            && t[4] < phi + 3 * epsilon) {
             big_r_ell.push_back(labels_list {static_cast<int> (t[0]), static_cast<int> (t[1]), static_cast<int>(t[2])});
         }
     }
     
     // |R| = 1 restriction. Applied with the PASS_R_SET_CARDINALITY flag.
-    if (big_r_ell_tuples.empty() || (this->parameters.pass_r_set_cardinality && big_r_ell_tuples.size() > 1)) {
+    if (big_r_ell.empty() || (this->parameters.pass_r_set_cardinality && big_r_ell.size() > 1)) {
         return EMPTY_BIG_R_ELL;
-    }
-    
-    // Create the candidate label list.
-    for (const Nibble::tuple_d &candidate : big_r_ell_tuples) {
-        big_r_ell.push_back({static_cast<int>(candidate[0]), static_cast<int>(candidate[1])});
     }
     
     // Favor bright stars if specified. Applied with the FAVOR_BRIGHT_STARS flag.
@@ -133,8 +126,8 @@ Star::trio Dot::find_candidate_trio (const Star &b_i, const Star &b_j, const Sta
     double theta_1 = (180.0 / M_PI) * Vector3::Angle(b_c, b_i), theta_2 = (180.0 / M_PI) * Vector3::Angle(b_c, b_j);
     double phi = Trio::dot_angle(b_i, b_j, b_c);
     
-    // Ensure that condition 6d holds. Exit early if this is not met.
-    if (theta_1 > theta_2) {
+    // Ensure that condition 6d holds, and that all stars are within fov. Exit early if this is not met.
+    if (theta_1 > theta_2 || !Star::within_angle({b_i, b_j, b_c}, this->fov)) {
         return NO_CANDIDATE_TRIO_FOUND;
     }
     
@@ -208,7 +201,7 @@ Dot::labels_list Dot::reduce () {
     for (unsigned int i = 0; i < big_i.size() - 2; i++) {
         for (unsigned int j = i + 1; j < big_i.size() - 1; j++) {
             for (unsigned int c = j + 1; c < big_i.size(); c++) {
-                Star::trio big_r = find_candidate_trio (big_i[i], big_i[j], big_i[c]);
+                Star::trio big_r = find_candidate_trio(big_i[i], big_i[j], big_i[c]);
                 
                 // The reduction step: |R| = 1.
                 if (std::equal(big_r.begin(), big_r.end(), NO_CANDIDATE_TRIO_FOUND.begin())) {
