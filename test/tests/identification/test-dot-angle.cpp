@@ -29,7 +29,7 @@ TEST(DotAngleConstructor, Constructor) {
     EXPECT_EQ(a.ch.table, "H");
     EXPECT_EQ(a.parameters.sigma_query, p.sigma_query);
     EXPECT_EQ(a.parameters.sql_limit, p.sql_limit);
-    EXPECT_EQ(a.parameters.pass_r_set_cardinality, p.pass_r_set_cardinality);
+    EXPECT_EQ(a.parameters.no_reduction, p.no_reduction);
     EXPECT_EQ(a.parameters.favor_bright_stars, p.favor_bright_stars);
     EXPECT_EQ(a.parameters.nu_max, p.nu_max);
     EXPECT_EQ(a.parameters.nu, p.nu);
@@ -95,7 +95,7 @@ TEST(DotAngleQuery, Trio) {
     EXPECT_EQ(d[1], c[1]);
     EXPECT_EQ(d[2], c[2]);
     
-    p2.pass_r_set_cardinality = false;
+    p2.no_reduction = false;
     Identification::labels_list e = Dot(input, p2).query_for_trio(theta_1, theta_2, phi);
     EXPECT_THAT(Dot::EMPTY_BIG_R_ELL, Not(Contains(e[0])));
     EXPECT_THAT(Dot::EMPTY_BIG_R_ELL, Not(Contains(e[1])));
@@ -142,7 +142,7 @@ TEST(DotAngleQuery, FavorBrightStarsFlag) {
     Benchmark input(ch, 15);
     Dot::Parameters p = Dot::DEFAULT_PARAMETERS, p2 = Dot::DEFAULT_PARAMETERS;
     p.sigma_query = 0.1, p2.sigma_query = 0.1, p.favor_bright_stars = true;
-    p.pass_r_set_cardinality = false, p2.pass_r_set_cardinality = false, p.sql_limit = 100000, p2.sql_limit = 100000;
+    p.no_reduction = false, p2.no_reduction = false, p.sql_limit = 100000, p2.sql_limit = 100000;
     
     Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532)};
     double theta_1 = (180.0 / M_PI) * Vector3::Angle(b[0], b[2]);
@@ -218,7 +218,7 @@ TEST(DotAngleResults, Query) {
 TEST(DotAngleTrial, CleanQuery) {
     Chomp ch;
     Dot::Parameters p = Dot::DEFAULT_PARAMETERS;
-    p.sigma_query = 10e-7, p.pass_r_set_cardinality = false;
+    p.sigma_query = 10e-7, p.no_reduction = false;
     Dot a(Benchmark::black(), p);
     Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532)};
 

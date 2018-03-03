@@ -10,7 +10,7 @@
 
 /// Default parameters for the angle identification method.
 const Identification::Parameters Angle::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
-    DEFAULT_PASS_R_SET_CARDINALITY, DEFAULT_FAVOR_BRIGHT_STARS, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU,
+    DEFAULT_NO_REDUCTION, DEFAULT_FAVOR_BRIGHT_STARS, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU,
     DEFAULT_F, "ANGLE_20"};
 
 /// Returned when no candidate pair is found from a query.
@@ -81,7 +81,7 @@ Identification::labels_list Angle::query_for_pair (const double theta) {
                                              this->parameters.sql_limit);
     
     // |R| = 1 restriction. Applied with the PASS_R_SET_CARDINALITY flag.
-    if (big_r_ell_tuples.empty() || (this->parameters.pass_r_set_cardinality && big_r_ell_tuples.size() > 1)) {
+    if (big_r_ell_tuples.empty() || (this->parameters.no_reduction && big_r_ell_tuples.size() > 1)) {
         return EMPTY_BIG_R_ELL;
     }
     

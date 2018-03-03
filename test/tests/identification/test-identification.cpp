@@ -44,7 +44,7 @@ TEST(ParameterCollect, CleanInput) {
     f1 << "[id-parameters]             ; Values used in 'Parameters' struct.\n"
         "sq = 0.000000001            ; Sigma query value (degrees).\n"
         "sl = 500                    ; Tuple count returned restriction.\n"
-        "prsc = 1                    ; 'Pass R Set Cardinality' toggle.\n"
+        "nr = 1                      ; 'Pass R Set Cardinality' toggle.\n"
         "fbr = 0                     ; 'Favor Bright Stars' toggle.\n"
         "so = 0.00000001             ; Sigma overlay (degrees).\n"
         "nu-m = 50000                ; Maximum number of query star comparisons (nu max).\n"
@@ -57,7 +57,7 @@ TEST(ParameterCollect, CleanInput) {
     
     EXPECT_FLOAT_EQ(p.sigma_query, 0.000000001);
     EXPECT_EQ(p.sql_limit, 500);
-    EXPECT_EQ(p.pass_r_set_cardinality, true);
+    EXPECT_EQ(p.no_reduction, true);
     EXPECT_EQ(p.favor_bright_stars, false);
     EXPECT_FLOAT_EQ(p.sigma_overlay, 0.00000001);
     EXPECT_EQ(p.nu_max, 50000);
@@ -77,7 +77,7 @@ TEST(ParameterCollect, ErrorInput) {
     f2 << "[id-parameters]             ; Values used in 'Parameters' struct.\n"
         "sq = asd                    ; Sigma query value (degrees).\n"
         "sl = 500                    ; Tuple count returned restriction.\n"
-        "prsc =       a              ; 'Pass R Set Cardinality' toggle.\n"
+        "nr =         a              ; 'Pass R Set Cardinality' toggle.\n"
         "fbr =         2             ; 'Favor Bright Stars' toggle.\n"
         "so = 0.001                  ; Sigma overlay (degrees).\n"
         "nu-m = 5                    ; Maximum number of query star comparisons (nu max).\n"
@@ -90,7 +90,7 @@ TEST(ParameterCollect, ErrorInput) {
     
     EXPECT_FLOAT_EQ(p.sigma_query, Identification::DEFAULT_SIGMA_QUERY);
     EXPECT_EQ(p.sql_limit, 500);
-    EXPECT_EQ(p.pass_r_set_cardinality, Identification::DEFAULT_PASS_R_SET_CARDINALITY);
+    EXPECT_EQ(p.no_reduction, Identification::DEFAULT_NO_REDUCTION);
     EXPECT_EQ(p.favor_bright_stars, Identification::DEFAULT_FAVOR_BRIGHT_STARS);
     EXPECT_FLOAT_EQ(p.sigma_overlay, 0.001);
     EXPECT_EQ(p.nu_max, 5);

@@ -13,7 +13,7 @@
 
 /// Default parameters for the composite pyramid identification method.
 const Identification::Parameters Composite::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
-    DEFAULT_PASS_R_SET_CARDINALITY, DEFAULT_FAVOR_BRIGHT_STARS, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU,
+    DEFAULT_NO_REDUCTION, DEFAULT_FAVOR_BRIGHT_STARS, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU,
     DEFAULT_F, "COMPOSITE_20"};
 
 /// Constructor. Sets the benchmark data, fov, parameters, and current working table. This is identical to the
@@ -117,7 +117,7 @@ Star::trio Composite::find_catalog_stars (const Star::trio &b_f) {
     }
     
     // |R| = 1 restriction. If we do not contain exactly one element, break.
-    if ((big_r_ell.size() != 1) && this->parameters.pass_r_set_cardinality) {
+    if ((big_r_ell.size() != 1) && this->parameters.no_reduction) {
         return NO_CONFIDENT_R_FOUND;
     }
     

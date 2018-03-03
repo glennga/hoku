@@ -63,7 +63,7 @@ Modify the `CONFIG.ini` file to fit your hardware and experiment parameters. A m
 Increasing this value raises your chances of collecting false positives, but decreasing this value may lead to more 
 false negatives.
 2. `sl` = Maximum number of tuples to select while querying the catalog.
-3. `prsc` = If toggled to 1, the reduction requirements become more 'lax'. Instead of going through each 
+3. `nr` = If toggled to 1, the reduction requirements are removed. Instead of going through each 
 identification's method specified reduction process, the first element of the list is simply selected.
 4. `fbr` = If toggled to 1, the results chosen from the reduction process will favor the bright star sets, as opposed
 to the more dimmer ones. 
@@ -110,7 +110,7 @@ There exist three experiments in this research:
 
 There exist six different identification methods implemented here:
 1. Gottlieb's Angle Method (`angle`)
-2. Liebe's Interior Angle Method (`interior`)
+2. Liebe's Interior Angle Method (`dot`)
 3. Cole and Crassidus's Spherical Triangle Method (`sphere`)
 4. Cole and Crassidus's Planar Triangle Method (`plane`)
 5. Mortari's Pyramid Method (`pyramid`)
@@ -188,8 +188,7 @@ Angle::Parameters p;
 Identification::collect_parameters(p, cf);
 
 // Define the location of the comparison count, and the table name.
-unsigned int nu = 0;
-p.table_name = cf.Get("table-names", "angle", ""), p.nu = std::make_shared<unsigned int> (nu);
+p.table_name = cf.Get("table-names", "angle", ""), p.nu = std::make_shared<unsigned int> (0);
 
 // Output: A std::vector (Star::list) of Star objects, holding all stars in the image that were 
 //         identified, and with labels attached to them.

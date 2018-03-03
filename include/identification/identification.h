@@ -23,7 +23,7 @@ class Identification {
     struct Parameters {
         double sigma_query; ///< Query must be within 3 * sigma_query.
         unsigned int sql_limit; ///< While performing a SQL query, limit results by this number.
-        bool pass_r_set_cardinality; ///< If false, the restrict |R| = 1 is lifted. R_1 is returned instead.
+        bool no_reduction; ///< If false, the restrict |R| = 1 is lifted. R_1 is returned instead.
         bool favor_bright_stars; ///< If false, do not favor bright stars in resulting set.
         double sigma_overlay; ///< Resultant of inertial->body rotation must within 3 * sigma_overlay of *a* body.
         unsigned int nu_max; ///< Maximum number of query star comparisons before returning an empty list.
@@ -38,8 +38,8 @@ class Identification {
     /// Default SQL limit for all identification methods.
     static constexpr unsigned int DEFAULT_SQL_LIMIT = 500;
     
-    /// Default R set cardinality flag for all identification methods.
-    static constexpr bool DEFAULT_PASS_R_SET_CARDINALITY = true;
+    /// Default no reduction flag for all identification methods.
+    static constexpr bool DEFAULT_NO_REDUCTION = false;
     
     /// Default favor bright stars flag for all identification methods.
     static constexpr bool DEFAULT_FAVOR_BRIGHT_STARS = false;

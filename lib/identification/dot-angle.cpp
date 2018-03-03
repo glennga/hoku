@@ -11,7 +11,7 @@
 
 /// Default parameters for the dot angle identification method.
 const Identification::Parameters Dot::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
-    DEFAULT_PASS_R_SET_CARDINALITY, DEFAULT_FAVOR_BRIGHT_STARS, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU,
+    DEFAULT_NO_REDUCTION, DEFAULT_FAVOR_BRIGHT_STARS, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU,
     DEFAULT_F, "DOT_20"};
 
 /// Returned when no candidate pair is found from a query.
@@ -101,7 +101,7 @@ Identification::labels_list Dot::query_for_trio (double theta_1, double theta_2,
     }
     
     // |R| = 1 restriction. Applied with the PASS_R_SET_CARDINALITY flag.
-    if (big_r_ell.empty() || (this->parameters.pass_r_set_cardinality && big_r_ell.size() > 1)) {
+    if (big_r_ell.empty() || (this->parameters.no_reduction && big_r_ell.size() > 1)) {
         return EMPTY_BIG_R_ELL;
     }
     

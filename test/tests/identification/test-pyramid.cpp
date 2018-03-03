@@ -79,10 +79,9 @@ TEST(PyramidTrial, CleanIdentify) {
     Chomp ch;
     Rotation q = Rotation::chance();
     Star focus = Star::chance();
-    unsigned int nu = 0;
     Pyramid::Parameters p = Pyramid::DEFAULT_PARAMETERS;
     p.sigma_query = 10e-9;
-    p.nu = std::make_shared<unsigned int>(nu);
+    p.nu = std::make_shared<unsigned int>(0);
     Benchmark input(ch, focus, q, 15, 6.0);
     
     Star::list b = {Rotation::rotate(input.b[0], q), Rotation::rotate(input.b[1], q),

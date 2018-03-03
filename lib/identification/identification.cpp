@@ -19,7 +19,7 @@ const Star::list Identification::EXCEEDED_NU_MAX = {Star::wrap(Vector3::Zero())}
 
 /// Default parameters for a general identification object.
 const Identification::Parameters Identification::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
-    DEFAULT_PASS_R_SET_CARDINALITY, DEFAULT_FAVOR_BRIGHT_STARS, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU,
+    DEFAULT_NO_REDUCTION, DEFAULT_FAVOR_BRIGHT_STARS, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU,
     DEFAULT_F, DEFAULT_TABLE_NAME};
 
 /// Constructor. We set our field-of-view to the default here.
@@ -36,7 +36,7 @@ Identification::Identification () {
 void Identification::collect_parameters (Parameters &p, INIReader &cf) {
     p.sigma_query = cf.GetReal("id-parameters", "sq", DEFAULT_SIGMA_QUERY);
     p.sql_limit = static_cast<unsigned>(cf.GetInteger("id-parameters", "sl", DEFAULT_SQL_LIMIT));
-    p.pass_r_set_cardinality = cf.GetBoolean("id-parameters", "prsc", DEFAULT_PASS_R_SET_CARDINALITY);
+    p.no_reduction = cf.GetBoolean("id-parameters", "nr", DEFAULT_NO_REDUCTION);
     p.favor_bright_stars = cf.GetBoolean("id-parameters", "fbr", DEFAULT_FAVOR_BRIGHT_STARS);
     p.sigma_overlay = cf.GetReal("id-parameters", "so", DEFAULT_SIGMA_OVERLAY);
     p.nu_max = static_cast<unsigned>(cf.GetInteger("id-parameters", "nu-m", DEFAULT_NU_MAX));

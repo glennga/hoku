@@ -24,7 +24,7 @@ TEST(AngleConstructor, Constructor) {
     EXPECT_EQ(a.ch.table, "H");
     EXPECT_EQ(a.parameters.sigma_query, p.sigma_query);
     EXPECT_EQ(a.parameters.sql_limit, p.sql_limit);
-    EXPECT_EQ(a.parameters.pass_r_set_cardinality, p.pass_r_set_cardinality);
+    EXPECT_EQ(a.parameters.no_reduction, p.no_reduction);
     EXPECT_EQ(a.parameters.favor_bright_stars, p.favor_bright_stars);
     EXPECT_EQ(a.parameters.nu_max, p.nu_max);
     EXPECT_EQ(a.parameters.nu, p.nu);
@@ -76,7 +76,7 @@ TEST(AngleQuery, Pair) {
     EXPECT_THAT(c, Contains(b[0]));
     EXPECT_THAT(c, Contains(b[1]));
     
-    p2.pass_r_set_cardinality = false;
+    p2.no_reduction = false;
     Identification::labels_list d = Angle(input, p2).query_for_pair(a);
     EXPECT_THAT(Angle::EMPTY_BIG_R_ELL, Not(Contains(d[0])));
     EXPECT_THAT(Angle::EMPTY_BIG_R_ELL, Not(Contains(d[1])));
@@ -96,7 +96,7 @@ TEST(AngleQuery, ExpectedFailure) {
     EXPECT_THAT(Angle::EMPTY_BIG_R_ELL, Contains(b[1]));
     
     // |R| restriction should prevent an answer from being displayed.
-    p.sigma_query = 0.01;
+    p.sigma_query = 0.1, p.no_reduction = true;
     double d = (180.0 / M_PI) * Vector3::Angle(input2.b[0], input2.b[1]);
     Identification::labels_list c = Angle(input2, p).query_for_pair(d);
     EXPECT_THAT(Angle::EMPTY_BIG_R_ELL, Contains(c[0]));
@@ -109,7 +109,7 @@ TEST(AngleQuery, FavorBrightStarsFlag) {
     Benchmark input(ch, 15);
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS, p2 = Angle::DEFAULT_PARAMETERS;
     p.sigma_query = 0.0001, p2.sigma_query = 0.000000001, p.favor_bright_stars = true;
-    p.pass_r_set_cardinality = false, p2.pass_r_set_cardinality = false;
+    p.no_reduction = false, p2.no_reduction = false;
     
     double a = (180.0 / M_PI) * Vector3::Angle(input.b[0], input.b[1]);
     Identification::labels_list b = Angle(input, p).query_for_pair(a);
@@ -181,7 +181,7 @@ TEST(AngleResults, Query) {
 TEST(AngleTrial, CleanQuery) {
     Chomp ch;
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
-    p.sigma_query = 10e-7, p.pass_r_set_cardinality = false;
+    p.sigma_query = 10e-7, p.no_reduction = false;
     Angle a(Benchmark::black(), p);
     Star b = ch.query_hip(22667), c = ch.query_hip(27913);
     

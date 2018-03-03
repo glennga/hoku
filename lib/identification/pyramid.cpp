@@ -11,7 +11,7 @@
 
 /// Default parameters for the pyramid identification method.
 const Identification::Parameters Pyramid::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
-    DEFAULT_PASS_R_SET_CARDINALITY, DEFAULT_FAVOR_BRIGHT_STARS, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU,
+    DEFAULT_NO_REDUCTION, DEFAULT_FAVOR_BRIGHT_STARS, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU,
     DEFAULT_F, "PYRAMID_20"};
 
 /// Returned when there exists no common stars between the label list pairs.
@@ -158,7 +158,7 @@ Star::trio Pyramid::find_catalog_stars (const Star::trio &b) {
     Star::list big_t_k = common(big_r_ik_ell, big_r_jk_ell, removed);
     
     // |R| = 1 restriction. If these lists do not contain exactly one element, break.
-    if ((big_t_i.size() + big_t_j.size() + big_t_k.size() != 3) && this->parameters.pass_r_set_cardinality) {
+    if ((big_t_i.size() + big_t_j.size() + big_t_k.size() != 3) && this->parameters.no_reduction) {
         return NO_CONFIDENT_R_FOUND;
     }
     
