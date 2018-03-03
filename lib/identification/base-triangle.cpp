@@ -154,10 +154,12 @@ std::vector<Star::trio> BaseTriangle::base_query_for_trios (const index_trio &c,
     return big_r;
 }
 
-/// Generate a series of indices to iterate through as we perform the pivot operation. Store the results in the p stack.
+/// Reset out r_1 match set. Generate a series of indices to iterate through as we perform the pivot operation. Store
+/// the results in the p stack.
 ///
 /// @param c Index trio of stars in the body (B) frame that are 'removed' from this series.
-void BaseTriangle::generate_pivot_list (const index_trio &c) {
+void BaseTriangle::initialize_pivot (const index_trio &c) {
+    this->big_r_1 = nullptr;
     pivot_c.clear();
     
     for (unsigned int j = 0; j < big_i.size(); j++) {
@@ -171,46 +173,41 @@ void BaseTriangle::generate_pivot_list (const index_trio &c) {
 /// all stars found matching the b trio that aren't found in the past set. Recurse until one definitive trio exists.
 ///
 /// @param c Index trio of stars ('combination', but really permutation of I) in body frame.
-/// @param big_r_1 Matches found in a previous search.
 /// @return NO_CANDIDATE_STAR_SET_FOUND if pivoting is unsuccessful. Otherwise, a trio of stars that match the given B
 /// stars to R stars.
-Star::trio BaseTriangle::pivot (const index_trio &c, const std::vector<Star::trio> &big_r_1) {
+Star::trio BaseTriangle::pivot (const index_trio &c) {
     std::vector<Star::trio> big_r = this->query_for_trios(c);
-    if (std::equal(big_r.begin(), big_r.end(), NO_CANDIDATE_STARS_FOUND.begin())) {
-        big_r.clear();
+    
+    // This is our first run. Initialize our r_1 match set.
+    if (this->big_r_1 == nullptr) {
+        big_r_1 = std::make_unique<std::vector<Star::trio>>(big_r);
     }
     
     // Remove all trios from matches that have at least two stars in the past set (below is PartialMatch).
-    if (!big_r_1.empty() && !(std::equal(big_r_1[0].begin() + 1, big_r_1[0].end(), big_r_1[0].begin()))) {
-        for (unsigned int i = 0; i < big_r.size(); i++) {
-            bool matched = false;
-            
-            for (const Star::trio &r_1 : big_r_1) {
-                // We do not need to check all permutations. Break early and advance to next star.
-                if ((r_1[0] == big_r[i][0] || r_1[0] == big_r[i][1] || r_1[0] == big_r[i][2])
-                    && (r_1[1] == big_r[i][0] || r_1[1] == big_r[i][1] || r_1[1] == big_r[i][2])) {
-                    matched = true;
-                    break;
+    if (!std::equal(big_r.begin(), big_r.end(), NO_CANDIDATE_STARS_FOUND.begin())) {
+        (*big_r_1).erase(std::remove_if((*big_r_1).begin(), (*big_r_1).end(), [&big_r] (const Star::trio &r_1) {
+            for (const Star::trio &r : big_r) {
+                if (static_cast<int>(r[0] == r_1[0] || r[0] == r_1[1] || r[0] == r_1[2])
+                    + static_cast<int>(r[1] == r_1[0] || r[1] == r_1[1] || r[1] == r_1[2])
+                    + static_cast<int>(r[2] == r_1[0] || r[2] == r_1[1] || r[2] == r_1[2]) >= 2) {
+                    return false;
                 }
             }
-            
-            // If a match is not found, remove this from the match set.
-            if (!matched) {
-                big_r.erase(big_r.begin() + i);
-            }
-        }
+            return true;
+        }), (*big_r_1).end());
     }
     
-    // |R| = 1 restriction, w/o restriction we avoid recursion. Applied with the PASS_R_SET_CARDINALITY flag.
-    if (!big_r.empty() && this->parameters.pass_r_set_cardinality) {
-        return big_r[0];
+    // Pivot restriction, w/o restriction we avoid recursion. Applied with the NO_REDUCTION flag.
+    if (this->parameters.no_reduction) {
+        return (*big_r_1)[0];
     }
     
-    switch (big_r.size()) {
-        case 1: return big_r[0]; // Only 1 trio exists. This must be the matching trio.
+    switch ((*big_r_1).size()) {
+        case 1: return (*big_r_1)[0]; // Only 1 trio exists. This must be the matching trio.
         case 0: return NO_CANDIDATE_STAR_SET_FOUND; // No trios exist. Exit early.
-            // 2+ trios exists. Run with different 3rd element and history.
-        default: return pivot(index_trio {c[0], c[1], ptop(this->pivot_c)}, big_r);
+        default: // 2+ trios exists. Run with different 3rd element and history, or exit with error set.
+            return (static_cast<unsigned>(c[2]) != this->big_i.size() - 1) ? pivot(
+                index_trio {c[0], c[1], ptop(this->pivot_c)}) : NO_CANDIDATE_STAR_SET_FOUND;
     }
 }
 
@@ -266,14 +263,14 @@ Identification::labels_list BaseTriangle::e_reduction () {
     for (int i = 0; i < static_cast<signed> (big_i.size() - 2); i++) {
         for (int j = i + 1; j < static_cast<signed> (big_i.size() - 1); j++) {
             for (int k = j + 1; k < static_cast<signed> (big_i.size()); k++) {
-                generate_pivot_list({i, j, k});
+                initialize_pivot({i, j, k});
                 Star::trio p = pivot({i, j, k});
                 
                 // Require that the pivot produces a meaningful result.
                 if (std::equal(p.begin(), p.end(), NO_CANDIDATE_STAR_SET_FOUND.begin())) {
                     continue;
                 }
-                return {p[0].get_label(), p[0].get_label(), p[0].get_label()};
+                return {p[0].get_label(), p[1].get_label(), p[2].get_label()};
             }
         }
     }
@@ -303,7 +300,7 @@ Star::list BaseTriangle::e_identify () {
                 }
                 
                 // Find matches of current body trio to catalog. Pivot if necessary.
-                generate_pivot_list({i, j, k});
+                initialize_pivot({i, j, k});
                 r = pivot({i, j, k});
                 if (std::equal(r.begin(), r.end(), NO_CANDIDATE_STAR_SET_FOUND.begin())) {
                     continue;

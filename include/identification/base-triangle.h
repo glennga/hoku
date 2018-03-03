@@ -70,13 +70,16 @@ class BaseTriangle : public Identification {
 #endif
     /// Our index series that we pivot with. Set before each pivot call.
     std::deque<int> pivot_c;
+    
+    /// Pointer to current match list during a given pivot sequence.
+    std::unique_ptr<std::vector<Star::trio>> big_r_1 = nullptr;
 
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
-    void generate_pivot_list (const index_trio &);
+    void initialize_pivot (const index_trio &);
     std::vector<labels_list> query_for_trio (double a, double i);
-    Star::trio pivot (const index_trio &, const std::vector<Star::trio> & = {});
+    Star::trio pivot (const index_trio &);
     Star::list direct_match_test (const Star::list &big_p, const Star::trio &r, const Star::trio &b);
     
 };

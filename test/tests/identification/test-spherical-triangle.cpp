@@ -104,10 +104,11 @@ TEST(SphericalTriangleTrial, CleanQuery) {
 TEST(SphericalTriangleTrial, CleanReduction) {
     Chomp ch;
     Sphere::Parameters p = Sphere::DEFAULT_PARAMETERS;
-    p.sigma_overlay = 0.00001, p.sigma_query = 10e-8, p.sql_limit = 1000000;
-    Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532)};
+    p.sigma_query = 10e-10, p.sql_limit = 1000000;
+    Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532), ch.query_hip(101958),
+        ch.query_hip(101909)};
     
-    Benchmark i (b, b[0], 20);
+    Benchmark i(b, b[0], 20);
     Sphere a(i, p);
     EXPECT_THAT(a.reduce(), UnorderedElementsAre(102531, 95498, 102532));
 }
@@ -121,24 +122,45 @@ TEST(SphericalTriangleTrial, CleanIdentify) {
     p.sigma_overlay = 0.000001;
     
     Rotation q = Rotation::chance();
-    Star b = ch.query_hip(102531), c = ch.query_hip(95498), d = ch.query_hip(102532);
-    Star e = Rotation::rotate(b, q), f = Rotation::rotate(c, q), g = Rotation::rotate(d, q);
+    Star::list b ={ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532), ch.query_hip(101958), ch
+        .query_hip(101909)};
+    Star::list c = {Rotation::rotate(b[0], q), Rotation::rotate(b[1], q), Rotation::rotate(b[2], q), Rotation::rotate
+        (b[0], q), Rotation::rotate(b[3], q), Rotation::rotate(b[4], q)};
 
-    Sphere a(Benchmark({e, f, g}, e, 20), p);
+    Sphere a(Benchmark(c, c[0], 20), p);
     Star::list h = a.identify();
-    EXPECT_THAT(h, Contains(Star::define_label(e, 102531)));
-    EXPECT_THAT(h, Contains(Star::define_label(f, 95498)));
-    EXPECT_THAT(h, Contains(Star::define_label(g, 102532)));
+    EXPECT_THAT(h, Contains(Star::define_label(c[0], 102531)));
+    EXPECT_THAT(h, Contains(Star::define_label(c[1], 95498)));
+    EXPECT_THAT(h, Contains(Star::define_label(c[2], 102532)));
 }
 
 /// Check that the nu_max is respected in identification.
 TEST(SphericalTriangleTrial, ExceededNu) {
+    Chomp ch;
+    Benchmark input(ch, 15);
+    input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
+    Sphere::Parameters p = Sphere::DEFAULT_PARAMETERS;
+    p.nu = std::make_shared<unsigned int>(0), p.nu_max = 10;
+    p.sigma_query = std::numeric_limits<double>::epsilon();
+    p.sigma_overlay = std::numeric_limits<double>::epsilon();
+    Sphere a(input, p);
     
+    EXPECT_EQ(a.identify()[0], Sphere::EXCEEDED_NU_MAX[0]);
+    EXPECT_EQ(*p.nu, p.nu_max + 1);
 }
 
 /// Check that the correct result is returned when no map is found.
 TEST(SphericalTriangleTrial, NoMapFound) {
+    Chomp ch;
+    Benchmark input(ch, 7);
+    input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
+    Sphere::Parameters p = Sphere::DEFAULT_PARAMETERS;
+    p.nu = std::make_shared<unsigned int>(0), p.nu_max = std::numeric_limits<unsigned int>::max();
+    p.sigma_query = std::numeric_limits<double>::epsilon();
+    p.sigma_overlay = std::numeric_limits<double>::epsilon();
+    Sphere a(input, p);
     
+    EXPECT_EQ(a.identify()[0], Sphere::NO_CONFIDENT_A[0]);
 }
 
 /// Runs all tests defined in this file.
