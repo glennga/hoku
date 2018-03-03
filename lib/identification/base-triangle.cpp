@@ -289,9 +289,6 @@ Star::list BaseTriangle::e_identify () {
     for (int i = 0; i < static_cast<signed> (big_i.size() - 2); i++) {
         for (int j = i + 1; j < static_cast<signed> (big_i.size() - 1); j++) {
             for (int k = j + 1; k < static_cast<signed> (big_i.size()); k++) {
-                std::vector<Star::trio> big_r;
-                Star::trio r;
-                Star::list big_p;
                 (*parameters.nu)++;
                 
                 // Practical limit: exit early if we have iterated through too many comparisons without match.
@@ -301,13 +298,13 @@ Star::list BaseTriangle::e_identify () {
                 
                 // Find matches of current body trio to catalog. Pivot if necessary.
                 initialize_pivot({i, j, k});
-                r = pivot({i, j, k});
+                Star::trio r = pivot({i, j, k});
                 if (std::equal(r.begin(), r.end(), NO_CANDIDATE_STAR_SET_FOUND.begin())) {
                     continue;
                 }
                 
                 // Find candidate stars around the candidate trio.
-                big_p = ch.nearby_hip_stars(r[0], fov, static_cast<unsigned int> (3.0 * big_i.size()));
+                Star::list big_p = ch.nearby_hip_stars(r[0], fov, static_cast<unsigned int> (3.0 * big_i.size()));
                 
                 // Find the most likely map given the two pairs.
                 return direct_match_test(big_p, r, {big_i[i], big_i[j], big_i[k]});

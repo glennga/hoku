@@ -239,7 +239,6 @@ Star::list Dot::identify () {
         for (unsigned int j = i + 1; j < big_i.size() - 1; j++) {
             for (unsigned int c = j + 1; c < big_i.size(); c++) {
                 bool is_swapped = false;
-                Star::list big_p;
                 
                 // Practical limit: exit early if we have iterated through too many comparisons without match.
                 (*parameters.nu)++;

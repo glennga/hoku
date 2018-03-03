@@ -77,7 +77,7 @@ class BaseTriangle : public Identification {
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
-    void initialize_pivot (const index_trio &);
+    void initialize_pivot (const index_trio & = {-1, -1, -1});
     std::vector<labels_list> query_for_trio (double a, double i);
     Star::trio pivot (const index_trio &);
     Star::list direct_match_test (const Star::list &big_p, const Star::trio &r, const Star::trio &b);

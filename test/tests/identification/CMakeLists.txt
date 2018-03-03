@@ -27,6 +27,12 @@ add_executable(TestDotAngle test-dot-angle.cpp)
 target_link_libraries(TestDotAngle gtest gmock ${HOKU_LIBS})
 
 #
+# Link and Create Executable TestBaseTriangle
+#
+add_executable(TestBaseTriangle test-base-triangle.cpp)
+target_link_libraries(TestBaseTriangle gtest gmock ${HOKU_LIBS})
+
+#
 # Link and Create Executable TestPlanarTriangle
 #
 add_executable(TestPlanarTriangle test-planar-triangle.cpp)

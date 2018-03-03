@@ -232,7 +232,6 @@ Star::list Angle::identify () {
     // There exists |big_i| choose 2 possibilities.
     for (unsigned int i = 0; i < big_i.size() - 1; i++) {
         for (unsigned int j = i + 1; j < big_i.size(); j++) {
-            Star::list big_p;
             (*parameters.nu)++;
             
             // Practical limit: exit early if we have iterated through too many comparisons without match.
@@ -247,7 +246,7 @@ Star::list Angle::identify () {
             }
             
             // Find candidate stars around the candidate pair.
-            big_p = ch.nearby_hip_stars(r[0], fov, static_cast<unsigned int>(3 * big_i.size()));
+            Star::list big_p = ch.nearby_hip_stars(r[0], fov, static_cast<unsigned int>(3 * big_i.size()));
             
             // Find the most likely pair combination given the two pairs.
             return direct_match_test(big_p, {r[0], r[1]}, {big_i[i], big_i[j]});
