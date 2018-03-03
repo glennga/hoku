@@ -122,11 +122,11 @@ TEST(SphericalTriangleTrial, CleanIdentify) {
     p.sigma_overlay = 0.000001;
     
     Rotation q = Rotation::chance();
-    Star::list b ={ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532), ch.query_hip(101958), ch
-        .query_hip(101909)};
-    Star::list c = {Rotation::rotate(b[0], q), Rotation::rotate(b[1], q), Rotation::rotate(b[2], q), Rotation::rotate
-        (b[0], q), Rotation::rotate(b[3], q), Rotation::rotate(b[4], q)};
-
+    Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532), ch.query_hip(101958),
+        ch.query_hip(101909)};
+    Star::list c = {Rotation::rotate(b[0], q), Rotation::rotate(b[1], q), Rotation::rotate(b[2], q),
+        Rotation::rotate(b[3], q), Rotation::rotate(b[4], q)};
+    
     Sphere a(Benchmark(c, c[0], 20), p);
     Star::list h = a.identify();
     EXPECT_THAT(h, Contains(Star::define_label(c[0], 102531)));
