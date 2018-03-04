@@ -38,7 +38,7 @@ class Rotation : public Quaternion {
     Rotation(double w, double i, double j, double k);
     static Rotation wrap (const Quaternion &q);
     
-    /// Alias for a function that solves Wahba's problem (e.g. TRIAD, QUEST, etc...).
+    /// Alias for a function that solves Wahba's problem (e.g. TRIAD, SVD, etc...).
     using wahba_function = Rotation (*) (const Star::list &, const Star::list &);
   
   public:
@@ -53,7 +53,7 @@ class Rotation : public Quaternion {
     
     static Rotation triad (const Star::list &v, const Star::list &w);
     static Rotation svd (const Star::list &v, const Star::list &w);
-    static Rotation quest (const Star::list &v, const Star::list &w);
+    static Rotation q_method (const Star::list &v, const Star::list &w);
 };
 
 #endif /* HOKU_ROTATION_H */

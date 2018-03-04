@@ -72,7 +72,7 @@ noise. Increasing this value raises your chances of collecting false positives, 
 to more false negatives.
 6. `nu-m` = Maximum number of query star comparisons. To prevent an identification method from exhausting every 
 possible option and consuming time, set this appropriately.
-7. `wbs` = Wabha's problem solver. Select the choices: `TRIAD`, `QUEST`, or `Q`. These are different methods of 
+7. `wbs` = Wabha's problem solver. Select the choices: `TRIAD`, `SVD`, or `Q`. These are different methods of 
 determining a rotation given vector observations in both frame. For every instance where Wahba's problem occurs, this
 method will be applied.
 

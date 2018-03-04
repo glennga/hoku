@@ -140,12 +140,43 @@ Rotation Rotation::svd (const Star::list &v, const Star::list &w) {
 }
 
 /// Approach to find the quaternion across two different frames given vector observations in both. This
-/// solves Wahba's problem through ....
+/// solves Wahba's problem through minimizing the loss function (or, maximizing the gain function) and determining
+/// the eigenvector (representing a quaternion) associated with this set of eigenvalues.
 ///
 /// @param v 2 element list of stars in frame V.
 /// @param w 2 element list of stars in frame W.
 /// @return The quaternion to rotate from frame W to V.
-Rotation Rotation::quest (const Star::list &v, const Star::list &w) {
-    // TODO: Finish the QUEST Method.
-    return Rotation::triad(v, w);
+Rotation Rotation::q_method (const Star::list &v, const Star::list &w) {
+    // TODO: Determine what is wrong with this q-method implementation.
+    return triad(v, w);
+    
+//    // Construct the B matrix by summing the outer products (b_i (X) r_i^T). Each observation is of equal weight.
+//    Matrix3x3 big_b = Matrix3x3::Zero(), big_s_sigma;
+//    for (unsigned int i = 0; i < v.size(); i++) {
+//        big_b += Matrix3x3(v[i].X * w[i], v[i].Y * w[i], v[i].Z * w[i]);
+//    }
+//
+//    // Construct the Z vector, the trace of B, and the S matrix.
+//    Vector3 big_z(big_b.D12 - big_b.D21, big_b.D20 - big_b.D02, big_b.D01 - big_b.D10);
+//    double sigma = big_b.D00 + big_b.D11 + big_b.D22;
+//    big_s_sigma = (big_b + Matrix3x3::Transpose(big_b)) - (sigma * Matrix3x3::Identity());
+//
+//    // Construct the K matrix.
+//    Eigen::Matrix<double, 4, 4> big_k_e;
+//    big_k_e.row(0) << big_s_sigma.D00, big_s_sigma.D01, big_s_sigma.D02, big_z.X;
+//    big_k_e.row(1) << big_s_sigma.D10, big_s_sigma.D11, big_s_sigma.D12, big_z.Y;
+//    big_k_e.row(2) << big_s_sigma.D20, big_s_sigma.D21, big_s_sigma.D22, big_z.Z;
+//    big_k_e.row(3) << big_z.X, big_z.Y, big_z.Z, sigma;
+//
+//    // The eigenvector associated with the largest vector represents the optimal quaternion (maximizing gain function).
+//    Eigen::EigenSolver<Eigen::Matrix<double, 4, 4>> es(big_k_e);
+//    auto lambda_j_e = es.eigenvalues();
+//    auto q_bar_j = es.eigenvectors();
+//
+//    // Determine the index of the largest eigenvalue. Return the eigenvector associated with it.
+//    std::vector<double> lambda_j = {lambda_j_e(0).real(), lambda_j_e(1).real(), lambda_j_e(2).real(),
+//        lambda_j_e(3).real()};
+//    auto i = std::distance(lambda_j.begin(), std::max_element(lambda_j.begin(), lambda_j.end()));
+//
+//    return Rotation(q_bar_j(i, 1).real(), q_bar_j(i, 2).real(), q_bar_j(i, 3).real(), q_bar_j(i, 0).real());
 }
