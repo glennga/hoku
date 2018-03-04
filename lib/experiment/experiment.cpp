@@ -106,11 +106,11 @@ bool Experiment::Reduction::is_correctly_identified (const Star::list &big_i,
 /// @param big_i All body stars. Check if b_ell correctly matches stars in this set.
 /// @param b Subset of our body, but with predicted catalog labels.
 /// @return True if the predicted catalog labels matches the ground truth labels (body set).
-bool Experiment::Map::is_correctly_identified (const Star::list &big_i, const Star::list &b) {
+double Experiment::Map::percentage_correct (const Star::list &big_i, const Star::list &b) {
     unsigned int count = 0;
-    for (const Star &b : big_i) {
-        count += (std::find(b.begin(), b.end(), b) != b.end()) ? 1 : 0;
+    for (const Star &b_j : big_i) {
+        count += (std::find(b.begin(), b.end(), b_j) != b.end()) ? 1 : 0;
     }
     
-    return count == b.size();
+    return count / b.size();
 }

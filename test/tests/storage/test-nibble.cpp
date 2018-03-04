@@ -115,11 +115,10 @@ TEST(NibbleTable, Creation) {
     Nibble nb2;
     (*nb2.conn).exec("DROP TABLE IF EXISTS MYTABLE");
     
-    if (true) {
-        // Just creating scope here. Nibble gets destroyed when this is done.
-        Nibble nb;
-        EXPECT_EQ (0, nb.create_table("MYTABLE", "a int"));
-    }
+    // Nibble gets destroyed when this is done.
+    std::unique_ptr<Nibble> nb_p = std::make_unique<Nibble>();
+    EXPECT_EQ (0, (*nb_p).create_table("MYTABLE", "a int"));
+    nb_p.reset(nullptr);
     
     // Attempting to create a table again should return an error.
     Nibble nb;

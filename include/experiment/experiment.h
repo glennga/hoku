@@ -35,7 +35,8 @@ namespace Experiment {
             "CandidateSetSize FLOAT, SExistence INT";
         
         Star::list generate_n_stars (Chomp &ch, unsigned int n, Star &center, double fov);
-        bool set_existence (std::vector<Identification::labels_list> &big_r_ell, Identification::labels_list &big_i_ell);
+        bool set_existence (std::vector<Identification::labels_list> &big_r_ell,
+                            Identification::labels_list &big_i_ell);
         
         /// Generic experiment function for the query trials. Performs a query trial and records the experiment in
         /// the lumberjack. The provided Nibble connection is used for generating the input image.
@@ -101,11 +102,10 @@ namespace Experiment {
             Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
             double fov = cf.GetReal("hardware", "fov", 0);
             Star::list body;
-            unsigned int nu = 0;
             Star focus;
             
             // Define our hyperparameters.
-            Identification::collect_parameters(p, cf), p.table_name = tb, p.nu = std::make_shared<unsigned int>(nu);
+            Identification::collect_parameters(p, cf), p.table_name = tb, p.nu = std::make_shared<unsigned int>(0);
             
             // First run is clean, without shifts. Following are the shift trials.
             for (int ss_i = 0; ss_i < cf.GetInteger("reduction-experiment", "ss-iter", 0); ss_i++) {
@@ -140,9 +140,9 @@ namespace Experiment {
         /// Schema header that corresponds to the log file for all identification trials.
         const char *const SCHEMA = "IdentificationMethod TEXT, Timestamp TEXT, SigmaQuery FLOAT, SigmaOverlay FLOAT, "
             "ShiftDeviation FLOAT, CameraSensitivity FLOAT, FalseStars INT, ComparisonCount INT, "
-            "IsCorrectlyIdentified INT";
+            "PercentageCorrect FLOAT";
         
-        bool is_correctly_identified (const Star::list &big_i, const Star::list &b);
+        double percentage_correct (const Star::list &big_i, const Star::list &b);
         
         /// Generic experiment function for the identification trials. Performs a identification trial and records the
         /// experiment in the lumberjack. The provided Nibble connection is used for generating the input image.
@@ -154,14 +154,14 @@ namespace Experiment {
         /// @param tb Table name used with the method specified with the template T.
         template <class T>
         void trial (Chomp &ch, Lumberjack &lu, INIReader &cf, const std::string &tb) {
+            std::shared_ptr<unsigned int> nu = std::make_shared<unsigned int>(0);
             Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
             double fov = cf.GetReal("hardware", "fov", 0);
             Star::list body;
-            unsigned int nu = 0;
             Star focus;
             
             // Define our hyperparameters.
-            Identification::collect_parameters(p, cf), p.table_name = tb, p.nu = std::make_shared<unsigned int>(nu);
+            Identification::collect_parameters(p, cf), p.table_name = tb, p.nu = nu;
             
             for (int ss_i = 0; ss_i < cf.GetInteger("identification-experiment", "ss-iter", 0); ss_i++) {
                 double ss = (ss_i == 0) ? 0 : cf.GetInteger("identification-experiment", "ss-step", 0) * ss_i;
@@ -187,8 +187,8 @@ namespace Experiment {
                             Star::list w = T(input, p).identify();
                             
                             // Log the results of our trial.
-                            lu.log_trial({p.sigma_query, p.sigma_overlay, ss, mb, es, static_cast<double> (*p.nu),
-                                             (is_correctly_identified(body, w) ? 1.0 : 0)});
+                            lu.log_trial({p.sigma_query, p.sigma_overlay, ss, mb, es, static_cast<double> (*nu),
+                                             percentage_correct(body, w)});
                         }
                     }
                 }

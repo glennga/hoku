@@ -26,8 +26,7 @@ Lumberjack::Lumberjack (const std::string &trial_table, const std::string &ident
     
     // We won't be changing our table from here.
     select_table(trial_table, true);
-    this->identifier_name = identifier_name;
-    this->timestamp = timestamp;
+    this->identifier_name = identifier_name, this->timestamp = timestamp;
     
     // Determine the length of every result into log_trial. The schema string will not be used.
     std::string schema;
