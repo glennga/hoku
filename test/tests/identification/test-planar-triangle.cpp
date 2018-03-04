@@ -19,7 +19,7 @@ using testing::Contains;
 TEST(PlanarTriangleConstructor, Constructor) {
     Chomp ch;
     Benchmark input(ch, 20);
-    Plane::Parameters p = {0.01, 10, false, true, 0.1, 10, std::make_shared<unsigned int>(0), Rotation::quest, "H"};
+    Plane::Parameters p = {0.01, 10, false, true, 0.1, 10, std::make_shared<unsigned int>(0), Rotation::svd, "H"};
     Plane a(input, p);
     
     EXPECT_EQ(a.fov, 20);

@@ -17,7 +17,7 @@ using testing::Not;
 TEST(AngleConstructor, Constructor) {
     Chomp ch;
     Benchmark input(ch, 20);
-    Angle::Parameters p = {0.01, 10, false, true, 0.1, 10, std::make_shared<unsigned int>(0), Rotation::quest, "H"};
+    Angle::Parameters p = {0.01, 10, false, true, 0.1, 10, std::make_shared<unsigned int>(0), Rotation::svd, "H"};
     Angle a(input, p);
     
     EXPECT_EQ(a.fov, 20);

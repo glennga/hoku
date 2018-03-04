@@ -48,7 +48,7 @@ TEST(ParameterCollect, CleanInput) {
         "fbr = 0                     ; 'Favor Bright Stars' toggle.\n"
         "so = 0.00000001             ; Sigma overlay (degrees).\n"
         "nu-m = 50000                ; Maximum number of query star comparisons (nu max).\n"
-        "wbs = TRIAD                 ; Function used to solve Wabha (possible TRIAD, QUEST, Q)";
+        "wbs = TRIAD                 ; Function used to solve Wabha (possible TRIAD, SVD, Q)";
     f1.close();
     
     INIReader cf1(temp_path + "/TESTCONFIG1.ini");
@@ -81,7 +81,7 @@ TEST(ParameterCollect, ErrorInput) {
         "fbr =         2             ; 'Favor Bright Stars' toggle.\n"
         "so = 0.001                  ; Sigma overlay (degrees).\n"
         "nu-m = 5                    ; Maximum number of query star comparisons (nu max).\n"
-        "wbs = TY                    ; Function used to solve Wabha (possible TRIAD, QUEST, Q)";
+        "wbs = TY                    ; Function used to solve Wabha (possible TRIAD, SVD, Q)";
     f2.close();
     
     INIReader cf2(temp_path + "/TESTCONFIG2.ini");
