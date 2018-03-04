@@ -22,7 +22,7 @@ using testing::Not;
 TEST(DotAngleConstructor, Constructor) {
     Chomp ch;
     Benchmark input(ch, 20);
-    Dot::Parameters p = {0.01, 10, false, true, 0.1, 10, std::make_shared<unsigned int>(0), Rotation::quest, "H"};
+    Dot::Parameters p = {0.01, 10, false, true, 0.1, 10, std::make_shared<unsigned int>(0), Rotation::svd, "H"};
     Dot a(input, p);
     
     EXPECT_EQ(a.fov, 20);

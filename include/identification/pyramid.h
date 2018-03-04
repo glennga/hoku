@@ -48,12 +48,13 @@ class Pyramid : public Identification {
 
 #if !defined ENABLE_TESTING_ACCESS
   protected:
+#endif
     /// Alias for a list of catalog ID lists (STL vector of vectors of integers).
     using labels_list_list = std::vector<labels_list>;
-#endif
 
 #if !defined ENABLE_TESTING_ACCESS
   protected:
+#endif
     Star::list common (const labels_list_list &big_r_ab_ell, const labels_list_list &big_r_ac_ell,
                        const Star::list &removed);
     virtual bool verification (const Star::trio &r, const Star::trio &b);
@@ -61,7 +62,6 @@ class Pyramid : public Identification {
     Star::list identify_as_list (const Star::list &b);
     
     static const Star::trio NO_CONFIDENT_R_FOUND;
-#endif
 
 #if !defined ENABLE_TESTING_ACCESS
   private:
