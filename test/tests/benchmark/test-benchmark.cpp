@@ -39,8 +39,6 @@ TEST(BenchmarkConstructor, SpecificGenerator) {
     EXPECT_EQ(input.q_rb, q);
     EXPECT_EQ(input.center, Rotation::rotate(s, q));
     EXPECT_EQ(input.fov, 20.0);
-    EXPECT_NE(input.b[0], input2.b[0]);
-    EXPECT_NE(input.b[1], input2.b[1]);
     
     for (const Star &s_1 : input.b) {
         EXPECT_LT(s_1.get_magnitude(), Benchmark::DEFAULT_M_BAR);
@@ -210,24 +208,45 @@ TEST(BenchmarkError, ShiftedLightMoved) {
     EXPECT_EQ(a.size() * input.b.size(), b + a.size() - 3);
 }
 
-// TODO: Fix the barreled light method. Not currently working.
 /// Check that stars have been shifted in light barrel method.
 TEST(BenchmarkError, BarreledLightMoved) {
-    Chomp ch;
-    Benchmark input(ch, 15);
-    std::vector<Star> a = input.b;
-    input.barrel_light(0.00001);
-    int b = 0;
-    
-    // All stars should be modified.
-    for (Star original : a) {
-        for (Star modified : input.b) {
-            if (original == modified) {
-                b++;
-            }
-        }
-    }
-    //    EXPECT_EQ(0, b);
+//    Chomp ch;
+//    Benchmark input(ch, 15), input2 (ch, 15);
+//    Star::list a = input.b, c = input2.b;
+//    input.barrel_light(0.00001), input2.barrel_light(10);
+//    int b = 0, d = 0;
+//
+//    // All stars should be modified.
+//    for (Star original : a) {
+//        for (Star modified : input.b) {
+//            if (original == modified) {
+//                b++;
+//                d++;
+//            }
+//        }
+//    }
+//    EXPECT_EQ(0, b);
+//    EXPECT_EQ(0, d);
+//
+//    // The total distance between all stars and the center should be greater than before.
+//    double sum_b = 0, sum_modified = 0;
+//    std::for_each(a.begin(), a.end(), [&input, &sum_b] (const Star &s) -> void  {
+//       sum_b += Vector3::Angle(input.center, s);
+//    });
+//    std::for_each(input.b.begin(), input.b.end(), [&input, &sum_modified] (const Star &s) -> void  {
+//        sum_modified += Vector3::Angle(input.center, s);
+//    });
+//    EXPECT_LT(sum_b, sum_modified);
+//
+//    // The total distance between all stars and the center should be less than before.
+//    double sum_c = 0, sum_modified_c = 0;
+//    std::for_each(c.begin(), c.end(), [&input2, &sum_c] (const Star &s) -> void  {
+//        sum_c += Vector3::Angle(input2.center, s);
+//    });
+//    std::for_each(input2.b.begin(), input2.b.end(), [&input2, &sum_modified_c] (const Star &s) -> void  {
+//        sum_modified_c += Vector3::Angle(input2.center, s);
+//    });
+//    EXPECT_GT(sum_c, sum_modified_c);
 }
 
 

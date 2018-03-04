@@ -85,11 +85,12 @@ void Benchmark::generate_stars (Chomp &ch, const double m_bar) {
     auto expected = static_cast<unsigned int>(this->fov * 4);
     
     // Find nearby stars. Rotate these stars and the center.
-    for (const Star &s : ch.nearby_hip_stars(this->center, this->fov / 2.0, expected)) {
+    Star::list s_l = ch.nearby_hip_stars(this->center, this->fov / 2.0, expected);
+    std::for_each(s_l.begin(), s_l.end(), [this, &m_bar] (const Star &s) -> void {
         if (s.get_magnitude() <= m_bar) {
             this->b.push_back(Rotation::rotate(s, this->q_rb));
         }
-    }
+    });
     this->center = Rotation::rotate(Star::wrap(this->center), this->q_rb);
     
     // Shuffle to maintain randomness.
@@ -106,9 +107,7 @@ Star::list Benchmark::clean_stars () const {
     // Keep the current star set intact.
     Star::list clean = this->b;
     
-    for (Star &s : clean) {
-        s = Star::reset_label(s);
-    }
+    std::transform(clean.begin(), clean.end(), clean.begin(), Star::reset_label);
     return clean;
 }
 
@@ -138,19 +137,20 @@ void Benchmark::record_current_plot () {
     current_record << this->center.data[0] << " " << this->center.data[1] << " " << this->center.data[2] << "\n";
     
     // Record the stars.
-    for (const Star &s : this->b) {
+    std::for_each(this->b.begin(), this->b.end(), [&current_record] (const Star &s) -> void {
         current_record << s[0] << " " << s[1] << " " << s[2] << " " << s.get_label() << "\n";
-    }
+    });
     current << current_record.str();
     
     // Record each error model, which has it's own set of stars and plot colors.
     error_record << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed;
-    for (const ErrorModel &model: this->error_models) {
-        for (const Star &s: model.affected) {
-            error_record << s[0] << " " << s[1] << " " << s[2] << " " << s.get_label() << " " << model.plot_color
-                         << "\n";
-        }
-    }
+    std::for_each(this->error_models.begin(), this->error_models.end(),
+                  [&error_record] (const ErrorModel &model) -> void {
+                      for (const Star &s: model.affected) {
+                          error_record << s[0] << " " << s[1] << " " << s[2] << " " << s.get_label() << " "
+                                       << model.plot_color << "\n";
+                      }
+                  });
     error << error_record.str();
     
     current.close();
@@ -289,22 +289,21 @@ void Benchmark::shift_light (const unsigned int n, const double sigma, bool cap_
     this->error_models.push_back(shifted_light);
 }
 
-// TODO: Barrel distortion does not currently work. Fix this method.
-/// Simulate barrel distortion using the equation r_d = r_u(1 - alpha|r_u|^2. This distorts the entire image. Source
+/// Simulate barrel distortion using the equation r_d = r_u(1 - alpha|r_u|^2). This distorts the entire image. Source
 /// found here: https://stackoverflow.com/a/34743020
 ///
-/// @param alpha Distortion parameter associated with the barrel.
+/// @param alpha Distortion parameter associated with the barrel. Smaller alpha -> stars moved away from image center.
 void Benchmark::barrel_light (double alpha) {
+    // TODO: Finish this method. Need to visually check output.
     ErrorModel barreled_light = {"Barreled Light", "y", {}};
     
-    for (unsigned int i = 0; i < this->b.size(); i++) {
+    std::transform(this->b.begin(), this->b.end(), this->b.begin(), [this, alpha] (const Star &s) -> Star {
         // Determine the distance our current star must be from the center.
-        double u = (180.0 / M_PI) * Star::Angle(this->b[i], this->center);
+        double u = (180.0 / M_PI) * Star::Angle(s, this->center);
         double d = u * (1 - alpha * u * u);
         
-        this->b.push_back(Rotation::slerp(this->b[i], this->center, d));
-        this->b.erase(this->b.begin() + i);
-    }
+        return Rotation::slerp(s, this->center, d);
+    });
     
     // Append to our error models.
     this->error_models.push_back(barreled_light);
