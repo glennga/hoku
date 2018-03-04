@@ -80,7 +80,7 @@ void remove_table (const std::string &choice) {
 ///
 /// @param choice Name associated with the table to generate.
 void generate_table (const std::string &choice) {
-    auto display_result = [] (const int r) -> void {
+    static auto display_result = [] (const int r) -> void {
         std::cout
             << ((r == Nibble::TABLE_NOT_CREATED) ? "\nTable already exists." : "\nTable was created successfully.")
             << std::endl;

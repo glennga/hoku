@@ -65,18 +65,19 @@ void Identification::collect_parameters (Parameters &p, INIReader &cf) {
 /// @return Set of matching stars found in candidates and the body sets.
 Star::list Identification::find_positive_overlay (const Star::list &big_p, const Rotation &q) {
     double epsilon = 3.0 * this->parameters.sigma_overlay;
-    Star::list m;
+    Star::list m, big_i_c = this->big_i;
     m.reserve(big_i.size());
     
     for (const Star &p_i : big_p) {
         Star r_prime = Rotation::rotate(p_i, q);
-        for (unsigned int i = 0; i < big_i.size(); i++) {
-            if (Star::within_angle(r_prime, big_i[i], epsilon)) {
+        
+        for (unsigned int i = 0; i < big_i_c.size(); i++) {
+            if (Star::within_angle(r_prime, big_i_c[i], epsilon)) {
                 // Add this match to the list by noting the candidate star's catalog ID.
-                m.emplace_back(Star(big_i[i][0], big_i[i][1], big_i[i][2], p_i.get_label()));
+                m.emplace_back(Star(big_i_c[i][0], big_i_c[i][1], big_i_c[i][2], p_i.get_label()));
                 
                 // Remove the current star from the searching set. End the search for this star.
-                big_i.erase(big_i.begin() + i);
+                big_i_c.erase(big_i_c.begin() + i);
                 break;
             }
         }

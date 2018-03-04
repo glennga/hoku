@@ -80,7 +80,7 @@ TEST(PyramidQuery, Pairs) {
 }
 
 /// Check that the common method returns the correct common stars, and filters out not correct common stars.
-TEST(PyramidCommon, CleanInput) {
+TEST(PyramidDualCommon, CleanInput) {
     Chomp ch;
     
     Pyramid::labels_list_list ei = {{3, 100}, {3, 413}, {7, 87}};
@@ -102,6 +102,20 @@ TEST(PyramidCommon, CleanInput) {
     
     Star::list e = a.common(ei, ej, b);
     EXPECT_THAT(e, Contains(Pyramid::NO_COMMON_FOUND[0]));
+}
+
+/// Check that the common method returns the correct common stars, and filters out not correct common stars.
+TEST(PyramidThreeCommon, CleanInput) {
+    Chomp ch;
+    
+    Pyramid::labels_list_list ei = {{3, 100}, {3, 413}, {7, 87}};
+    Pyramid::labels_list_list ej = {{3, 2}, {3, 5}, {13, 87}};
+    Pyramid::labels_list_list ek = {{100, 5}, {3, 7352}, {987, 512}};
+    Pyramid a(Benchmark(ch, 20), Pyramid::DEFAULT_PARAMETERS);
+    
+    Star::list b = a.common(ei, ej, ek, {});
+    EXPECT_EQ(b.size(), 1);
+    EXPECT_THAT(b, Contains(ch.query_hip(3)));
 }
 
 /// Check that the verification works as intended with clean input.
@@ -210,7 +224,7 @@ TEST(PyramidIdentify, CleanInput) {
     Benchmark input(ch, 20);
     Pyramid::Parameters p = Pyramid::DEFAULT_PARAMETERS;
     Rotation q = Rotation::chance();
-    p.sigma_query = 0.00000000001;
+    p.sigma_query = 0.0000000001;
     
     Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532), ch.query_hip(101958),
         ch.query_hip(101909)};

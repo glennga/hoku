@@ -49,3 +49,9 @@ target_link_libraries(TestSphericalTriangle gtest gmock ${HOKU_LIBS})
 #
 add_executable(TestPyramid test-pyramid.cpp)
 target_link_libraries(TestPyramid gtest gmock ${HOKU_LIBS})
+
+#
+# Link and Create Executable TestCompositePyramid
+#
+add_executable(TestCompositePyramid test-composite-pyramid.cpp)
+target_link_libraries(TestCompositePyramid gtest gmock ${HOKU_LIBS})

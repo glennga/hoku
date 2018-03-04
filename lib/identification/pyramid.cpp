@@ -74,7 +74,7 @@ Pyramid::labels_list_list Pyramid::query_for_pairs (const double theta) {
 /// @return All common stars between AB and AC, with F removed.
 Star::list Pyramid::common (const labels_list_list &big_r_ab_ell, const labels_list_list &big_r_ac_ell,
                             const Star::list &removed) {
-    auto flatten_pairs = [] (const labels_list_list &big_r_ell, labels_list &out_ell) -> void {
+    static auto flatten_pairs = [] (const labels_list_list &big_r_ell, labels_list &out_ell) -> void {
         out_ell.reserve(big_r_ell.size() * 2);
         for (const labels_list &candidate : big_r_ell) {
             out_ell.push_back(candidate[0]);
@@ -109,6 +109,54 @@ Star::list Pyramid::common (const labels_list_list &big_r_ab_ell, const labels_l
     return big_r_a.empty() ? NO_COMMON_FOUND : big_r_a;
 }
 
+/// Overloaded common method. Given three list of labels, determine the common stars that exist in both lists. Remove
+/// all stars "removed" in this "intersection" if there exist any.
+///
+/// @param big_r_ae_ell List of AE star pairs. We are trying to determine E.
+/// @param big_r_be_ell List of BE star pairs. We are trying to determine E.
+/// @param big_r_ce_ell List of CE star pairs. We are trying to determine E.
+/// @param removed Our "removed" list. Remove any labels in the "intersection" that exist in this set's labels.
+/// @return All common stars between AE, BE, and CE.
+Star::list Pyramid::common (const labels_list_list &big_r_ae_ell, const labels_list_list &big_r_be_ell,
+                            const labels_list_list &big_r_ce_ell, const Star::list &removed) {
+    static auto flatten_pairs = [] (const labels_list_list &big_r_ell, labels_list &out_ell) -> void {
+        out_ell.reserve(big_r_ell.size() * 2);
+        for (const labels_list &candidate : big_r_ell) {
+            out_ell.push_back(candidate[0]);
+            out_ell.push_back(candidate[1]);
+        }
+        std::sort(out_ell.begin(), out_ell.end());
+    };
+    
+    // Flatten our list of lists.
+    labels_list ae_ell_list, be_ell_list, ce_ell_list, abe_ell_list, e_ell_list;
+    flatten_pairs(big_r_ae_ell, ae_ell_list), flatten_pairs(big_r_be_ell, be_ell_list);
+    flatten_pairs(big_r_ce_ell, ce_ell_list);
+    
+    // Find the intersection between lists AE and BE, and then the 2nd intersection between CE.
+    std::set_intersection(ae_ell_list.begin(), ae_ell_list.end(), be_ell_list.begin(), be_ell_list.end(),
+                          std::back_inserter(abe_ell_list));
+    std::set_intersection(abe_ell_list.begin(), abe_ell_list.end(), ce_ell_list.begin(), ce_ell_list.end(),
+                          std::back_inserter(e_ell_list));
+    
+    // Remove any stars in I that exist in "removed".
+    e_ell_list.erase(std::remove_if(e_ell_list.begin(), e_ell_list.end(), [&removed] (const int &ell) -> bool {
+        for (const Star &s : removed) {
+            if (s.get_label() == ell) {
+                return true;
+            }
+        }
+        return false;
+    }), e_ell_list.end());
+    
+    // For each common label, retrieve the star from Nibble.
+    Star::list big_r_a;
+    for (const int &ell : e_ell_list) {
+        big_r_a.push_back(ch.query_hip(static_cast<int> (ell)));
+    }
+    return big_r_a.empty() ? NO_COMMON_FOUND : big_r_a;
+}
+
 /// Given the current map pair, select a random star in the image and verify that the identification is correct.
 ///
 /// @param r Current reference star trio.
@@ -126,13 +174,10 @@ bool Pyramid::verification (const Star::trio &r, const Star::trio &b) {
     auto find_pairs = [this, &b_e, &b] (const int a) -> labels_list_list {
         return this->query_for_pairs((180.0 / M_PI) * Vector3::Angle(b[a], b_e));
     };
-    labels_list_list big_r_ie_ell = find_pairs(0), big_r_je_ell = find_pairs(1);
-    labels_list_list big_r_ke_ell = find_pairs(2), big_r_ie_join_je_ell;
+    labels_list_list big_r_ie_ell = find_pairs(0), big_r_je_ell = find_pairs(1), big_r_ke_ell = find_pairs(2);
     
     // Determine the star E in the catalog using common stars.
-    std::set_union(big_r_ie_ell.begin(), big_r_ie_ell.end(), big_r_je_ell.begin(), big_r_je_ell.end(),
-                   std::back_inserter(big_r_ie_join_je_ell));
-    Star::list big_t_e = common(big_r_ke_ell, big_r_ie_join_je_ell, Star::list {});
+    Star::list big_t_e = common(big_r_ie_ell, big_r_je_ell, big_r_ke_ell, Star::list {});
     
     // If there isn't exactly one star, exit here.
     if (big_t_e.size() != 1 || std::equal(big_t_e.begin(), big_t_e.end(), NO_COMMON_FOUND.begin())) {
