@@ -101,11 +101,11 @@ std::vector<BaseTriangle::labels_list> BaseTriangle::query_for_trio (const doubl
     
     // Next, search this trio for stars matching the moment condition.
     big_r_ell.reserve(a_match.size() / 4);
-    for (Chomp::tuple_d t : a_match) {
+    std::for_each(a_match.begin(), a_match.end(), [&epsilon, &big_r_ell, &i] (const Chomp::tuple_d &t) -> void {
         if (t[3] >= i - epsilon && t[3] < i + epsilon) {
             big_r_ell.push_back(labels_list {static_cast<int> (t[0]), static_cast<int> (t[1]), static_cast<int>(t[2])});
         }
-    }
+    });
     
     // If results are found, remove the initialized value of NO_CANDIDATE_TRIOS_FOUND.
     if (big_r_ell.size() > 1) {
@@ -146,10 +146,10 @@ std::vector<Star::trio> BaseTriangle::base_query_for_trios (const index_trio &c,
     
     // Grab stars themselves from catalog IDs found in matches. Return these matches.
     big_r.reserve(big_r_ell.size());
-    for (const labels_list &r_ell : big_r_ell) {
+    std::for_each(big_r_ell.begin(), big_r_ell.end(), [&big_r, this] (const labels_list &r_ell) -> void {
         big_r.push_back({ch.query_hip(static_cast<int> (r_ell[0])), ch.query_hip(static_cast<int> (r_ell[1])),
                             ch.query_hip(static_cast<int> (r_ell[2]))});
-    }
+    });
     
     return big_r;
 }
