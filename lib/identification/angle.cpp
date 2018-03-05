@@ -10,11 +10,11 @@
 
 /// Default parameters for the angle identification method.
 const Identification::Parameters Angle::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
-    DEFAULT_PASS_R_SET_CARDINALITY, DEFAULT_FAVOR_BRIGHT_STARS, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU,
+    DEFAULT_NO_REDUCTION, DEFAULT_FAVOR_BRIGHT_STARS, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU,
     DEFAULT_F, "ANGLE_20"};
 
 /// Returned when no candidate pair is found from a query.
-const Star::pair Angle::NO_CANDIDATE_PAIR_FOUND = {Star::zero(), Star::zero()};
+const Star::pair Angle::NO_CANDIDATE_PAIR_FOUND = {Star::wrap(Vector3::Zero()), Star::wrap(Vector3::Zero())};
 
 /// Constructor. Sets the benchmark data, fov, parameters, and current working table.
 ///
@@ -49,7 +49,7 @@ int Angle::generate_table (INIReader &cf, const std::string &id_name) {
     for (unsigned int i = 0; i < all_stars.size() - 1; i++) {
         std::cout << "\r" << "Current *I* Star: " << all_stars[i].get_label();
         for (unsigned int j = i + 1; j < all_stars.size(); j++) {
-            double theta = Star::angle_between(all_stars[i], all_stars[j]);
+            double theta = (180.0 / M_PI) * Vector3::Angle(all_stars[i], all_stars[j]);
             
             // Only insert if the angle between both stars is less than fov.
             if (theta < fov) {
@@ -81,7 +81,7 @@ Identification::labels_list Angle::query_for_pair (const double theta) {
                                              this->parameters.sql_limit);
     
     // |R| = 1 restriction. Applied with the PASS_R_SET_CARDINALITY flag.
-    if (big_r_ell_tuples.empty() || (this->parameters.pass_r_set_cardinality && big_r_ell_tuples.size() > 1)) {
+    if (big_r_ell_tuples.empty() || (this->parameters.no_reduction && big_r_ell_tuples.size() > 1)) {
         return EMPTY_BIG_R_ELL;
     }
     
@@ -105,7 +105,7 @@ Identification::labels_list Angle::query_for_pair (const double theta) {
 /// @return NO_CANDIDATE_PAIR_FOUND if no matching pair is found. Otherwise, two inertial stars that match
 /// the given body.
 Star::pair Angle::find_candidate_pair (const Star &b_i, const Star &b_j) {
-    double theta = Star::angle_between(b_i, b_j);
+    double theta = (180.0 / M_PI) * Vector3::Angle(b_i, b_j);
     
     // If the current angle is greater than the current fov, break early.
     if (theta > this->fov) {
@@ -164,7 +164,7 @@ std::vector<Identification::labels_list> Angle::query (const Star::list &s) {
     if (s.size() != QUERY_STAR_SET_SIZE) {
         throw std::runtime_error(std::string("Input list does not have exactly two b."));
     }
-    double epsilon = 3.0 * this->parameters.sigma_query, theta = Star::angle_between(s[0], s[1]);
+    double epsilon = 3.0 * this->parameters.sigma_query, theta = (180.0 / M_PI) * Vector3::Angle(s[0], s[1]);
     std::vector<labels_list> big_r_ell;
     
     // Query using theta with epsilon bounds.
@@ -190,13 +190,23 @@ std::vector<Identification::labels_list> Angle::query (const Star::list &s) {
 ///     - sql_limit
 /// @endcode
 ///
-/// @return NO_CANDIDATES_FOUND if there does not exist exactly one image star. Otherwise, a single match configuration
-/// found by the angle method.
+/// @return EMPTY_BIG_R_ELL if a single match configuration cannot be found. Otherwise, a single match configuration.
 Angle::labels_list Angle::reduce () {
     ch.select_table(parameters.table_name);
-    std::vector<labels_list> p = query({big_i[0], big_i[1]});
-    return (p.size() != 1) ? EMPTY_BIG_R_ELL : p[0];
-    // TODO: Fix me to iterate through all pairings until it is reduced...
+    
+    for (unsigned int i = 0; i < big_i.size() - 1; i++) {
+        for (unsigned int j = i + 1; j < big_i.size(); j++) {
+            Star::pair r = find_candidate_pair(big_i[i], big_i[j]);
+            
+            // The reduction step: |R| = 1.
+            if (std::equal(r.begin(), r.end(), NO_CANDIDATE_PAIR_FOUND.begin())) {
+                continue;
+            }
+            
+            return {r[0].get_label(), r[1].get_label()};
+        }
+    }
+    return EMPTY_BIG_R_ELL;
 }
 
 /// Reproduction of the Angle method's process from beginning to the orientation determination. Input image is used.
@@ -222,7 +232,6 @@ Star::list Angle::identify () {
     // There exists |big_i| choose 2 possibilities.
     for (unsigned int i = 0; i < big_i.size() - 1; i++) {
         for (unsigned int j = i + 1; j < big_i.size(); j++) {
-            Star::list big_p;
             (*parameters.nu)++;
             
             // Practical limit: exit early if we have iterated through too many comparisons without match.
@@ -237,7 +246,7 @@ Star::list Angle::identify () {
             }
             
             // Find candidate stars around the candidate pair.
-            big_p = ch.nearby_hip_stars(r[0], fov, static_cast<unsigned int>(3 * big_i.size()));
+            Star::list big_p = ch.nearby_hip_stars(r[0], fov, static_cast<unsigned int>(3 * big_i.size()));
             
             // Find the most likely pair combination given the two pairs.
             return direct_match_test(big_p, {r[0], r[1]}, {big_i[i], big_i[j]});

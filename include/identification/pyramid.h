@@ -47,32 +47,34 @@ class Pyramid : public Identification {
     static constexpr unsigned int QUERY_STAR_SET_SIZE = 3;
 
 #if !defined ENABLE_TESTING_ACCESS
-  protected:
+    protected:
+#endif
     /// Alias for a list of catalog ID lists (STL vector of vectors of integers).
     using labels_list_list = std::vector<labels_list>;
-#endif
 
 #if !defined ENABLE_TESTING_ACCESS
-  protected:
+    protected:
+#endif
     Star::list common (const labels_list_list &big_r_ab_ell, const labels_list_list &big_r_ac_ell,
                        const Star::list &removed);
+    Star::list common (const labels_list_list &big_r_ae_ell, const labels_list_list &big_r_be_ell,
+                       const labels_list_list &big_r_ce_ell, const Star::list &removed);
     virtual bool verification (const Star::trio &r, const Star::trio &b);
     virtual Star::trio find_catalog_stars (const Star::trio &);
     Star::list identify_as_list (const Star::list &b);
     
     static const Star::trio NO_CONFIDENT_R_FOUND;
-#endif
+    static const Star::list NO_COMMON_FOUND;
 
 #if !defined ENABLE_TESTING_ACCESS
-  private:
+    private:
 #endif
     /// Alias for a pair of catalog IDs (2-element STL array of integers).
     using label_pair = std::array<int, 2>;
 
 #if !defined ENABLE_TESTING_ACCESS
-  private:
+    private:
 #endif
-    static const Star::list NO_COMMON_FOUND;
     
     labels_list_list query_for_pairs (double);
 };

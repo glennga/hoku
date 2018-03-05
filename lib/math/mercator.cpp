@@ -13,10 +13,17 @@
 /// Cartesian space. The ratio of pixels to degrees must be passed, and it is assumed that the image itself is a
 /// square. Solution found here: https://stackoverflow.com/a/12734509
 ///
+/// Computation for R is as follows:
+/// 2*pi*R = (1/dpp) * 360  <- Circumference = pixels in sphere.
+/// R = (1/dpp) * 180 / pi
+///
 /// @param x X coordinate of the image point, using (0, 0) as the *image* center.
 /// @param y Y coordinate of the image point, using (0, 0) as the *image* center.
 /// @param dpp Degrees per pixel.
 /// @return The given point (X, Y) as a normalized vector in a 3D Cartesian frame.
 Vector3 Mercator::transform_point (const double x, const double y, const double dpp) {
-    return Vector3::FromSpherical(1.0, (x * dpp / 90.0), 2 * atan(exp(y * dpp / 90.0)) - (M_PI / 2));
+    double big_r = (1 / dpp) * 180 / M_PI;
+    double lon = x / big_r, lat = (2.0 * atan(exp(y / big_r))) - M_PI / 2.0;
+    
+    return Vector3::Normalized(Vector3(cos(lat) * cos(lon), cos(lat) * sin(lon), sin(lat)));
 }

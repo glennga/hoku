@@ -15,222 +15,152 @@ using testing::UnorderedElementsAre;
 using testing::Each;
 using testing::Contains;
 
-/// Check that query_for_trio method returns the catalog ID of the correct stars.
-TEST(PlaneQuery, TrioQuery) {
+/// Check that the constructor correctly sets the object's attributes.
+TEST(PlanarTriangleConstructor, Constructor) {
+    Chomp ch;
+    Benchmark input(ch, 20);
+    Plane::Parameters p = {0.01, 10, false, true, 0.1, 10, std::make_shared<unsigned int>(0), Rotation::svd, "H"};
+    Plane a(input, p);
+    
+    EXPECT_EQ(a.fov, 20);
+    EXPECT_EQ(a.ch.table, "H");
+    EXPECT_EQ(a.parameters.sigma_query, p.sigma_query);
+    EXPECT_EQ(a.parameters.sql_limit, p.sql_limit);
+    EXPECT_EQ(a.parameters.no_reduction, p.no_reduction);
+    EXPECT_EQ(a.parameters.favor_bright_stars, p.favor_bright_stars);
+    EXPECT_EQ(a.parameters.nu_max, p.nu_max);
+    EXPECT_EQ(a.parameters.nu, p.nu);
+    EXPECT_EQ(a.parameters.f, p.f);
+    EXPECT_EQ(a.parameters.table_name, p.table_name);
+}
+
+/// Check the existence and the structure of the PlanarTriangle table.
+TEST(PlanarTriangleTable, ExistenceStructure) {
+    INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
+    Plane::generate_table(cf);
+    Nibble nb;
+    
+    SQLite::Statement q(*nb.conn, "SELECT 1 FROM " + cf.Get("table-names", "plane", "") + " LIMIT 1");
+    EXPECT_TRUE(q.executeStep());
+    EXPECT_NO_THROW(nb.select_table(cf.Get("table-names", "plane", ""), true););
+    
+    std::string schema, fields;
+    nb.find_attributes(schema, fields);
+    EXPECT_EQ(schema, "label_a INT, label_b INT, label_c INT, a FLOAT, i FLOAT");
+    EXPECT_EQ(fields, "label_a, label_b, label_c, a, i");
+}
+
+/// Check that the entries in the PlanarTriangle table are correct.
+TEST(PlanarTriangleTable, CorrectEntries) {
+    INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
+    Plane::generate_table(cf);
+    Chomp ch;
+    ch.select_table(cf.Get("table-names", "plane", ""));
+    
+    Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532)};
+    std::sort(b.begin(), b.end(), [] (const Star &s_1, const Star &s_2) -> bool {
+        return s_1.get_label() < s_2.get_label();
+    });
+    double a = Trio::planar_area(b[0], b[1], b[2]);
+    double i = Trio::planar_moment(b[0], b[1], b[2]);
+    
+    Nibble::tuples_d t = ch.search_table("a, i", "label_a = " + std::to_string(b[0].get_label()) + " AND label_b = "
+                                                 + std::to_string(b[1].get_label()) + " AND label_c = "
+                                                 + std::to_string(b[2].get_label()), 1);
+    ASSERT_EQ(t.size(), 1);
+    ASSERT_EQ(t[0].size(), 2);
+    EXPECT_FLOAT_EQ(a, t[0][0]);
+    EXPECT_NEAR(i, t[0][1], 1.0e-8);
+}
+
+/// Check that the query_for_trios method returns the correct result.
+TEST(PlanarTriangleTriosQuery, CleanInput) {
     Chomp ch;
     Benchmark input(ch, 15);
-    Plane::Parameters par = Plane::DEFAULT_PARAMETERS;
-    Plane p(input, par);
+    Identification::Parameters p = Plane::DEFAULT_PARAMETERS;
+    p.sigma_query = 0.000000001;
+    Plane a(input, p);
+    std::vector<Star::trio> b = a.query_for_trios({0, 1, 2});
     
-    double a = Trio::planar_area(input.b[0], input.b[1], input.b[2]);
-    double b = Trio::planar_moment(input.b[0], input.b[1], input.b[2]);
-    std::vector<Plane::label_trio> c = p.query_for_trio(a, b);
-    
-    // Check that original input trio exists in search.
-    for (const Plane::label_trio &t : c) {
-        for (int i = 0; i < 3; i++) {
-            EXPECT_THAT(t, Contains(input.b[i].get_label()));
-        }
-    }
-}
-
-
-/// Check that the zero-length stars are returned when an area between a pair of stars is greater than the current fov.
-TEST(PlaneQuery, MatchStarsFOV) {
-    Chomp ch;
-    Plane::Parameters par = Plane::DEFAULT_PARAMETERS;
-    Plane a(Benchmark(ch, 10), par);
-    a.big_i[0] = Star::reset_label(ch.query_hip(3));
-    a.big_i[1] = Star::reset_label(ch.query_hip(4));
-    a.big_i[2] = Star::reset_label(ch.query_hip(5));
-    
-    std::vector<Star::trio> b = a.query_for_trios(Plane::STARTING_INDEX_TRIO);
-    EXPECT_THAT(b[0], Each(Star::zero()));
-}
-
-/// Check that the zero-length stars are returned when no matching trio is found.
-TEST(PlaneQuery, MatchStarsNone) {
-    Plane::Parameters par = Plane::DEFAULT_PARAMETERS;
-    par.sigma_query = std::numeric_limits<double>::epsilon();
-    Chomp ch;
-    Plane a(Benchmark(ch, 10), par);
-    a.big_i[0] = Star(1, 1, 1.1);
-    a.big_i[1] = Star(1, 1, 1);
-    a.big_i[2] = Star(1.1, 1, 1);
-    
-    std::vector<Star::trio> b = a.query_for_trios(Plane::STARTING_INDEX_TRIO);
-    EXPECT_THAT(b[0], Each(Star::zero()));
-}
-
-/// Check that the correct stars are returned from the candidate trio query.
-TEST(PlaneQuery, MatchStarsResults) {
-    Plane::Parameters par = Plane::DEFAULT_PARAMETERS;
-    Chomp ch;
-    Benchmark input(ch, 20);
-    Plane a(input, par);
-    std::vector<Star::trio> b = a.query_for_trios(Plane::STARTING_INDEX_TRIO);
-    
-    // Check that original input trio exists in search.
-    for (const Star::trio &t : b) {
-        for (int i = 0; i < 3; i++) {
-            Identification::labels_list t_ell = {t[0].get_label(), t[1].get_label(), t[2].get_label()};
-            EXPECT_THAT(t_ell, Contains(input.b[i].get_label()));
-        }
-    }
-}
-
-/// Check that the pivot query method returns the correct trio.
-TEST(PlaneQuery, PivotResults) {
-    Plane::Parameters par = Plane::DEFAULT_PARAMETERS;
-    Chomp ch;
-    Benchmark input(ch, 20);
-    Plane a(input, par);
-    
-    Star::trio c = a.pivot(Plane::STARTING_INDEX_TRIO);
-    std::vector<int> c_ell = {c[0].get_label(), c[1].get_label(), c[2].get_label()};
-    EXPECT_THAT(c_ell, Contains(input.b[0].get_label()));
-    EXPECT_THAT(c_ell, Contains(input.b[1].get_label()));
-    EXPECT_THAT(c_ell, Contains(input.b[2].get_label()));
-}
-
-/// Check that the rotating match method marks the all stars as matched.
-TEST(PlaneMatch, RotatingCorrectInput) {
-    Plane::Parameters par = Plane::DEFAULT_PARAMETERS;
-    Chomp ch;
-    Star a = Star::chance(), b = Star::chance();
-    Rotation c = Rotation::chance();
-    Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
-    Rotation f = Rotation::triad({a, b}, {d, e});
-    Benchmark input(ch, Star::chance(), c, 8);
-    std::vector<Star> rev_input;
-    par.sigma_overlay = 0.000001;
-    Plane g(input, par);
-    
-    // Reverse all input by inverse rotation.
-    rev_input.reserve(input.b.size());
-    for (Star rotated : input.b) {
-        rev_input.push_back(Rotation::rotate(rotated, f));
-    }
-    
-    std::vector<Star> h = g.find_positive_overlay(rev_input, c);
-    ASSERT_EQ(h.size(), input.b.size());
-    for (unsigned int q = 0; q < h.size(); q++) {
-        EXPECT_EQ(h[q].get_label(), input.b[q].get_label());
-    }
-}
-
-/// Check that the rotating match method marks only the correct stars as matched.
-TEST(PlaneMatch, RotatingErrorInput) {
-    Plane::Parameters par = Plane::DEFAULT_PARAMETERS;
-    Chomp ch;
-    Star a = Star::chance(), b = Star::chance();
-    Rotation c = Rotation::chance();
-    Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
-    Rotation f = Rotation::triad({a, b}, {d, e});
-    Benchmark input(ch, Star::chance(), c, 8);
-    std::vector<Star> rev_input;
-    par.sigma_overlay = 0.000001;
-    Plane g(input, par);
-    
-    // Reverse all input by inverse rotation.
-    rev_input.reserve(input.b.size());
-    for (Star rotated : input.b) {
-        rev_input.push_back(Rotation::rotate(rotated, f));
-    }
-    
-    // Append center as error.
-    rev_input.push_back(input.center);
-    std::vector<Star> h = g.find_positive_overlay(rev_input, c);
-    ASSERT_EQ(h.size(), input.b.size());
-    for (unsigned int q = 0; q < h.size(); q++) {
-        EXPECT_EQ(h[q].get_label(), input.b[q].get_label());
-    }
-}
-
-/// Check that the rotating match method marks only the correct stars as matched, not the duplicate as well.
-TEST(PlaneMatch, RotatingDuplicateInput) {
-    Plane::Parameters par = Plane::DEFAULT_PARAMETERS;
-    Chomp ch;
-    Star a = Star::chance(), b = Star::chance();
-    Rotation c = Rotation::chance();
-    Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
-    Rotation f = Rotation::triad({a, b}, {d, e});
-    Benchmark input(ch, Star::chance(), c, 8);
-    std::vector<Star> rev_input;
-    par.sigma_overlay = 0.000001;
-    Plane g(input, par);
-    
-    // Reverse all input by inverse rotation.
-    rev_input.reserve(input.b.size());
-    for (Star rotated : input.b) {
-        rev_input.push_back(Rotation::rotate(rotated, f));
-    }
-    
-    // Append first star as error.
-    rev_input.push_back(rev_input[0]);
-    rev_input.push_back(rev_input[0]);
-    rev_input.push_back(rev_input[0]);
-    
-    std::vector<Star> h = g.find_positive_overlay(rev_input, c);
-    ASSERT_EQ(h.size(), input.b.size());
-    for (unsigned int q = 0; q < h.size(); q++) {
-        EXPECT_EQ(h[q].get_label(), input.b[q].get_label());
-    }
+    EXPECT_EQ(b.size(), 1);
+    EXPECT_THAT(b[0], Contains(ch.query_hip(input.b[0].get_label())));
+    EXPECT_THAT(b[0], Contains(ch.query_hip(input.b[1].get_label())));
+    EXPECT_THAT(b[0], Contains(ch.query_hip(input.b[2].get_label())));
 }
 
 /// Check that a clean input returns the expected query result.
-TEST(PlaneTrial, CleanQuery) {
+TEST(PlanarTriangleTrial, CleanQuery) {
     Chomp ch;
     Plane::Parameters p = Plane::DEFAULT_PARAMETERS;
-    p.sigma_query = 10e-9;
-    Benchmark input(ch, 15);
+    p.sigma_query = 10e-8, p.no_reduction = false;
     Plane a(Benchmark::black(), p);
+    Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532)};
     
-    std::vector<Identification::labels_list> d = a.query({input.b[0], input.b[1], input.b[2]});
-    Identification::labels_list ell = {input.b[0].get_label(), input.b[1].get_label(),
-        input.b[2].get_label()};
-    
-    std::sort(ell.begin(), ell.end());
-    EXPECT_THAT(d, Contains(ell));
+    std::vector<Identification::labels_list> d = a.query(b);
+    EXPECT_THAT(d, Contains(Identification::labels_list {95498, 102531, 102532}));
 }
 
 /// Check that a clean input returns the correct stars from a set of candidates.
-TEST(PlaneTrial, CleanReduction) {
+TEST(PlanarTriangleTrial, CleanReduction) {
     Chomp ch;
     Plane::Parameters p = Plane::DEFAULT_PARAMETERS;
-    p.sigma_query = 10e-10;
-    p.sigma_overlay = 0.0001;
-    Benchmark input(ch, 15);
-    Plane a(input, p);
-    Identification::labels_list ell = {input.b[0].get_label(), input.b[1].get_label(),
-        input.b[2].get_label()};
+    p.sigma_query = 10e-10, p.sql_limit = 1000000;
+    Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532), ch.query_hip(101958),
+        ch.query_hip(101909)};
     
-    std::sort(ell.begin(), ell.end());
-    EXPECT_THAT(a.reduce(), UnorderedElementsAre(ell[0], ell[1], ell[2]));
+    Benchmark i(b, b[0], 20);
+    Plane a(i, p);
+    EXPECT_THAT(a.reduce(), UnorderedElementsAre(102531, 95498, 102532));
 }
 
 /// Check that a clean input returns the expected identification of stars.
-TEST(PlaneTrial, CleanIdentify) {
+TEST(PlanarTriangleTrial, CleanIdentify) {
     Chomp ch;
-    Rotation q = Rotation::chance();
-    Star focus = Star::chance();
-    unsigned int nu = 0;
     Plane::Parameters p = Plane::DEFAULT_PARAMETERS;
+    p.nu = std::make_shared<unsigned int>(0);
     p.sigma_query = 10e-9;
     p.sigma_overlay = 0.000001;
-    p.nu = std::make_shared<unsigned int>(nu);
-    Benchmark input(ch, focus, q, 15, 6.0);
     
-    Star::list b = {Rotation::rotate(input.b[0], q), Rotation::rotate(input.b[1], q),
-        Rotation::rotate(input.b[2], q)};
-    Star::list c = {ch.query_hip(input.b[0].get_label()), ch.query_hip(input.b[1].get_label()),
-        ch.query_hip(input.b[2].get_label())};
+    Rotation q = Rotation::chance();
+    Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532), ch.query_hip(101958),
+        ch.query_hip(101909)};
+    Star::list c = {Rotation::rotate(b[0], q), Rotation::rotate(b[1], q), Rotation::rotate(b[2], q),
+        Rotation::rotate(b[3], q), Rotation::rotate(b[4], q)};
     
-    Plane a(Benchmark(b, Rotation::rotate(focus, q), 20), p);
-    Star::list f = a.identify();
-    EXPECT_THAT(f, Contains(Star::define_label(b[0], c[0].get_label())));
-    EXPECT_THAT(f, Contains(Star::define_label(b[1], c[1].get_label())));
-    EXPECT_THAT(f, Contains(Star::define_label(b[2], c[2].get_label())));
+    Plane a(Benchmark(c, c[0], 20), p);
+    Star::list h = a.identify();
+    EXPECT_THAT(h, Contains(Star::define_label(c[0], 102531)));
+    EXPECT_THAT(h, Contains(Star::define_label(c[1], 95498)));
+    EXPECT_THAT(h, Contains(Star::define_label(c[2], 102532)));
+}
+
+/// Check that the nu_max is respected in identification.
+TEST(PlanarTriangleTrial, ExceededNu) {
+    Chomp ch;
+    Benchmark input(ch, 15);
+    input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
+    Plane::Parameters p = Plane::DEFAULT_PARAMETERS;
+    p.nu = std::make_shared<unsigned int>(0), p.nu_max = 10;
+    p.sigma_query = std::numeric_limits<double>::epsilon();
+    p.sigma_overlay = std::numeric_limits<double>::epsilon();
+    Plane a(input, p);
+    
+    EXPECT_EQ(a.identify()[0], Plane::EXCEEDED_NU_MAX[0]);
+    EXPECT_EQ(*p.nu, p.nu_max + 1);
+}
+
+/// Check that the correct result is returned when no map is found.
+TEST(PlanarTriangleTrial, NoMapFound) {
+    Chomp ch;
+    Benchmark input(ch, 7);
+    input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
+    Plane::Parameters p = Plane::DEFAULT_PARAMETERS;
+    p.nu = std::make_shared<unsigned int>(0), p.nu_max = std::numeric_limits<unsigned int>::max();
+    p.sigma_query = std::numeric_limits<double>::epsilon();
+    p.sigma_overlay = std::numeric_limits<double>::epsilon();
+    Plane a(input, p);
+    
+    EXPECT_EQ(a.identify()[0], Plane::NO_CONFIDENT_A[0]);
 }
 
 /// Runs all tests defined in this file.

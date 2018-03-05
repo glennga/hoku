@@ -100,16 +100,16 @@ void perform_trial (Lumberjack &lu, const std::string &identifier_in, const std:
     std::array<std::string, 6> table_names = {cf.Get("table-names", "angle", ""), cf.Get("table-names", "dot", ""),
         cf.Get("table-names", "sphere", ""), cf.Get("table-names", "plane", ""), cf.Get("table-names", "pyramid", ""),
         cf.Get("table-names", "composite", "")};
-    Chomp ch;
+    Chomp ch(cf.Get("table-names", identifier_in, ""), cf.Get("table-focus", identifier_in, ""));
     
     switch ((EHA::identifier_to_hash(identifier_in) * 5) + EHA::experiment_to_hash(experiment_in)) {
         case 0: return Experiment::Query::trial<Angle>(ch, lu, cf, table_names[0]);
         case 1: return Experiment::Reduction::trial<Angle>(ch, lu, cf, table_names[0]);
         case 2: return Experiment::Map::trial<Angle>(ch, lu, cf, table_names[0]);
         
-        case 3: return Experiment::Query::trial<Dot> (ch, lu, cf, table_names[1]);
-        case 4: return Experiment::Reduction::trial<Dot> (ch, lu, cf, table_names[1]);
-        case 5: return Experiment::Map::trial<Dot> (ch, lu, cf, table_names[1]);
+        case 3: return Experiment::Query::trial<Dot>(ch, lu, cf, table_names[1]);
+        case 4: return Experiment::Reduction::trial<Dot>(ch, lu, cf, table_names[1]);
+        case 5: return Experiment::Map::trial<Dot>(ch, lu, cf, table_names[1]);
         
         case 6: return Experiment::Query::trial<Sphere>(ch, lu, cf, table_names[2]);
         case 7: return Experiment::Reduction::trial<Sphere>(ch, lu, cf, table_names[2]);
@@ -171,9 +171,9 @@ int main (int argc, char *argv[]) {
             return std::find(input_space.begin(), input_space.end(), a) != input_space.end();
         };
         
-        if (!is_valid_arg(argv[1], {"angle", "dot", "sphere", "plane", "pyramid", "composite", "create-table"})
+        if (!is_valid_arg(argv[1], {"angle", "dot", "sphere", "plane", "pyramid", "composite"})
             || !is_valid_arg(argv[2], {"query", "reduction", "identification"})) {
-            std::cout << "Usage: RunTrial ['angle', ... , 'create-table'] ['query', ... , 'identification']"
+            std::cout << "Usage: RunTrial ['angle', ... , 'composite'] ['query', ... , 'identification']"
                       << std::endl;
             return -1;
         }

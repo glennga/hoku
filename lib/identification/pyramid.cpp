@@ -4,6 +4,8 @@
 /// Source file for Pyramid class, which matches a set of body vectors (stars) to their inertial counter-parts in the
 /// database.
 
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include <algorithm>
 
 #include "math/random-draw.h"
@@ -11,14 +13,15 @@
 
 /// Default parameters for the pyramid identification method.
 const Identification::Parameters Pyramid::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
-    DEFAULT_PASS_R_SET_CARDINALITY, DEFAULT_FAVOR_BRIGHT_STARS, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU,
-    DEFAULT_F, "PYRAMID_20"};
+    DEFAULT_NO_REDUCTION, DEFAULT_FAVOR_BRIGHT_STARS, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_F,
+    "PYRAMID_20"};
 
 /// Returned when there exists no common stars between the label list pairs.
-const Star::list Pyramid::NO_COMMON_FOUND = {Star::zero()};
+const Star::list Pyramid::NO_COMMON_FOUND = {Star::wrap(Vector3::Zero())};
 
 /// Returned when there exists no candidate triangle to be found for the given three stars.
-const Star::trio Pyramid::NO_CONFIDENT_R_FOUND = {Star::zero(), Star::zero(), Star::zero()};
+const Star::trio Pyramid::NO_CONFIDENT_R_FOUND = {Star::wrap(Vector3::Zero()), Star::wrap(Vector3::Zero()),
+    Star::wrap(Vector3::Zero())};
 
 /// Constructor. Sets the benchmark data, fov, parameters, and current working table.
 ///
@@ -71,7 +74,7 @@ Pyramid::labels_list_list Pyramid::query_for_pairs (const double theta) {
 /// @return All common stars between AB and AC, with F removed.
 Star::list Pyramid::common (const labels_list_list &big_r_ab_ell, const labels_list_list &big_r_ac_ell,
                             const Star::list &removed) {
-    auto flatten_pairs = [] (const labels_list_list &big_r_ell, labels_list &out_ell) -> void {
+    static auto flatten_pairs = [] (const labels_list_list &big_r_ell, labels_list &out_ell) -> void {
         out_ell.reserve(big_r_ell.size() * 2);
         for (const labels_list &candidate : big_r_ell) {
             out_ell.push_back(candidate[0]);
@@ -81,7 +84,7 @@ Star::list Pyramid::common (const labels_list_list &big_r_ab_ell, const labels_l
     };
     
     // Flatten our list of lists.
-    labels_list ab_ell_list, ac_ell_list, a_ell_list, a_ell_removed_list, f_ell;
+    labels_list ab_ell_list, ac_ell_list, a_ell_list;
     flatten_pairs(big_r_ab_ell, ab_ell_list), flatten_pairs(big_r_ac_ell, ac_ell_list);
     
     // Find the intersection between lists AB and AC.
@@ -89,15 +92,66 @@ Star::list Pyramid::common (const labels_list_list &big_r_ab_ell, const labels_l
                           std::back_inserter(a_ell_list));
     
     // Remove any stars in I that exist in "removed".
-    for (const Star &s : removed) {
-        f_ell.push_back(s.get_label());
-    }
-    std::set_difference(a_ell_list.begin(), a_ell_list.end(), f_ell.begin(), f_ell.end(),
-                        std::back_inserter(a_ell_removed_list));
+    a_ell_list.erase(std::remove_if(a_ell_list.begin(), a_ell_list.end(), [&removed] (const int &ell) -> bool {
+        for (const Star &s : removed) {
+            if (s.get_label() == ell) {
+                return true;
+            }
+        }
+        return false;
+    }), a_ell_list.end());
     
     // For each common label, retrieve the star from Nibble.
     Star::list big_r_a;
-    for (const int &ell : a_ell_removed_list) {
+    for (const int &ell : a_ell_list) {
+        big_r_a.push_back(ch.query_hip(static_cast<int> (ell)));
+    }
+    return big_r_a.empty() ? NO_COMMON_FOUND : big_r_a;
+}
+
+/// Overloaded common method. Given three list of labels, determine the common stars that exist in both lists. Remove
+/// all stars "removed" in this "intersection" if there exist any.
+///
+/// @param big_r_ae_ell List of AE star pairs. We are trying to determine E.
+/// @param big_r_be_ell List of BE star pairs. We are trying to determine E.
+/// @param big_r_ce_ell List of CE star pairs. We are trying to determine E.
+/// @param removed Our "removed" list. Remove any labels in the "intersection" that exist in this set's labels.
+/// @return All common stars between AE, BE, and CE.
+Star::list Pyramid::common (const labels_list_list &big_r_ae_ell, const labels_list_list &big_r_be_ell,
+                            const labels_list_list &big_r_ce_ell, const Star::list &removed) {
+    static auto flatten_pairs = [] (const labels_list_list &big_r_ell, labels_list &out_ell) -> void {
+        out_ell.reserve(big_r_ell.size() * 2);
+        for (const labels_list &candidate : big_r_ell) {
+            out_ell.push_back(candidate[0]);
+            out_ell.push_back(candidate[1]);
+        }
+        std::sort(out_ell.begin(), out_ell.end());
+    };
+    
+    // Flatten our list of lists.
+    labels_list ae_ell_list, be_ell_list, ce_ell_list, abe_ell_list, e_ell_list;
+    flatten_pairs(big_r_ae_ell, ae_ell_list), flatten_pairs(big_r_be_ell, be_ell_list);
+    flatten_pairs(big_r_ce_ell, ce_ell_list);
+    
+    // Find the intersection between lists AE and BE, and then the 2nd intersection between CE.
+    std::set_intersection(ae_ell_list.begin(), ae_ell_list.end(), be_ell_list.begin(), be_ell_list.end(),
+                          std::back_inserter(abe_ell_list));
+    std::set_intersection(abe_ell_list.begin(), abe_ell_list.end(), ce_ell_list.begin(), ce_ell_list.end(),
+                          std::back_inserter(e_ell_list));
+    
+    // Remove any stars in I that exist in "removed".
+    e_ell_list.erase(std::remove_if(e_ell_list.begin(), e_ell_list.end(), [&removed] (const int &ell) -> bool {
+        for (const Star &s : removed) {
+            if (s.get_label() == ell) {
+                return true;
+            }
+        }
+        return false;
+    }), e_ell_list.end());
+    
+    // For each common label, retrieve the star from Nibble.
+    Star::list big_r_a;
+    for (const int &ell : e_ell_list) {
         big_r_a.push_back(ch.query_hip(static_cast<int> (ell)));
     }
     return big_r_a.empty() ? NO_COMMON_FOUND : big_r_a;
@@ -118,18 +172,15 @@ bool Pyramid::verification (const Star::trio &r, const Star::trio &b) {
     
     // Find all star pairs between IE, JE, and KE.
     auto find_pairs = [this, &b_e, &b] (const int a) -> labels_list_list {
-        return this->query_for_pairs(Star::angle_between(b[a], b_e));
+        return this->query_for_pairs((180.0 / M_PI) * Vector3::Angle(b[a], b_e));
     };
-    labels_list_list big_r_ie_ell = find_pairs(0), big_r_je_ell = find_pairs(1);
-    labels_list_list big_r_ke_ell = find_pairs(2), big_r_ie_join_je_ell;
+    labels_list_list big_r_ie_ell = find_pairs(0), big_r_je_ell = find_pairs(1), big_r_ke_ell = find_pairs(2);
     
     // Determine the star E in the catalog using common stars.
-    std::set_union(big_r_ie_ell.begin(), big_r_ie_ell.end(), big_r_je_ell.begin(), big_r_je_ell.end(),
-                   std::back_inserter(big_r_ie_join_je_ell));
-    Star::list big_t_e = common(big_r_ke_ell, big_r_ie_join_je_ell, Star::list {});
+    Star::list big_t_e = common(big_r_ie_ell, big_r_je_ell, big_r_ke_ell, Star::list {});
     
     // If there isn't exactly one star, exit here.
-    if (big_t_e.size() != 1) {
+    if (big_t_e.size() != 1 || std::equal(big_t_e.begin(), big_t_e.end(), NO_COMMON_FOUND.begin())) {
         return false;
     }
     
@@ -142,11 +193,10 @@ bool Pyramid::verification (const Star::trio &r, const Star::trio &b) {
 /// error trio is returned.
 ///
 /// @param b Trio of stars in our body frame.
-/// @return NO_CANDIDATE_TRIANGLE_FOUND if no triangle can be found. Otherwise, the catalog IDs of stars from the
-/// inertial frame.
+/// @return NO_CONFIDENT_R_FOUND if no triangle can be found. Otherwise, the inertial stars.
 Star::trio Pyramid::find_catalog_stars (const Star::trio &b) {
     auto find_pairs = [this, &b] (const int m, const int n) -> labels_list_list {
-        return this->query_for_pairs(Star::angle_between(b[m], b[n]));
+        return this->query_for_pairs((180.0 / M_PI) * Vector3::Angle(b[m], b[n]));
     };
     labels_list_list big_r_ij_ell = find_pairs(0, 1), big_r_ik_ell = find_pairs(0, 2), big_r_jk_ell = find_pairs(1, 2);
     
@@ -157,7 +207,7 @@ Star::trio Pyramid::find_catalog_stars (const Star::trio &b) {
     Star::list big_t_k = common(big_r_ik_ell, big_r_jk_ell, removed);
     
     // |R| = 1 restriction. If these lists do not contain exactly one element, break.
-    if ((big_t_i.size() + big_t_j.size() + big_t_k.size() != 3) && this->parameters.pass_r_set_cardinality) {
+    if (big_t_i.size() == 1 && big_t_j.size() == 1 && big_t_k.size() == 1 && this->parameters.no_reduction) {
         return NO_CONFIDENT_R_FOUND;
     }
     
@@ -178,15 +228,15 @@ Star::trio Pyramid::find_catalog_stars (const Star::trio &b) {
         r = {ch.query_hip(r_ell[0][0]), ch.query_hip(r_ell[0][1]), ch.query_hip(r_ell[0][2])};
     }
     
-    // Otherwise, attempt to verify the triangle.
-    if (!verification(r, b)) {
+    // Otherwise, attempt to verify the triangle. No reduction flag is applied here as well.
+    if (!verification(r, b) && !parameters.no_reduction) {
         return NO_CONFIDENT_R_FOUND;
     }
     
     return r;
 }
 
-/// Identification determination process for a single reference star and identification trio.
+/// Identification determination process for a single identification trio.
 ///
 /// @param b Body (frame B) pair of stars that match the inertial pair.
 /// @return NO_CONFIDENT_A if an identification quad cannot be found. Otherwise, body stars b with the attached
@@ -200,7 +250,7 @@ Star::list Pyramid::identify_as_list (const Star::list &b) {
     auto attach_label = [&b, &r] (const int i) -> Star {
         return Star::define_label(b[i], r[i].get_label());
     };
-    return {attach_label(0), attach_label(1), attach_label(2), attach_label(3)};
+    return {attach_label(0), attach_label(1), attach_label(2)};
 }
 
 /// Reproduction of the Pyramid method's database querying. Input image is not used. We require the following be
@@ -220,7 +270,7 @@ std::vector<Identification::labels_list> Pyramid::query (const Star::list &s) {
     }
     
     auto find_pairs = [this, &s] (const int a, const int b) -> labels_list_list {
-        return this->query_for_pairs(Star::angle_between(s[a], s[b]));
+        return this->query_for_pairs((180.0 / M_PI) * Vector3::Angle(s[a], s[b]));
     };
     labels_list_list big_r_ij_ell = find_pairs(0, 1), big_r_ik_ell = find_pairs(0, 2), big_r_jk_ell = find_pairs(1, 2);
     
@@ -251,15 +301,24 @@ std::vector<Identification::labels_list> Pyramid::query (const Star::list &s) {
 ///     - sql_limit
 /// @endcode
 ///
-/// @return NO_CANDIDATES_FOUND if a candidate quad cannot be found. Otherwise, a single match configuration found
+/// @return EMPTY_BIG_R_ELL if a candidate quad cannot be found. Otherwise, a single match configuration found
 /// by the angle method.
 Identification::labels_list Pyramid::reduce () {
-    Star::list r = identify_as_list({big_i[0], big_i[1], big_i[2]});
-    if (std::equal(r.begin(), r.end(), NO_CONFIDENT_A.begin())) {
-        return EMPTY_BIG_R_ELL;
+    for (unsigned int dj = 1; dj < big_i.size() - 1; dj++) {
+        for (unsigned int dk = 1; dk < big_i.size() - dj - 1; dk++) {
+            for (unsigned int di = 0; di < big_i.size() - dj - dk - 1; di++) {
+                Star::list r = identify_as_list({big_i[0], big_i[1], big_i[2]});
+                
+                // The reduction step: |R| = 1.
+                if (std::equal(r.begin(), r.end(), NO_CONFIDENT_A.begin())) {
+                    continue;
+                }
+                return labels_list {r[0].get_label(), r[1].get_label(), r[2].get_label()};
+            }
+        }
     }
-    return labels_list {r[0].get_label(), r[1].get_label(), r[2].get_label()};
-    // TODO: Fix me to iterate through all pairings until it is reduced...
+    
+    return EMPTY_BIG_R_ELL;
 }
 
 /// Reproduction of the Pyramid method's process from beginning to the orientation determination. Input image is used.

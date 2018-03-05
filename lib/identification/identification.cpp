@@ -12,14 +12,14 @@
 const Identification::labels_list Identification::EMPTY_BIG_R_ELL = {-1, -1};
 
 /// Returned when there exists no confident identity from an identification trial.
-const Star::list Identification::NO_CONFIDENT_A = {Star::define_label(Star::zero(), -1)};
+const Star::list Identification::NO_CONFIDENT_A = {Star::wrap(Vector3::Zero(), -1)};
 
 /// Returned when we count past our defined max nu from a crown or identification trial.
-const Star::list Identification::EXCEEDED_NU_MAX = {Star::zero()};
+const Star::list Identification::EXCEEDED_NU_MAX = {Star::wrap(Vector3::Zero())};
 
 /// Default parameters for a general identification object.
 const Identification::Parameters Identification::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
-    DEFAULT_PASS_R_SET_CARDINALITY, DEFAULT_FAVOR_BRIGHT_STARS, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU,
+    DEFAULT_NO_REDUCTION, DEFAULT_FAVOR_BRIGHT_STARS, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU,
     DEFAULT_F, DEFAULT_TABLE_NAME};
 
 /// Constructor. We set our field-of-view to the default here.
@@ -36,13 +36,13 @@ Identification::Identification () {
 void Identification::collect_parameters (Parameters &p, INIReader &cf) {
     p.sigma_query = cf.GetReal("id-parameters", "sq", DEFAULT_SIGMA_QUERY);
     p.sql_limit = static_cast<unsigned>(cf.GetInteger("id-parameters", "sl", DEFAULT_SQL_LIMIT));
-    p.pass_r_set_cardinality = cf.GetBoolean("id-parameters", "prsc", DEFAULT_PASS_R_SET_CARDINALITY);
+    p.no_reduction = cf.GetBoolean("id-parameters", "nr", DEFAULT_NO_REDUCTION);
     p.favor_bright_stars = cf.GetBoolean("id-parameters", "fbr", DEFAULT_FAVOR_BRIGHT_STARS);
     p.sigma_overlay = cf.GetReal("id-parameters", "so", DEFAULT_SIGMA_OVERLAY);
     p.nu_max = static_cast<unsigned>(cf.GetInteger("id-parameters", "nu-m", DEFAULT_NU_MAX));
     
-    const std::array<std::string, 3> ws_id = {"TRIAD", "QUEST", "Q"};
-    const std::array<Rotation::wahba_function, 3> ws = {Rotation::triad, Rotation::quest, Rotation::q_exact};
+    const std::array<std::string, 3> ws_id = {"TRIAD", "Q", "SVD"};
+    const std::array<Rotation::wahba_function, 3> ws = {Rotation::triad, Rotation::q_method, Rotation::svd};
     
     // Determine the Wahba solver. This is case-insensitive.
     std::string wabha_solver = cf.Get("id-parameters", "wbs", "TRIAD");
@@ -65,18 +65,19 @@ void Identification::collect_parameters (Parameters &p, INIReader &cf) {
 /// @return Set of matching stars found in candidates and the body sets.
 Star::list Identification::find_positive_overlay (const Star::list &big_p, const Rotation &q) {
     double epsilon = 3.0 * this->parameters.sigma_overlay;
-    Star::list m;
+    Star::list m, big_i_c = this->big_i;
     m.reserve(big_i.size());
     
     for (const Star &p_i : big_p) {
         Star r_prime = Rotation::rotate(p_i, q);
-        for (unsigned int i = 0; i < big_i.size(); i++) {
-            if (Star::angle_between(r_prime, big_i[i]) < epsilon) {
+        
+        for (unsigned int i = 0; i < big_i_c.size(); i++) {
+            if (Star::within_angle(r_prime, big_i_c[i], epsilon)) {
                 // Add this match to the list by noting the candidate star's catalog ID.
-                m.emplace_back(Star(big_i[i][0], big_i[i][1], big_i[i][2], p_i.get_label()));
+                m.emplace_back(Star(big_i_c[i][0], big_i_c[i][1], big_i_c[i][2], p_i.get_label()));
                 
                 // Remove the current star from the searching set. End the search for this star.
-                big_i.erase(big_i.begin() + i);
+                big_i_c.erase(big_i_c.begin() + i);
                 break;
             }
         }

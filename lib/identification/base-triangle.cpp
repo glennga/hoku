@@ -14,16 +14,19 @@
 const std::vector<BaseTriangle::labels_list> BaseTriangle::NO_CANDIDATE_TRIOS_FOUND = {{-1, -1, -1}};
 
 /// Returned when no candidates can be found from a match step.
-const std::vector<Star::trio> BaseTriangle::NO_CANDIDATE_STARS_FOUND = {{Star::zero(), Star::zero(), Star::zero()}};
+const std::vector<Star::trio> BaseTriangle::NO_CANDIDATE_STARS_FOUND = {
+    {Star::wrap(Vector3::Zero()), Star::wrap(Vector3::Zero()), Star::wrap(Vector3::Zero())}};
 
 /// Returned with an unsuccessful pivoting step.
-const Star::trio BaseTriangle::NO_CANDIDATE_STAR_SET_FOUND = {Star::zero(), Star::zero(), Star::zero()};
+const Star::trio BaseTriangle::NO_CANDIDATE_STAR_SET_FOUND = {Star::wrap(Vector3::Zero()), Star::wrap(Vector3::Zero()),
+    Star::wrap(Vector3::Zero())};
 
 /// Starting index trio to perform pivot with.
 const BaseTriangle::index_trio BaseTriangle::STARTING_INDEX_TRIO = {0, 1, 2};
 
 /// Constructor. Initializes our permutation stack.
-BaseTriangle::BaseTriangle () : Identification(), pivot_c({}) {
+BaseTriangle::BaseTriangle () : Identification() {
+    pivot_c = {};
 }
 
 /// Generate the triangle table given the specified FOV and table name. This find the area and polar moment
@@ -64,7 +67,7 @@ int BaseTriangle::generate_triangle_table (INIReader &cf, const std::string &tri
                     double i_t = compute_moment(all_stars[i], all_stars[j], all_stars[k]);
                     
                     // Prevent insertion of trios with non realistic moments/areas.
-                    if (a_t > 0 && !std::isnan(i_t)) {
+                    if (a_t > 0 && !std::isnan(i_t) && i_t > 0) {
                         ch.insert_into_table("label_a, label_b, label_c, a, i",
                                              Nibble::tuple_d {static_cast<double>(all_stars[i].get_label()),
                                                  static_cast<double>(all_stars[j].get_label()),
@@ -98,11 +101,11 @@ std::vector<BaseTriangle::labels_list> BaseTriangle::query_for_trio (const doubl
     
     // Next, search this trio for stars matching the moment condition.
     big_r_ell.reserve(a_match.size() / 4);
-    for (Chomp::tuple_d t : a_match) {
+    std::for_each(a_match.begin(), a_match.end(), [&epsilon, &big_r_ell, &i] (const Chomp::tuple_d &t) -> void {
         if (t[3] >= i - epsilon && t[3] < i + epsilon) {
             big_r_ell.push_back(labels_list {static_cast<int> (t[0]), static_cast<int> (t[1]), static_cast<int>(t[2])});
         }
-    }
+    });
     
     // If results are found, remove the initialized value of NO_CANDIDATE_TRIOS_FOUND.
     if (big_r_ell.size() > 1) {
@@ -143,18 +146,20 @@ std::vector<Star::trio> BaseTriangle::base_query_for_trios (const index_trio &c,
     
     // Grab stars themselves from catalog IDs found in matches. Return these matches.
     big_r.reserve(big_r_ell.size());
-    for (const labels_list &r_ell : big_r_ell) {
+    std::for_each(big_r_ell.begin(), big_r_ell.end(), [&big_r, this] (const labels_list &r_ell) -> void {
         big_r.push_back({ch.query_hip(static_cast<int> (r_ell[0])), ch.query_hip(static_cast<int> (r_ell[1])),
                             ch.query_hip(static_cast<int> (r_ell[2]))});
-    }
+    });
     
     return big_r;
 }
 
-/// Generate a series of indices to iterate through as we perform the pivot operation. Store the results in the p stack.
+/// Reset out r_1 match set. Generate a series of indices to iterate through as we perform the pivot operation. Store
+/// the results in the p stack.
 ///
 /// @param c Index trio of stars in the body (B) frame that are 'removed' from this series.
-void BaseTriangle::generate_pivot_list (const index_trio &c) {
+void BaseTriangle::initialize_pivot (const index_trio &c) {
+    this->big_r_1 = nullptr;
     pivot_c.clear();
     
     for (unsigned int j = 0; j < big_i.size(); j++) {
@@ -168,46 +173,41 @@ void BaseTriangle::generate_pivot_list (const index_trio &c) {
 /// all stars found matching the b trio that aren't found in the past set. Recurse until one definitive trio exists.
 ///
 /// @param c Index trio of stars ('combination', but really permutation of I) in body frame.
-/// @param big_r_1 Matches found in a previous search.
 /// @return NO_CANDIDATE_STAR_SET_FOUND if pivoting is unsuccessful. Otherwise, a trio of stars that match the given B
 /// stars to R stars.
-Star::trio BaseTriangle::pivot (const index_trio &c, const std::vector<Star::trio> &big_r_1) {
+Star::trio BaseTriangle::pivot (const index_trio &c) {
     std::vector<Star::trio> big_r = this->query_for_trios(c);
-    if (std::equal(big_r.begin(), big_r.end(), NO_CANDIDATE_STARS_FOUND.begin())) {
-        big_r.clear();
+    
+    // This is our first run. Initialize our r_1 match set.
+    if (this->big_r_1 == nullptr) {
+        big_r_1 = std::make_unique<std::vector<Star::trio>>(big_r);
     }
     
     // Remove all trios from matches that have at least two stars in the past set (below is PartialMatch).
-    if (!big_r_1.empty() && !(std::equal(big_r_1[0].begin() + 1, big_r_1[0].end(), big_r_1[0].begin()))) {
-        for (unsigned int i = 0; i < big_r.size(); i++) {
-            bool matched = false;
-            
-            for (const Star::trio &r_1 : big_r_1) {
-                // We do not need to check all permutations. Break early and advance to next star.
-                if ((r_1[0] == big_r[i][0] || r_1[0] == big_r[i][1] || r_1[0] == big_r[i][2])
-                    && (r_1[1] == big_r[i][0] || r_1[1] == big_r[i][1] || r_1[1] == big_r[i][2])) {
-                    matched = true;
-                    break;
+    if (!std::equal(big_r.begin(), big_r.end(), NO_CANDIDATE_STARS_FOUND.begin())) {
+        (*big_r_1).erase(std::remove_if((*big_r_1).begin(), (*big_r_1).end(), [&big_r] (const Star::trio &r_1) {
+            for (const Star::trio &r : big_r) {
+                if (static_cast<int>(r[0] == r_1[0] || r[0] == r_1[1] || r[0] == r_1[2])
+                    + static_cast<int>(r[1] == r_1[0] || r[1] == r_1[1] || r[1] == r_1[2])
+                    + static_cast<int>(r[2] == r_1[0] || r[2] == r_1[1] || r[2] == r_1[2]) >= 2) {
+                    return false;
                 }
             }
-            
-            // If a match is not found, remove this from the match set.
-            if (!matched) {
-                big_r.erase(big_r.begin() + i);
-            }
-        }
+            return true;
+        }), (*big_r_1).end());
     }
     
-    // |R| = 1 restriction, w/o restriction we avoid recursion. Applied with the PASS_R_SET_CARDINALITY flag.
-    if (!big_r.empty() && this->parameters.pass_r_set_cardinality) {
-        return big_r[0];
+    // Pivot restriction, w/o restriction we avoid recursion. Applied with the NO_REDUCTION flag.
+    if (this->parameters.no_reduction) {
+        return (*big_r_1)[0];
     }
     
-    switch (big_r.size()) {
-        case 1: return big_r[0]; // Only 1 trio exists. This must be the matching trio.
+    switch ((*big_r_1).size()) {
+        case 1: return (*big_r_1)[0]; // Only 1 trio exists. This must be the matching trio.
         case 0: return NO_CANDIDATE_STAR_SET_FOUND; // No trios exist. Exit early.
-            // 2+ trios exists. Run with different 3rd element and history.
-        default: return pivot(index_trio {c[0], c[1], ptop(this->pivot_c)}, big_r);
+        default: // 2+ trios exists. Run with different 3rd element and history, or exit with error set.
+            return (static_cast<unsigned>(c[2]) != this->big_i.size() - 1) ? pivot(
+                index_trio {c[0], c[1], ptop(this->pivot_c)}) : NO_CANDIDATE_STAR_SET_FOUND;
     }
 }
 
@@ -220,21 +220,19 @@ Star::trio BaseTriangle::pivot (const index_trio &c, const std::vector<Star::tri
 /// @return The star list corresponding to largest set of matching stars across the body and inertial in all pairing
 /// configurations.
 Star::list BaseTriangle::direct_match_test (const Star::list &big_p, const Star::trio &r, const Star::trio &b) {
-    std::array<index_trio, 6> big_a_c = {STARTING_INDEX_TRIO};
+    std::array<index_trio, 6> big_a_c;
     std::array<Star::list, 6> big_m = {}, big_a = {};
     auto attach_ell = [&r, &b, &big_a_c] (const int i, const int j) -> Star {
         return Star::define_label(b[j], r[big_a_c[i][j]].get_label());
     };
     
     // Generate unique permutations using previously generated trio.
-    for (int i = 1; i < 6; i++) {
-        // Given i, swap elements 2 and 3 if even, or 1 and 3 if odd.
-        big_a_c[i] = (i % 2) == 0 ? index_trio {0, 2, 1} : index_trio {2, 1, 0};
-    }
+    big_a_c = {STARTING_INDEX_TRIO, index_trio {0, 2, 1}, index_trio {1, 0, 2}, index_trio {1, 2, 0},
+        index_trio {2, 0, 1}, index_trio {2, 1, 0}};
     
-    // Determine the rotation to take frame R to B. Only use r_1 and r_2 to get rotation.
-    for (unsigned int i = 0; i < 3; i++) {
-        Rotation q = parameters.f({b[0], b[1]}, {r[big_a_c[i][0]], r[big_a_c[i][1]]});
+    // Determine the rotation to take frame R to B.
+    for (unsigned int i = 0; i < 6; i++) {
+        Rotation q = parameters.f({b[0], b[1], b[2]}, {r[big_a_c[i][0]], r[big_a_c[i][1]], r[big_a_c[i][2]]});
         big_m[i] = find_positive_overlay(big_p, q);
         big_a[i] = {attach_ell(i, 0), attach_ell(i, 1), attach_ell(i, 2)};
     }
@@ -260,15 +258,21 @@ std::vector<BaseTriangle::labels_list> BaseTriangle::e_query (double a, double i
 ///
 /// @return NO_CANDIDATES_FOUND if no candidates found. Otherwise, a single elements that best meets the criteria.
 Identification::labels_list BaseTriangle::e_reduction () {
-    generate_pivot_list(STARTING_INDEX_TRIO);
-    Star::trio p = pivot(STARTING_INDEX_TRIO);
-    
-    if (std::equal(p.begin(), p.end(), NO_CANDIDATE_STAR_SET_FOUND.begin())) {
-        return EMPTY_BIG_R_ELL;
+    for (int i = 0; i < static_cast<signed> (big_i.size() - 2); i++) {
+        for (int j = i + 1; j < static_cast<signed> (big_i.size() - 1); j++) {
+            for (int k = j + 1; k < static_cast<signed> (big_i.size()); k++) {
+                initialize_pivot({i, j, k});
+                Star::trio p = pivot({i, j, k});
+                
+                // Require that the pivot produces a meaningful result.
+                if (std::equal(p.begin(), p.end(), NO_CANDIDATE_STAR_SET_FOUND.begin())) {
+                    continue;
+                }
+                return {p[0].get_label(), p[1].get_label(), p[2].get_label()};
+            }
+        }
     }
-    else {
-        return {p[0].get_label(), p[1].get_label(), p[2].get_label()};
-    }
+    return EMPTY_BIG_R_ELL;
 }
 
 /// Find the rotation from the images in our current benchmark to our inertial frame (i.e. the catalog).
@@ -283,9 +287,6 @@ Star::list BaseTriangle::e_identify () {
     for (int i = 0; i < static_cast<signed> (big_i.size() - 2); i++) {
         for (int j = i + 1; j < static_cast<signed> (big_i.size() - 1); j++) {
             for (int k = j + 1; k < static_cast<signed> (big_i.size()); k++) {
-                std::vector<Star::trio> big_r;
-                Star::trio r;
-                Star::list big_p;
                 (*parameters.nu)++;
                 
                 // Practical limit: exit early if we have iterated through too many comparisons without match.
@@ -294,14 +295,14 @@ Star::list BaseTriangle::e_identify () {
                 }
                 
                 // Find matches of current body trio to catalog. Pivot if necessary.
-                generate_pivot_list({i, j, k});
-                r = pivot({i, j, k});
+                initialize_pivot({i, j, k});
+                Star::trio r = pivot({i, j, k});
                 if (std::equal(r.begin(), r.end(), NO_CANDIDATE_STAR_SET_FOUND.begin())) {
                     continue;
                 }
                 
                 // Find candidate stars around the candidate trio.
-                big_p = ch.nearby_hip_stars(r[0], fov, static_cast<unsigned int> (3.0 * big_i.size()));
+                Star::list big_p = ch.nearby_hip_stars(r[0], fov, static_cast<unsigned int> (3.0 * big_i.size()));
                 
                 // Find the most likely map given the two pairs.
                 return direct_match_test(big_p, r, {big_i[i], big_i[j], big_i[k]});

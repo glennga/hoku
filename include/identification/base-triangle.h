@@ -28,10 +28,10 @@ class BaseTriangle : public Identification {
     using index_trio = std::array<int, 3>;
     
     /// Alias for an area function in the Trio class.
-    using area_function = double (*) (const Star &, const Star &, const Star &);
+    using area_function = double (*) (const Vector3 &, const Vector3 &, const Vector3 &);
     
     /// Alias for a moment function in the Trio class.
-    using moment_function =  double (*) (const Star &, const Star &, const Star &);
+    using moment_function =  double (*) (const Vector3 &, const Vector3 &, const Vector3 &);
     
     /// Return the first element, and deque the first element.
     ///
@@ -70,13 +70,16 @@ class BaseTriangle : public Identification {
 #endif
     /// Our index series that we pivot with. Set before each pivot call.
     std::deque<int> pivot_c;
+    
+    /// Pointer to current match list during a given pivot sequence.
+    std::unique_ptr<std::vector<Star::trio>> big_r_1 = nullptr;
 
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
-    void generate_pivot_list (const index_trio &);
+    void initialize_pivot (const index_trio & = {-1, -1, -1});
     std::vector<labels_list> query_for_trio (double a, double i);
-    Star::trio pivot (const index_trio &, const std::vector<Star::trio> & = {});
+    Star::trio pivot (const index_trio &);
     Star::list direct_match_test (const Star::list &big_p, const Star::trio &r, const Star::trio &b);
     
 };

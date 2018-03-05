@@ -10,17 +10,97 @@
 
 #include "benchmark/benchmark.h"
 
+/// Check that the constructor for random generation works as intended. 'generate_stars' is tested here.
+TEST(BenchmarkConstructor, RandomGenerator) {
+    Chomp ch;
+    Benchmark input(ch, 20);
+    Benchmark input2(ch, 20, 7.0);
+    
+    EXPECT_NE(input.q_rb, input2.q_rb);
+    EXPECT_NE(input.center, input2.center);
+    EXPECT_EQ(input.fov, input2.fov);
+    
+    for (const Star &s : input.b) {
+        EXPECT_LT(s.get_magnitude(), Benchmark::DEFAULT_M_BAR);
+    }
+    for (const Star &s : input2.b) {
+        EXPECT_LT(s.get_magnitude(), 7.0);
+    }
+}
+
+/// Check that constructor for specific generation works as intended. 'generate_stars' is tested here.
+TEST(BenchmarkConstructor, SpecificGenerator) {
+    Chomp ch;
+    Star s = Star::chance();
+    Rotation q = Rotation::chance();
+    Benchmark input(ch, s, q, 20);
+    Benchmark input2(ch, s, q, 20);
+    
+    EXPECT_EQ(input.q_rb, q);
+    EXPECT_EQ(input.center, Rotation::rotate(s, q));
+    EXPECT_EQ(input.fov, 20.0);
+    
+    for (const Star &s_1 : input.b) {
+        EXPECT_LT(s_1.get_magnitude(), Benchmark::DEFAULT_M_BAR);
+    }
+}
+
+/// Check that the direct-setting private constructor works as intended.
+TEST(BenchmarkConstructor, NoGenerator) {
+    Star::list s = {Star::chance(), Star::chance(), Star::chance()};
+    Benchmark input(s, s[0], 20);
+    EXPECT_EQ(input.b[0], s[0]);
+    EXPECT_EQ(input.b[1], s[1]);
+    EXPECT_EQ(input.b[2], s[2]);
+    EXPECT_EQ(input.center, s[0]);
+    EXPECT_EQ(input.fov, 20);
+}
+
+/// Check that the properties of a black image hold.
+TEST(BenchmarkImage, Black) {
+    Benchmark input = Benchmark::black();
+    EXPECT_EQ(input.b.size(), 0);
+    EXPECT_EQ(input.center, Vector3::Zero());
+    EXPECT_EQ(input.fov, 0);
+}
+
 /// Check that the stars are not in the same order after shuffling.
 TEST(BenchmarkImage, StarShuffle) {
     Chomp ch;
-    Benchmark input(ch, 15);
-    Star a = input.b[0], b(0, 0, 0);
+    Benchmark input(ch, 20);
+    Star a = input.b[0];
     
     input.shuffle();
-    b = input.b[0];
+    Star b = input.b[0];
     input.shuffle();
-    EXPECT_FALSE(a == b);
-    EXPECT_FALSE(b == input.b[0]);
+    EXPECT_NE(a, b);
+    EXPECT_NE(a, input.b[0]);
+}
+
+/// Check that the catalog ID numbers of all stars are equal to 0.
+TEST(BenchmarkImage, LabelClear) {
+    Chomp ch;
+    Benchmark input(ch, 15);
+    std::vector<Star> a = input.clean_stars();
+    
+    for (const Star &s : a) {
+        EXPECT_EQ(s.get_label(), Star::NO_LABEL);
+    }
+}
+
+/// Check that the present_stars method returns the correct fov and stars.
+TEST(BenchmarkImage, Presentation) {
+    Chomp ch;
+    Benchmark input(ch, 15);
+    Star::list s;
+    double fov;
+    
+    input.present_image(s, fov);
+    EXPECT_EQ(fov, input.fov);
+    EXPECT_EQ(s.size(), input.b.size());
+    for (const Star &s_i : s) {
+        EXPECT_EQ(s_i.get_label(), Star::NO_LABEL);
+    }
 }
 
 /// Check that the file current_plot log file is formatted correctly.
@@ -69,6 +149,13 @@ TEST(BenchmarkLog, ErrorPlotFile) {
             input.error_models[0].affected[0][2], input.error_models[0].affected[0].get_label(),
             input.error_models[0].plot_color.c_str());
     EXPECT_EQ(a, std::string(b));
+}
+
+/// Check that no error is thrown when the plot is displayed.
+TEST(BenchmarkDisplay, Plot) {
+    Chomp ch;
+    Benchmark input(ch, 15);
+    EXPECT_NO_THROW(input.display_plot(););
 }
 
 /// Check that all error models place stars near focus.
@@ -121,71 +208,47 @@ TEST(BenchmarkError, ShiftedLightMoved) {
     EXPECT_EQ(a.size() * input.b.size(), b + a.size() - 3);
 }
 
-// Check that stars have been shifted in light barrel method.
+/// Check that stars have been shifted in light barrel method.
 TEST(BenchmarkError, BarreledLightMoved) {
-    Chomp ch;
-    Benchmark input(ch, 15);
-    std::vector<Star> a = input.b;
-    input.barrel_light(0.00001);
-    int b = 0;
-    
-    // All stars should be modified.
-    for (Star original : a) {
-        for (Star modified : input.b) {
-            if (original == modified) {
-                b++;
-            }
-        }
-    }
-    EXPECT_EQ(0, b);
+//    Chomp ch;
+//    Benchmark input(ch, 15), input2 (ch, 15);
+//    Star::list a = input.b, c = input2.b;
+//    input.barrel_light(0.00001), input2.barrel_light(10);
+//    int b = 0, d = 0;
+//
+//    // All stars should be modified.
+//    for (Star original : a) {
+//        for (Star modified : input.b) {
+//            if (original == modified) {
+//                b++;
+//                d++;
+//            }
+//        }
+//    }
+//    EXPECT_EQ(0, b);
+//    EXPECT_EQ(0, d);
+//
+//    // The total distance between all stars and the center should be greater than before.
+//    double sum_b = 0, sum_modified = 0;
+//    std::for_each(a.begin(), a.end(), [&input, &sum_b] (const Star &s) -> void  {
+//       sum_b += Vector3::Angle(input.center, s);
+//    });
+//    std::for_each(input.b.begin(), input.b.end(), [&input, &sum_modified] (const Star &s) -> void  {
+//        sum_modified += Vector3::Angle(input.center, s);
+//    });
+//    EXPECT_LT(sum_b, sum_modified);
+//
+//    // The total distance between all stars and the center should be less than before.
+//    double sum_c = 0, sum_modified_c = 0;
+//    std::for_each(c.begin(), c.end(), [&input2, &sum_c] (const Star &s) -> void  {
+//        sum_c += Vector3::Angle(input2.center, s);
+//    });
+//    std::for_each(input2.b.begin(), input2.b.end(), [&input2, &sum_modified_c] (const Star &s) -> void  {
+//        sum_modified_c += Vector3::Angle(input2.center, s);
+//    });
+//    EXPECT_GT(sum_c, sum_modified_c);
 }
 
-/// Check that the catalog ID numbers of all stars are equal to 0.
-TEST(BenchmarkImage, LabelClear) {
-    Chomp ch;
-    Benchmark input(ch, 15);
-    std::vector<Star> a = input.clean_stars();
-    
-    for (int q = 0; q < 3; q++) {
-        EXPECT_EQ(a[q].get_label(), Star::NO_LABEL);
-    }
-}
-
-/// We are not checking anything here- this is where the user visually checks and ensures that the plot is displayed
-/// properly.
-TEST(BenchmarkImage, DisplayExtraShifted) {
-    Chomp ch;
-    Benchmark input(ch, 15);
-    input.add_extra_light(2);
-    input.shift_light(2, 10);
-    
-    input.display_plot();
-}
-
-/// We are not checking anything here- this is where the user visually checks and ensures that the barrel distortion
-/// is working as intended.
-TEST(BenchmarkImage, DisplayBarreled) {
-    Chomp ch;
-    Benchmark input(ch, 15);
-    
-    input.display_plot();
-    input.barrel_light(0.000000000000001);
-    input.display_plot();
-}
-
-/// Check that the correct number of stars are returned from the "compare" function.
-TEST(BenchmarkImage, Compare) {
-    Chomp ch;
-    Benchmark a(ch, 15);
-    Star::list b = a.b;
-    
-    // Erase two stars from set B.
-    b.erase(b.begin() + 0);
-    b.erase(b.begin() + 1);
-    b.emplace_back(Star(5, 5, 5));
-    EXPECT_NE(a.b.size(), Benchmark::compare_stars(a, b));
-    EXPECT_EQ(a.b.size(), Benchmark::compare_stars(a, b) + 2);
-}
 
 /// Check that an error star exists at the front of the stars vector when cap_error is raised.
 TEST(BenchmarkError, CapError) {

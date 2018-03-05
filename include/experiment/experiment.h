@@ -24,7 +24,7 @@
 /// 3. Identification
 /// @endcode
 namespace Experiment {
-    void present_benchmark (Chomp &, Star::list &, Star &, double fov, double = 0);
+    void present_benchmark (Chomp &, Star::list &, Star &, double fov, double = 6.0);
     
     /// @brief Namespace that holds all parameters and functions to conduct the query experiment with.
     ///
@@ -35,7 +35,8 @@ namespace Experiment {
             "CandidateSetSize FLOAT, SExistence INT";
         
         Star::list generate_n_stars (Chomp &ch, unsigned int n, Star &center, double fov);
-        bool set_existence (std::vector<Identification::labels_list> &big_r_ell, Identification::labels_list &big_i_ell);
+        bool set_existence (std::vector<Identification::labels_list> &big_r_ell,
+                            Identification::labels_list &big_i_ell);
         
         /// Generic experiment function for the query trials. Performs a query trial and records the experiment in
         /// the lumberjack. The provided Nibble connection is used for generating the input image.
@@ -51,14 +52,19 @@ namespace Experiment {
             double fov = cf.GetReal("hardware", "fov", 0);
             Star focus;
             
+            // Define our hyperparameters and testing parameters.
             Identification::collect_parameters(p, cf), p.table_name = tb;
-            for (int ss_i = 0; ss_i < cf.GetInteger("query-experiment", "ss-iter", 0); ss_i++) {
-                double ss = (ss_i == 0) ? 0 : cf.GetInteger("query-experiment", "ss-step", 0) * ss_i;
+            int samples = cf.GetInteger("general-experiment", "samples", 0);
+            int ss_iter = cf.GetInteger("query-experiment", "ss-iter", 0);
+            double ss_step = cf.GetReal("query-experiment", "ss-step", 0);
+            
+            for (int ss_i = 0; ss_i < ss_iter; ss_i++) {
+                double ss = (ss_i == 0) ? 0 : ss_step * ss_i;
                 
                 // Repeat each trial n = SAMPLES times.
-                for (int i = 0; i < cf.GetInteger("general-experiment", "samples", 0); i++) {
+                for (int i = 0; i < samples; i++) {
                     Star::list s = generate_n_stars(ch, T::QUERY_STAR_SET_SIZE, focus, fov);
-                    Benchmark beta(s, focus, cf.GetReal("hardware", "fov", 0));
+                    Benchmark beta(s, focus, fov);
                     beta.shift_light(T::QUERY_STAR_SET_SIZE, ss);
                     
                     // Perform a single trial.
@@ -101,24 +107,27 @@ namespace Experiment {
             Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
             double fov = cf.GetReal("hardware", "fov", 0);
             Star::list body;
-            unsigned int nu = 0;
             Star focus;
             
-            // Define our hyperparameters.
-            Identification::collect_parameters(p, cf), p.table_name = tb, p.nu = std::make_shared<unsigned int>(nu);
+            // Define our hyperparameters and testing parameters.
+            Identification::collect_parameters(p, cf), p.table_name = tb, p.nu = std::make_shared<unsigned int>(0);
+            int samples = cf.GetInteger("general-experiment", "samples", 0);
+            int ss_iter = cf.GetInteger("reduction-experiment", "ss-iter", 0);
+            int mb_iter = cf.GetInteger("reduction-experiment", "mb-iter", 0);
+            double ss_step = cf.GetReal("reduction-experiment", "ss-step", 0);
+            double mb_min = cf.GetReal("reduction-experiment", "mb-min", 0);
+            double mb_step = cf.GetReal("reduction-experiment", "mb-step", 0);
             
             // First run is clean, without shifts. Following are the shift trials.
-            for (int ss_i = 0; ss_i < cf.GetInteger("reduction-experiment", "ss-iter", 0); ss_i++) {
-                double ss = (ss_i == 0) ? 0 : cf.GetInteger("reduction-experiment", "ss-step", 0) * ss_i;
-                
-                for (int mb_i = 0; mb_i < cf.GetInteger("reduction-exeperiment", "mb-iter", 0); mb_i++) {
-                    double mb = cf.GetReal("reduction-experiment", "mb-min", 0)
-                                + mb_i * cf.GetInteger("reduction-experiment", "mb-step", 0);
+            for (int ss_i = 0; ss_i < ss_iter; ss_i++) {
+                double ss = (ss_i == 0) ? 0 : ss_step * ss_i;
+                for (int mb_i = 0; mb_i < mb_iter; mb_i++) {
+                    double mb = mb_min + mb_i * mb_step;
                     
                     // Repeat each trial n = SAMPLES times.
-                    for (int i = 0; i < cf.GetInteger("general-experiment", "samples", 0); i++) {
+                    for (int i = 0; i < samples; i++) {
                         present_benchmark(ch, body, focus, fov, mb);
-                        Benchmark input(body, focus, cf.GetReal("hardware", "fov", 0));
+                        Benchmark input(body, focus, fov);
                         input.shift_light(static_cast<signed> (body.size()), ss);
                         
                         // Perform a single trial.
@@ -140,9 +149,9 @@ namespace Experiment {
         /// Schema header that corresponds to the log file for all identification trials.
         const char *const SCHEMA = "IdentificationMethod TEXT, Timestamp TEXT, SigmaQuery FLOAT, SigmaOverlay FLOAT, "
             "ShiftDeviation FLOAT, CameraSensitivity FLOAT, FalseStars INT, ComparisonCount INT, "
-            "IsCorrectlyIdentified INT";
+            "PercentageCorrect FLOAT";
         
-        bool is_correctly_identified (const Star::list &big_i, const Star::list &b);
+        double percentage_correct (const Star::list &big_i, const Star::list &b);
         
         /// Generic experiment function for the identification trials. Performs a identification trial and records the
         /// experiment in the lumberjack. The provided Nibble connection is used for generating the input image.
@@ -154,41 +163,46 @@ namespace Experiment {
         /// @param tb Table name used with the method specified with the template T.
         template <class T>
         void trial (Chomp &ch, Lumberjack &lu, INIReader &cf, const std::string &tb) {
+            std::shared_ptr<unsigned int> nu = std::make_shared<unsigned int>(0);
             Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
             double fov = cf.GetReal("hardware", "fov", 0);
             Star::list body;
-            unsigned int nu = 0;
             Star focus;
             
-            // Define our hyperparameters.
-            Identification::collect_parameters(p, cf), p.table_name = tb, p.nu = std::make_shared<unsigned int>(nu);
+            // Define our hyperparameters, and testing parameters.
+            Identification::collect_parameters(p, cf), p.table_name = tb, p.nu = nu;
+            int samples = cf.GetInteger("general-experiment", "samples", 0);
+            int ss_iter = cf.GetInteger("identification-experiment", "ss-iter", 0);
+            int mb_iter = cf.GetInteger("identification-experiment", "mb-iter", 0);
+            int es_iter = cf.GetInteger("identification-experiment", "es-iter", 0);
+            double ss_step = cf.GetReal("identification-experiment", "ss-step", 0);
+            double mb_min = cf.GetReal("identification-experiment", "mb-min", 0);
+            double mb_step = cf.GetReal("identification-experiment", "mb-step", 0);
+            double es_min = cf.GetReal("identification-experiment", "es-min", 0);
+            double es_step = cf.GetReal("identification-experiment", "es-step", 0);
             
-            for (int ss_i = 0; ss_i < cf.GetInteger("identification-experiment", "ss-iter", 0); ss_i++) {
-                double ss = (ss_i == 0) ? 0 : cf.GetInteger("identification-experiment", "ss-step", 0) * ss_i;
-                
-                for (int mb_i = 0; mb_i < cf.GetInteger("identification-experiment", "mb-iter", 0); mb_i++) {
-                    double mb = cf.GetReal("identification-experiment", "mb-min", 0)
-                                + mb_i * cf.GetInteger("identification-experiment", "mb-step", 0);
-                    
-                    for (int es_i = 0; es_i < cf.GetInteger("identification-experiment", "es-iter", 0); es_i++) {
-                        double es = cf.GetReal("identification-experiment", "es-min", 0)
-                                    + es_i * cf.GetInteger("identification-experiment", "es-step", 0);
+            for (int ss_i = 0; ss_i < ss_iter; ss_i++) {
+                double ss = (ss_i == 0) ? 0 : ss_step * ss_i;
+                for (int mb_i = 0; mb_i < mb_iter; mb_i++) {
+                    double mb = mb_min + mb_i * mb_step;
+                    for (int es_i = 0; es_i < es_iter; es_i++) {
+                        double es = es_min + es_i * es_step;
                         
                         // Repeat each trial n = SAMPLES times.
-                        for (int i = 0; i < cf.GetInteger("general-experiment", "samples", 0); i++) {
+                        for (int i = 0; i < samples; i++) {
                             present_benchmark(ch, body, focus, fov, mb);
-                            Benchmark input(body, focus, cf.GetReal("hardware", "fov", 0));
+                            Benchmark input(body, focus, fov);
                             
                             // Append our error.
                             input.shift_light(static_cast<int> (body.size()), ss);
-                            input.add_extra_light(static_cast<unsigned int> ((es / (1 - es)) * body.size()));
+                            input.add_extra_light(static_cast<unsigned int> (es));
                             
                             // Perform a single trial.
                             Star::list w = T(input, p).identify();
                             
                             // Log the results of our trial.
-                            lu.log_trial({p.sigma_query, p.sigma_overlay, ss, mb, es, static_cast<double> (*p.nu),
-                                             (is_correctly_identified(body, w) ? 1.0 : 0)});
+                            lu.log_trial({p.sigma_query, p.sigma_overlay, ss, mb, es, static_cast<double> (*nu),
+                                             percentage_correct(body, w)});
                         }
                     }
                 }

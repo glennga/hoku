@@ -92,8 +92,7 @@ TEST(RotationChance, Chance) {
     EXPECT_EQ(Quaternion::Norm(Rotation::chance()), 1.0);
 }
 
-/// Check the TRIAD property that the resultant quaternion rotates both star pairs across frames correctly with the
-/// simple case of axis vectors.
+/// Check the TRIAD method rotates both star pairs across frames correctly with the simple case of axis vectors.
 TEST(RotationTRIAD, Simple) {
     Star::list a = {Star(1, 0, 0), Star(0, 1, 0)};
     Star::list b = {Star(0, 0, 1), Star(0, 1, 0)};
@@ -103,8 +102,7 @@ TEST(RotationTRIAD, Simple) {
     EXPECT_LT((180.0 / M_PI) * Vector3::Angle(e, a[1]), 0.000000001);
 }
 
-/// Check the TRIAD property that the resultant quaternion rotates both star pairs across frames correctly with
-/// random vectors.
+/// Check the TRIAD method rotates both star pairs across frames correctly with random vectors.
 TEST(RotationTRIAD, Chance) {
     Rotation a = Rotation::chance();
     Star::list b = {Star::chance(), Star::chance()};
@@ -126,6 +124,84 @@ TEST(RotationTRIAD, MultipleStars) {
         c.push_back(Rotation::rotate(b[q], a));
     }
     Rotation d = Rotation::triad({b[0], b[1]}, {c[0], c[1]});
+    
+    for (int q = 0; q < 5; q++) {
+        Star e = Rotation::rotate(c[q], d);
+        EXPECT_LT((180.0 / M_PI) * Vector3::Angle(e, b[q]), 0.000001);
+    }
+}
+
+/// Check the SVD method rotates both star pairs across frames correctly with the simple case of axis vectors.
+TEST(RotationSVD, Simple) {
+    Star::list a = {Star(1, 0, 0), Star(0, 1, 0)};
+    Star::list b = {Star(0, 0, 1), Star(0, 1, 0)};
+    Rotation c = Rotation::svd(a, b);
+    Star d = Rotation::rotate(b[0], c), e = Rotation::rotate(b[1], c);
+    EXPECT_LT((180.0 / M_PI) * Vector3::Angle(d, a[0]), 0.000000001);
+    EXPECT_LT((180.0 / M_PI) * Vector3::Angle(e, a[1]), 0.000000001);
+}
+
+/// Check the SVD method rotates both star pairs across frames correctly with random vectors.
+TEST(RotationSVD, Chance) {
+    Rotation a = Rotation::chance();
+    Star::list b = {Star::chance(), Star::chance(), Star::chance()};
+    Star::list c = {Rotation::rotate(b[0], a), Rotation::rotate(b[1], a), Rotation::rotate(b[2], a)};
+    Rotation d = Rotation::svd(b, c);
+    Star e = Rotation::rotate(c[0], d), f = Rotation::rotate(c[1], d);
+    EXPECT_LT((180.0 / M_PI) * Vector3::Angle(e, b[0]), 0.000001);
+    EXPECT_LT((180.0 / M_PI) * Vector3::Angle(f, b[1]), 0.000001);
+}
+
+/// Check that for each star in set A and the same rotated set B, there exists a quaternion H such that A = HB.
+TEST(RotationSVD, MultipleStars) {
+    Rotation a = Rotation::chance();
+    std::vector<Star> b, c;
+    b.reserve(5), c.reserve(5);
+    
+    for (int q = 0; q < 5; q++) {
+        b.push_back(Star::chance());
+        c.push_back(Rotation::rotate(b[q], a));
+    }
+    Rotation d = Rotation::svd({b[0], b[1], b[2], b[3]}, {c[0], c[1], c[2], c[3]});
+    
+    for (int q = 0; q < 5; q++) {
+        Star e = Rotation::rotate(c[q], d);
+        EXPECT_LT((180.0 / M_PI) * Vector3::Angle(e, b[q]), 0.000002);
+    }
+}
+
+/// Check the Q method rotates both star pairs across frames correctly with the simple case of axis vectors.
+TEST(RotationQ, Simple) {
+    Star::list a = {Star(1, 0, 0), Star(0, 1, 0)};
+    Star::list b = {Star(0, 0, 1), Star(0, 1, 0)};
+    Rotation c = Rotation::q_method(a, b);
+    Star d = Rotation::rotate(b[0], c), e = Rotation::rotate(b[1], c);
+    EXPECT_LT((180.0 / M_PI) * Vector3::Angle(d, a[0]), 0.000000001);
+    EXPECT_LT((180.0 / M_PI) * Vector3::Angle(e, a[1]), 0.000000001);
+}
+
+/// Check the Q method rotates both star pairs across frames correctly with random vectors.
+TEST(RotationQ, Chance) {
+    Rotation a = Rotation::chance();
+    Star::list b = {Star::chance(), Star::chance(), Star::chance()};
+    Star::list c = {Rotation::rotate(b[0], a), Rotation::rotate(b[1], a), Rotation::rotate(b[2], a)};
+    Rotation d = Rotation::q_method(b, c);
+    Star e = Rotation::rotate(c[0], d), f = Rotation::rotate(c[1], d);
+    EXPECT_LT((180.0 / M_PI) * Vector3::Angle(e, b[0]), 0.000001);
+    EXPECT_LT((180.0 / M_PI) * Vector3::Angle(f, b[1]), 0.000001);
+}
+
+/// Check that for each star in set A and the same rotated set B, there exists a quaternion H such that A = HB.
+TEST(RotationQ, MultipleStars) {
+    Rotation a = Rotation::chance();
+    std::vector<Star> b, c;
+    b.reserve(5), c.reserve(5);
+    
+    for (int q = 0; q < 5; q++) {
+        b.push_back(Star::chance());
+        c.push_back(Rotation::rotate(b[q], a));
+    }
+    Rotation d = Rotation::q_method({b[0], b[1]}, {c[0], c[1]});
     
     for (int q = 0; q < 5; q++) {
         Star e = Rotation::rotate(c[q], d);

@@ -165,8 +165,12 @@ TEST(StarAngle, Same) {
 TEST(StarAngle, WithinMultipleStars) {
     Star::list a = {Star(1, 1, 1), Star(1.1, 1, 1), Star(1.00001, 1, 1)};
     Star::list b = {Star(1, 1, 1), Star(1.1, 1, 1), Star(-1, 1, 1)};
+    Star::list c = {Star(1, 1, 1)};
+    Star::list d = {};
     EXPECT_TRUE(Star::within_angle(a, 15));
-    EXPECT_FALSE(Star::within_angle(b, 15));
+    EXPECT_FALSE(Star::within_angle(b, 15));    
+    EXPECT_TRUE(Star::within_angle(c, 15));
+    EXPECT_TRUE(Star::within_angle(d, 15));
 }
 
 /// Check if the angle between two stars is actually less than a given angle theta.

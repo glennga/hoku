@@ -95,7 +95,7 @@ Star Star::chance (const int label) {
 /// @param s_2 Star to find angle from s_1.
 /// @param theta The angle between s_1 and s_2 must be between this.
 /// @return True if angle between s_1 and s_2 is less than theta. False otherwise.
-bool Star::within_angle (const Star &s_1, const Star &s_2, const double theta) {
+bool Star::within_angle (const Vector3 &s_1, const Vector3 &s_2, const double theta) {
     return Vector3::Angle(s_1, s_2) * (180.0 / M_PI) < theta;
 }
 
@@ -105,6 +105,11 @@ bool Star::within_angle (const Star &s_1, const Star &s_2, const double theta) {
 /// @param theta All stars in s_l must be theta degrees from each other.
 /// @return True if angle between all stars are less than theta. False otherwise.
 bool Star::within_angle (const list &s_l, const double theta) {
+    // For single element lists (or blank lists), this defaults to true.
+    if (s_l.size() < 2) {
+        return true;
+    }
+    
     // Fancy for loop wrapping... (: All distinct combination pairs of s_l.
     for (unsigned int i = 0, j = 1; i < s_l.size() - 1; j = (j < s_l.size() - 1) ? j + 1 : 1 + ++i) {
         if (!within_angle(s_l[i], s_l[j], theta)) {

@@ -1,10 +1,12 @@
 /// @file test-identification.cpp
 /// @author Glenn Galvizo
 ///
-/// Source file for all Identification class unit tests and the test runner. Uses the Angle class as a "proxy" class.
+/// Source file for all Identification class unit tests and the test runner.
 
 #define ENABLE_TESTING_ACCESS
 
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include <numeric>
 #include <fstream>
 #include "gmock/gmock.h"
@@ -12,62 +14,87 @@
 
 #include "identification/angle.h"
 
+/// A dummy non-virtual instance of Identification.
+class IdentificationDummy : public Identification {
+  public:
+    IdentificationDummy (const Star::list &s, const Identification::Parameters &p) : Identification() {
+        this->big_i = s, parameters = p;
+    }
+    std::vector<labels_list> query (const Star::list &) {
+        return {Identification::EMPTY_BIG_R_ELL};
+    }
+    labels_list reduce () {
+        return Identification::EMPTY_BIG_R_ELL;
+    }
+    Star::list identify () {
+        return this->big_i;
+    }
+};
+
 /// Check that the parameter collector method transfers the appropriate parameters.
 TEST(ParameterCollect, CleanInput) {
-    std::ofstream f1(std::string(std::getenv("HOKU_PROJECT_PATH")) + "/data/tmp/TESTCONFIG1.ini");
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+    std::string temp_path = std::getenv("TEMP");
+#else
+    std::string temp_path = "/tmp";
+#endif
+    std::ofstream f1(temp_path + "/TESTCONFIG1.ini");
     ASSERT_TRUE(f1.is_open());
     
     f1 << "[id-parameters]             ; Values used in 'Parameters' struct.\n"
         "sq = 0.000000001            ; Sigma query value (degrees).\n"
         "sl = 500                    ; Tuple count returned restriction.\n"
-        "prsc = 1                    ; 'Pass R Set Cardinality' toggle.\n"
+        "nr = 1                      ; 'Pass R Set Cardinality' toggle.\n"
         "fbr = 0                     ; 'Favor Bright Stars' toggle.\n"
         "so = 0.00000001             ; Sigma overlay (degrees).\n"
         "nu-m = 50000                ; Maximum number of query star comparisons (nu max).\n"
-        "wbs = TRIAD                 ; Function used to solve Wabha (possible TRIAD, QUEST, Q)";
+        "wbs = TRIAD                 ; Function used to solve Wabha (possible TRIAD, SVD, Q)";
     f1.close();
     
-    INIReader cf1(std::string(std::getenv("HOKU_PROJECT_PATH")) + "/data/tmp/TESTCONFIG1.ini");
+    INIReader cf1(temp_path + "/TESTCONFIG1.ini");
     Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
     Identification::collect_parameters(p, cf1);
     
     EXPECT_FLOAT_EQ(p.sigma_query, 0.000000001);
     EXPECT_EQ(p.sql_limit, 500);
-    EXPECT_EQ(p.pass_r_set_cardinality, true);
+    EXPECT_EQ(p.no_reduction, true);
     EXPECT_EQ(p.favor_bright_stars, false);
     EXPECT_FLOAT_EQ(p.sigma_overlay, 0.00000001);
     EXPECT_EQ(p.nu_max, 50000);
     EXPECT_EQ(p.f, Rotation::triad);
-    std::remove((std::string(std::getenv("HOKU_PROJECT_PATH")) + "/data/tmp/TESTCONFIG1.ini").c_str());
 }
 
 /// Check that the parameter collector method uses default parameters under improper conditions.
 TEST(ParameterCollect, ErrorInput) {
-    std::ofstream f2(std::string(std::getenv("HOKU_PROJECT_PATH")) + "/data/tmp/TESTCONFIG2.ini");
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+    std::string temp_path = std::getenv("TEMP");
+#else
+    std::string temp_path = "/tmp";
+#endif
+    std::ofstream f2(temp_path + "/TESTCONFIG2.ini");
     ASSERT_TRUE(f2.is_open());
     
     f2 << "[id-parameters]             ; Values used in 'Parameters' struct.\n"
         "sq = asd                    ; Sigma query value (degrees).\n"
         "sl = 500                    ; Tuple count returned restriction.\n"
-        "prsc =       a              ; 'Pass R Set Cardinality' toggle.\n"
+        "nr =         a              ; 'Pass R Set Cardinality' toggle.\n"
         "fbr =         2             ; 'Favor Bright Stars' toggle.\n"
         "so = 0.001                  ; Sigma overlay (degrees).\n"
         "nu-m = 5                    ; Maximum number of query star comparisons (nu max).\n"
-        "wbs = TY                    ; Function used to solve Wabha (possible TRIAD, QUEST, Q)";
+        "wbs = TY                    ; Function used to solve Wabha (possible TRIAD, SVD, Q)";
     f2.close();
     
-    INIReader cf2(std::string(std::getenv("HOKU_PROJECT_PATH")) + "/data/tmp/TESTCONFIG2.ini");
+    INIReader cf2(temp_path + "/TESTCONFIG2.ini");
     Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
     Identification::collect_parameters(p, cf2);
     
     EXPECT_FLOAT_EQ(p.sigma_query, Identification::DEFAULT_SIGMA_QUERY);
     EXPECT_EQ(p.sql_limit, 500);
-    EXPECT_EQ(p.pass_r_set_cardinality, Identification::DEFAULT_PASS_R_SET_CARDINALITY);
+    EXPECT_EQ(p.no_reduction, Identification::DEFAULT_NO_REDUCTION);
     EXPECT_EQ(p.favor_bright_stars, Identification::DEFAULT_FAVOR_BRIGHT_STARS);
     EXPECT_FLOAT_EQ(p.sigma_overlay, 0.001);
     EXPECT_EQ(p.nu_max, 5);
     EXPECT_EQ(p.f, Rotation::triad);
-    std::remove((std::string(std::getenv("HOKU_PROJECT_PATH")) + "/data/tmp/TESTCONFIG2.ini").c_str());
 }
 
 /// Check that the rotating match method marks the all stars as matched.
@@ -78,10 +105,10 @@ TEST(FindMatches, CorrectInput) {
     Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
     Rotation f = Rotation::triad({a, b}, {d, e});
     Benchmark input(ch, Star::chance(), c, 8);
-    std::vector<Star> rev_input;
-    Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
+    Star::list rev_input;
+    Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
     p.sigma_overlay = 0.000001;
-    Angle g(input, p);
+    IdentificationDummy g(input.clean_stars(), p);
     
     // Reverse all input by inverse rotation matrix.
     rev_input.reserve(input.b.size());
@@ -89,7 +116,7 @@ TEST(FindMatches, CorrectInput) {
         rev_input.push_back(Rotation::rotate(rotated, f));
     }
     
-    std::vector<Star> h = g.find_positive_overlay(rev_input, c);
+    Star::list h = g.find_positive_overlay(rev_input, c);
     EXPECT_EQ(h.size(), input.b.size());
     for (unsigned int q = 0; q < h.size(); q++) {
         EXPECT_EQ(h[q].get_label(), input.b[q].get_label());
@@ -104,10 +131,10 @@ TEST(FindMatches, ErrorInput) {
     Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
     Rotation f = Rotation::triad({a, b}, {d, e});
     Benchmark input(ch, Star::chance(), c, 8);
-    std::vector<Star> rev_input;
-    Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
+    Star::list rev_input;
+    Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
     p.sigma_overlay = 0.000001;
-    Angle g(input, p);
+    IdentificationDummy g(input.clean_stars(), p);
     
     // Reverse all input by inverse rotation matrix.
     rev_input.reserve(input.b.size());
@@ -116,8 +143,8 @@ TEST(FindMatches, ErrorInput) {
     }
     
     // Append center as error.
-    rev_input.push_back(input.center);
-    std::vector<Star> h = g.find_positive_overlay(rev_input, c);
+    rev_input.push_back(Star::wrap(input.center));
+    Star::list h = g.find_positive_overlay(rev_input, c);
     EXPECT_EQ(h.size(), input.b.size());
     
     for (unsigned int q = 0; q < h.size(); q++) {
@@ -133,10 +160,10 @@ TEST(FindMatches, RotatingDuplicateInput) {
     Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
     Rotation f = Rotation::triad({a, b}, {d, e});
     Benchmark input(ch, Star::chance(), c, 8);
-    std::vector<Star> rev_input;
-    Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
+    Star::list rev_input;
+    Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
     p.sigma_overlay = 0.000001;
-    Angle g(input, p);
+    IdentificationDummy g(input.clean_stars(), p);
     
     // Reverse all input by inverse rotation matrix.
     rev_input.reserve(input.b.size());
@@ -148,7 +175,7 @@ TEST(FindMatches, RotatingDuplicateInput) {
     rev_input.push_back(rev_input[0]);
     rev_input.push_back(rev_input[0]);
     rev_input.push_back(rev_input[0]);
-    std::vector<Star> h = g.find_positive_overlay(rev_input, c);
+    Star::list h = g.find_positive_overlay(rev_input, c);
     EXPECT_EQ(h.size(), input.b.size());
     
     for (unsigned int q = 0; q < h.size(); q++) {
@@ -160,7 +187,7 @@ TEST(FindMatches, RotatingDuplicateInput) {
 TEST(SortBrightness, BrightestStart) {
     Chomp ch;
     Benchmark input(ch, 15);
-    Angle g(input, Angle::DEFAULT_PARAMETERS);
+    IdentificationDummy g(input.b, Identification::DEFAULT_PARAMETERS);
     std::vector<Identification::labels_list> ell = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}, {10, 11, 12}, {13, 14, 15}};
     g.sort_brightness(ell);
     auto grab_b = [&ch] (const int ell) -> double {
@@ -179,48 +206,34 @@ TEST(SortBrightness, BrightestStart) {
     EXPECT_LT(d, e);
 }
 
-/// Check that the alignment output used by the Angle method returns a similar rotation.
-TEST(AngleAlign, CleanInput) {
-    // TODO: Finish a test for comparing the ground-truth quaternion and the resultant from the alignment.
+/// Check that the alignment output using the TRIAD method returns an alignment similar to the one used to generate the
+/// image.
+TEST(Alignment, CleanInputTRIAD) {
+    Chomp ch;
+    Star s = Star::chance();
+    Rotation q = Rotation::chance();
+    Benchmark input(ch, s, q, 20);
+    IdentificationDummy g(input.b, Identification::DEFAULT_PARAMETERS);
+    Rotation q_1 = g.align();
+    
+    Star a = input.b[3], b = input.b[4];
+    EXPECT_LT((180.0 / M_PI) * Vector3::Angle(Rotation::rotate(a, q), Rotation::rotate(a, q_1)), 00000000000001);
+    EXPECT_LT((180.0 / M_PI) * Vector3::Angle(Rotation::rotate(b, q), Rotation::rotate(b, q_1)), 0.000000000001);
 }
 
-/// Check that correct result is returned with a clean input.
-TEST(AngleIdentifyAll, CleanInput) {
+/// Check that the complete identification output returns the correct result with a clean input.
+TEST(CompleteIdentification, CleanInput) {
     Chomp ch;
-    Benchmark input(ch, 10, 6.5);
-    Angle::Parameters a = Angle::DEFAULT_PARAMETERS;
-    a.sigma_overlay = 0.000001;
-    unsigned int nu = 0;
-    a.nu = std::make_shared<unsigned int>(nu);
-    Star::list c = Angle(input, a).identify_all();
-    ASSERT_FALSE(c.empty());
+    Star s = Star::chance();
+    Rotation q = Rotation::chance();
+    Benchmark input(ch, s, q, 20);
+    Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
+    p.sigma_overlay = 0.000001;
+    IdentificationDummy g(input.b, p);
     
-    for (unsigned int q = 0; q < c.size() - 1; q++) {
-        auto is_found = std::find_if(input.b.begin(), input.b.end(), [&c, q] (const Star &b) -> bool {
-            return b.get_label() == c[q].get_label();
-        });
-        EXPECT_NE(is_found, input.b.end());
-    }
-}
-
-/// Check that correct result is returned with an error input.
-TEST(AngleIdentifyAll, ErrorInput) {
-    Chomp ch;
-    Benchmark input(ch, 9);
-    Angle::Parameters a = Angle::DEFAULT_PARAMETERS;
-    a.sigma_overlay = 0.000001;
-    input.add_extra_light(1);
-    unsigned int nu = 0;
-    a.nu = std::make_shared<unsigned int>(nu);
-    
-    std::vector<Star> c = Angle(input, a).identify_all();
-    ASSERT_FALSE(c.empty());
-    
-    for (unsigned int q = 0; q < c.size() - 1; q++) {
-        auto is_found = std::find_if(input.b.begin(), input.b.end(), [&c, q] (const Star &b) -> bool {
-            return b.get_label() == c[q].get_label();
-        });
-        EXPECT_NE(is_found, input.b.end());
+    Star::list s_l = g.identify_all();
+    for (unsigned int i = 0; i < s_l.size(); i++) {
+        EXPECT_EQ(s_l[i], input.b[i]);
     }
 }
 

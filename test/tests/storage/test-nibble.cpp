@@ -24,30 +24,32 @@ TEST(NibbleConnection, InMemoryInstance) {
     // Check when we create an instance with a focus, and without.
     Nibble nb(ch.bright_table, "label"), nb3(ch.bright_table);
     Nibble::tuples_d a = nb.search_table("i, j, k", "label = 88", 3);
-    Nibble::tuples_d b = nb.search_table("i, j, k", "label = 88", 3);
+    Nibble::tuples_d b = nb3.search_table("i, j, k", "label = 88", 3);
     nb.select_table(ch.bright_table);
-    bool assertion = false;
     
-    // Ensure that the focus instance is the same as the non-focus instance.
+    // Ensure that the focus instance is the same as the non-focus instance. Below checked with Matlab's sph2cart.
     EXPECT_EQ(nb.search_table("i, j, k", "label = 1", 1).size(), 0);
     EXPECT_EQ(nb.search_table("i, j, k", "label = 88", 1).size(), 1);
-    EXPECT_FLOAT_EQ(a[0][0], 0.95763727906078);
-    EXPECT_FLOAT_EQ(a[0][1], 0.264036130176979);
-    EXPECT_FLOAT_EQ(a[0][2], 0.114959835221834);
+    EXPECT_FLOAT_EQ(a[0][0], 0.658552173330720);
+    EXPECT_FLOAT_EQ(a[0][1], 0.003092250084512);
+    EXPECT_FLOAT_EQ(a[0][2], -0.752528719047187);
     EXPECT_FLOAT_EQ(a[0][0], b[0][0]);
     EXPECT_FLOAT_EQ(a[0][1], b[0][1]);
     EXPECT_FLOAT_EQ(a[0][2], b[0][2]);
     
     // Ensure that we aren't creating random connections below.
-    try {
-        Nibble nb2("SomeTableThatDoesntExist", "asd");
-    }
-    catch (std::exception &e) {
-        std::cout << "Exception: " << e.what() << std::endl;
-        assertion = true;
-    }
-    EXPECT_TRUE(assertion);
+    EXPECT_ANY_THROW(Nibble nb2("SomeTableThatDoesntExist", "asd"););
+}
+
+/// Check that an assertion is thrown when the selected table does not exist.
+TEST(NibbleSelect, SelectTable) {
+    Nibble nb;
+    Chomp ch;
     
+    // Assumes that hip table exists.
+    EXPECT_THROW(nb.select_table("TABLE_THAT_DOES_NOT_EXIST", true);, std::runtime_error);
+    EXPECT_NO_THROW(nb.select_table("TABLE_THAT_DOES_NOT_EXIST"););
+    EXPECT_NO_THROW(nb.select_table(ch.bright_table););
 }
 
 /// Check that the bright stars table can be queried using the general search method with a constraint.
@@ -60,15 +62,15 @@ TEST(NibbleSearch, SearchConstrained) {
     Nibble::tuples_d a = nb.search_table("i, j, k", "label = 88", 3);
     Nibble::tuples_d b = nb.search_table("i, j, k", "label = 88 or label = 107", 6, 2);
     
-    EXPECT_FLOAT_EQ(a[0][0], 0.95763727906078);
-    EXPECT_FLOAT_EQ(a[0][1], 0.264036130176979);
-    EXPECT_FLOAT_EQ(a[0][2], 0.114959835221834);
-    EXPECT_FLOAT_EQ(b[0][0], 0.95763727906078);
-    EXPECT_FLOAT_EQ(b[0][1], 0.264036130176979);
-    EXPECT_FLOAT_EQ(b[0][2], 0.114959835221834);
-    EXPECT_FLOAT_EQ(b[1][0], -0.0678115592262295);
-    EXPECT_FLOAT_EQ(b[1][1], -0.0235197303151528);
-    EXPECT_FLOAT_EQ(b[1][2], 0.997420881434317);
+    EXPECT_FLOAT_EQ(a[0][0], 0.658552173330720);
+    EXPECT_FLOAT_EQ(a[0][1], 0.003092250084512);
+    EXPECT_FLOAT_EQ(a[0][2], -0.752528719047187);
+    EXPECT_FLOAT_EQ(b[0][0], 0.658552173330720);
+    EXPECT_FLOAT_EQ(b[0][1], 0.003092250084512);
+    EXPECT_FLOAT_EQ(b[0][2], -0.752528719047187);
+    EXPECT_FLOAT_EQ(b[1][0], 0.638255709461383);
+    EXPECT_FLOAT_EQ(b[1][1], 0.003719091180710);
+    EXPECT_FLOAT_EQ(b[1][2], -0.769815443921941);
     
     Nibble::tuples_d c = nb.search_table("i, j, k", "label > 88", 3);
     Nibble::tuples_d d = nb.search_table("i, j, k", "label > 88", 6, 10);
@@ -99,35 +101,31 @@ TEST(NibbleSearch, Single) {
     Chomp ch;
     Nibble nb;
     nb.select_table(ch.bright_table);
-    EXPECT_FLOAT_EQ(nb.search_single("i", "label = 88"), 0.95763727906078);
-    EXPECT_FLOAT_EQ(nb.search_single("j", "label = 88"), 0.264036130176979);
-    EXPECT_FLOAT_EQ(nb.search_single("k", "label = 88"), 0.114959835221834);
-
-    EXPECT_FLOAT_EQ(nb.search_single("i"), 0.95763727906078);
+    
+    EXPECT_FLOAT_EQ(nb.search_single("i", "label = 88"), 0.658552173330720);
+    EXPECT_FLOAT_EQ(nb.search_single("j", "label = 88"), 0.003092250084512);
+    EXPECT_FLOAT_EQ(nb.search_single("k", "label = 88"), -0.752528719047187);
+    
+    EXPECT_FLOAT_EQ(nb.search_single("i"), 0.658552173330720);
 }
 
 /// Check that the table creation method works as intended (the table persists after closing connection.
 TEST(NibbleTable, Creation) {
     // Clean up our mess (if it exists).
     Nibble nb2;
-    SQLite::Transaction transaction2(*nb2.conn);
-    SQLite::Statement(*nb2.conn, "DROP TABLE IF EXISTS MYTABLE").exec();
-    transaction2.commit();
+    (*nb2.conn).exec("DROP TABLE IF EXISTS MYTABLE");
     
-    if (true) {
-        // Just creating scope here. Nibble gets destroyed when this is done.
-        Nibble nb;
-        EXPECT_EQ (0, nb.create_table("MYTABLE", "a int"));
-    }
+    // Nibble gets destroyed when this is done.
+    std::unique_ptr<Nibble> nb_p = std::make_unique<Nibble>();
+    EXPECT_EQ (0, (*nb_p).create_table("MYTABLE", "a int"));
+    nb_p.reset(nullptr);
     
     // Attempting to create a table again should return an error.
     Nibble nb;
     EXPECT_EQ(Nibble::TABLE_NOT_CREATED, nb.create_table("MYTABLE", "a int"));
     
     // Clean up our mess.
-    SQLite::Transaction transaction(*nb.conn);
-    SQLite::Statement(*nb.conn, "DROP TABLE MYTABLE").exec();
-    transaction.commit();
+    (*nb.conn).exec("DROP TABLE IF EXISTS MYTABLE");
 }
 
 /// Check that retrieved attributes and schema are correct for a given table.
@@ -141,6 +139,9 @@ TEST(NibbleTable, AttributeRetrieval) {
     
     EXPECT_EQ("a, b", fields);
     EXPECT_EQ("a int, b int", schema);
+    
+    // Clean up our mess.
+    (*nb.conn).exec("DROP TABLE IF EXISTS MYTABLE");
 }
 
 /// Check that the bright stars table has an index created.
@@ -149,24 +150,13 @@ TEST(NibbleTable, PolishIndex) {
     Nibble nb;
     nb.select_table(ch.bright_table);
     nb.polish_table("alpha");
-    bool assertion = false;
     
-    try {
-        SQLite::Statement(*nb.conn, "CREATE INDEX HIP_BRIGHT_alpha on " + ch.bright_table + "(alpha)").exec();
-    }
-    catch (std::exception &e) {
-        // Exception thrown while creating index means that the index exists.
-        std::cout << "Exception: " << e.what() << std::endl;
-        assertion = true;
-    }
+    EXPECT_ANY_THROW((*nb.conn).exec("CREATE INDEX HIP_BRIGHT_alpha on " + ch.bright_table + "(alpha)"););
     
     // Delete new table and index. Rerun original bright table generation.
-    SQLite::Transaction transaction(*nb.conn);
-    SQLite::Statement(*nb.conn, "DROP INDEX HIP_BRIGHT_alpha").exec();
-    SQLite::Statement(*nb.conn, "DROP TABLE " + ch.bright_table).exec();
-    transaction.commit();
+    (*nb.conn).exec("DROP INDEX HIP_BRIGHT_alpha");
+    (*nb.conn).exec("DROP TABLE " + ch.bright_table);
     Chomp();
-    EXPECT_TRUE(assertion);
 }
 
 /// Check that the bright stars table has an index created. 'sort' is called with 'polish', this is tested too.
@@ -180,10 +170,8 @@ TEST(NibbleTable, PolishSort) {
     
     // Delete new table and index. Rerun original BSC5 table generation.
     try {
-        SQLite::Transaction transaction(*nb.conn);
-        SQLite::Statement(*nb.conn, "DROP INDEX HIP_BRIGHT_delta").exec();
-        SQLite::Statement(*nb.conn, "DROP TABLE " + ch.bright_table).exec();
-        transaction.commit();
+        (*nb.conn).exec("DROP INDEX HIP_BRIGHT_delta");
+        (*nb.conn).exec("DROP TABLE " + ch.bright_table);
         Chomp();
     }
     catch (std::exception &e) {
@@ -209,7 +197,7 @@ TEST(NibbleTable, Insertion) {
     EXPECT_EQ(b[1], 0);
     
     try {
-        SQLite::Statement(*nb.conn, "DELETE FROM " + ch.bright_table + " WHERE label = 10000000").exec();
+        (*nb.conn).exec("DELETE FROM " + ch.bright_table + " WHERE label = 10000000");
         transaction.commit();
     }
     catch (std::exception &e) {

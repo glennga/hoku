@@ -14,7 +14,7 @@
 /// @example
 /// @code{.cpp}
 /// // Project the point 1000, 1000 out of a 5000x5000 square to 3D space.
-/// std::cout << Star::wrap(Mercator::transform_point(1000, 1000, 5000) << std::endl;
+/// std::cout << Star::wrap(Mercator::transform_point(1000, 1000, 1/5000.0) << std::endl;
 /// @endcode
 class Mercator {
   public:
