@@ -19,12 +19,16 @@ using testing::Contains;
 TEST(PlanarTriangleConstructor, Constructor) {
     Chomp ch;
     Benchmark input(ch, 20);
-    Plane::Parameters p = {0.01, 10, false, true, 0.1, 10, std::make_shared<unsigned int>(0), Rotation::svd, "H"};
+    Plane::Parameters p = {0.01, 0.0001, 0.000001, 0.1, 10, false, true, 10, std::make_shared<unsigned int>(0),
+        Rotation::svd, "H"};
     Plane a(input, p);
     
     EXPECT_EQ(a.fov, 20);
     EXPECT_EQ(a.ch.table, "H");
-    EXPECT_EQ(a.parameters.sigma_query, p.sigma_query);
+    EXPECT_EQ(a.parameters.sigma_1, p.sigma_1);
+    EXPECT_EQ(a.parameters.sigma_2, p.sigma_2);
+    EXPECT_EQ(a.parameters.sigma_3, p.sigma_3);
+    EXPECT_EQ(a.parameters.sigma_4, p.sigma_4);
     EXPECT_EQ(a.parameters.sql_limit, p.sql_limit);
     EXPECT_EQ(a.parameters.no_reduction, p.no_reduction);
     EXPECT_EQ(a.parameters.favor_bright_stars, p.favor_bright_stars);
@@ -73,12 +77,18 @@ TEST(PlanarTriangleTable, CorrectEntries) {
     EXPECT_NEAR(i, t[0][1], 1.0e-8);
 }
 
+///// No test is performed here. This is just to see how long the entire table will load into memory.
+//TEST(PlanarTriangleTableChomp, InMemory) {
+//    INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
+//    Chomp ch(cf.Get("table-names", "plane", ""), cf.Get("table-focus", "plane", ""));
+//}
+
 /// Check that the query_for_trios method returns the correct result.
 TEST(PlanarTriangleTriosQuery, CleanInput) {
     Chomp ch;
     Benchmark input(ch, 15);
     Identification::Parameters p = Plane::DEFAULT_PARAMETERS;
-    p.sigma_query = 0.000000001;
+    p.sigma_1 = p.sigma_2 = 0.000000001;
     Plane a(input, p);
     std::vector<Star::trio> b = a.query_for_trios({0, 1, 2});
     
@@ -92,7 +102,7 @@ TEST(PlanarTriangleTriosQuery, CleanInput) {
 TEST(PlanarTriangleTrial, CleanQuery) {
     Chomp ch;
     Plane::Parameters p = Plane::DEFAULT_PARAMETERS;
-    p.sigma_query = 10e-8, p.no_reduction = false;
+    p.sigma_1 = p.sigma_2 = 10e-8, p.no_reduction = false;
     Plane a(Benchmark::black(), p);
     Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532)};
     
@@ -104,7 +114,7 @@ TEST(PlanarTriangleTrial, CleanQuery) {
 TEST(PlanarTriangleTrial, CleanReduction) {
     Chomp ch;
     Plane::Parameters p = Plane::DEFAULT_PARAMETERS;
-    p.sigma_query = 10e-10, p.sql_limit = 1000000;
+    p.sigma_1 = p.sigma_2 = 10e-10, p.sql_limit = 1000000;
     Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532), ch.query_hip(101958),
         ch.query_hip(101909)};
     
@@ -118,8 +128,8 @@ TEST(PlanarTriangleTrial, CleanIdentify) {
     Chomp ch;
     Plane::Parameters p = Plane::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0);
-    p.sigma_query = 10e-9;
-    p.sigma_overlay = 0.000001;
+    p.sigma_1 = p.sigma_2 = 10e-9;
+    p.sigma_4 = 0.000001;
     
     Rotation q = Rotation::chance();
     Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532), ch.query_hip(101958),
@@ -141,8 +151,8 @@ TEST(PlanarTriangleTrial, ExceededNu) {
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
     Plane::Parameters p = Plane::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0), p.nu_max = 10;
-    p.sigma_query = std::numeric_limits<double>::epsilon();
-    p.sigma_overlay = std::numeric_limits<double>::epsilon();
+    p.sigma_1 = p.sigma_2 = std::numeric_limits<double>::epsilon();
+    p.sigma_4 = std::numeric_limits<double>::epsilon();
     Plane a(input, p);
     
     EXPECT_EQ(a.identify()[0], Plane::EXCEEDED_NU_MAX[0]);
@@ -156,8 +166,8 @@ TEST(PlanarTriangleTrial, NoMapFound) {
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
     Plane::Parameters p = Plane::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0), p.nu_max = std::numeric_limits<unsigned int>::max();
-    p.sigma_query = std::numeric_limits<double>::epsilon();
-    p.sigma_overlay = std::numeric_limits<double>::epsilon();
+    p.sigma_1 = p.sigma_2 = std::numeric_limits<double>::epsilon();
+    p.sigma_4 = std::numeric_limits<double>::epsilon();
     Plane a(input, p);
     
     EXPECT_EQ(a.identify()[0], Plane::NO_CONFIDENT_A[0]);

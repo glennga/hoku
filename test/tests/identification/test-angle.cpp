@@ -17,12 +17,15 @@ using testing::Not;
 TEST(AngleConstructor, Constructor) {
     Chomp ch;
     Benchmark input(ch, 20);
-    Angle::Parameters p = {0.01, 10, false, true, 0.1, 10, std::make_shared<unsigned int>(0), Rotation::svd, "H"};
+    Angle::Parameters p = {0.001, 0.00001, 0.01, 10, false, true, 0.1, 10, std::make_shared<unsigned int>(0),
+        Rotation::svd, "H"};
     Angle a(input, p);
     
     EXPECT_EQ(a.fov, 20);
     EXPECT_EQ(a.ch.table, "H");
-    EXPECT_EQ(a.parameters.sigma_query, p.sigma_query);
+    EXPECT_EQ(a.parameters.sigma_1, 0.001);
+    EXPECT_EQ(a.parameters.sigma_2, 0.00001);
+    EXPECT_EQ(a.parameters.sigma_3, 0.01);
     EXPECT_EQ(a.parameters.sql_limit, p.sql_limit);
     EXPECT_EQ(a.parameters.no_reduction, p.no_reduction);
     EXPECT_EQ(a.parameters.favor_bright_stars, p.favor_bright_stars);
@@ -67,7 +70,7 @@ TEST(AngleQuery, Pair) {
     Chomp ch;
     Benchmark input(ch, 15);
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS, p2 = Angle::DEFAULT_PARAMETERS;
-    p.sigma_query = 0.00000000001, p2.sigma_query = 0.1;
+    p.sigma_1 = 0.00000000001, p2.sigma_1 = 0.1;
     
     // It is known that the angle between b_0 and b_1 here is < 20.
     double a = (180.0 / M_PI) * Vector3::Angle(input.b[0], input.b[1]);
@@ -88,7 +91,7 @@ TEST(AngleQuery, ExpectedFailure) {
     Benchmark input(ch, 15), input2(ch, 15);
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
-    p.sigma_query = std::numeric_limits<double>::epsilon();
+    p.sigma_1 = std::numeric_limits<double>::epsilon();
     
     double a = (180.0 / M_PI) * Vector3::Angle(input.b[0], input.b[1]);
     Identification::labels_list b = Angle(input, p).query_for_pair(a);
@@ -96,7 +99,7 @@ TEST(AngleQuery, ExpectedFailure) {
     EXPECT_THAT(Angle::EMPTY_BIG_R_ELL, Contains(b[1]));
     
     // |R| restriction should prevent an answer from being displayed.
-    p.sigma_query = 0.1, p.no_reduction = true;
+    p.sigma_1 = 0.1, p.no_reduction = true;
     double d = (180.0 / M_PI) * Vector3::Angle(input2.b[0], input2.b[1]);
     Identification::labels_list c = Angle(input2, p).query_for_pair(d);
     EXPECT_THAT(Angle::EMPTY_BIG_R_ELL, Contains(c[0]));
@@ -108,7 +111,7 @@ TEST(AngleQuery, FavorBrightStarsFlag) {
     Chomp ch;
     Benchmark input(ch, 15);
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS, p2 = Angle::DEFAULT_PARAMETERS;
-    p.sigma_query = 0.0001, p2.sigma_query = 0.000000001, p.favor_bright_stars = true;
+    p.sigma_1 = 0.0001, p2.sigma_1 = 0.000000001, p.favor_bright_stars = true;
     p.no_reduction = false, p2.no_reduction = false;
     
     double a = (180.0 / M_PI) * Vector3::Angle(input.b[0], input.b[1]);
@@ -148,7 +151,7 @@ TEST(AngleDMT, DirectMatchTest) {
     Star::list n_q = {Rotation::rotate(n[0], q), Rotation::rotate(n[1], q), Rotation::rotate(n[2], q)};
     Benchmark input(n_q, n_q[0], 20);
     Identification::Parameters p = Angle::DEFAULT_PARAMETERS;
-    p.sigma_overlay = 0.0001;
+    p.sigma_4 = 0.0001;
     Angle b(input, p);
     
     Star::list a = b.direct_match_test(n, {n[0], n[1]}, {input.b[0], input.b[1]});
@@ -181,7 +184,7 @@ TEST(AngleResults, Query) {
 TEST(AngleTrial, CleanQuery) {
     Chomp ch;
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
-    p.sigma_query = 10e-7, p.no_reduction = false;
+    p.sigma_1 = 10e-7, p.no_reduction = false;
     Angle a(Benchmark::black(), p);
     Star b = ch.query_hip(22667), c = ch.query_hip(27913);
     
@@ -193,9 +196,9 @@ TEST(AngleTrial, CleanQuery) {
 TEST(AngleTrial, CleanReduction) {
     Chomp ch;
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
-    p.sigma_overlay = 0.0001, p.sigma_query = 0.000000001;
+    p.sigma_4 = 0.0001, p.sigma_1 = 0.000000001;
     
-    Benchmark i ({ch.query_hip(22667), ch.query_hip(27913)}, ch.query_hip(22667), 20);
+    Benchmark i({ch.query_hip(22667), ch.query_hip(27913)}, ch.query_hip(22667), 20);
     Angle a(i, p);
     EXPECT_THAT(a.reduce(), UnorderedElementsAre(22667, 27913));
 }
@@ -205,8 +208,8 @@ TEST(AngleTrial, CleanIdentify) {
     Chomp ch;
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0);
-    p.sigma_query = 10e-9;
-    p.sigma_overlay = 0.000001;
+    p.sigma_1 = 10e-9;
+    p.sigma_4 = 0.000001;
     
     Rotation q = Rotation::chance();
     Star b = ch.query_hip(22667), c = ch.query_hip(27913);
@@ -225,8 +228,8 @@ TEST(AngleTrial, ExceededNu) {
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0), p.nu_max = 10;
-    p.sigma_query = std::numeric_limits<double>::epsilon();
-    p.sigma_overlay = std::numeric_limits<double>::epsilon();
+    p.sigma_1 = std::numeric_limits<double>::epsilon();
+    p.sigma_4 = std::numeric_limits<double>::epsilon();
     Angle a(input, p);
     
     EXPECT_EQ(a.identify()[0], Angle::EXCEEDED_NU_MAX[0]);
@@ -240,8 +243,8 @@ TEST(AngleTrial, NoMapFound) {
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0), p.nu_max = std::numeric_limits<unsigned int>::max();
-    p.sigma_query = std::numeric_limits<double>::epsilon();
-    p.sigma_overlay = std::numeric_limits<double>::epsilon();
+    p.sigma_1 = std::numeric_limits<double>::epsilon();
+    p.sigma_4 = std::numeric_limits<double>::epsilon();
     Angle a(input, p);
     
     EXPECT_EQ(a.identify()[0], Angle::NO_CONFIDENT_A[0]);

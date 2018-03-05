@@ -41,8 +41,19 @@ TEST(ParameterCollect, CleanInput) {
     std::ofstream f1(temp_path + "/TESTCONFIG1.ini");
     ASSERT_TRUE(f1.is_open());
     
-    f1 << "[id-parameters]             ; Values used in 'Parameters' struct.\n"
-        "sq = 0.000000001            ; Sigma query value (degrees).\n"
+    f1 << "[query-sigma]               ; Estimated deviation for each identification method.\n"
+        "angle-1 = 0.00000001    ; Standard deviation of theta^ij.\n"
+        "dot-1 = 0.00000001     ; Standard deviation of theta^ic.\n"
+        "dot-2 = 0.00000001     ; Standard deviation of theta^jc.\n"
+        "dot-3 = 0.00000001        ; Standard deviation of phi^ijc.\n"
+        "sphere-1 = 0.00000001       ; Standard deviation of spherical area (i, j, k).\n"
+        "sphere-2 = 0.00000001       ; Standard deviation of spherical moment (i, j, k).\n"
+        "plane-1 = 0.00000001        ; Standard deviation of planar area (i, j, k).\n"
+        "plane-2 = 0.00000001        ; Standard deviation of planar moment (i, j, k).\n"
+        "pyramid-1 = 0.00000001  ; Standard deviation of theta^ij.\n"
+        "composite-1 = 0.00000001    ; Standard deviation of planar area (i, j, k).\n"
+        "composite-2 = 0.00000001    ; Standard deviation of planar moment (i, j, k).\n"
+        "[id-parameters]             ; Values used in 'Parameters' struct.\n"
         "sl = 500                    ; Tuple count returned restriction.\n"
         "nr = 1                      ; 'Pass R Set Cardinality' toggle.\n"
         "fbr = 0                     ; 'Favor Bright Stars' toggle.\n"
@@ -53,13 +64,15 @@ TEST(ParameterCollect, CleanInput) {
     
     INIReader cf1(temp_path + "/TESTCONFIG1.ini");
     Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
-    Identification::collect_parameters(p, cf1);
+    Identification::collect_parameters(p, cf1, "angle");
     
-    EXPECT_FLOAT_EQ(p.sigma_query, 0.000000001);
+    EXPECT_EQ(p.sigma_1, 0.00000001);
+    EXPECT_EQ(p.sigma_2, 0);
+    EXPECT_EQ(p.sigma_3, 0);
+    EXPECT_FLOAT_EQ(p.sigma_4, 0.00000001);
     EXPECT_EQ(p.sql_limit, 500);
     EXPECT_EQ(p.no_reduction, true);
     EXPECT_EQ(p.favor_bright_stars, false);
-    EXPECT_FLOAT_EQ(p.sigma_overlay, 0.00000001);
     EXPECT_EQ(p.nu_max, 50000);
     EXPECT_EQ(p.f, Rotation::triad);
 }
@@ -74,8 +87,19 @@ TEST(ParameterCollect, ErrorInput) {
     std::ofstream f2(temp_path + "/TESTCONFIG2.ini");
     ASSERT_TRUE(f2.is_open());
     
-    f2 << "[id-parameters]             ; Values used in 'Parameters' struct.\n"
-        "sq = asd                    ; Sigma query value (degrees).\n"
+    f2 << "[query-sigma]               ; Estimated deviation for each identification method.\n"
+        "angle-1 = 0.00000001    ; Standard deviation of theta^ij.\n"
+        "dot-1 = 0.00000001     ; Standard deviation of theta^ic.\n"
+        "dot-2 = 0.00000001     ; Standard deviation of theta^jc.\n"
+        "dot-3 = 0.00000001        ; Standard deviation of phi^ijc.\n"
+        "sphere-1 = 0.00000001       ; Standard deviation of spherical area (i, j, k).\n"
+        "sphere-2 = 0.00000001       ; Standard deviation of spherical moment (i, j, k).\n"
+        "plane-1 = 0.00000001        ; Standard deviation of planar area (i, j, k).\n"
+        "plane-2 = 0.00000001        ; Standard deviation of planar moment (i, j, k).\n"
+        "pyramid-1 = 0.00000001  ; Standard deviation of theta^ij.\n"
+        "composite-1 = 0.00000001    ; Standard deviation of planar area (i, j, k).\n"
+        "composite-2 = 0.00000001    ; Standard deviation of planar moment (i, j, k).\n"
+        "[id-parameters]             ; Values used in 'Parameters' struct.\n"
         "sl = 500                    ; Tuple count returned restriction.\n"
         "nr =         a              ; 'Pass R Set Cardinality' toggle.\n"
         "fbr =         2             ; 'Favor Bright Stars' toggle.\n"
@@ -86,13 +110,15 @@ TEST(ParameterCollect, ErrorInput) {
     
     INIReader cf2(temp_path + "/TESTCONFIG2.ini");
     Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
-    Identification::collect_parameters(p, cf2);
+    Identification::collect_parameters(p, cf2, "asd");
     
-    EXPECT_FLOAT_EQ(p.sigma_query, Identification::DEFAULT_SIGMA_QUERY);
+    EXPECT_EQ(p.sigma_1, 0);
+    EXPECT_EQ(p.sigma_2, 0);
+    EXPECT_EQ(p.sigma_3, 0);
+    EXPECT_FLOAT_EQ(p.sigma_4, 0.001);
     EXPECT_EQ(p.sql_limit, 500);
     EXPECT_EQ(p.no_reduction, Identification::DEFAULT_NO_REDUCTION);
     EXPECT_EQ(p.favor_bright_stars, Identification::DEFAULT_FAVOR_BRIGHT_STARS);
-    EXPECT_FLOAT_EQ(p.sigma_overlay, 0.001);
     EXPECT_EQ(p.nu_max, 5);
     EXPECT_EQ(p.f, Rotation::triad);
 }
@@ -107,7 +133,7 @@ TEST(FindMatches, CorrectInput) {
     Benchmark input(ch, Star::chance(), c, 8);
     Star::list rev_input;
     Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
-    p.sigma_overlay = 0.000001;
+    p.sigma_4 = 0.000001;
     IdentificationDummy g(input.clean_stars(), p);
     
     // Reverse all input by inverse rotation matrix.
@@ -133,7 +159,7 @@ TEST(FindMatches, ErrorInput) {
     Benchmark input(ch, Star::chance(), c, 8);
     Star::list rev_input;
     Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
-    p.sigma_overlay = 0.000001;
+    p.sigma_4 = 0.000001;
     IdentificationDummy g(input.clean_stars(), p);
     
     // Reverse all input by inverse rotation matrix.
@@ -162,7 +188,7 @@ TEST(FindMatches, RotatingDuplicateInput) {
     Benchmark input(ch, Star::chance(), c, 8);
     Star::list rev_input;
     Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
-    p.sigma_overlay = 0.000001;
+    p.sigma_4 = 0.000001;
     IdentificationDummy g(input.clean_stars(), p);
     
     // Reverse all input by inverse rotation matrix.
@@ -228,7 +254,7 @@ TEST(CompleteIdentification, CleanInput) {
     Rotation q = Rotation::chance();
     Benchmark input(ch, s, q, 20);
     Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
-    p.sigma_overlay = 0.000001;
+    p.sigma_4 = 0.000001;
     IdentificationDummy g(input.b, p);
     
     Star::list s_l = g.identify_all();

@@ -18,9 +18,9 @@ const Star::list Identification::NO_CONFIDENT_A = {Star::wrap(Vector3::Zero(), -
 const Star::list Identification::EXCEEDED_NU_MAX = {Star::wrap(Vector3::Zero())};
 
 /// Default parameters for a general identification object.
-const Identification::Parameters Identification::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
-    DEFAULT_NO_REDUCTION, DEFAULT_FAVOR_BRIGHT_STARS, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU,
-    DEFAULT_F, DEFAULT_TABLE_NAME};
+const Identification::Parameters Identification::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_QUERY,
+    DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_4, DEFAULT_SQL_LIMIT, DEFAULT_NO_REDUCTION, DEFAULT_FAVOR_BRIGHT_STARS,
+    DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_F, DEFAULT_TABLE_NAME};
 
 /// Constructor. We set our field-of-view to the default here.
 Identification::Identification () {
@@ -33,12 +33,16 @@ Identification::Identification () {
 ///
 /// @param p Reference to the Parameter struct to update.
 /// @param cf Reference to the configuration file reader to collect parameters from.
-void Identification::collect_parameters (Parameters &p, INIReader &cf) {
-    p.sigma_query = cf.GetReal("id-parameters", "sq", DEFAULT_SIGMA_QUERY);
+/// @param identifier Name of the identifier to collect the query sigmas from.
+void Identification::collect_parameters (Parameters &p, INIReader &cf, const std::string &identifier) {
+    p.sigma_1 = cf.GetReal("query-sigma", identifier + "-1", 0);
+    p.sigma_2 = cf.GetReal("query-sigma", identifier + "-2", 0);
+    p.sigma_3 = cf.GetReal("query-sigma", identifier + "-3", 0);
+    p.sigma_4 = cf.GetReal("id-parameters", "so", DEFAULT_SIGMA_4);
+    p.table_name = cf.Get("table-names", identifier, DEFAULT_TABLE_NAME);
     p.sql_limit = static_cast<unsigned>(cf.GetInteger("id-parameters", "sl", DEFAULT_SQL_LIMIT));
     p.no_reduction = cf.GetBoolean("id-parameters", "nr", DEFAULT_NO_REDUCTION);
     p.favor_bright_stars = cf.GetBoolean("id-parameters", "fbr", DEFAULT_FAVOR_BRIGHT_STARS);
-    p.sigma_overlay = cf.GetReal("id-parameters", "so", DEFAULT_SIGMA_OVERLAY);
     p.nu_max = static_cast<unsigned>(cf.GetInteger("id-parameters", "nu-m", DEFAULT_NU_MAX));
     
     const std::array<std::string, 3> ws_id = {"TRIAD", "Q", "SVD"};
@@ -64,7 +68,7 @@ void Identification::collect_parameters (Parameters &p, INIReader &cf) {
 /// @param q The rotation to apply to all stars.
 /// @return Set of matching stars found in candidates and the body sets.
 Star::list Identification::find_positive_overlay (const Star::list &big_p, const Rotation &q) {
-    double epsilon = 3.0 * this->parameters.sigma_overlay;
+    double epsilon = 3.0 * this->parameters.sigma_4;
     Star::list m, big_i_c = this->big_i;
     m.reserve(big_i.size());
     

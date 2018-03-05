@@ -10,9 +10,9 @@
 #include "identification/dot-angle.h"
 
 /// Default parameters for the dot angle identification method.
-const Identification::Parameters Dot::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
-    DEFAULT_NO_REDUCTION, DEFAULT_FAVOR_BRIGHT_STARS, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU,
-    DEFAULT_F, "DOT_20"};
+const Identification::Parameters Dot::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_QUERY,
+    DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_4, DEFAULT_SQL_LIMIT, DEFAULT_NO_REDUCTION, DEFAULT_FAVOR_BRIGHT_STARS,
+    DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_F, "DOT_20"};
 
 /// Returned when no candidate pair is found from a query.
 const Star::trio Dot::NO_CANDIDATE_TRIO_FOUND = {Star::wrap(Vector3::Zero()), Star::wrap(Vector3::Zero()),
@@ -83,23 +83,27 @@ int Dot::generate_table (INIReader &cf) {
 /// @param theta Separation angle (degrees) to search with.
 /// @return NO_CANDIDATES_FOUND if no candidates found. Label list of the matching catalog IDs otherwise.
 Identification::labels_list Dot::query_for_trio (double theta_1, double theta_2, double phi) {
-    // Noise is normally distributed. All queries within 3 sigma of theta.
-    double epsilon = 3.0 * this->parameters.sigma_query;
+    // Noise is normally distributed. All queries within 3 sigma.
+    double epsilon_1 = 3.0 * this->parameters.sigma_1, epsilon_2 = 3.0 * this->parameters.sigma_2;
+    double epsilon_3 = 3.0 * parameters.sigma_3;
     std::vector<labels_list> big_r_ell;
     Nibble::tuples_d theta_1_match;
     
     // Query using theta_1 with epsilon bounds.
-    theta_1_match = ch.simple_bound_query("theta_1", "label_a, label_b, label_c, theta_2, phi", theta_1 - epsilon,
-                                          theta_1 + epsilon, this->parameters.sql_limit);
+    theta_1_match = ch.simple_bound_query("theta_1", "label_a, label_b, label_c, theta_2, phi", theta_1 - epsilon_1,
+                                          theta_1 + epsilon_1, this->parameters.sql_limit);
     
     // Apply entire query filter. Return EMPTY_BIG_R_ELL if nothing is found.
     big_r_ell.reserve(theta_1_match.size());
-    for (Chomp::tuple_d t : theta_1_match) {
-        if (t[3] >= theta_2 - epsilon && t[3] < theta_2 + epsilon && t[4] >= phi - epsilon && t[4] < phi + epsilon) {
-            big_r_ell.push_back(labels_list {static_cast<int> (t[0]), static_cast<int> (t[1]), static_cast<int>(t[2])});
-        }
-    }
-    
+    std::for_each(theta_1_match.begin(), theta_1_match.end(),
+                  [&theta_2, &epsilon_2, &phi, &epsilon_3, &big_r_ell] (const Chomp::tuple_d &t) -> void {
+                      if (t[3] >= theta_2 - epsilon_2 && t[3] < theta_2 + epsilon_2 && t[4] >= phi - epsilon_3
+                          && t[4] < phi + epsilon_3) {
+                          big_r_ell.push_back(
+                              labels_list {static_cast<int> (t[0]), static_cast<int> (t[1]), static_cast<int>(t[2])});
+                      }
+                  });
+
     // |R| = 1 restriction. Applied with the PASS_R_SET_CARDINALITY flag.
     if (big_r_ell.empty() || (this->parameters.no_reduction && big_r_ell.size() > 1)) {
         return EMPTY_BIG_R_ELL;
@@ -157,10 +161,11 @@ std::vector<Identification::labels_list> Dot::query (const Star::list &s) {
     double theta_1 = (180.0 / M_PI) * Vector3::Angle(s[2], s[0]), theta_2 = (180.0 / M_PI) * Vector3::Angle(s[2], s[1]);
     double phi = Trio::dot_angle(s[0], s[1], s[2]);
     
-    // Noise is normally distributed. All queries within 3 sigma of theta.
-    double epsilon = 3.0 * this->parameters.sigma_query;
-    Nibble::tuples_d big_r_ell_tuples, theta_1_match;
+    // Noise is normally distributed. All queries within 3 sigma.
+    double epsilon_1 = 3.0 * this->parameters.sigma_1, epsilon_2 = 3.0 * this->parameters.sigma_2;
+    double epsilon_3 = 3.0 * parameters.sigma_3;
     std::vector<labels_list> big_r_ell;
+    Nibble::tuples_d theta_1_match;
     
     // Ensure that condition 6d holds: switch if not.
     if (theta_1 > theta_2) {
@@ -169,16 +174,19 @@ std::vector<Identification::labels_list> Dot::query (const Star::list &s) {
     }
     
     // Query using theta_1 with epsilon bounds.
-    theta_1_match = ch.simple_bound_query("theta_1", "label_a, label_b, label_c, theta_2, phi", theta_1 - epsilon,
-                                          theta_1 + epsilon, this->parameters.sql_limit);
+    theta_1_match = ch.simple_bound_query("theta_1", "label_a, label_b, label_c, theta_2, phi", theta_1 - epsilon_1,
+                                          theta_1 + epsilon_1, this->parameters.sql_limit);
     
     // Apply entire query filter. Return EMPTY_BIG_R_ELL if nothing is found.
-    big_r_ell_tuples.reserve(theta_1_match.size());
-    for (Chomp::tuple_d t : theta_1_match) {
-        if (t[3] >= theta_2 - epsilon && t[3] < theta_2 + epsilon && t[4] >= phi - epsilon && t[4] < phi + epsilon) {
-            big_r_ell.push_back(labels_list {static_cast<int> (t[0]), static_cast<int> (t[1]), static_cast<int>(t[2])});
-        }
-    }
+    big_r_ell.reserve(theta_1_match.size());
+    std::for_each(theta_1_match.begin(), theta_1_match.end(),
+                  [&theta_2, &epsilon_2, &phi, &epsilon_3, &big_r_ell] (const Chomp::tuple_d &t) -> void {
+                      if (t[3] >= theta_2 - epsilon_2 && t[3] < theta_2 + epsilon_2 && t[4] >= phi - epsilon_3
+                          && t[4] < phi + epsilon_3) {
+                          big_r_ell.push_back(
+                              labels_list {static_cast<int> (t[0]), static_cast<int> (t[1]), static_cast<int>(t[2])});
+                      }
+                  });
     
     return big_r_ell;
 }

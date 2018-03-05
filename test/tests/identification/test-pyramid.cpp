@@ -18,12 +18,16 @@ using testing::Not;
 TEST(PyramidConstructor, Constructor) {
     Chomp ch;
     Benchmark input(ch, 20);
-    Pyramid::Parameters p = {0.01, 10, false, true, 0.1, 10, std::make_shared<unsigned int>(0), Rotation::svd, "H"};
+    Pyramid::Parameters p = {0.01, 0.0001, 0.000001, 0.1, 10, false, true, 10, std::make_shared<unsigned int>(0),
+        Rotation::svd, "H"};
     Pyramid a(input, p);
     
     EXPECT_EQ(a.fov, 20);
     EXPECT_EQ(a.ch.table, "H");
-    EXPECT_EQ(a.parameters.sigma_query, p.sigma_query);
+    EXPECT_EQ(a.parameters.sigma_1, p.sigma_1);
+    EXPECT_EQ(a.parameters.sigma_2, p.sigma_2);
+    EXPECT_EQ(a.parameters.sigma_3, p.sigma_3);
+    EXPECT_EQ(a.parameters.sigma_4, p.sigma_4);
     EXPECT_EQ(a.parameters.sql_limit, p.sql_limit);
     EXPECT_EQ(a.parameters.no_reduction, p.no_reduction);
     EXPECT_EQ(a.parameters.favor_bright_stars, p.favor_bright_stars);
@@ -68,7 +72,7 @@ TEST(PyramidQuery, Pairs) {
     Chomp ch;
     Benchmark input(ch, 15);
     Pyramid::Parameters p = Pyramid::DEFAULT_PARAMETERS;
-    p.sigma_query = 0.00000000001;
+    p.sigma_1 = p.sigma_2 = 0.00000000001;
     
     // It is known that the angle between b_0 and b_1 here is < 20.
     double a = (180.0 / M_PI) * Vector3::Angle(input.b[0], input.b[1]);
@@ -124,7 +128,7 @@ TEST(PyramidVerify, CleanInput) {
     Benchmark input(ch, 20);
     Pyramid::Parameters p = Pyramid::DEFAULT_PARAMETERS;
     Rotation q = Rotation::chance();
-    p.sigma_query = 0.00000000001;
+    p.sigma_1 = p.sigma_2 = 0.00000000001;
     
     Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532), ch.query_hip(101958),
         ch.query_hip(101909)};
@@ -143,7 +147,7 @@ TEST(PyramidFind, CatalogStars) {
     Benchmark input(ch, 20);
     Pyramid::Parameters p = Pyramid::DEFAULT_PARAMETERS;
     Rotation q = Rotation::chance();
-    p.sigma_query = 0.0000000001;
+    p.sigma_1 = p.sigma_2 = 0.0000000001;
     
     Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532), ch.query_hip(101958),
         ch.query_hip(101909)};
@@ -163,7 +167,7 @@ TEST(PyramidFind, NoReduction) {
     Benchmark input(ch, 20);
     Pyramid::Parameters p = Pyramid::DEFAULT_PARAMETERS;
     Rotation q = Rotation::chance();
-    p.sigma_query = 0.01, p.no_reduction = true;
+    p.sigma_1 = p.sigma_2 = 0.01, p.no_reduction = true;
     
     Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532), ch.query_hip(101958),
         ch.query_hip(101909)};
@@ -181,7 +185,8 @@ TEST(PyramidFind, SortBrighteness) {
     Chomp ch;
     Benchmark input(ch, 20);
     Pyramid::Parameters p = Pyramid::DEFAULT_PARAMETERS, p2 = Pyramid::DEFAULT_PARAMETERS;
-    p.sigma_query = 0.0001, p.no_reduction = true, p.favor_bright_stars = true, p2.sigma_query = 0.000000000001;
+    p.sigma_1 = p.sigma_2 = 0.0001, p.no_reduction = true, p.favor_bright_stars = true;
+    p2.sigma_1 = p2.sigma_2 = 0.000000000001;
     
     Star::trio k = Pyramid(input, p).find_catalog_stars(Star::trio {input.b[0], input.b[1], input.b[2]});
     Star::trio m = Pyramid(input, p2).find_catalog_stars(Star::trio {input.b[0], input.b[1], input.b[2]});
@@ -195,7 +200,7 @@ TEST(PyramidFind, ExpectedFailure) {
     Chomp ch;
     Benchmark input(ch, 20);
     Pyramid::Parameters p = Pyramid::DEFAULT_PARAMETERS;
-    p.sigma_query = 0.1;
+    p.sigma_1 = p.sigma_2 = 0.1;
     
     // Unsure how to test passing the |R| = 1 restriction but not the FBR. Only testing former.
     Star::trio k = Pyramid(input, p).find_catalog_stars(Star::trio {input.b[0], input.b[1], input.b[2]});
@@ -210,7 +215,7 @@ TEST(PyramidIdentify, ExpectedFailure) {
     Chomp ch;
     Benchmark input(ch, 20);
     Pyramid::Parameters p = Pyramid::DEFAULT_PARAMETERS;
-    p.sigma_query = std::numeric_limits<double>::epsilon();
+    p.sigma_1 = p.sigma_2 = std::numeric_limits<double>::epsilon();
     
     Star::list k = Pyramid(input, p).identify_as_list({input.b[0], input.b[1], input.b[2]});
     EXPECT_EQ(k.size(), 1);
@@ -224,7 +229,7 @@ TEST(PyramidIdentify, CleanInput) {
     Benchmark input(ch, 20);
     Pyramid::Parameters p = Pyramid::DEFAULT_PARAMETERS;
     Rotation q = Rotation::chance();
-    p.sigma_query = 0.0000000001;
+    p.sigma_1 = p.sigma_2 = 0.0000000001;
     
     Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532), ch.query_hip(101958),
         ch.query_hip(101909)};
@@ -246,7 +251,7 @@ TEST(PyramidIdentify, CleanInput) {
 TEST(PyramidTrial, CleanQuery) {
     Chomp ch;
     Pyramid::Parameters p = Pyramid::DEFAULT_PARAMETERS;
-    p.sigma_query = 0.00000000001;
+    p.sigma_1 = p.sigma_2 = 0.00000000001;
     Pyramid a(Benchmark::black(), p);
     Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532)};
     
@@ -258,7 +263,7 @@ TEST(PyramidTrial, CleanQuery) {
 TEST(PyramidTrial, CleanReduction) {
     Chomp ch;
     Pyramid::Parameters p = Pyramid::DEFAULT_PARAMETERS;
-    p.sigma_query = 10e-10, p.sql_limit = 1000000;
+    p.sigma_1 = p.sigma_2 = 10e-10, p.sql_limit = 1000000;
     Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532), ch.query_hip(101958),
         ch.query_hip(101909)};
     
@@ -272,8 +277,8 @@ TEST(PyramidTrial, CleanIdentify) {
     Chomp ch;
     Pyramid::Parameters p = Pyramid::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0);
-    p.sigma_query = 10e-9;
-    p.sigma_overlay = 0.000001;
+    p.sigma_1 = p.sigma_2 = 10e-9;
+    p.sigma_4 = 0.000001;
     
     Rotation q = Rotation::chance();
     Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532), ch.query_hip(101958),
@@ -295,8 +300,8 @@ TEST(PyramidTrial, ExceededNu) {
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
     Pyramid::Parameters p = Pyramid::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0), p.nu_max = 10;
-    p.sigma_query = std::numeric_limits<double>::epsilon();
-    p.sigma_overlay = std::numeric_limits<double>::epsilon();
+    p.sigma_1 = p.sigma_2 = std::numeric_limits<double>::epsilon();
+    p.sigma_4 = std::numeric_limits<double>::epsilon();
     Pyramid a(input, p);
     
     EXPECT_EQ(a.identify()[0], Pyramid::EXCEEDED_NU_MAX[0]);
@@ -310,8 +315,8 @@ TEST(PyramidTrial, NoMapFound) {
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
     Pyramid::Parameters p = Pyramid::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0), p.nu_max = std::numeric_limits<unsigned int>::max();
-    p.sigma_query = std::numeric_limits<double>::epsilon();
-    p.sigma_overlay = std::numeric_limits<double>::epsilon();
+    p.sigma_1 = p.sigma_2 = std::numeric_limits<double>::epsilon();
+    p.sigma_4 = std::numeric_limits<double>::epsilon();
     Pyramid a(input, p);
     
     EXPECT_EQ(a.identify()[0], Pyramid::NO_CONFIDENT_A[0]);
