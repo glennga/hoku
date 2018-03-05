@@ -59,7 +59,7 @@ namespace Experiment {
             double ss_step = cf.GetReal("query-experiment", "ss-step", 0);
             
             for (int ss_i = 0; ss_i < ss_iter; ss_i++) {
-                double ss = (ss_i == 0) ? 0 : ss_step * ss_i;
+                double ss = (ss_i == 0) ? 0 : ss_step * static_cast<double>(ss_i);
                 
                 // Repeat each trial n = SAMPLES times.
                 for (int i = 0; i < samples; i++) {
@@ -120,9 +120,9 @@ namespace Experiment {
             
             // First run is clean, without shifts. Following are the shift trials.
             for (int ss_i = 0; ss_i < ss_iter; ss_i++) {
-                double ss = (ss_i == 0) ? 0 : ss_step * ss_i;
+                double ss = (ss_i == 0) ? 0 : ss_step * static_cast<double>(ss_i);
                 for (int mb_i = 0; mb_i < mb_iter; mb_i++) {
-                    double mb = mb_min + mb_i * mb_step;
+                    double mb = mb_min + static_cast<double>(mb_i) * mb_step;
                     
                     // Repeat each trial n = SAMPLES times.
                     for (int i = 0; i < samples; i++) {
@@ -182,11 +182,11 @@ namespace Experiment {
             double es_step = cf.GetReal("identification-experiment", "es-step", 0);
             
             for (int ss_i = 0; ss_i < ss_iter; ss_i++) {
-                double ss = (ss_i == 0) ? 0 : ss_step * ss_i;
+                double ss = (ss_i == 0) ? 0 : ss_step * static_cast<double>(ss_i);
                 for (int mb_i = 0; mb_i < mb_iter; mb_i++) {
-                    double mb = mb_min + mb_i * mb_step;
+                    double mb = mb_min + static_cast<double>(mb_i) * mb_step;
                     for (int es_i = 0; es_i < es_iter; es_i++) {
-                        double es = es_min + es_i * es_step;
+                        double es = es_min + static_cast<double>(es_i) * es_step;
                         
                         // Repeat each trial n = SAMPLES times.
                         for (int i = 0; i < samples; i++) {
