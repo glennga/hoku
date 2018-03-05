@@ -65,20 +65,21 @@ bool Experiment::Query::set_existence (std::vector<Identification::labels_list> 
 Star::list Experiment::Query::generate_n_stars (Chomp &ch, const unsigned int n, Star &center, const double fov) {
     // Find all stars near some random center.
     center = Star::chance();
-    Star::list s_c = ch.nearby_bright_stars(center, fov / 2.0, static_cast<unsigned int> (fov * 4)), s;
-    std::shuffle(s_c.begin(), s_c.end(), RandomDraw::mersenne_twister);
-    
-    // Insert n stars to s.
-    s.reserve(n);
-    for (unsigned int i = 0; i < n; i++) {
-        s.emplace_back(s_c[i]);
+    Star::list s;
+    do {
+        s = ch.nearby_bright_stars(center, fov / 2.0, static_cast<unsigned int> (fov * 4));
+        std::shuffle(s.begin(), s.end(), RandomDraw::mersenne_twister);
     }
+    while (s.size() < n);
+    
+    // Truncate to the appropriate size.
+    s.resize(n);
     
     // Rotate all stars by a random quaternion.
     Rotation q = Rotation::chance();
-    for (Star &s_i : s) {
-        s_i = Rotation::rotate(s_i, q);
-    }
+    std::transform(s.begin(), s.end(), s.begin(), [&q] (const Star &s_i) {
+        return Rotation::rotate(s_i, q);
+    });
     center = Rotation::rotate(center, q);
     
     return s;
@@ -96,8 +97,7 @@ bool Experiment::Reduction::is_correctly_identified (const Star::list &big_i,
         b_ell.emplace_back(big_i[i].get_label());
     }
     
-    std::sort(b_ell.begin(), b_ell.end());
-    std::sort(r_ell_copy.begin(), r_ell_copy.end());
+    std::sort(b_ell.begin(), b_ell.end()), std::sort(r_ell_copy.begin(), r_ell_copy.end());
     return std::equal(b_ell.begin(), b_ell.end(), r_ell_copy.begin());
 }
 
@@ -108,9 +108,13 @@ bool Experiment::Reduction::is_correctly_identified (const Star::list &big_i,
 /// @return True if the predicted catalog labels matches the ground truth labels (body set).
 double Experiment::Map::percentage_correct (const Star::list &big_i, const Star::list &b) {
     unsigned int count = 0;
-    for (const Star &b_j : big_i) {
-        count += (std::find(b.begin(), b.end(), b_j) != b.end()) ? 1 : 0;
-    }
     
-    return count / b.size();
+    // Stars must match according to their contents and labels.
+    std::for_each(big_i.begin(), big_i.end(), [&count, &b] (const Star &s) -> void {
+        count += (std::find_if(b.begin(), b.end(), [&s] (const Star &b_j) -> bool {
+            return b_j == s && b_j.get_label() == s.get_label();
+        }) != b.end()) ? 1 : 0;
+    });
+    
+    return count / static_cast<double>(b.size());
 }

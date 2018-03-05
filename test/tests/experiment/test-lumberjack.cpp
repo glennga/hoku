@@ -73,7 +73,10 @@ TEST(LumberjackConstruction, Destructor) {
     Lumberjack lu2(cf.Get("query-experiment", "lu", ""), "Angle", l.str());
     Nibble::tuples_d a = lu2.search_table("SigmaQuery", "SigmaQuery = -1", 1, 10);
     EXPECT_EQ(a.size(), 1);
+    
+    SQLite::Transaction transaction(*lu2.conn);
     (*lu2.conn).exec("DELETE FROM QUERY WHERE SigmaQuery = -1");
+    transaction.commit();
 }
 
 /// Ensure that the log function works as intended.
@@ -95,7 +98,9 @@ TEST(LumberjackLog, LogFunction) {
     Nibble::tuples_d b_1 = lu.search_table("SigmaQuery", "SigmaQuery = -1", 1, 1);
     EXPECT_EQ(b_1.size(), 1);
     
+    SQLite::Transaction transaction(*lu.conn);
     (*lu.conn).exec("DELETE FROM QUERY WHERE SigmaQuery = -1");
+    transaction.commit();
 }
 
 /// Ensure that the log function works past the buffer limit.
@@ -124,7 +129,10 @@ TEST(LumberjackLog, LogFunctionFlush) {
     EXPECT_EQ(b.size(), Lumberjack::MAXIMUM_BUFFER_SIZE);
     
     lu.flush_buffer();
+    
+    SQLite::Transaction transaction(*lu.conn);
     (*lu.conn).exec("DELETE FROM QUERY WHERE SigmaQuery = -1");
+    transaction.commit();
 }
 
 /// Runs all tests defined in this file.
