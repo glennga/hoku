@@ -97,35 +97,33 @@ int create_lumberjack_table (const std::string &experiment_in) {
 /// @param identifier_in Input given by the user, to identify the type of experiment table to log to.
 /// @param experiment_in Input given by the user, to identify the type of identifier to use for the experiment.
 void perform_trial (Lumberjack &lu, const std::string &identifier_in, const std::string &experiment_in) {
-    std::array<std::string, 6> table_names = {cf.Get("table-names", "angle", ""), cf.Get("table-names", "dot", ""),
-        cf.Get("table-names", "sphere", ""), cf.Get("table-names", "plane", ""), cf.Get("table-names", "pyramid", ""),
-        cf.Get("table-names", "composite", "")};
-    Chomp ch(cf.Get("table-names", identifier_in, ""), cf.Get("table-focus", identifier_in, ""));
+//    Chomp ch(cf.Get("table-names", identifier_in, ""), cf.Get("table-focus", identifier_in, ""));
+    Chomp ch;
     
     switch ((EHA::identifier_to_hash(identifier_in) * 3) + EHA::experiment_to_hash(experiment_in)) {
-        case 0: return Experiment::Query::trial<Angle>(ch, lu, cf, table_names[0]);
-        case 1: return Experiment::Reduction::trial<Angle>(ch, lu, cf, table_names[0]);
-        case 2: return Experiment::Map::trial<Angle>(ch, lu, cf, table_names[0]);
+        case 0: return Experiment::Query::trial<Angle>(ch, lu, cf, identifier_in);
+        case 1: return Experiment::Reduction::trial<Angle>(ch, lu, cf, identifier_in);
+        case 2: return Experiment::Map::trial<Angle>(ch, lu, cf, identifier_in);
         
-        case 3: return Experiment::Query::trial<Dot>(ch, lu, cf, table_names[1]);
-        case 4: return Experiment::Reduction::trial<Dot>(ch, lu, cf, table_names[1]);
-        case 5: return Experiment::Map::trial<Dot>(ch, lu, cf, table_names[1]);
+        case 3: return Experiment::Query::trial<Dot>(ch, lu, cf, identifier_in);
+        case 4: return Experiment::Reduction::trial<Dot>(ch, lu, cf, identifier_in);
+        case 5: return Experiment::Map::trial<Dot>(ch, lu, cf, identifier_in);
         
-        case 6: return Experiment::Query::trial<Sphere>(ch, lu, cf, table_names[2]);
-        case 7: return Experiment::Reduction::trial<Sphere>(ch, lu, cf, table_names[2]);
-        case 8: return Experiment::Map::trial<Sphere>(ch, lu, cf, table_names[2]);
+        case 6: return Experiment::Query::trial<Sphere>(ch, lu, cf, identifier_in);
+        case 7: return Experiment::Reduction::trial<Sphere>(ch, lu, cf, identifier_in);
+        case 8: return Experiment::Map::trial<Sphere>(ch, lu, cf, identifier_in);
         
-        case 9: return Experiment::Query::trial<Plane>(ch, lu, cf, table_names[3]);
-        case 10: return Experiment::Reduction::trial<Plane>(ch, lu, cf, table_names[3]);
-        case 11: return Experiment::Map::trial<Plane>(ch, lu, cf, table_names[3]);
+        case 9: return Experiment::Query::trial<Plane>(ch, lu, cf, identifier_in);
+        case 10: return Experiment::Reduction::trial<Plane>(ch, lu, cf, identifier_in);
+        case 11: return Experiment::Map::trial<Plane>(ch, lu, cf, identifier_in);
         
-        case 12: return Experiment::Query::trial<Pyramid>(ch, lu, cf, table_names[4]);
-        case 13: return Experiment::Reduction::trial<Pyramid>(ch, lu, cf, table_names[4]);
-        case 14: return Experiment::Map::trial<Pyramid>(ch, lu, cf, table_names[4]);
+        case 12: return Experiment::Query::trial<Pyramid>(ch, lu, cf, identifier_in);
+        case 13: return Experiment::Reduction::trial<Pyramid>(ch, lu, cf, identifier_in);
+        case 14: return Experiment::Map::trial<Pyramid>(ch, lu, cf, identifier_in);
         
-        case 15: return Experiment::Query::trial<Composite>(ch, lu, cf, table_names[5]);
-        case 16: return Experiment::Reduction::trial<Composite>(ch, lu, cf, table_names[5]);
-        case 17: return Experiment::Map::trial<Composite>(ch, lu, cf, table_names[5]);
+        case 15: return Experiment::Query::trial<Composite>(ch, lu, cf, identifier_in);
+        case 16: return Experiment::Reduction::trial<Composite>(ch, lu, cf, identifier_in);
+        case 17: return Experiment::Map::trial<Composite>(ch, lu, cf, identifier_in);
         
         default: throw std::runtime_error(std::string("Choices not in appropriate spaces or test does not exist."));
     }

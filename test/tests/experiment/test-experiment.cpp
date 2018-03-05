@@ -25,8 +25,20 @@ const std::string ALL_INI = "[hardware]                  ; Description of hardwa
     "fov = 20                    ; Field-of-view of camera.\n"
     "[general-experiment]        ; Testing parameters for all experiments.\n"
     "samples = 1                 ; Number of samples to retrieve for each trial.\n"
+    "[query-sigma]               ; Estimated deviation for each identification method.\n"
+    "angle-1 = 0.00000001        ; Standard deviation of theta^ij.\n"
+    "dot-1 = 0.00000001          ; Standard deviation of theta^ic.\n"
+    "dot-2 = 0.00000001          ; Standard deviation of theta^jc.\n"
+    "dot-3 = 0.00000001          ; Standard deviation of phi^ijc.\n"
+    "sphere-1 = 0.00000001       ; Standard deviation of spherical area (i, j, k).\n"
+    "sphere-2 = 0.00000001       ; Standard deviation of spherical moment (i, j, k).\n"
+    "plane-1 = 0.00000001        ; Standard deviation of planar area (i, j, k).\n"
+    "plane-2 = 0.00000001        ; Standard deviation of planar moment (i, j, k).\n"
+    "pyramid-1 = 0.00000001      ; Standard deviation of theta^ij.\n"
+    "composite-1 = 0.00000001    ; Standard deviation of planar area (i, j, k).\n"
+    "composite-2 = 0.00000001    ; Standard deviation of planar moment (i, j, k).\n"
     "[id-parameters]             ; Values used in 'Parameters' struct.\n"
-    "sq = 0.000000001            ; Sigma query value (degrees).\n"
+    "so = 0.00001                ; Sigma overlay.\n"
     "sl = 500                    ; Tuple count returned restriction.\n"
     "nr = 1                      ; 'Pass R Set Cardinality' toggle.\n"
     "fbr = 0                     ; 'Favor Bright Stars' toggle.\n"
@@ -111,7 +123,7 @@ void setup_experiment (std::shared_ptr<INIReader> &cf, std::shared_ptr<Chomp> &c
     
     cf = std::make_shared<INIReader>(temp_path + "/TESTCONFIG.ini");
     ch = std::make_shared<Chomp>();
-//    ch = std::make_shared<Chomp>((*cf).Get("table-names", method, ""), (*cf).Get("table-focus", method, ""));
+    //    ch = std::make_shared<Chomp>((*cf).Get("table-names", method, ""), (*cf).Get("table-focus", method, ""));
     lu = std::make_shared<Lumberjack>((*cf).Get(trial + "-experiment", "lu", ""), m_c, l.str());
 }
 
@@ -190,7 +202,7 @@ TEST(ExperimentQuery, SetExistence) {
 }
 
 /// Check that the query experiment works for the angle method.
-TEST(ExperimentQuery, Trial) {
+TEST(ExperimentQueryAngle, Trial) {
     std::shared_ptr<Lumberjack> lu;
     std::shared_ptr<INIReader> cf;
     std::shared_ptr<Chomp> ch;
@@ -201,19 +213,21 @@ TEST(ExperimentQuery, Trial) {
                                             100);
     double count_b = a.size();
     
-    Experiment::Query::trial<Angle>((*ch), (*lu), (*cf), (*cf).Get("table-names", "angle", ""));
+    Experiment::Query::trial<Angle>((*ch), (*lu), (*cf), "angle");
     (*lu).flush_buffer();
     
-    Nibble::tuples_d b = (*lu).search_table("SigmaQuery, ShiftDeviation, CandidateSetSize, SExistence",
+    Nibble::tuples_d b = (*lu).search_table("Sigma1, Sigma2, Sigma3, ShiftDeviation, CandidateSetSize, SExistence",
                                             "IdentificationMethod = 'Angle' AND Timestamp = '" + (*lu).timestamp + "'",
                                             10);
     ASSERT_EQ(b.size(), count_b + 5);
     
     for (const Nibble::tuple_d b_d : b) {
-        EXPECT_EQ(b_d[0], (*cf).GetReal("id-parameters", "sq", 0));
-        EXPECT_THAT(b_d[1], IsBetween(0, (*cf).GetReal("query-experiment", "ss-step", 0)
+        EXPECT_EQ(b_d[0], (*cf).GetReal("query-sigma", "angle-1", 0));
+        EXPECT_EQ(b_d[1], (*cf).GetReal("query-sigma", "angle-2", 0));
+        EXPECT_EQ(b_d[2], (*cf).GetReal("query-sigma", "angle-3", 0));
+        EXPECT_THAT(b_d[3], IsBetween(0, (*cf).GetReal("query-experiment", "ss-step", 0)
                                          * ((*cf).GetReal("query-experiment", "ss-iter", 0) - 1)));
-        EXPECT_THAT(b_d[3], IsBetween(0, 1));
+        EXPECT_THAT(b_d[4], IsBetween(0, 1));
     }
     
     SQLite::Transaction transaction(*(*lu).conn);
@@ -233,7 +247,7 @@ TEST(ExperimentReduction, IsCorrectlyIdentified) {
 }
 
 /// Check that the reduction experiment works for the angle method.
-TEST(ExperimentReduction, Trial) {
+TEST(ExperimentReductionAngle, Trial) {
     std::shared_ptr<Lumberjack> lu;
     std::shared_ptr<INIReader> cf;
     std::shared_ptr<Chomp> ch;
@@ -244,25 +258,27 @@ TEST(ExperimentReduction, Trial) {
                                             100);
     double count_b = a.size();
     
-    Experiment::Reduction::trial<Angle>((*ch), (*lu), (*cf), (*cf).Get("table-names", "angle", ""));
+    Experiment::Reduction::trial<Angle>((*ch), (*lu), (*cf), "angle");
     (*lu).flush_buffer();
     
-    Nibble::tuples_d b = (*lu).search_table("SigmaQuery, SigmaOverlay, ShiftDeviation, CameraSensitivity, "
+    Nibble::tuples_d b = (*lu).search_table("Sigma1, Sigma2, Sigma3, Sigma4, ShiftDeviation, CameraSensitivity, "
                                                 "ResultMatchesInput",
                                             "IdentificationMethod = 'Angle' AND Timestamp = '" + (*lu).timestamp + "'",
                                             10);
     ASSERT_EQ(b.size(), count_b + (5 * 5));
     
     for (const Nibble::tuple_d b_d : b) {
-        EXPECT_EQ(b_d[0], (*cf).GetReal("id-parameters", "sq", 0));
-        EXPECT_EQ(b_d[1], (*cf).GetReal("id-parameters", "so", 0));
-        EXPECT_THAT(b_d[2], IsBetween(0, (*cf).GetReal("reduction-experiment", "ss-step", 0)
+        EXPECT_EQ(b_d[0], (*cf).GetReal("query-sigma", "angle-1", 0));
+        EXPECT_EQ(b_d[1], (*cf).GetReal("query-sigma", "angle-2", 0));
+        EXPECT_EQ(b_d[2], (*cf).GetReal("query-sigma", "angle-3", 0));
+        EXPECT_EQ(b_d[3], (*cf).GetReal("id-parameters", "so", 0));
+        EXPECT_THAT(b_d[4], IsBetween(0, (*cf).GetReal("reduction-experiment", "ss-step", 0)
                                          * ((*cf).GetReal("reduction-experiment", "ss-iter", 0) - 1)));
-        EXPECT_THAT(b_d[3], IsBetween((*cf).GetReal("reduction-experiment", "mb-min", 0),
+        EXPECT_THAT(b_d[5], IsBetween((*cf).GetReal("reduction-experiment", "mb-min", 0),
                                       (*cf).GetReal("reduction-experiment", "mb-min", 0)
                                       + (*cf).GetReal("reduction-experiment", "mb-step", 0)
                                         * ((*cf).GetReal("reduction-experiment", "mb-iter", 0) - 1)));
-        EXPECT_THAT(b_d[4], IsBetween(0, 1));
+        EXPECT_THAT(b_d[6], IsBetween(0, 1));
     }
     
     SQLite::Transaction transaction(*(*lu).conn);
@@ -287,7 +303,7 @@ TEST(ExperimentIdentification, PercentageCorrect) {
 }
 
 /// Check that the map experiment works for the angle method.
-TEST(ExperimentIdentification, Trial) {
+TEST(ExperimentIdentificationAngle, Trial) {
     std::shared_ptr<Lumberjack> lu;
     std::shared_ptr<INIReader> cf;
     std::shared_ptr<Chomp> ch;
@@ -298,30 +314,32 @@ TEST(ExperimentIdentification, Trial) {
                                             1);
     double count_b = a.size();
     
-    Experiment::Map::trial<Angle>((*ch), (*lu), (*cf), (*cf).Get("table-names", "angle", ""));
+    Experiment::Map::trial<Angle>((*ch), (*lu), (*cf), "angle");
     (*lu).flush_buffer();
     
-    Nibble::tuples_d b = (*lu).search_table("SigmaQuery, SigmaOverlay, ShiftDeviation, CameraSensitivity, FalseStars, "
-                                                "ComparisonCount, PercentageCorrect",
+    Nibble::tuples_d b = (*lu).search_table("Sigma1, Sigma2, Sigma3, Sigma4, ShiftDeviation, CameraSensitivity, "
+                                                "FalseStars, ComparisonCount, PercentageCorrect",
                                             "IdentificationMethod = 'Angle' AND Timestamp = '" + (*lu).timestamp + "'",
                                             10);
     ASSERT_EQ(b.size(), count_b + (5 * 5 * 5));
     
     for (const Nibble::tuple_d b_d : b) {
-        EXPECT_EQ(b_d[0], (*cf).GetReal("id-parameters", "sq", 0));
-        EXPECT_EQ(b_d[1], (*cf).GetReal("id-parameters", "so", 0));
-        EXPECT_THAT(b_d[2], IsBetween(0, (*cf).GetReal("identification-experiment", "ss-step", 0)
+        EXPECT_EQ(b_d[0], (*cf).GetReal("query-sigma", "angle-1", 0));
+        EXPECT_EQ(b_d[1], (*cf).GetReal("query-sigma", "angle-2", 0));
+        EXPECT_EQ(b_d[2], (*cf).GetReal("query-sigma", "angle-3", 0));
+        EXPECT_EQ(b_d[3], (*cf).GetReal("id-parameters", "so", 0));
+        EXPECT_THAT(b_d[4], IsBetween(0, (*cf).GetReal("identification-experiment", "ss-step", 0)
                                          * ((*cf).GetReal("identification-experiment", "ss-iter", 0) - 1)));
-        EXPECT_THAT(b_d[3], IsBetween((*cf).GetReal("identification-experiment", "mb-min", 0),
+        EXPECT_THAT(b_d[5], IsBetween((*cf).GetReal("identification-experiment", "mb-min", 0),
                                       (*cf).GetReal("identification-experiment", "mb-min", 0)
                                       + (*cf).GetReal("identification-experiment", "mb-step", 0)
                                         * ((*cf).GetReal("identification-experiment", "mb-iter", 0) - 1)));
-        EXPECT_THAT(b_d[4], IsBetween((*cf).GetReal("identification-experiment", "es-min", 0),
+        EXPECT_THAT(b_d[6], IsBetween((*cf).GetReal("identification-experiment", "es-min", 0),
                                       (*cf).GetReal("identification-experiment", "es-min", 0)
                                       + (*cf).GetReal("identification-experiment", "es-step", 0)
                                         * ((*cf).GetReal("identification-experiment", "es-iter", 0) - 1)));
-        EXPECT_THAT(b_d[5], IsBetween(1, (*cf).GetReal("id-parameters", "nu-m", 0)));
-        EXPECT_THAT(b_d[6], IsBetween(0, 1));
+        EXPECT_THAT(b_d[7], IsBetween(1, (*cf).GetReal("id-parameters", "nu-m", 0)));
+        EXPECT_THAT(b_d[8], IsBetween(0, 1));
     }
     
     SQLite::Transaction transaction(*(*lu).conn);

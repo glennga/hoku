@@ -13,7 +13,6 @@
 /// Verify that all trial schemas and fields are correct.
 TEST(LumberjackTables, ExistenceStructure) {
     INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
-    std::remove((std::string(std::getenv("HOKU_PROJECT_PATH")) + "/data/lumberjack.db").c_str());
     
     EXPECT_NO_THROW(Lumberjack::create_table(cf.Get("query-experiment", "lu", ""), Experiment::Query::SCHEMA););
     EXPECT_NO_THROW(Lumberjack::create_table(cf.Get("reduction-experiment", "lu", ""), Experiment::Reduction::SCHEMA););
@@ -27,19 +26,22 @@ TEST(LumberjackTables, ExistenceStructure) {
     EXPECT_NO_THROW(nb.select_table(cf.Get("query-experiment", "lu", "")););
     nb.find_attributes(schema, fields);
     EXPECT_EQ(schema, Experiment::Query::SCHEMA);
-    EXPECT_EQ(fields, "IdentificationMethod, Timestamp, SigmaQuery, ShiftDeviation, CandidateSetSize, SExistence");
+    EXPECT_EQ(fields,
+              "IdentificationMethod, Timestamp, Sigma1, Sigma2, Sigma3, ShiftDeviation, CandidateSetSize, SExistence");
     
     EXPECT_NO_THROW(nb.select_table(cf.Get("reduction-experiment", "lu", "")););
     nb.find_attributes(schema, fields);
     EXPECT_EQ(schema, Experiment::Reduction::SCHEMA);
-    EXPECT_EQ(fields, "IdentificationMethod, Timestamp, SigmaQuery, SigmaOverlay, ShiftDeviation, CameraSensitivity, "
-        "ResultMatchesInput");
+    EXPECT_EQ(fields,
+              "IdentificationMethod, Timestamp, Sigma1, Sigma2, Sigma3, Sigma4, ShiftDeviation, CameraSensitivity, "
+                  "ResultMatchesInput");
     
     EXPECT_NO_THROW(nb.select_table(cf.Get("identification-experiment", "lu", "")););
     nb.find_attributes(schema, fields);
     EXPECT_EQ(schema, Experiment::Map::SCHEMA);
-    EXPECT_EQ(fields, "IdentificationMethod, Timestamp, SigmaQuery, SigmaOverlay, ShiftDeviation, CameraSensitivity, "
-        "FalseStars, ComparisonCount, PercentageCorrect");
+    EXPECT_EQ(fields,
+              "IdentificationMethod, Timestamp, Sigma1, Sigma2, Sigma3, Sigma4, ShiftDeviation, CameraSensitivity, "
+                  "FalseStars, ComparisonCount, PercentageCorrect");
 }
 
 /// Ensure that the correct fields are selected.
@@ -67,15 +69,15 @@ TEST(LumberjackConstruction, Destructor) {
     // Lu gets destroyed when exiting.
     std::unique_ptr<Lumberjack> lu_p = std::make_unique<Lumberjack>(cf.Get("query-experiment", "lu", ""), "Angle",
                                                                     l.str());
-    (*lu_p).log_trial(Nibble::tuple_d {-1, -1, -1, -1});
+    (*lu_p).log_trial(Nibble::tuple_d {-1, -1, -1, -1, -1, -1});
     lu_p.reset(nullptr);
     
     Lumberjack lu2(cf.Get("query-experiment", "lu", ""), "Angle", l.str());
-    Nibble::tuples_d a = lu2.search_table("SigmaQuery", "SigmaQuery = -1", 1, 10);
+    Nibble::tuples_d a = lu2.search_table("Sigma1", "Sigma1 = -1", 1, 10);
     EXPECT_EQ(a.size(), 1);
     
     SQLite::Transaction transaction(*lu2.conn);
-    (*lu2.conn).exec("DELETE FROM QUERY WHERE SigmaQuery = -1");
+    (*lu2.conn).exec("DELETE FROM QUERY WHERE Sigma1 = -1");
     transaction.commit();
 }
 
@@ -87,19 +89,19 @@ TEST(LumberjackLog, LogFunction) {
     INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
     
     Lumberjack lu(cf.Get("query-experiment", "lu", ""), "Angle", l.str());
-    lu.log_trial(Nibble::tuple_d{-1, -1, -1, -1});
-    Nibble::tuples_d a = lu.search_table("SigmaQuery", "SigmaQuery = -1", 1, 10);
+    lu.log_trial(Nibble::tuple_d{-1, -1, -1, -1, -1, -1});
+    Nibble::tuples_d a = lu.search_table("Sigma1", "Sigma1 = -1", 1, 10);
     EXPECT_EQ(a.size(), 0);
     
-    Nibble::tuples_d b = lu.search_table("SigmaQuery", "SigmaQuery = -1", 1, 1);
+    Nibble::tuples_d b = lu.search_table("Sigma1", "Sigma1 = -1", 1, 1);
     EXPECT_EQ(b.size(), 0);
     
     lu.flush_buffer();
-    Nibble::tuples_d b_1 = lu.search_table("SigmaQuery", "SigmaQuery = -1", 1, 1);
+    Nibble::tuples_d b_1 = lu.search_table("Sigma1", "Sigma1 = -1", 1, 1);
     EXPECT_EQ(b_1.size(), 1);
     
     SQLite::Transaction transaction(*lu.conn);
-    (*lu.conn).exec("DELETE FROM QUERY WHERE SigmaQuery = -1");
+    (*lu.conn).exec("DELETE FROM QUERY WHERE Sigma1 = -1");
     transaction.commit();
 }
 
@@ -111,28 +113,33 @@ TEST(LumberjackLog, LogFunctionFlush) {
     INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
     
     Lumberjack lu(cf.Get("query-experiment", "lu", ""), "Angle", l.str());
-    lu.log_trial(Nibble::tuple_d{-1, -1, -1, -1});
-    Nibble::tuples_d a = lu.search_table("SigmaQuery", "SigmaQuery = -1", 1, 10);
+    lu.log_trial(Nibble::tuple_d{-1, -1, -1, -1, -1, -1});
+    Nibble::tuples_d a = lu.search_table("Sigma1", "Sigma1 = -1", 1, 10);
     EXPECT_EQ(a.size(), 0);
     
     for (int i = 0; i < Lumberjack::MAXIMUM_BUFFER_SIZE - 2; i++) {
-        lu.log_trial(Nibble::tuple_d{-1, -1, -1, -1});
+        lu.log_trial(Nibble::tuple_d{-1, -1, -1, -1, -1, -1});
     }
     EXPECT_EQ(lu.result_buffer.size(), Lumberjack::MAXIMUM_BUFFER_SIZE - 1);
-    lu.log_trial(Nibble::tuple_d{-1, -1, -1, -1});
+    lu.log_trial(Nibble::tuple_d{-1, -1, -1, -1, -1, -1});
     EXPECT_EQ(lu.result_buffer.size(), 0);
     
-    lu.log_trial(Nibble::tuple_d{-1, -1, -1, -1});
+    lu.log_trial(Nibble::tuple_d{-1, -1, -1, -1, -1, -1});
     EXPECT_EQ(lu.result_buffer.size(), 1);
-    Nibble::tuples_d b = lu.search_table("SigmaQuery", "SigmaQuery = -1", Lumberjack::MAXIMUM_BUFFER_SIZE,
+    Nibble::tuples_d b = lu.search_table("Sigma1", "Sigma1 = -1", Lumberjack::MAXIMUM_BUFFER_SIZE,
                                          Lumberjack::MAXIMUM_BUFFER_SIZE + 1);
     EXPECT_EQ(b.size(), Lumberjack::MAXIMUM_BUFFER_SIZE);
     
     lu.flush_buffer();
     
     SQLite::Transaction transaction(*lu.conn);
-    (*lu.conn).exec("DELETE FROM QUERY WHERE SigmaQuery = -1");
+    (*lu.conn).exec("DELETE FROM QUERY WHERE Sigma1 = -1");
     transaction.commit();
+}
+
+/// Check that when two lumberjacks are trying to perform an insert at the same time, both insertions succeed.
+TEST(LumberjackLog, DualLumberjack) {
+    // TODO: Determine a test for this.
 }
 
 /// Runs all tests defined in this file.
