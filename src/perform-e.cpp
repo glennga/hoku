@@ -58,9 +58,9 @@ namespace EHA {
     /// @return Name of the table to log to in the Lumberjack database.
     std::string experiment_to_experiment_table (const std::string &experiment_in) {
         switch (experiment_to_hash(experiment_in)) {
-            case 0: return cf.Get("query-experiment", "lu", "");
-            case 1: return cf.Get("reduction-experiment", "lu", "");
-            case 2: return cf.Get("identification-experiment", "lu", "");
+            case 0: return cf.Get("query-experiment", "lu", "QUERY");
+            case 1: return cf.Get("reduction-experiment", "lu", "REDUCTION");
+            case 2: return cf.Get("identification-experiment", "lu", "IDENTIFICATION");
             default: throw std::runtime_error(std::string("Experiment name is not in the space of trial names."));
         }
     }
@@ -102,7 +102,7 @@ void perform_trial (Lumberjack &lu, const std::string &identifier_in, const std:
         cf.Get("table-names", "composite", "")};
     Chomp ch(cf.Get("table-names", identifier_in, ""), cf.Get("table-focus", identifier_in, ""));
     
-    switch ((EHA::identifier_to_hash(identifier_in) * 5) + EHA::experiment_to_hash(experiment_in)) {
+    switch ((EHA::identifier_to_hash(identifier_in) * 3) + EHA::experiment_to_hash(experiment_in)) {
         case 0: return Experiment::Query::trial<Angle>(ch, lu, cf, table_names[0]);
         case 1: return Experiment::Reduction::trial<Angle>(ch, lu, cf, table_names[0]);
         case 2: return Experiment::Map::trial<Angle>(ch, lu, cf, table_names[0]);
@@ -173,16 +173,16 @@ int main (int argc, char *argv[]) {
         
         if (!is_valid_arg(argv[1], {"angle", "dot", "sphere", "plane", "pyramid", "composite"})
             || !is_valid_arg(argv[2], {"query", "reduction", "identification"})) {
-            std::cout << "Usage: RunTrial ['angle', ... , 'composite'] ['query', ... , 'identification']"
-                      << std::endl;
+            std::cout << "Usage: RunTrial ['angle', ... , 'composite'] ['query', ... , 'identification']" << std::endl;
             return -1;
         }
     }
     
-    // Attempt to connect to the Lumberjack database. 
-    std::string identification = std::string(argv[1]), trial_name = std::string(argv[1]);
+    // Attempt to connect to the Lumberjack database.
+    std::string identification = std::string(argv[1]), identifier_name = std::string(argv[1]);
+    std::string trial_name = std::string(argv[2]);
     try {
-        Lumberjack lu(EHA::experiment_to_experiment_table(std::string(argv[2])), identification, l.str());
+        Lumberjack lu(EHA::experiment_to_experiment_table(trial_name), identification, l.str());
     }
     catch (const std::exception &e) {
         create_lumberjack_table(trial_name);
@@ -190,7 +190,7 @@ int main (int argc, char *argv[]) {
     
     // Capitalize our trial name. Perform our trial.
     identification[0] = static_cast<char> (toupper(identification[0]));
-    Lumberjack lu(EHA::experiment_to_experiment_table(std::string(argv[2])), identification, l.str());
-    perform_trial(lu, std::string(argv[1]), std::string(argv[2]));
+    Lumberjack lu(EHA::experiment_to_experiment_table(trial_name), identification, l.str());
+    perform_trial(lu, identifier_name, trial_name);
     return 0;
 }
