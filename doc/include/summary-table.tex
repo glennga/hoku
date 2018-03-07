@@ -2,7 +2,7 @@
     & \textbf{Image Features} & \textbf{Reduction} & \textbf{Identification} \\
     \hline \hline
     \textbf{Angle} & $\theta^{ij}$ & Require $|R|=1$ & \Call{DMT}{$b, r, I$} \\ \hline
-    \textbf{Interior Angle} & $\theta^{ic}, \theta^{jc}, \phi$ & Require $|R| = 1$ & Restrict $\theta^{ic},
+    \textbf{Dot Angle} & $\theta^{ic}, \theta^{jc}, \phi$ & Require $|R| = 1$ & Restrict $\theta^{ic},
     \theta^{jc}$ at Query Time \\ \hline
     \textbf{Spherical Triangle} & Spherical $a^{ijk}, \imath^{ijk}$ & \Call{Pivot}{$b_i, b_j, b_k, R_1$} &
     \Call{DMT}{$b, r, I$} \\ \hline
@@ -13,4 +13,3 @@
     \textbf{Composite Pyramid} & Planar $a^{ijk}, \imath^{ijk}$ & Require $|R| = 1$ & \Call{DMT}{$b, r, I$}, \newline
     \Call{CompositeVerify}{$r, b, a, I$}
 \end{tabular}
-

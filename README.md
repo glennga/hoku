@@ -110,7 +110,7 @@ There exist three experiments in this research:
 
 There exist six different identification methods implemented here:
 1. Gottlieb's Angle Method (`angle`)
-2. Liebe's Interior Angle Method (`dot`)
+2. Liebe's Dot Angle Method (`dot`)
 3. Cole and Crassidus's Spherical Triangle Method (`sphere`)
 4. Cole and Crassidus's Planar Triangle Method (`plane`)
 5. Mortari's Pyramid Method (`pyramid`)

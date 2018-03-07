@@ -1,6 +1,7 @@
 \newcommand{\algorithmautorefname}{Algorithm}
 \newcommand{\algeqref}[1]{\hyperref[#1]{Eq.~\ref*{#1}}}
 \algnewcommand{\LineComment}[1]{\State \(\triangleright\) #1}
+\MakeRobust{\Call}
 
 \restylefloat{algorithm}
 
@@ -149,12 +150,12 @@ in~\autoref{algorithm:angleHelper}.
     \end{algorithmic}
 \end{algorithm}
 
-\subsection{Liebe's Interior Angle Method}\label{subsec:liebe'sInteriorAngleMethod}
+\subsection{Liebe's Dot Angle Method}\label{subsec:liebe'sDotAngleMethod}
 In 1995, Liebe (citation here) developed the Liebe Star ID method.
 Starting with an image $I$, a central star $b_c$ is selected arbitrarily.
 The two closest stars in the image to the central star are selected next, denoted as $b_1$ and $b_2$.
 Three features are then computed: the angular separation between $b_1$ and $b_c$, the angular separation between
-$b_2$ and $b_c$, and the interior angle between $b_1$ and $b_2$ with $b_c$ at the vertex.
+$b_2$ and $b_c$, and the dot angle between $b_1$ and $b_2$ with $b_c$ at the vertex.
 These are denoted as $\theta^1, \theta^2,$ and $\phi$ respectively.
 
 The additional constraint that $\theta^1 < \theta^2$ is imposed before proceeding.
@@ -163,20 +164,20 @@ By adding this restriction to the catalog search, a star mapping procedure (e.g.
 longer required.
 
 \begin{subequations}
-    \label{eq:interiorAngleRequirement}
+    \label{eq:dotAngleRequirement}
 
     All possible \textit{trios} $R$ in the catalog are then selected such that all
-    of~\autoref{eq:interiorAngleRequirement} hold:
+    of~\autoref{eq:dotAngleRequirement} hold:
     \begin{align}
-        |\theta(r_i, r_c) - \theta^1| &< 3 \sigma_{\theta} \\
-        |\theta(r_j, r_c) - \theta^2| &< 3 \sigma_{\theta} \\
+        |\theta(r_i, r_c) - \theta^1| &< 3 \sigma_{\theta_{ic}} \\
+        |\theta(r_j, r_c) - \theta^2| &< 3 \sigma_{\theta_{jc}} \\
         |\phi(r_i, r_j, r_c) - \phi| &< 3 \sigma_{\phi} \\
         \theta(r_i, r_c) &< \theta(r_j, r_c)
     \end{align}
 \end{subequations}
 
 $\sigma_{\theta}$ and $\sigma_{\phi}$ represent the deviation of measurement-catalog uncertainty of angular separations
-and interior angular separations respectively.
+and dot angular separations respectively.
 \textit{Note that the $R$ in this procedure is distinct from the $R$ in the previous Angle method.}
 
 The star trios in $R$ represent potential catalog maps for the image star trio $(b_1, b_2, b_c)$.
@@ -189,22 +190,22 @@ To more closely follow the generic star identification flow, $P$ will not be sto
 needed to acquire a total match.
 If a confident match is not found by the first $b_c$ star, then the search process will be repeated until such a
 match is found.
-This entire method is described in~\autoref{algorithm:interiorAngleIdentification}.
+This entire method is described in~\autoref{algorithm:dotAngleIdentification}.
 
 \begin{algorithm} \setstretch{1.0}
-    \caption{Interior Angle Identification Method} \label{algorithm:interiorAngleIdentification}
+    \caption{Dot Angle Identification Method} \label{algorithm:dotAngleIdentification}
     \begin{algorithmic}[1]
         \Procedure{Identify}{}
         \State $I \gets \text{all stars } \text{ from image}$
         \For{$i \gets 1 \text{\textbf{ to }} |I|$}  \Comment Iterate through $C^{|I|}_3$
         \For{$j \gets i + 1 \text{\textbf{ to }} |I| - 1$}
-        \For{$k \gets j + 1 \text{\textbf{ to }} |I| - 2$}
+        \For{$c \gets j + 1 \text{\textbf{ to }} |I| - 2$}
         \State $b \gets (b_i, b_j)$
-        \State $R \gets $ catalog trios that meet~\algeqref{eq:interiorAngleRequirement} with $b$
+        \State $R \gets $ catalog trios that meet~\algeqref{eq:dotAngleRequirement} with $b$
         \\
         \If{$|R| = 1$}
         \State $(r_i, r_j) \gets $ singular pair inside $R$
-        \State $a \gets (b_i \rightarrow r_i, b_j \rightarrow r_j, b_k \rightarrow r_k)$
+        \State $a \gets (b_i \rightarrow r_i, b_j \rightarrow r_j, b_k \rightarrow r_c)$
         \State \textbf{return} $a$
         \EndIf
         \EndFor
@@ -437,7 +438,7 @@ Otherwise, the test fails.
         \State $R^{je} \gets$ catalog pairs that meet~\algeqref{eq:angleRequirement} with $(b_j, b_e)$
         \State $R^{ke} \gets$ catalog pairs that meet~\algeqref{eq:angleRequirement} with $(b_k, b_e)$
         \\
-        \State $T^e \gets $ \Call{Common}{$R^{je}, R^{ke} \cup R^{ie}$}
+        \State $T^e \gets $ \Call{Common}{$R^{je},$ \Call{Common}{$R^{ke}, R^{ie}$}}
         \If{$|T^e| = 1$}
         \State $r_e \gets $ singular star in $T^e$
         \If{$r_e$ is near $r$ in catalog}
@@ -535,7 +536,7 @@ The same function \Call{Common}{$R^{ab}, R^{ac}$} from the Pyramid method is use
         b^{\star}_k)$
         \State $R^{ejk} \gets $ catalog trios that meet~\algeqref{eq:triangleRequirement} with $(b_e, b^{\star}_j,
         b^{\star}_k)$
-        \State $T^e \gets $ \Call{Common}{$R^{eij}, R^{eik} \cup R^{ejk}$}
+        \State $T^e \gets $ \Call{Common}{$R^{eij},$ \Call{Common}{$R^{eik}, R^{ejk}$}}
         \\
         \If{$|T^e| = 1$}
         \State $r_e \gets $ singular star in $T^e$
