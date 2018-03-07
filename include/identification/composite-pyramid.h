@@ -35,7 +35,7 @@ class CompositePyramid : public Pyramid {
     CompositePyramid (const Benchmark &input, const Parameters &p);
     
     std::vector<labels_list> query (const Star::list &s) override;
-    static int generate_table (double fov, const std::string &table_name);
+    static int generate_table (INIReader &cf);
     
     static const Parameters DEFAULT_PARAMETERS;
   
@@ -47,8 +47,8 @@ class CompositePyramid : public Pyramid {
   private:
 #endif
     labels_list_list query_for_trios (double, double);
-    bool verification (const  Star::trio &r, const  Star::trio &b_f) override;
-    Star::trio find_candidate_trio (const  Star::trio &) override;
+    bool verification (const  Star::trio &r, const  Star::trio &b) override;
+    Star::trio find_catalog_stars (const Star::trio &) override;
 };
 
 /// Alias for the CompositePyramid class. 'Composite' distinguishes the process I am testing here enough from the 5

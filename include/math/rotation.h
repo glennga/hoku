@@ -6,6 +6,9 @@
 #ifndef HOKU_ROTATION_H
 #define HOKU_ROTATION_H
 
+#include "third-party/gmath/Matrix3x3.hpp"
+#include "third-party/gmath/Quaternion.hpp"
+
 #include "math/star.h"
 
 /// @brief Class to represent quaternions, with methods to solve Wahba's problem.
@@ -17,7 +20,7 @@
 /// @example
 /// @code{.cpp}
 /// // Rotate {1, 1, 1} by a random rotation.
-/// std::cout << Star::rotate(Star(1, 1, 1), Rotation::chance()).str() << std::endl;
+/// std::cout << Star::rotate(Star(1, 1, 1), Rotation::chance()) << std::endl;
 ///
 /// Star a = Star::chance(), b = Star::chance(), c, d;
 /// Rotation e = Rotation::chance(), f;
@@ -26,66 +29,31 @@
 /// c = Rotation::rotate(a, e);
 /// d = Rotation::rotate(b, e);
 ///
-/// // F is the rotation to take AB frame to CD. F == E.
-/// f = Rotation::rotation_across_frames({a, b}, {c, d});
 ///
 /// // Result should show the same star.
-/// std::cout << Rotation::rotate(a, e).str() + " : " Rotation::rotate(a, f).str() << std::endl;
+/// std::cout << Rotation::rotate(a, e) << " : " Rotation::rotate(a, f) << std::endl;
 /// @endcode
-class Rotation {
+class Rotation : public Quaternion {
   public:
-    /// Force default constructor. Default is {1, 0, 0, 0} (identity).
-    Rotation () = default;
+    Rotation(double w, double i, double j, double k);
+    static Rotation wrap (const Quaternion &q);
     
-    /// Alias for a function that solves Wahba's problem (e.g. TRIAD, QUEST, etc...).
+    /// Alias for a function that solves Wahba's problem (e.g. TRIAD, SVD, etc...).
     using wahba_function = Rotation (*) (const Star::list &, const Star::list &);
   
   public:
-    bool operator== (const Rotation &q) const;
-    Rotation operator* (const Rotation &q) const;
+    friend std::ostream &operator<< (std::ostream &os, const Rotation &q);
     
     static Star rotate (const Star &s, const Rotation &q);
-    static Star push (const Star &s, const Star &f, double d);
+    static Star slerp (const Star &s, const Vector3 &f, double t);
     static Star shake (const Star &s, double sigma);
     
     static Rotation identity ();
     static Rotation chance ();
     
-    static Rotation triad (const Star::list &r, const Star::list &b);
-    static Rotation q_exact (const Star::list &r, const Star::list &b);
-    static Rotation quest (const Star::list &r, const Star::list &b);
-
-#if !defined ENABLE_TESTING_ACCESS
-  private:
-#endif
-    /// Matrix alias, by using a 3-element array of 3D vectors.
-    using matrix = std::array<Star, 3>;
-    
-    /// Precision default for '==' method.
-    static constexpr double EQUALITY_PRECISION_DEFAULT = 0.000000000001;
-
-#if !defined ENABLE_TESTING_ACCESS
-  private:
-#endif
-    Rotation (double w, const Star &v, bool as_unit = false);
-    
-    static Rotation matrix_to_quaternion (const matrix &r);
-    static matrix matrix_multiply_transpose (const matrix &a, const matrix &b);
-
-#if !defined ENABLE_TESTING_ACCESS
-  private:
-#endif
-    /// W component, or the sole real component of a quaternion. Defaults to one (identity quaternion).
-    double w = 1;
-    
-    /// I component (element 0) of quaternion. Defaults to zero (identity quaternion).
-    double i = 0;
-    
-    /// J component (element 1) of quaternion. Defaults to zero (identity quaternion).
-    double j = 0;
-    
-    /// K component (element 2) of quaternion. Defaults to zero (identity quaternion).
-    double k = 0;
+    static Rotation triad (const Star::list &v, const Star::list &w);
+    static Rotation svd (const Star::list &v, const Star::list &w);
+    static Rotation q_method (const Star::list &v, const Star::list &w);
 };
 
 #endif /* HOKU_ROTATION_H */

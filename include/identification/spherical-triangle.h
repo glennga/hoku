@@ -37,7 +37,7 @@ class SphericalTriangle : public BaseTriangle {
     
     /// Exact number of query stars required for query experiment.
     static constexpr unsigned int QUERY_STAR_SET_SIZE = 3;
-    
+  
   public:
     using BaseTriangle::Parameters;
     static const Parameters DEFAULT_PARAMETERS;
@@ -48,12 +48,12 @@ class SphericalTriangle : public BaseTriangle {
     labels_list reduce ();
     Star::list identify ();
     
-    static int generate_table (double fov, const std::string &table_name);
+    static int generate_table (INIReader &cf);
 
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
-    std::vector<Star::trio> match_stars (const index_trio &);
+    std::vector<Star::trio> query_for_trios (const index_trio &);
 };
 
 /// Alias for the SphericalTriangle class. 'Sphere' distinguishes the process I am testing here enough from the 5 other

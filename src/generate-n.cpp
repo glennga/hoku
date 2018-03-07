@@ -8,7 +8,7 @@
 /// @code{.cpp}
 /// - hip -> Produce the hip stars table from the Hipparcos catalog.
 /// - angle -> Produce table for Angle method.
-/// - interior -> Produce table for InteriorAngle method.
+/// - dot -> Produce table for DotAngle method.
 /// - sphere -> Produce table for SphericalTriangle method.
 /// - plane -> Produce table for PlanarTriangle method.
 /// - pyramid -> Produce table for Pyramid method.
@@ -27,6 +27,7 @@
 #include <algorithm>
 
 #include "identification/angle.h"
+#include "identification/dot-angle.h"
 #include "identification/spherical-triangle.h"
 #include "identification/planar-triangle.h"
 #include "identification/pyramid.h"
@@ -41,7 +42,7 @@ INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
 namespace NBHA {
     static const int HIP = 0; ///< Index of hip table choice in choice space.
     static const int ANGLE = 1; ///< Index of angle table choice in choice space.
-    static const int INTERIOR = 2; ///< Index of interior table choice in choice space.
+    static const int DOT = 2; ///< Index of dot table choice in choice space.
     static const int SPHERE = 3; ///< Index of sphere table choice in choice space.
     static const int PLANE = 4; ///< Index of plane table choice in choice space.
     static const int PYRAMID = 5; ///< Index of pyramid table choice in choice space.
@@ -52,8 +53,7 @@ namespace NBHA {
     /// @param choice Name associated with table to hash for.
     /// @return Unique integer associated with the choice.
     int choice (const std::string &choice) {
-        std::array<std::string, 7> choice_space = {"hip", "angle", "interior", "sphere", "plane", "pyramid",
-            "composite"};
+        std::array<std::string, 7> choice_space = {"hip", "angle", "dot", "sphere", "plane", "pyramid", "composite"};
         
         return static_cast<int> (std::distance(choice_space.begin(),
                                                std::find(choice_space.begin(), choice_space.end(), choice)));
@@ -80,23 +80,22 @@ void remove_table (const std::string &choice) {
 ///
 /// @param choice Name associated with the table to generate.
 void generate_table (const std::string &choice) {
-    auto display_result = [] (const int r) -> void {
-        std::cout << ((r == Nibble::TABLE_NOT_CREATED) ? "Table already exists." : "Table was created successfully.")
-                  << std::endl;
+    static auto display_result = [] (const int r) -> void {
+        std::cout
+            << ((r == Nibble::TABLE_NOT_CREATED) ? "\nTable already exists." : "\nTable was created successfully.")
+            << std::endl;
     };
     
-    double fov = cf.GetReal("hardware", "fov", 0);
     switch (NBHA::choice(choice)) {
         case NBHA::HIP: Chomp();
             return display_result(0);
         
-        case NBHA::ANGLE: return display_result(Angle::generate_table(fov, cf.Get("table-names", "angle", "")));
-        case NBHA::INTERIOR: throw std::runtime_error(std::string("Not implemented."));
-        case NBHA::SPHERE:return display_result(Sphere::generate_table(fov, cf.Get("table-names", "sphere", "")));
-        case NBHA::PLANE: return display_result(Plane::generate_table(fov, cf.Get("table-names", "plane", "")));
-        case NBHA::PYRAMID:return display_result(Pyramid::generate_table(fov, cf.Get("table-names", "pyramid", "")));
-        case NBHA::COMPOSITE: return display_result(
-                Composite::generate_table(fov, cf.Get("table-names", "composite", "")));
+        case NBHA::ANGLE: return display_result(Angle::generate_table(cf));
+        case NBHA::DOT: return display_result(Dot::generate_table(cf));
+        case NBHA::SPHERE:return display_result(Sphere::generate_table(cf));
+        case NBHA::PLANE: return display_result(Plane::generate_table(cf));
+        case NBHA::PYRAMID:return display_result(Pyramid::generate_table(cf));
+        case NBHA::COMPOSITE: return display_result(Composite::generate_table(cf));
         default: throw std::runtime_error(std::string("Table choice is not within space {0, 1, 2, 3, 4, 5, 6}."));
     }
 }
@@ -108,29 +107,23 @@ void generate_kvec_table (const std::string &choice) {
     Chomp ch;
     
     // Polish the selected table. Create the K-Vector for the given table using the given focus.
-    auto create_and_polish = [&ch] (const std::string &table, const std::string &focus) -> void {
-        ch.select_table(table);
-        ch.polish_table(focus);
+    auto create_and_polish = [&ch] (const std::string &method) -> void {
+        ch.select_table(cf.Get("table-names", method, ""));
+        ch.polish_table(cf.Get("table-focus", method, ""));
         
-        std::string response = (ch.create_k_vector(focus) == Nibble::TABLE_NOT_CREATED) ? "K-Vector table already "
-            "exists." : "K-Vector table was created successfully.";
+        std::string response = (ch.create_k_vector(cf.Get("table-focus", method, "")) == Nibble::TABLE_NOT_CREATED)
+                               ? "K-Vector table already exists." : "K-Vector table was created successfully.";
         std::cout << response << std::endl;
     };
     
     switch (NBHA::choice(choice)) {
         case NBHA::HIP:throw std::runtime_error(std::string("Cannot generate KVEC table for star catalog table."));
-        
-        case NBHA::ANGLE: return create_and_polish(cf.Get("table-names", "angle", ""),
-                                                   cf.Get("table-focus", "angle", ""));
-        case NBHA::INTERIOR: throw std::runtime_error(std::string("Not implemented."));
-        case NBHA::SPHERE: return create_and_polish(cf.Get("table-names", "sphere", ""),
-                                                    cf.Get("table-focus", "sphere", ""));
-        case NBHA::PLANE: return create_and_polish(cf.Get("table-names", "plane", ""),
-                                                   cf.Get("table-focus", "plane", ""));
-        case NBHA::PYRAMID: return create_and_polish(cf.Get("table-names", "pyramid", ""),
-                                                     cf.Get("table-focus", "pyramid", ""));
-        case NBHA::COMPOSITE: return create_and_polish(cf.Get("table-names", "composite", ""),
-                                                       cf.Get("table-focus", "composite", ""));
+        case NBHA::ANGLE: return create_and_polish("angle");
+        case NBHA::DOT: return create_and_polish("dot");
+        case NBHA::SPHERE: return create_and_polish("sphere");
+        case NBHA::PLANE: return create_and_polish("plane");
+        case NBHA::PYRAMID: return create_and_polish("pyramid");
+        case NBHA::COMPOSITE: return create_and_polish("composite");
         default: throw std::runtime_error(std::string("Table choice is not within space {0, 1, 2, 3, 4, 5, 6}."));
     }
 }
@@ -142,7 +135,7 @@ void generate_kvec_table (const std::string &choice) {
 /// @code{.cpp}
 /// - hip -> Produce the hip stars from the Hipparcos catalog.
 /// - angle -> Produce table for Angle method.
-/// - interior -> Produce table for InteriorAngle method.
+/// - dot -> Produce table for DotAngle method.
 /// - sphere -> Produce table for SphericalTriangle method.
 /// - plane -> Produce table for PlanarTriangle method.
 /// - pyramid -> Produce table for Pyramid method.
@@ -171,7 +164,7 @@ int main (int argc, char *argv[]) {
         std::cout << "Usage: GenerateN [TableSpecification] [GenerateKVector/DeleteTable]" << std::endl;
         return -1;
     }
-    if ((argc >= 2 && !is_valid_arg(argv[1], {"hip", "angle", "interior", "sphere", "plane", "pyramid", "composite"}))
+    if ((argc >= 2 && !is_valid_arg(argv[1], {"hip", "angle", "dot", "sphere", "plane", "pyramid", "composite"}))
         || (argc == 3 && !is_valid_arg(argv[2], {"k", "d"}))) {
         std::cout << "Usage: GenerateN ['hip', 'angle', 'sphere', ...] ['k', 'd']" << std::endl;
         return -1;

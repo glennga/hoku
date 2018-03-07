@@ -4,6 +4,8 @@
 /// Source file for Lumberjack class, which facilitates the storage of various results of trials.
 
 #include <algorithm>
+#include <chrono>
+#include <thread>
 
 #include "experiment/lumberjack.h"
 
@@ -26,8 +28,7 @@ Lumberjack::Lumberjack (const std::string &trial_table, const std::string &ident
     
     // We won't be changing our table from here.
     select_table(trial_table, true);
-    this->identifier_name = identifier_name;
-    this->timestamp = timestamp;
+    this->identifier_name = identifier_name, this->timestamp = timestamp;
     
     // Determine the length of every result into log_trial. The schema string will not be used.
     std::string schema;
@@ -104,14 +105,24 @@ int Lumberjack::flush_buffer () {
         }
     }
     
-    // Ensure that our changes are correctly reflected.
-    SQLite::Transaction t(*conn);
-    if (insert.exec() != static_cast<signed> (result_buffer.size())) {
-        throw std::runtime_error(std::string("All results were not recorded."));
+    // We get MAXIMUM_INSERTION_ATTEMPTS tries to perform our statement.
+    for (int i = 0; i < MAXIMUM_INSERTION_ATTEMPTS; i++) {
+        try {
+            SQLite::Transaction t(*conn);
+            if (insert.exec() != static_cast<signed> (result_buffer.size())) {
+                throw std::runtime_error(std::string("All results were not recorded."));
+            }
+            else {
+                result_buffer.clear(), result_buffer.reserve(MAXIMUM_BUFFER_SIZE), t.commit();
+                return 0;
+            }
+        }
+        catch (SQLite::Exception &) {
+            // Another insertion is currently occurring. Wait until this is finished.
+            using namespace std::literals::chrono_literals;
+            std::this_thread::sleep_for(1000ms);
+        }
     }
-    else {
-        result_buffer.clear(), result_buffer.reserve(MAXIMUM_BUFFER_SIZE);
-        t.commit();
-        return 0;
-    }
+
+    throw std::runtime_error(std::string("Unable to perform insertion in time."));
 }

@@ -41,7 +41,7 @@ class PlanarTriangle : public BaseTriangle {
     labels_list reduce ();
     Star::list identify ();
     
-    static int generate_table(double fov, const std::string &table_name);
+    static int generate_table(INIReader &cf, const std::string &id_name = "plane");
   
   public:
     /// Exact number of query stars required for query experiment.
@@ -50,7 +50,7 @@ class PlanarTriangle : public BaseTriangle {
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
-    std::vector<Star::trio> match_stars (const index_trio &);
+    std::vector<Star::trio> query_for_trios (const index_trio &);
 };
 
 /// Alias for the PlanarTriangle class. 'Plane' distinguishes the process I am testing here enough from the 5 other

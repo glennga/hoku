@@ -3,6 +3,7 @@
 ///
 /// Source file for Nibble class, which facilitate the retrieval and storage of various lookup tables.
 
+#include <algorithm>
 #include "storage/nibble.h"
 
 /// String of the HOKU_PROJECT_PATH environment variable.
@@ -46,9 +47,9 @@ Nibble::Nibble (const std::string &table_name, const std::string &focus) {
     
     // Copy the table from our search table to our in-memory database.
     this->select_table(table_name);
-    for (const tuple_d &t : table) {
+    std::for_each(table.begin(), table.end(), [this, &fields] (const tuple_d &t) -> void {
         this->insert_into_table(fields, t);
-    }
+    });
     
     // If desired, then polish the table (index and sort).
     if (!focus.empty()) {
@@ -63,11 +64,9 @@ Nibble::Nibble (const std::string &table_name, const std::string &focus) {
 /// @param check_existence If desired, can check table existence and throw error if not found.
 void Nibble::select_table (const std::string &table, const bool check_existence) {
     if (check_existence) {
-        SQLite::Statement query(*conn, "SELECT name FROM sqlite_master WHERE type='table' AND name='" + table + "\'");
-        while (query.executeStep()) {
-            if (query.getColumnCount() == 0) {
-                throw std::runtime_error(std::string("Table does not exist. 'check_existence' flag raised"));
-            }
+        SQLite::Statement query(*conn, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='" + table + "\'");
+        if (!query.executeStep()) {
+            throw std::runtime_error(std::string("Table does not exist. 'check_existence' flag raised"));
         }
     }
     
@@ -79,7 +78,7 @@ void Nibble::select_table (const std::string &table, const bool check_existence)
 /// @param fields The columns to search for in the current table.
 /// @param constraint The SQL string to be used with the WHERE clause.
 /// @param expected Expected number of results to be returned. Better to overshoot.
-/// @param limit Limit the results searched for with this.
+/// @param limit Limit the results searched for with this. Use NO_LIMIT to avoid this constraint.
 /// @return List of results returned from query, ordered by tuple in table.
 Nibble::tuples_d Nibble::search_table (const std::string &fields, const std::string &constraint,
                                        const unsigned int expected, const int limit) {
@@ -90,7 +89,7 @@ Nibble::tuples_d Nibble::search_table (const std::string &fields, const std::str
     sql = "SELECT " + fields + " FROM " + table + " WHERE " + constraint;
     
     // Do not use the limit constraint if limit is not specified.
-    if (limit > 0) {
+    if (limit != NO_LIMIT) {
         sql += " LIMIT " + std::to_string(limit);
     }
     
@@ -112,7 +111,7 @@ Nibble::tuples_d Nibble::search_table (const std::string &fields, const std::str
 ///
 /// @param fields The columns to search for in the current table.
 /// @param expected Expected number of results to be returned. Better to overshoot.
-/// @param limit Limit the results searched for with this.
+/// @param limit Limit the results searched for with this. Use NO_LIMIT to avoid this constraint.
 /// @return List of results returned from query, ordered by tuple in table.
 Nibble::tuples_d Nibble::search_table (const std::string &fields, const unsigned int expected, const int limit) {
     tuples_d result;
@@ -122,7 +121,7 @@ Nibble::tuples_d Nibble::search_table (const std::string &fields, const unsigned
     sql = "SELECT " + fields + " FROM " + table;
     
     // Do not use limit constraint if limit is not specified.
-    if (limit > 0) {
+    if (limit != NO_LIMIT) {
         sql += " LIMIT " + std::to_string(limit);
     }
     

@@ -21,11 +21,13 @@ class Identification {
   public:
     // All identification methods must contain these parameters.
     struct Parameters {
-        double sigma_query; ///< Query must be within 3 * sigma_query.
+        double sigma_1; ///< Sigma used for database queries.
+        double sigma_2; ///< Sigma used for additional reduction (triangle, dot...).
+        double sigma_3; ///< Sigma used for phi in the Dot method.
+        double sigma_4; ///< Resultant of inertial->body rotation must within 3 * sigma_overlay of *a* body.
         unsigned int sql_limit; ///< While performing a SQL query, limit results by this number.
-        bool pass_r_set_cardinality; ///< If false, the restrict |R| = 1 is lifted. R_1 is returned instead.
+        bool no_reduction; ///< If false, the restrict |R| = 1 is lifted. R_1 is returned instead.
         bool favor_bright_stars; ///< If false, do not favor bright stars in resulting set.
-        double sigma_overlay; ///< Resultant of inertial->body rotation must within 3 * sigma_overlay of *a* body.
         unsigned int nu_max; ///< Maximum number of query star comparisons before returning an empty list.
         std::shared_ptr<unsigned int> nu; ///< Pointer to the location to hold the count of query star comparisons.
         Rotation::wahba_function f; ///< Function to use to solve Wahba's problem with.
@@ -33,19 +35,19 @@ class Identification {
     };
     
     /// Default sigma query for all identification methods.
-    static constexpr double DEFAULT_SIGMA_QUERY = std::numeric_limits<double>::epsilon() * 100;
+    static constexpr double DEFAULT_SIGMA_QUERY = std::numeric_limits<double>::epsilon() * 10000;
     
     /// Default SQL limit for all identification methods.
     static constexpr unsigned int DEFAULT_SQL_LIMIT = 500;
     
-    /// Default R set cardinality flag for all identification methods.
-    static constexpr bool DEFAULT_PASS_R_SET_CARDINALITY = true;
+    /// Default no reduction flag for all identification methods.
+    static constexpr bool DEFAULT_NO_REDUCTION = false;
     
     /// Default favor bright stars flag for all identification methods.
     static constexpr bool DEFAULT_FAVOR_BRIGHT_STARS = false;
     
     /// Default sigma overlay (for matching) for all identification methods.
-    static constexpr double DEFAULT_SIGMA_OVERLAY = std::numeric_limits<double>::epsilon() * 100;
+    static constexpr double DEFAULT_SIGMA_4 = std::numeric_limits<double>::epsilon() * 10000;
     
     /// Default nu max (comparison counts) for all identification methods.
     static constexpr unsigned int DEFAULT_NU_MAX = 50000;
@@ -67,7 +69,7 @@ class Identification {
   
   public:
     Identification ();
-    static void collect_parameters(Parameters &p, INIReader &cf);
+    static void collect_parameters(Parameters &p, INIReader &cf, const std::string &identifier);
     
     virtual std::vector<labels_list> query (const Star::list &s) = 0;
     virtual labels_list reduce () = 0;
@@ -76,8 +78,8 @@ class Identification {
     Rotation align ();
     Star::list identify_all ();
     
-    static const Star::list NO_CONFIDENT_IDENTITY;
-    static const labels_list NO_CANDIDATES_FOUND;
+    static const Star::list NO_CONFIDENT_A;
+    static const labels_list EMPTY_BIG_R_ELL;
     
     static const Star::list EXCEEDED_NU_MAX;
     static const Parameters DEFAULT_PARAMETERS;
@@ -85,14 +87,14 @@ class Identification {
 #if !defined ENABLE_TESTING_ACCESS
   protected:
 #endif
-    Star::list find_matches (const Star::list &candidates, const Rotation &q);
-    void sort_brightness (std::vector<labels_list> &candidates);
+    Star::list find_positive_overlay (const Star::list &big_p, const Rotation &q);
+    void sort_brightness (std::vector<labels_list> &big_r_ell);
 
 #if !defined ENABLE_TESTING_ACCESS
   protected:
 #endif
     /// The star set we are working with. The catalog ID values are all set to 0 here.
-    Star::list input;
+    Star::list big_i;
     
     /// Current working parameters.
     Parameters parameters;

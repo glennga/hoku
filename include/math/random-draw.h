@@ -24,7 +24,7 @@
 namespace RandomDraw {
     int draw_integer (int floor, int ceiling);
     double draw_real (double floor, double ceiling);
-    double draw_normal (double mean, double deviation);
+    double draw_normal (double mu, double sigma);
     
     namespace {
         /// Random device used to seed mersenne twister.

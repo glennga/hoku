@@ -60,22 +60,26 @@ class Nibble {
     
     /// Returned when a table creation is not successful.
     static constexpr int TABLE_NOT_CREATED = -1;
+    
+    /// Used when a limit constraint should not be specified.
+    static constexpr int NO_LIMIT = -1;
   
   public:
     Nibble ();
-    explicit Nibble (const std::string &, const std::string & = "");
+    explicit Nibble (const std::string &table_name, const std::string &focus = "");
     
-    tuples_d search_table (const std::string &, const std::string &, unsigned int, int = -1);
-    tuples_d search_table (const std::string &, unsigned int, int = -1);
+    tuples_d search_table (const std::string &fields, unsigned int expected, int = NO_LIMIT);
+    tuples_d search_table (const std::string &fields, const std::string &constraint, unsigned int expected,
+                           int limit = NO_LIMIT);
     
-    double search_single (const std::string &, const std::string & = "");
+    double search_single (const std::string &fields, const std::string &constraint = "");
     
-    void select_table (const std::string &, bool = false);
-    int create_table (const std::string &, const std::string &);
+    void select_table (const std::string &table, bool check_existence = false);
+    int create_table (const std::string &table, const std::string &schema);
     
-    int find_attributes (std::string &, std::string &);
-    int sort_table (const std::string &);
-    int polish_table (const std::string &);
+    int find_attributes (std::string &schema, std::string &fields);
+    int sort_table (const std::string &focus_column);
+    int polish_table (const std::string &focus_column);
   
   public:
     /// Using the currently selected table, insert the set of values in order of the fields given.

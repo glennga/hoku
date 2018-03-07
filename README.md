@@ -22,13 +22,14 @@ This repository requires the following:
 1. `python3` (with `numpy` and `matplotlib`). Used for the data analysis and visualization.
     1. Install Python 3: [https://www.python.org/downloads/](https://www.python.org/downloads/)
     2. Install Anaconda (`numpy` and `matplotlib`): [https://conda.io/docs/user-guide/install/index.html](https://conda.io/docs/user-guide/install/index.html)
+    3. Install OpenCV for Python: Enter `conda install -c conda-forge opencv`
 2. `CMake 3.7` or above. Used to manage and build the C++ code here.
     1. Install CMake: [https://cmake.org/install/](https://cmake.org/install/)
     2. CMake tutorial with CLion IDE: [https://www.jetbrains.com/help/clion/quick-cmake-tutorial.html](https://www.jetbrains.com/help/clion/quick-cmake-tutorial.html)
 3. `git` or some Git client. Used to clone this repository, and to grab GoogleTest for testing.
     1. Install Git: [https://git-scm.com/book/en/v2/Getting-Started-Installing-Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
     2. Install GitKraken (optional): [https://www.gitkraken.com/](https://www.gitkraken.com/)
-4. `make` and a C++ compiler.
+4. C++ build tools (`make`, compiler, ...).
     1. Use `sudo apt-get install build-essential` on Linux.
     2. Download CLion IDE (optional): [https://www.jetbrains.com/clion/download](https://www.jetbrains.com/clion/download)
 
@@ -62,7 +63,7 @@ Modify the `CONFIG.ini` file to fit your hardware and experiment parameters. A m
 Increasing this value raises your chances of collecting false positives, but decreasing this value may lead to more 
 false negatives.
 2. `sl` = Maximum number of tuples to select while querying the catalog.
-3. `prsc` = If toggled to 1, the reduction requirements become more 'lax'. Instead of going through each 
+3. `nr` = If toggled to 1, the reduction requirements are removed. Instead of going through each 
 identification's method specified reduction process, the first element of the list is simply selected.
 4. `fbr` = If toggled to 1, the results chosen from the reduction process will favor the bright star sets, as opposed
 to the more dimmer ones. 
@@ -71,12 +72,35 @@ noise. Increasing this value raises your chances of collecting false positives, 
 to more false negatives.
 6. `nu-m` = Maximum number of query star comparisons. To prevent an identification method from exhausting every 
 possible option and consuming time, set this appropriately.
-7. `wbs` = Wabha's problem solver. Select the choices: `TRIAD`, `QUEST`, or `Q`. These are different methods of 
+7. `wbs` = Wabha's problem solver. Select the choices: `TRIAD`, `SVD`, or `Q`. These are different methods of 
 determining a rotation given vector observations in both frame. For every instance where Wahba's problem occurs, this
 method will be applied.
 
-Download the Nibble database, `nibble.db` [here](https://drive.google.com/file/d/1fxId8hLzxEX9VJxO1-p_1ye_J8NRKlVK/view?usp=sharing),
-and store this in `hoku/data`. This holds all the data each identification method will reference (the catalog). 
+The `nibble.db` database holds all the data each identification method will reference (the catalog). The link 
+[here](https://drive.google.com/file/d/1fxId8hLzxEX9VJxO1-p_1ye_J8NRKlVK/view?usp=sharing) provides this database 
+with the given parameters:
+- Field-of-view (`fov` in `CONFIG.ini`) < 20
+- Maximum apparent magnitude seen by detector (`m-bright` in `CONFIG.ini`) = 6
+- Representation of sky at January 2018 (`time` in `CONFIG.ini`)
+
+For different parameters, modify `CONFIG.ini` and generate your own database using `GenerateN`. This program 
+generates the lookup tables for each identification method. To generate the `nibble.db` lookup tables for the Angle 
+method, enter the following:
+```cmd
+cd hoku/bin
+./GenerateN angle 
+```
+
+To generate the complete `nibble.db`, enter the following:
+```cmd
+cd hoku/bin
+./GenerateN hip
+./Generate angle
+./Generate sphere
+./Generate plane
+./Generate pyramid
+./Generate composite
+```
 
 ## Running Experiments
 There exist three experiments in this research:
@@ -86,7 +110,7 @@ There exist three experiments in this research:
 
 There exist six different identification methods implemented here:
 1. Gottlieb's Angle Method (`angle`)
-2. Liebe's Interior Angle Method (`interior`)
+2. Liebe's Interior Angle Method (`dot`)
 3. Cole and Crassidus's Spherical Triangle Method (`sphere`)
 4. Cole and Crassidus's Planar Triangle Method (`plane`)
 5. Mortari's Pyramid Method (`pyramid`)
@@ -107,18 +131,18 @@ TODO: Finish the `visualize_results.py` portion.
 
 ## Star Identification Procedure Usage
 
-### RunIdentify Executable
-To identify stars in an image and view the results, use the executable `RunIdentify`:
+### IdentifyFITS Executable
+To identify stars in an image and view the results, use the executable `IdentifyFITS`:
 ```cmd
 cd hoku/bin
-./RunIdentify [id-method] [image-file]
+./IdentifyFITS [id-method] [image-file]
 ```
 
 The first argument specifies the type of identification method to run. The second argument specifies the stars in 
 the image. To run the Angle identification method on `my-image.csv` with a field of view of 20 degrees, enter the 
 following:
 ```cmd
-./RunIdentify angle my-image.csv
+./IdentifyFITS angle my-image.csv
 ```
 
 The image file must be formatted in a comma separated manner, specifying the centroid coordinates in terms of a 
@@ -164,8 +188,7 @@ Angle::Parameters p;
 Identification::collect_parameters(p, cf);
 
 // Define the location of the comparison count, and the table name.
-unsigned int nu = 0;
-p.table_name = cf.Get("table-names", "angle", ""), p.nu = std::make_shared<unsigned int> (nu);
+p.table_name = cf.Get("table-names", "angle", ""), p.nu = std::make_shared<unsigned int> (0);
 
 // Output: A std::vector (Star::list) of Star objects, holding all stars in the image that were 
 //         identified, and with labels attached to them.

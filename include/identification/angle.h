@@ -39,7 +39,7 @@ class Angle : public Identification {
     labels_list reduce ();
     Star::list identify ();
     
-    static int generate_table (double fov, const std::string &table_name);
+    static int generate_table (INIReader &cf, const std::string &id_name = "angle");
     
     static const Parameters DEFAULT_PARAMETERS;
     static const Star::pair NO_CANDIDATE_PAIR_FOUND;
@@ -52,8 +52,8 @@ class Angle : public Identification {
   private:
 #endif
     labels_list query_for_pair (double theta);
-    Star::pair find_candidate_pair (const Star &b_a, const Star &b_b);
-    Star::list singular_identification (const Star::list &candidates, const Star::list &r, const Star::list &b);
+    Star::pair find_candidate_pair (const Star &b_i, const Star &b_j);
+    Star::list direct_match_test (const Star::list &big_p, const Star::list &r, const Star::list &b);
 };
 
 #endif /* HOKU_ANGLE_H */

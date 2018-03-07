@@ -15,226 +15,162 @@ using testing::UnorderedElementsAre;
 using testing::Each;
 using testing::Contains;
 
-/// Check that query_for_trio method returns the catalog ID of the correct stars.
-TEST(SphereQuery, TrioQuery) {
+/// Check that the constructor correctly sets the object's attributes.
+TEST(SphericalTriangleConstructor, Constructor) {
+    Chomp ch;
+    Benchmark input(ch, 20);
+    Sphere::Parameters p = {0.01, 0.00001, 0.0000001, 0.1, 10, false, true, 10, std::make_shared<unsigned int>(0),
+        Rotation::svd, "H"};
+    Sphere a(input, p);
+    
+    EXPECT_EQ(a.fov, 20);
+    EXPECT_EQ(a.ch.table, "H");
+    EXPECT_EQ(a.parameters.sigma_1, p.sigma_1);
+    EXPECT_EQ(a.parameters.sigma_2, p.sigma_2);
+    EXPECT_EQ(a.parameters.sigma_3, p.sigma_3);
+    EXPECT_EQ(a.parameters.sigma_4, p.sigma_4);
+    EXPECT_EQ(a.parameters.sql_limit, p.sql_limit);
+    EXPECT_EQ(a.parameters.no_reduction, p.no_reduction);
+    EXPECT_EQ(a.parameters.favor_bright_stars, p.favor_bright_stars);
+    EXPECT_EQ(a.parameters.nu_max, p.nu_max);
+    EXPECT_EQ(a.parameters.nu, p.nu);
+    EXPECT_EQ(a.parameters.f, p.f);
+    EXPECT_EQ(a.parameters.table_name, p.table_name);
+}
+
+/// Check the existence and the structure of the SphericalTriangle table.
+TEST(SphericalTriangleTable, ExistenceStructure) {
+    INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
+    Sphere::generate_table(cf);
+    Nibble nb;
+    
+    SQLite::Statement q(*nb.conn, "SELECT 1 FROM " + cf.Get("table-names", "sphere", "") + " LIMIT 1");
+    EXPECT_TRUE(q.executeStep());
+    EXPECT_NO_THROW(nb.select_table(cf.Get("table-names", "sphere", ""), true););
+    
+    std::string schema, fields;
+    nb.find_attributes(schema, fields);
+    EXPECT_EQ(schema, "label_a INT, label_b INT, label_c INT, a FLOAT, i FLOAT");
+    EXPECT_EQ(fields, "label_a, label_b, label_c, a, i");
+}
+
+/// Check that the entries in the SphericalTriangle table are correct.
+TEST(SphericalTriangleTable, CorrectEntries) {
+    INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
+    Sphere::generate_table(cf);
+    Chomp ch;
+    ch.select_table(cf.Get("table-names", "sphere", ""));
+    
+    Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532)};
+    std::sort(b.begin(), b.end(), [] (const Star &s_1, const Star &s_2) -> bool {
+        return s_1.get_label() < s_2.get_label();
+    });
+    double a = Trio::spherical_area(b[0], b[1], b[2]);
+    double i = Trio::spherical_moment(b[0], b[1], b[2]);
+    
+    Nibble::tuples_d t = ch.search_table("a, i", "label_a = " + std::to_string(b[0].get_label()) + " AND label_b = "
+                                                 + std::to_string(b[1].get_label()) + " AND label_c = "
+                                                 + std::to_string(b[2].get_label()), 1);
+    ASSERT_EQ(t.size(), 1);
+    ASSERT_EQ(t[0].size(), 2);
+    EXPECT_FLOAT_EQ(a, t[0][0]);
+    EXPECT_NEAR(i, t[0][1], 1.0e-8);
+}
+
+///// No test is performed here. This is just to see how long the entire table will load into memory.
+//TEST(SphericalTriangleTableChomp, InMemory) {
+//    INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
+//    Chomp ch(cf.Get("table-names", "sphere", ""), cf.Get("table-focus", "sphere", ""));
+//}
+
+/// Check that the query_for_trios method returns the correct result.
+TEST(SphericalTriangleTriosQuery, CleanInput) {
     Chomp ch;
     Benchmark input(ch, 15);
-    Sphere::Parameters par = Sphere::DEFAULT_PARAMETERS;
-    par.sigma_query = 0.000000001;
-    Sphere p(input, par);
+    Identification::Parameters p = Sphere::DEFAULT_PARAMETERS;
+    p.sigma_1 = p.sigma_2 = 0.000000001;
+    Sphere a(input, p);
+    std::vector<Star::trio> b = a.query_for_trios({0, 1, 2});
     
-    double a = Trio::spherical_area(input.stars[0], input.stars[1], input.stars[2]);
-    double b = Trio::spherical_moment(input.stars[0], input.stars[1], input.stars[2]);
-    std::vector<Sphere::label_trio> c = p.query_for_trio(a, b);
-    
-    // Check that original input trio exists in search.
-    for (const Sphere::label_trio &t : c) {
-        for (int i = 0; i < 3; i++) {
-            EXPECT_THAT(t, Contains(input.stars[i].get_label()));
-        }
-    }
-}
-
-
-/// Check that the zero-length stars are returned when an area between a pair of stars is greater than the current fov.
-TEST(SphereQuery, MatchStarsFOV) {
-    Chomp ch;
-    Sphere::Parameters par = Sphere::DEFAULT_PARAMETERS;
-    Sphere a(Benchmark(ch, 10), par);
-    a.input[0] = Star::reset_label(ch.query_hip(3));
-    a.input[1] = Star::reset_label(ch.query_hip(4));
-    a.input[2] = Star::reset_label(ch.query_hip(5));
-    
-    std::vector<Star::trio> b = a.match_stars(Sphere::STARTING_INDEX_TRIO);
-    EXPECT_THAT(b[0], Each(Star::zero()));
-}
-
-/// Check that the zero-length stars are returned when no matching trio is found.
-TEST(SphereQuery, MatchStarsNone) {
-    Sphere::Parameters par = Sphere::DEFAULT_PARAMETERS;
-    par.sigma_query = std::numeric_limits<double>::epsilon();
-    Chomp ch;
-    Sphere a(Benchmark(ch, 10), par);
-    a.input[0] = Star(1, 1, 1.1);
-    a.input[1] = Star(1, 1, 1);
-    a.input[2] = Star(1.1, 1, 1);
-    
-    std::vector<Star::trio> b = a.match_stars(Sphere::STARTING_INDEX_TRIO);
-    EXPECT_THAT(b[0], Each(Star::zero()));
-}
-
-/// Check that the correct stars are returned from the candidate trio query.
-TEST(SphereQuery, MatchStarsResults) {
-    Sphere::Parameters par = Sphere::DEFAULT_PARAMETERS;
-    par.sigma_query = 10e-9;
-    Chomp ch;
-    Benchmark input(ch, 20);
-    Sphere a(input, par);
-    std::vector<Star::trio> b = a.match_stars(Sphere::STARTING_INDEX_TRIO);
-    
-    // Check that original input trio exists in search.
-    for (const Star::trio &t : b) {
-        for (int i = 0; i < 3; i++) {
-            Identification::labels_list t_ell = {t[0].get_label(), t[1].get_label(), t[2].get_label()};
-            EXPECT_THAT(t_ell, Contains(input.stars[i].get_label()));
-        }
-    }
-}
-
-/// Check that the pivot query method returns the correct trio.
-TEST(SphereQuery, PivotResults) {
-    Sphere::Parameters par = Sphere::DEFAULT_PARAMETERS;
-    par.sigma_query = 10e-9;
-    par.sigma_overlay = 0.000001;
-    Chomp ch;
-    Benchmark input(ch, 20);
-    Sphere a(input, par);
-    
-    Star::trio c = a.pivot(Sphere::STARTING_INDEX_TRIO);
-    std::vector<int> c_ell = {c[0].get_label(), c[1].get_label(), c[2].get_label()};
-    EXPECT_THAT(c_ell, Contains(input.stars[0].get_label()));
-    EXPECT_THAT(c_ell, Contains(input.stars[1].get_label()));
-    EXPECT_THAT(c_ell, Contains(input.stars[2].get_label()));
-}
-
-/// Check that the rotating match method marks the all stars as matched.
-TEST(SphereMatch, RotatingCorrectInput) {
-    Sphere::Parameters par = Sphere::DEFAULT_PARAMETERS;
-    Chomp ch;
-    Star a = Star::chance(), b = Star::chance();
-    Rotation c = Rotation::chance();
-    Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
-    Rotation f = Rotation::triad({a, b}, {d, e});
-    Benchmark input(ch, Star::chance(), c, 8);
-    std::vector<Star> rev_input;
-    par.sigma_overlay = 0.000001;
-    Sphere g(input, par);
-    
-    // Reverse all input by inverse rotation.
-    rev_input.reserve(input.stars.size());
-    for (Star rotated : input.stars) {
-        rev_input.push_back(Rotation::rotate(rotated, f));
-    }
-    
-    std::vector<Star> h = g.find_matches(rev_input, c);
-    ASSERT_EQ(h.size(), input.stars.size());
-    for (unsigned int q = 0; q < h.size(); q++) {
-        EXPECT_EQ(h[q].get_label(), input.stars[q].get_label());
-    }
-}
-
-/// Check that the rotating match method marks only the correct stars as matched.
-TEST(SphereMatch, RotatingErrorInput) {
-    Sphere::Parameters par = Sphere::DEFAULT_PARAMETERS;
-    Chomp ch;
-    Star a = Star::chance(), b = Star::chance();
-    Rotation c = Rotation::chance();
-    Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
-    Rotation f = Rotation::triad({a, b}, {d, e});
-    Benchmark input(ch, Star::chance(), c, 8);
-    std::vector<Star> rev_input;
-    par.sigma_overlay = 0.000001;
-    Sphere g(input, par);
-    
-    // Reverse all input by inverse rotation.
-    rev_input.reserve(input.stars.size());
-    for (Star rotated : input.stars) {
-        rev_input.push_back(Rotation::rotate(rotated, f));
-    }
-    
-    // Append focus as error.
-    rev_input.push_back(input.focus);
-    std::vector<Star> h = g.find_matches(rev_input, c);
-    ASSERT_EQ(h.size(), input.stars.size());
-    for (unsigned int q = 0; q < h.size(); q++) {
-        EXPECT_EQ(h[q].get_label(), input.stars[q].get_label());
-    }
-}
-
-/// Check that the rotating match method marks only the correct stars as matched, not the duplicate as well.
-TEST(SphereMatch, RotatingDuplicateInput) {
-    Sphere::Parameters par = Sphere::DEFAULT_PARAMETERS;
-    Chomp ch;
-    Star a = Star::chance(), b = Star::chance();
-    Rotation c = Rotation::chance();
-    Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
-    Rotation f = Rotation::triad({a, b}, {d, e});
-    Benchmark input(ch, Star::chance(), c, 8);
-    std::vector<Star> rev_input;
-    par.sigma_overlay = 0.000001;
-    Sphere g(input, par);
-    
-    // Reverse all input by inverse rotation.
-    rev_input.reserve(input.stars.size());
-    for (Star rotated : input.stars) {
-        rev_input.push_back(Rotation::rotate(rotated, f));
-    }
-    
-    // Append first star as error.
-    rev_input.push_back(rev_input[0]);
-    rev_input.push_back(rev_input[0]);
-    rev_input.push_back(rev_input[0]);
-    
-    std::vector<Star> h = g.find_matches(rev_input, c);
-    ASSERT_EQ(h.size(), input.stars.size());
-    for (unsigned int q = 0; q < h.size(); q++) {
-        EXPECT_EQ(h[q].get_label(), input.stars[q].get_label());
-    }
+    EXPECT_EQ(b.size(), 1);
+    EXPECT_THAT(b[0], Contains(ch.query_hip(input.b[0].get_label())));
+    EXPECT_THAT(b[0], Contains(ch.query_hip(input.b[1].get_label())));
+    EXPECT_THAT(b[0], Contains(ch.query_hip(input.b[2].get_label())));
 }
 
 /// Check that a clean input returns the expected query result.
-TEST(SphereTrial, CleanQuery) {
+TEST(SphericalTriangleTrial, CleanQuery) {
     Chomp ch;
     Sphere::Parameters p = Sphere::DEFAULT_PARAMETERS;
-    p.sigma_query = 10e-9;
-    Benchmark input(ch, 15);
+    p.sigma_1 = p.sigma_2 = 10e-8, p.no_reduction = false;
     Sphere a(Benchmark::black(), p);
+    Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532)};
     
-    std::vector<Identification::labels_list> d = a.query({input.stars[0], input.stars[1], input.stars[2]});
-    Identification::labels_list ell = {input.stars[0].get_label(), input.stars[1].get_label(),
-        input.stars[2].get_label()};
-    
-    std::sort(ell.begin(), ell.end());
-    EXPECT_THAT(d, Contains(ell));
+    std::vector<Identification::labels_list> d = a.query(b);
+    EXPECT_THAT(d, Contains(Identification::labels_list {95498, 102531, 102532}));
 }
 
 /// Check that a clean input returns the correct stars from a set of candidates.
-TEST(SphereTrial, CleanReduction) {
+TEST(SphericalTriangleTrial, CleanReduction) {
     Chomp ch;
     Sphere::Parameters p = Sphere::DEFAULT_PARAMETERS;
-    p.sigma_query = 10e-10;
-    p.sigma_overlay = 0.0001;
-    Benchmark input(ch, 15);
-    Sphere a(input, p);
-    Identification::labels_list ell = {input.stars[0].get_label(), input.stars[1].get_label(),
-        input.stars[2].get_label()};
+    p.sigma_1 = p.sigma_2 = 10e-10, p.sql_limit = 1000000;
+    Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532), ch.query_hip(101958),
+        ch.query_hip(101909)};
     
-    std::sort(ell.begin(), ell.end());
-    EXPECT_THAT(a.reduce(), UnorderedElementsAre(ell[0], ell[1], ell[2]));
+    Benchmark i(b, b[0], 20);
+    Sphere a(i, p);
+    EXPECT_THAT(a.reduce(), UnorderedElementsAre(102531, 95498, 102532));
 }
 
 /// Check that a clean input returns the expected identification of stars.
-TEST(SphereTrial, CleanIdentify) {
+TEST(SphericalTriangleTrial, CleanIdentify) {
     Chomp ch;
-    Rotation q = Rotation::chance();
-    Star focus = Star::chance();
-    unsigned int nu = 0;
     Sphere::Parameters p = Sphere::DEFAULT_PARAMETERS;
-    p.sigma_query = 10e-9;
-    p.sigma_overlay = 0.000001;
-    p.nu = std::make_shared<unsigned int>(nu);
-    Benchmark input(ch, focus, q, 15, 6.0);
+    p.nu = std::make_shared<unsigned int>(0);
+    p.sigma_1 = p.sigma_2 = 10e-9;
+    p.sigma_4 = 0.000001;
     
-    Star::list b = {Rotation::rotate(input.stars[0], q), Rotation::rotate(input.stars[1], q),
-        Rotation::rotate(input.stars[2], q)};
-    Star::list c = {ch.query_hip(input.stars[0].get_label()), ch.query_hip(input.stars[1].get_label()),
-        ch.query_hip(input.stars[2].get_label())};
+    Rotation q = Rotation::chance();
+    Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532), ch.query_hip(101958),
+        ch.query_hip(101909)};
+    Star::list c = {Rotation::rotate(b[0], q), Rotation::rotate(b[1], q), Rotation::rotate(b[2], q),
+        Rotation::rotate(b[3], q), Rotation::rotate(b[4], q)};
     
-    Sphere a(Benchmark(b, Rotation::rotate(focus, q), 20), p);
-    Star::list f = a.identify();
-    EXPECT_THAT(f, Contains(Star::define_label(b[0], c[0].get_label())));
-    EXPECT_THAT(f, Contains(Star::define_label(b[1], c[1].get_label())));
-    EXPECT_THAT(f, Contains(Star::define_label(b[2], c[2].get_label())));
+    Sphere a(Benchmark(c, c[0], 20), p);
+    Star::list h = a.identify();
+    EXPECT_THAT(h, Contains(Star::define_label(c[0], 102531)));
+    EXPECT_THAT(h, Contains(Star::define_label(c[1], 95498)));
+    EXPECT_THAT(h, Contains(Star::define_label(c[2], 102532)));
+}
+
+/// Check that the nu_max is respected in identification.
+TEST(SphericalTriangleTrial, ExceededNu) {
+    Chomp ch;
+    Benchmark input(ch, 15);
+    input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
+    Sphere::Parameters p = Sphere::DEFAULT_PARAMETERS;
+    p.nu = std::make_shared<unsigned int>(0), p.nu_max = 10;
+    p.sigma_1 = p.sigma_2 = std::numeric_limits<double>::epsilon();
+    p.sigma_4 = std::numeric_limits<double>::epsilon();
+    Sphere a(input, p);
+    
+    EXPECT_EQ(a.identify()[0], Sphere::EXCEEDED_NU_MAX[0]);
+    EXPECT_EQ(*p.nu, p.nu_max + 1);
+}
+
+/// Check that the correct result is returned when no map is found.
+TEST(SphericalTriangleTrial, NoMapFound) {
+    Chomp ch;
+    Benchmark input(ch, 7);
+    input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
+    Sphere::Parameters p = Sphere::DEFAULT_PARAMETERS;
+    p.nu = std::make_shared<unsigned int>(0), p.nu_max = std::numeric_limits<unsigned int>::max();
+    p.sigma_1 = p.sigma_2 = std::numeric_limits<double>::epsilon();
+    p.sigma_4 = std::numeric_limits<double>::epsilon();
+    Sphere a(input, p);
+    
+    EXPECT_EQ(a.identify()[0], Sphere::NO_CONFIDENT_A[0]);
 }
 
 /// Runs all tests defined in this file.

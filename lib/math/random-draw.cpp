@@ -17,11 +17,11 @@ double RandomDraw::draw_real (double floor, double ceiling) {
 
 /// Return a real (floating) number in a normal distribution with the given mean and deviation.
 ///
-/// @param mean Mean of the distribution.
-/// @param deviation Deviation of the distribution.
+/// @param mu Mean of the distribution.
+/// @param sigma Deviation of the distribution.
 /// @return Random number from described normal distribution.
-double RandomDraw::draw_normal (double mean, double deviation) {
-    std::normal_distribution<double> d(mean, deviation);
+double RandomDraw::draw_normal (double mu, double sigma) {
+    std::normal_distribution<double> d(mu, sigma);
     return d(mersenne_twister);
 }
 
