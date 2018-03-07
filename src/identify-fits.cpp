@@ -34,7 +34,6 @@ namespace NBHA {
         cf.Get("table-names", "composite", "")};
 }
 
-// TODO: Fix the documentation below.
 /// Given the name of a FITS image file, determine the image center and the rest of the stars.
 ///
 /// @param image Reference to the filename argument passed with this program.
@@ -67,14 +66,13 @@ std::unique_ptr<std::ifstream> parse_fits (const std::string &image) {
     return centroids_f;
 }
 
-// TODO: Fix the documentation below.
 /// Given an open filestream to a CSV containing the centroids of a FITS image, determine the image center (which
 /// should be returned first) and the rest of the stars.
 ///
-/// @param image Reference to the filename argument passed with this program.
+/// @param image Reference to the a pointer of the filename argument passed with this program.
 /// @return Empty list if there exist less than four total stars. Otherwise, the list of stars. The first is the focus,
 /// and the following are the stars in the image.
-Star::list parse_centroids (std::unique_ptr<std::ifstream> centroids) {
+Star::list parse_centroids (const std::unique_ptr<std::ifstream> &centroids) {
     double hf = cf.GetReal("hardware", "mp", 0) / 2, dpp = cf.GetReal("hardware", "dpp", 0);
     Star::list s_i;
     
@@ -94,7 +92,7 @@ Star::list parse_centroids (std::unique_ptr<std::ifstream> centroids) {
             double x = s_c[0] - hf, y = s_c[1] - hf;
             
             // Project the star to 3D, and save it.
-            s_i.push_back(Mercator::transform_point(x, y, dpp).normalize());
+            s_i.push_back(Star::wrap(Mercator::transform_point(x, y, dpp)));
         }
     }
     catch (std::exception &e) {
@@ -130,7 +128,7 @@ int identify_fits (const std::string &id_method, const Star::list &s_i) {
     Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
     p.table_name = cf.Get("table-names", id_method, Identification::DEFAULT_TABLE_NAME);
     p.nu = std::make_shared<unsigned int>(nu);
-    Identification::collect_parameters(p, cf);
+    Identification::collect_parameters(p, cf, id_method);
     
     // Identify using the given ID method, and display the results through Python.
     auto identify = [&input, &p, &s_i, &fov] (const Star::list &result) -> int {

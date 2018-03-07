@@ -12,9 +12,9 @@
 #include "identification/pyramid.h"
 
 /// Default parameters for the pyramid identification method.
-const Identification::Parameters Pyramid::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
-    DEFAULT_NO_REDUCTION, DEFAULT_FAVOR_BRIGHT_STARS, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_F,
-    "PYRAMID_20"};
+const Identification::Parameters Pyramid::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_QUERY,
+    DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_4, DEFAULT_SQL_LIMIT, DEFAULT_NO_REDUCTION, DEFAULT_FAVOR_BRIGHT_STARS,
+    DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_F, "PYRAMID_20"};
 
 /// Returned when there exists no common stars between the label list pairs.
 const Star::list Pyramid::NO_COMMON_FOUND = {Star::wrap(Vector3::Zero())};
@@ -47,7 +47,7 @@ int Pyramid::generate_table (INIReader &cf) {
 /// @return List of star lists (of size = 2) that fall within epsilon degrees of theta.
 Pyramid::labels_list_list Pyramid::query_for_pairs (const double theta) {
     // Noise is normally distributed. Angle within 3 sigma of theta.
-    double epsilon = 3.0 * this->parameters.sigma_query;
+    double epsilon = 3.0 * this->parameters.sigma_1;
     Chomp::tuples_d big_r_mn_tuples;
     labels_list_list big_r_mn_ell;
     

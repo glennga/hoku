@@ -22,12 +22,16 @@ using testing::Not;
 TEST(DotAngleConstructor, Constructor) {
     Chomp ch;
     Benchmark input(ch, 20);
-    Dot::Parameters p = {0.01, 10, false, true, 0.1, 10, std::make_shared<unsigned int>(0), Rotation::svd, "H"};
+    Dot::Parameters p = {0.01, 0.000001, 0.00000000001, 0.1, 10, false, true, 10, std::make_shared<unsigned int>(0),
+        Rotation::svd, "H"};
     Dot a(input, p);
     
     EXPECT_EQ(a.fov, 20);
     EXPECT_EQ(a.ch.table, "H");
-    EXPECT_EQ(a.parameters.sigma_query, p.sigma_query);
+    EXPECT_EQ(a.parameters.sigma_1, p.sigma_1);
+    EXPECT_EQ(a.parameters.sigma_2, p.sigma_2);
+    EXPECT_EQ(a.parameters.sigma_3, p.sigma_3);
+    EXPECT_EQ(a.parameters.sigma_4, p.sigma_4);
     EXPECT_EQ(a.parameters.sql_limit, p.sql_limit);
     EXPECT_EQ(a.parameters.no_reduction, p.no_reduction);
     EXPECT_EQ(a.parameters.favor_bright_stars, p.favor_bright_stars);
@@ -76,12 +80,19 @@ TEST(DotAngleTable, CorrectEntries) {
     EXPECT_FLOAT_EQ(phi, t[0][2]);
 }
 
+///// No test is performed here. This is just to see how long the entire table will load into memory.
+//TEST(DotAngleChomp, InMemory) {
+//    INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
+//    Chomp ch(cf.Get("table-names", "dot", ""), cf.Get("table-focus", "dot", ""));
+//}
+
 /// Check that query_for_trio method returns the catalog ID of the correct stars, and actually returns stars.
 TEST(DotAngleQuery, Trio) {
     Chomp ch;
     Benchmark input(ch, 15);
     Dot::Parameters p = Dot::DEFAULT_PARAMETERS, p2 = Dot::DEFAULT_PARAMETERS;
-    p.sigma_query = 0.000000001, p2.sigma_query = 0.1;
+    p.sigma_1 = p.sigma_2 = p.sigma_3 = 0.000000001;
+    p.sigma_1 = p.sigma_2 = p.sigma_3 = 0.1;
     
     Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532)};
     double theta_1 = (180.0 / M_PI) * Vector3::Angle(b[0], b[2]);
@@ -107,7 +118,7 @@ TEST(DotAngleQuery, ExpectedFailure) {
     Benchmark input(ch, 15), input2(ch, 15);
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
     Dot::Parameters p = Dot::DEFAULT_PARAMETERS;
-    p.sigma_query = std::numeric_limits<double>::epsilon();
+    p.sigma_1 = p.sigma_2 = p.sigma_3 = std::numeric_limits<double>::epsilon();
     
     double theta_1 = (180.0 / M_PI) * Vector3::Angle(input.b[0], input.b[2]);
     double theta_2 = (180.0 / M_PI) * Vector3::Angle(input.b[1], input.b[2]);
@@ -130,7 +141,7 @@ TEST(DotAngleQuery, ExpectedFailure) {
     }
     double phi_2 = Trio::dot_angle(input2.b[0], input2.b[1], input2.b[2]);
     
-    p.sigma_query = 0.01;
+    p.sigma_1 = p.sigma_2 = p.sigma_3 = 0.01;
     Identification::labels_list c = Dot(input, p).query_for_trio(theta_1_b, theta_2_b, phi_2);
     EXPECT_THAT(Dot::EMPTY_BIG_R_ELL, Contains(c[0]));
     EXPECT_THAT(Dot::EMPTY_BIG_R_ELL, Contains(c[1]));
@@ -141,7 +152,7 @@ TEST(DotAngleQuery, FavorBrightStarsFlag) {
     Chomp ch;
     Benchmark input(ch, 15);
     Dot::Parameters p = Dot::DEFAULT_PARAMETERS, p2 = Dot::DEFAULT_PARAMETERS;
-    p.sigma_query = 0.1, p2.sigma_query = 0.1, p.favor_bright_stars = true;
+    p.sigma_1 = p.sigma_2 = p.sigma_3 = 0.1, p2.sigma_1 = p2.sigma_2 = p2.sigma_3 = 0.1, p.favor_bright_stars = true;
     p.no_reduction = false, p2.no_reduction = false, p.sql_limit = 100000, p2.sql_limit = 100000;
     
     Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532)};
@@ -189,7 +200,7 @@ TEST(DotAngleCandidateTrio, Condition6D) {
 TEST(DotAngleCandidatePair, None) {
     Chomp ch;
     Dot a(Benchmark(ch, 10), Dot::DEFAULT_PARAMETERS);
-
+    
     Star::trio b = a.find_candidate_trio(Star(1, 1, 1), Star(1.1, 1, 1), Star(1.11, 1, 1));
     EXPECT_THAT(Dot::NO_CANDIDATE_TRIO_FOUND, Contains(b[0]));
     EXPECT_THAT(Dot::NO_CANDIDATE_TRIO_FOUND, Contains(b[1]));
@@ -201,9 +212,9 @@ TEST(DotAngleResults, Query) {
     Chomp ch;
     Benchmark input(ch, 15);
     Dot::Parameters p = Dot::DEFAULT_PARAMETERS;
-    p.sigma_query = 0.001, p.sql_limit = 100000;
+    p.sigma_1 = p.sigma_2 = p.sigma_3 = 0.001, p.sql_limit = 100000;
     Dot b(input, p);
-
+    
     Star::trio c = b.find_candidate_trio(input.b[0], input.b[1], input.b[2]);
     if (std::equal(c.begin(), c.end(), Dot::NO_CANDIDATE_TRIO_FOUND.begin())) {
         c = b.find_candidate_trio(input.b[1], input.b[0], input.b[2]);
@@ -218,10 +229,10 @@ TEST(DotAngleResults, Query) {
 TEST(DotAngleTrial, CleanQuery) {
     Chomp ch;
     Dot::Parameters p = Dot::DEFAULT_PARAMETERS;
-    p.sigma_query = 10e-7, p.no_reduction = false;
+    p.sigma_1 = p.sigma_2 = p.sigma_3 = 10e-7, p.no_reduction = false;
     Dot a(Benchmark::black(), p);
     Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532)};
-
+    
     std::vector<Identification::labels_list> d = a.query(b);
     EXPECT_EQ(d[0][0], 102531);
     EXPECT_EQ(d[0][1], 95498);
@@ -232,7 +243,7 @@ TEST(DotAngleTrial, CleanQuery) {
 TEST(DotAngleTrial, CleanReduction) {
     Chomp ch;
     Dot::Parameters p = Dot::DEFAULT_PARAMETERS;
-    p.sigma_overlay = 0.0001, p.sigma_query = 0.000000001;
+    p.sigma_4 = 0.0001, p.sigma_1 = p.sigma_2 = p.sigma_3 = 0.000000001;
     
     Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532)};
     Benchmark i(b, b[0], 20);
@@ -245,13 +256,13 @@ TEST(DotAngleTrial, CleanIdentify) {
     Chomp ch;
     Dot::Parameters p = Dot::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0);
-    p.sigma_query = 10e-9;
-    p.sigma_overlay = 0.000001;
-
+    p.sigma_1 = p.sigma_2 = p.sigma_3 = 10e-9;
+    p.sigma_4 = 0.000001;
+    
     Rotation q = Rotation::chance();
     Star b = ch.query_hip(102531), c = ch.query_hip(95498), d = ch.query_hip(102532);
     Star e = Rotation::rotate(b, q), f = Rotation::rotate(c, q), g = Rotation::rotate(d, q);
-
+    
     Dot a(Benchmark({e, f, g}, e, 20), p);
     Star::list h = a.identify();
     EXPECT_THAT(h, Contains(Star::define_label(e, 102531)));
@@ -266,10 +277,10 @@ TEST(DotAngleTrial, ExceededNu) {
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
     Dot::Parameters p = Dot::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0), p.nu_max = 10;
-    p.sigma_query = std::numeric_limits<double>::epsilon();
-    p.sigma_overlay = std::numeric_limits<double>::epsilon();
+    p.sigma_1 = p.sigma_2 = p.sigma_3 = std::numeric_limits<double>::epsilon();
+    p.sigma_4 = std::numeric_limits<double>::epsilon();
     Dot a(input, p);
-
+    
     EXPECT_EQ(a.identify()[0], Dot::EXCEEDED_NU_MAX[0]);
     EXPECT_EQ(*p.nu, p.nu_max + 1);
 }
@@ -281,10 +292,10 @@ TEST(DotAngleTrial, NoMapFound) {
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
     Dot::Parameters p = Dot::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0), p.nu_max = std::numeric_limits<unsigned int>::max();
-    p.sigma_query = std::numeric_limits<double>::epsilon();
-    p.sigma_overlay = std::numeric_limits<double>::epsilon();
+    p.sigma_1 = p.sigma_2 = p.sigma_3 = std::numeric_limits<double>::epsilon();
+    p.sigma_4 = std::numeric_limits<double>::epsilon();
     Dot a(input, p);
-
+    
     EXPECT_EQ(a.identify()[0], Dot::NO_CONFIDENT_A[0]);
 }
 

@@ -21,11 +21,13 @@ class Identification {
   public:
     // All identification methods must contain these parameters.
     struct Parameters {
-        double sigma_query; ///< Query must be within 3 * sigma_query.
+        double sigma_1; ///< Sigma used for database queries.
+        double sigma_2; ///< Sigma used for additional reduction (triangle, dot...).
+        double sigma_3; ///< Sigma used for phi in the Dot method.
+        double sigma_4; ///< Resultant of inertial->body rotation must within 3 * sigma_overlay of *a* body.
         unsigned int sql_limit; ///< While performing a SQL query, limit results by this number.
         bool no_reduction; ///< If false, the restrict |R| = 1 is lifted. R_1 is returned instead.
         bool favor_bright_stars; ///< If false, do not favor bright stars in resulting set.
-        double sigma_overlay; ///< Resultant of inertial->body rotation must within 3 * sigma_overlay of *a* body.
         unsigned int nu_max; ///< Maximum number of query star comparisons before returning an empty list.
         std::shared_ptr<unsigned int> nu; ///< Pointer to the location to hold the count of query star comparisons.
         Rotation::wahba_function f; ///< Function to use to solve Wahba's problem with.
@@ -45,7 +47,7 @@ class Identification {
     static constexpr bool DEFAULT_FAVOR_BRIGHT_STARS = false;
     
     /// Default sigma overlay (for matching) for all identification methods.
-    static constexpr double DEFAULT_SIGMA_OVERLAY = std::numeric_limits<double>::epsilon() * 10000;
+    static constexpr double DEFAULT_SIGMA_4 = std::numeric_limits<double>::epsilon() * 10000;
     
     /// Default nu max (comparison counts) for all identification methods.
     static constexpr unsigned int DEFAULT_NU_MAX = 50000;
@@ -67,7 +69,7 @@ class Identification {
   
   public:
     Identification ();
-    static void collect_parameters(Parameters &p, INIReader &cf);
+    static void collect_parameters(Parameters &p, INIReader &cf, const std::string &identifier);
     
     virtual std::vector<labels_list> query (const Star::list &s) = 0;
     virtual labels_list reduce () = 0;

@@ -34,8 +34,8 @@ def locate_stars(img_cv, cf):
     img_moments = list(map(lambda m: cv2.moments(m), contours))
 
     # Compute the centroids, given each moment.
-    img_centroids = list(map(lambda m: [m['m10'] / m['m00'], m['m01'] / m['m00']]))
-    img_centroids = filter(lambda c: not np.isnan(c))
+    img_centroids = list(map(lambda m: [m['m10'] / m['m00'], m['m01'] / m['m00']]), img_moments)
+    img_centroids = filter(lambda c: not np.isnan(c), img_centroids)
 
     # Sort by brightness. Return iff the pixel intensity is above the given cutoff.
     cutoff = cf['centroid-find']['min-cut']

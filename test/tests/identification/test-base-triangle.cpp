@@ -27,7 +27,7 @@ TEST(BaseQuery, CorrectInput) {
     Chomp ch;
     Benchmark input(ch, 15);
     Identification::Parameters p = Plane::DEFAULT_PARAMETERS;
-    p.sigma_query = 1.0e-9;
+    p.sigma_1 = p.sigma_2 = 1.0e-9;
     
     Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532)};
     std::sort(b.begin(), b.end(), [] (const Star &s_1, const Star &s_2) -> bool {
@@ -51,7 +51,7 @@ TEST(BaseQuery, NoCandidates) {
     Chomp ch;
     Benchmark input(ch, 15);
     Identification::Parameters p = Plane::DEFAULT_PARAMETERS;
-    p.sigma_query = std::numeric_limits<double>::epsilon();
+    p.sigma_1 = p.sigma_2 = std::numeric_limits<double>::epsilon();
     
     Star::list b = {Star(1, 1, 1), Star(1.101, 1, 1), Star(1.11, 1, 1)};
     std::sort(b.begin(), b.end(), [] (const Star &s_1, const Star &s_2) -> bool {
@@ -75,7 +75,7 @@ TEST(BaseQuery, FavorBrightStarsFlag) {
     Chomp ch;
     Benchmark input(ch, 15);
     Identification::Parameters p = Plane::DEFAULT_PARAMETERS, p2 = Plane::DEFAULT_PARAMETERS;
-    p.sigma_query = 0.00000001, p2.sigma_query = 0.00000001, p.favor_bright_stars = true;
+    p.sigma_1 = p.sigma_2 = 0.00000001, p2.sigma_1 = p2.sigma_2 = 0.00000001, p.favor_bright_stars = true;
     p.no_reduction = true, p2.no_reduction = true, p.sql_limit = 100000, p2.sql_limit = 100000;
     
     Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532)};
@@ -116,7 +116,7 @@ TEST(BaseQueryTrios, NoCandidates) {
     Chomp ch;
     Plane a(Benchmark::black(), Plane::DEFAULT_PARAMETERS);
     Star::list b = {Star(1, 1, 1), Star(1.1, 1, 1), Star(1.11, 1, 1)};
-    a.fov = 10, a.big_i = b, a.parameters.sigma_query = std::numeric_limits<double>::epsilon();
+    a.fov = 10, a.big_i = b, a.parameters.sigma_1 = a.parameters.sigma_2 = std::numeric_limits<double>::epsilon();
     
     std::vector<Star::trio> e = a.base_query_for_trios({0, 1, 2}, Trio::planar_area, Trio::planar_moment);
     EXPECT_EQ(e.size(), 1);
@@ -130,7 +130,7 @@ TEST(BaseQueryTrios, CorrectInput) {
     Chomp ch;
     Benchmark input(ch, 15);
     Identification::Parameters p = Plane::DEFAULT_PARAMETERS;
-    p.sigma_query = 1.0e-9;
+    p.sigma_1 = p.sigma_2 = 1.0e-9;
     Plane a(input, p);
     std::vector<Star::trio> b = a.base_query_for_trios({0, 1, 2}, Trio::planar_area, Trio::planar_moment);
     
@@ -171,7 +171,7 @@ TEST(BasePivot, DifferentResult) {
     Plane::Parameters p = Plane::DEFAULT_PARAMETERS, p2 = Plane::DEFAULT_PARAMETERS;
     input.b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532), ch.query_hip(101958),
         ch.query_hip(101909)};
-    p.sigma_query = 10e-9, p2.sigma_query = 10e-9, p.no_reduction = true;
+    p.sigma_1 = p.sigma_2 = 10e-9, p2.sigma_1 = p2.sigma_2 = 10e-9, p.no_reduction = true;
     Plane c(input, p), d(input, p2);
     
     c.initialize_pivot({0, 1, 2}), d.initialize_pivot({0, 1, 2});
@@ -194,7 +194,7 @@ TEST(BasePivot, NoCandidateStars) {
     Benchmark input(ch, 20);
     Plane::Parameters p = Plane::DEFAULT_PARAMETERS;
     input.b = {Star(1, 1, 1), Star(1.1, 1, 1), Star(1.11, 1, 1)};
-    p.sigma_query = std::numeric_limits<double>::epsilon();
+    p.sigma_1 = p.sigma_2 = std::numeric_limits<double>::epsilon();
     Plane c(input, p);
     
     c.initialize_pivot({0, 1, 2});
@@ -210,7 +210,7 @@ TEST(BasePivot, CorrectInput) {
     Chomp ch;
     Benchmark input(ch, 20);
     Plane::Parameters p = Plane::DEFAULT_PARAMETERS;
-    p.sigma_query = 1.0e-10;
+    p.sigma_1 = p.sigma_2 = 1.0e-10;
     Plane c(input, p);
     
     c.initialize_pivot({0, 1, 2});
@@ -231,7 +231,7 @@ TEST(BaseDMT, DirectMatchTest) {
     Star::list n_q = {Rotation::rotate(n[0], q), Rotation::rotate(n[1], q), Rotation::rotate(n[2], q)};
     Benchmark input(n_q, n_q[0], 20);
     Identification::Parameters p = Plane::DEFAULT_PARAMETERS;
-    p.sigma_overlay = 0.0001;
+    p.sigma_4 = 0.0001;
     Plane b(input, p);
     
     Star::list a = b.direct_match_test(n, {n[0], n[1], n[2]}, {input.b[0], input.b[1], input.b[2]});

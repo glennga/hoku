@@ -12,9 +12,9 @@
 #include "identification/composite-pyramid.h"
 
 /// Default parameters for the composite pyramid identification method.
-const Identification::Parameters Composite::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
-    DEFAULT_NO_REDUCTION, DEFAULT_FAVOR_BRIGHT_STARS, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_F,
-    "COMPOSITE_20"};
+const Identification::Parameters Composite::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_QUERY,
+    DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_4, DEFAULT_SQL_LIMIT, DEFAULT_NO_REDUCTION, DEFAULT_FAVOR_BRIGHT_STARS,
+    DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_F, "COMPOSITE_20"};
 
 /// Constructor. Sets the benchmark data, fov, parameters, and current working table. This is identical to the
 /// Pyramid constructor, so we use this instead.
@@ -40,21 +40,21 @@ int Composite::generate_table (INIReader &cf) {
 /// @return NO_CANDIDATE_TRIOS_FOUND if there exists no queried trios. Otherwise, the list of star lists (of size = 3)
 /// that fall within a and i of the given epsilon.
 Composite::labels_list_list Composite::query_for_trios (const double a, const double i) {
-    double epsilon = 3.0 * this->parameters.sigma_query;
+    double epsilon_1 = 3.0 * this->parameters.sigma_1, epsilon_2 = 3.0 * this->parameters.sigma_2;
     std::vector<labels_list> big_r_ell = BaseTriangle::NO_CANDIDATE_TRIOS_FOUND;
     Nibble::tuples_d a_match;
     
     // First, search for trio of stars matching area condition.
-    a_match = ch.simple_bound_query("a", "label_a, label_b, label_c, i", a - epsilon, a + epsilon,
+    a_match = ch.simple_bound_query("a", "label_a, label_b, label_c, i", a - epsilon_1, a + epsilon_1,
                                     this->parameters.sql_limit);
     
     // Next, search this trio for stars matching the moment condition.
     big_r_ell.reserve(a_match.size() / 4);
-    for (Chomp::tuple_d t : a_match) {
-        if (t[3] >= i - epsilon && t[3] < i + epsilon) {
+    std::for_each(a_match.begin(), a_match.end(), [&epsilon_2, &big_r_ell, &i] (const Chomp::tuple_d &t) -> void {
+        if (t[3] >= i - epsilon_2 && t[3] < i + epsilon_2) {
             big_r_ell.push_back({static_cast<int> (t[0]), static_cast<int> (t[1]), static_cast<int>(t[2])});
         }
-    }
+    });
     
     // If results are found, remove the initialized value of NO_CANDIDATE_TRIOS_FOUND.
     if (big_r_ell.size() > 1) {
@@ -159,22 +159,22 @@ std::vector<Identification::labels_list> Composite::query (const Star::list &s) 
     if (s.size() != QUERY_STAR_SET_SIZE) {
         throw std::runtime_error(std::string("Input list does not have exactly three b."));
     }
-    double epsilon = 3.0 * this->parameters.sigma_query;
+    double epsilon_1 = 3.0 * this->parameters.sigma_1, epsilon_2 = 3.0 * this->parameters.sigma_2;
     std::vector<labels_list> big_r_ell = {};
     Nibble::tuples_d a_match;
     
     // First, search for trio of stars matching area condition.
     double a = Trio::planar_area(s[0], s[1], s[2]), i = Trio::planar_moment(s[0], s[1], s[2]);
-    a_match = ch.simple_bound_query("a", "label_a, label_b, label_c, i", a - epsilon, a + epsilon,
+    a_match = ch.simple_bound_query("a", "label_a, label_b, label_c, i", a - epsilon_1, a + epsilon_1,
                                     this->parameters.sql_limit);
     
     // Next, search this trio for stars matching the moment condition.
     big_r_ell.reserve(a_match.size() / 4);
-    for (Chomp::tuple_d t : a_match) {
-        if (t[3] >= i - epsilon && t[3] < i + epsilon) {
+    std::for_each(a_match.begin(), a_match.end(), [&big_r_ell, &epsilon_2, &i] (const Chomp::tuple_d &t) -> void {
+        if (t[3] >= i - epsilon_2 && t[3] < i + epsilon_2) {
             big_r_ell.push_back({static_cast<int> (t[0]), static_cast<int> (t[1]), static_cast<int>(t[2])});
         }
-    }
+    });
     
     // Return the trios.
     return big_r_ell;

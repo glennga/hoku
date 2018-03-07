@@ -9,9 +9,9 @@
 #include "identification/angle.h"
 
 /// Default parameters for the angle identification method.
-const Identification::Parameters Angle::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
-    DEFAULT_NO_REDUCTION, DEFAULT_FAVOR_BRIGHT_STARS, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU,
-    DEFAULT_F, "ANGLE_20"};
+const Identification::Parameters Angle::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_QUERY,
+    DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_4, DEFAULT_SQL_LIMIT, DEFAULT_NO_REDUCTION, DEFAULT_FAVOR_BRIGHT_STARS,
+    DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_F, "ANGLE_20"};
 
 /// Returned when no candidate pair is found from a query.
 const Star::pair Angle::NO_CANDIDATE_PAIR_FOUND = {Star::wrap(Vector3::Zero()), Star::wrap(Vector3::Zero())};
@@ -19,6 +19,7 @@ const Star::pair Angle::NO_CANDIDATE_PAIR_FOUND = {Star::wrap(Vector3::Zero()), 
 /// Constructor. Sets the benchmark data, fov, parameters, and current working table.
 ///
 /// @param input Working Benchmark instance. We are **only** copying the star set and the fov.
+/// @param p Parameter struct to assign to.
 Angle::Angle (const Benchmark &input, const Parameters &p) : Identification() {
     input.present_image(this->big_i, this->fov);
     this->parameters = p;
@@ -72,7 +73,7 @@ int Angle::generate_table (INIReader &cf, const std::string &id_name) {
 /// @return NO_CANDIDATES_FOUND if no candidates found. Label list of the matching catalog IDs otherwise.
 Identification::labels_list Angle::query_for_pair (const double theta) {
     // Noise is normally distributed. Angle within 3 sigma of theta.
-    double epsilon = 3.0 * this->parameters.sigma_query;
+    double epsilon = 3.0 * this->parameters.sigma_1;
     std::vector<labels_list> big_r_ell;
     Nibble::tuples_d big_r_ell_tuples;
     
@@ -164,7 +165,7 @@ std::vector<Identification::labels_list> Angle::query (const Star::list &s) {
     if (s.size() != QUERY_STAR_SET_SIZE) {
         throw std::runtime_error(std::string("Input list does not have exactly two b."));
     }
-    double epsilon = 3.0 * this->parameters.sigma_query, theta = (180.0 / M_PI) * Vector3::Angle(s[0], s[1]);
+    double epsilon = 3.0 * this->parameters.sigma_1, theta = (180.0 / M_PI) * Vector3::Angle(s[0], s[1]);
     std::vector<labels_list> big_r_ell;
     
     // Query using theta with epsilon bounds.
@@ -247,7 +248,7 @@ Star::list Angle::identify () {
             
             // Find candidate stars around the candidate pair.
             Star::list big_p = ch.nearby_hip_stars(r[0], fov, static_cast<unsigned int>(3 * big_i.size()));
-            
+    
             // Find the most likely pair combination given the two pairs.
             return direct_match_test(big_p, {r[0], r[1]}, {big_i[i], big_i[j]});
         }

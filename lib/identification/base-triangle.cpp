@@ -91,18 +91,18 @@ int BaseTriangle::generate_triangle_table (INIReader &cf, const std::string &tri
 /// @param i_t Polar moment (planar or spherical) to search with.
 /// @return NO_CANDIDATE_TRIOS_FOUND if no candidates found. Otherwise, all elements that met the criteria.
 std::vector<BaseTriangle::labels_list> BaseTriangle::query_for_trio (const double a, const double i) {
-    double epsilon = 3.0 * this->parameters.sigma_query;
+    double epsilon_1 = 3.0 * this->parameters.sigma_1, epsilon_2 = 3.0 * this->parameters.sigma_2;
     std::vector<labels_list> big_r_ell = NO_CANDIDATE_TRIOS_FOUND;
     Nibble::tuples_d a_match;
     
     // First, search for trio of stars matching area condition.
-    a_match = ch.simple_bound_query("a", "label_a, label_b, label_c, i", a - epsilon, a + epsilon,
+    a_match = ch.simple_bound_query("a", "label_a, label_b, label_c, i", a - epsilon_1, a + epsilon_1,
                                     this->parameters.sql_limit);
     
     // Next, search this trio for stars matching the moment condition.
     big_r_ell.reserve(a_match.size() / 4);
-    std::for_each(a_match.begin(), a_match.end(), [&epsilon, &big_r_ell, &i] (const Chomp::tuple_d &t) -> void {
-        if (t[3] >= i - epsilon && t[3] < i + epsilon) {
+    std::for_each(a_match.begin(), a_match.end(), [&epsilon_2, &big_r_ell, &i] (const Chomp::tuple_d &t) -> void {
+        if (t[3] >= i - epsilon_2 && t[3] < i + epsilon_2) {
             big_r_ell.push_back(labels_list {static_cast<int> (t[0]), static_cast<int> (t[1]), static_cast<int>(t[2])});
         }
     });

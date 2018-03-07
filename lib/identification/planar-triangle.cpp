@@ -10,9 +10,9 @@
 #include "identification/planar-triangle.h"
 
 /// Default parameters for the planar triangle identification method.
-const Identification::Parameters Plane::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SQL_LIMIT,
-    DEFAULT_NO_REDUCTION, DEFAULT_FAVOR_BRIGHT_STARS, DEFAULT_SIGMA_OVERLAY, DEFAULT_NU_MAX, DEFAULT_NU,
-    DEFAULT_F, "PLANE_20"};
+const Identification::Parameters Plane::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_QUERY,
+    DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_4, DEFAULT_SQL_LIMIT, DEFAULT_NO_REDUCTION, DEFAULT_FAVOR_BRIGHT_STARS,
+    DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_F, "PLANE_20"};
 
 /// Constructor. Sets the benchmark data and fov. Sets the parameters, working table, and our index permutations.
 ///
