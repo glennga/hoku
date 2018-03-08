@@ -7,7 +7,7 @@
 /// @example
 /// @code{.cpp}
 /// # Run the Angle identification method on my-image.fits
-/// IdentifyFITS angle my-image.fits
+/// IdentifyFITS angle full-path-my-image.fits
 /// @endcode
 
 #include <iostream>
@@ -41,15 +41,16 @@ namespace NBHA {
 /// and the following are the stars in the image.
 std::unique_ptr<std::ifstream> parse_fits (const std::string &image) {
     // Run the FITS -> CSV centroid script.
-    std::string script_path = std::string(std::getenv("HOKU_PROJECT_PATH")) + "/script/python/fits_to_image.py ";
+    std::string script_path = std::string(std::getenv("HOKU_PROJECT_PATH")) + "/script/python/find_centroids.py";
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-    std::string cmd = std::string("python ") + script_path + image;
+    std::string cmd = std::string("python \"") + script_path + "\" \"" + image + "\"";
 #else
-    std::string cmd = std::string("python3 ") + script_path + image;
+    std::string cmd = std::string("python3 \"") + script_path + "\" " + image;
 #endif
-    if (std::system(cmd.c_str())) {
-        throw std::runtime_error(std::string("'python/find_centroids.py' exited with an error. Double check the file "
-                                                 "you have passed."));
+    std::system(std::string("where.exe python").c_str());
+    if (int i = std::system(cmd.c_str())) {
+        throw std::runtime_error(std::string("'python/find_centroids.py' exited with an error " + std::to_string(i) +
+                                             ". Double check the file you have passed."));
     }
     
     // Output from script above is stored in temporary directory.
