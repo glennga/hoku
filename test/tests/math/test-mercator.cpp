@@ -7,8 +7,11 @@
 
 #define _USE_MATH_DEFINES
 #include <cmath>
-#include "third-party/gmath/Vector2.hpp"
 #include "gmock/gmock.h"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#include "third-party/gmath/Vector2.hpp"
+#pragma GCC diagnostic pop
 
 #include "math/mercator.h"
 #include "math/random-draw.h"
