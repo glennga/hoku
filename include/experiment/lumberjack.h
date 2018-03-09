@@ -42,7 +42,7 @@ class Lumberjack : public Nibble {
     static constexpr int MAXIMUM_BUFFER_SIZE = 50;
     
     /// The maximum number of times to attempt to perform the execution.
-    static constexpr int MAXIMUM_INSERTION_ATTEMPTS = 10;
+    static constexpr int MAXIMUM_INSERTION_ATTEMPTS = 50;
     
     /// Every trial log must be of this size.
     unsigned int expected_result_size;
