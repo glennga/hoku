@@ -7,6 +7,7 @@
 #include <chrono>
 #include <thread>
 
+#include "math/random-draw.h"
 #include "experiment/lumberjack.h"
 
 /// String of the HOKU_PROJECT_PATH environment variable.
@@ -104,9 +105,9 @@ int Lumberjack::flush_buffer () {
             insert.bind((i * (expected_result_size + 2)) + j + 3, result_buffer[i][j]);
         }
     }
-    
-    // We get MAXIMUM_INSERTION_ATTEMPTS tries to perform our statement.
-    for (int i = 0; i < MAXIMUM_INSERTION_ATTEMPTS; i++) {
+
+    // Keep trying to perform the insertion.
+    while (true) {
         try {
             SQLite::Transaction t(*conn);
             if (insert.exec() != static_cast<signed> (result_buffer.size())) {
@@ -119,10 +120,7 @@ int Lumberjack::flush_buffer () {
         }
         catch (SQLite::Exception &) {
             // Another insertion is currently occurring. Wait until this is finished.
-            using namespace std::literals::chrono_literals;
-            std::this_thread::sleep_for(1000ms);
+            std::this_thread::sleep_for(std::chrono::milliseconds(RandomDraw::draw_integer(0, 1000)));
         }
     }
-
-    throw std::runtime_error(std::string("Unable to perform insertion in time."));
 }
