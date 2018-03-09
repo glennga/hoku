@@ -1,7 +1,7 @@
 /// @file test-benchmark.cpp
 /// @author Glenn Galvizo
 ///
-/// Source file for all Benchmark class unit tests and the test runner.
+/// Source file for all Benchmark class unit tests.
 
 #define ENABLE_TESTING_ACCESS
 
@@ -11,7 +11,7 @@
 #include "benchmark/benchmark.h"
 
 /// Check that the constructor for random generation works as intended. 'generate_stars' is tested here.
-TEST(BenchmarkConstructor, RandomGenerator) {
+TEST(Benchmark, ConstructorRandomGenerator) {
     Chomp ch;
     Benchmark input(ch, 20);
     Benchmark input2(ch, 20, 7.0);
@@ -29,7 +29,7 @@ TEST(BenchmarkConstructor, RandomGenerator) {
 }
 
 /// Check that constructor for specific generation works as intended. 'generate_stars' is tested here.
-TEST(BenchmarkConstructor, SpecificGenerator) {
+TEST(Benchmark, ConstructorSpecificGenerator) {
     Chomp ch;
     Star s = Star::chance();
     Rotation q = Rotation::chance();
@@ -46,7 +46,7 @@ TEST(BenchmarkConstructor, SpecificGenerator) {
 }
 
 /// Check that the direct-setting private constructor works as intended.
-TEST(BenchmarkConstructor, NoGenerator) {
+TEST(Benchmark, ConstructorNoGenerator) {
     Star::list s = {Star::chance(), Star::chance(), Star::chance()};
     Benchmark input(s, s[0], 20);
     EXPECT_EQ(input.b[0], s[0]);
@@ -57,7 +57,7 @@ TEST(BenchmarkConstructor, NoGenerator) {
 }
 
 /// Check that the properties of a black image hold.
-TEST(BenchmarkImage, Black) {
+TEST(Benchmark, ImageBlack) {
     Benchmark input = Benchmark::black();
     EXPECT_EQ(input.b.size(), 0);
     EXPECT_EQ(input.center, Vector3::Zero());
@@ -65,7 +65,7 @@ TEST(BenchmarkImage, Black) {
 }
 
 /// Check that the stars are not in the same order after shuffling.
-TEST(BenchmarkImage, StarShuffle) {
+TEST(Benchmark, ImageStarShuffle) {
     Chomp ch;
     Benchmark input(ch, 20);
     Star a = input.b[0];
@@ -78,7 +78,7 @@ TEST(BenchmarkImage, StarShuffle) {
 }
 
 /// Check that the catalog ID numbers of all stars are equal to 0.
-TEST(BenchmarkImage, LabelClear) {
+TEST(Benchmark, ImageLabelClear) {
     Chomp ch;
     Benchmark input(ch, 15);
     std::vector<Star> a = input.clean_stars();
@@ -89,7 +89,7 @@ TEST(BenchmarkImage, LabelClear) {
 }
 
 /// Check that the present_stars method returns the correct fov and stars.
-TEST(BenchmarkImage, Presentation) {
+TEST(Benchmark, ImagePresentation) {
     Chomp ch;
     Benchmark input(ch, 15);
     Star::list s;
@@ -104,7 +104,7 @@ TEST(BenchmarkImage, Presentation) {
 }
 
 /// Check that the file current_plot log file is formatted correctly.
-TEST(BenchmarkLog, CurrentPlotFile) {
+TEST(Benchmark, LogCurrentPlotFile) {
     Chomp ch;
     Star a = Star::chance();
     Rotation b = Rotation::chance();
@@ -129,7 +129,7 @@ TEST(BenchmarkLog, CurrentPlotFile) {
 }
 
 /// Check that the file error_plot log file is formatted correctly.
-TEST(BenchmarkLog, ErrorPlotFile) {
+TEST(Benchmark, LogErrorPlotFile) {
     Chomp ch;
     Benchmark input(ch, 15);
     std::string a;
@@ -152,14 +152,14 @@ TEST(BenchmarkLog, ErrorPlotFile) {
 }
 
 /// Check that no error is thrown when the plot is displayed.
-TEST(BenchmarkDisplay, Plot) {
+TEST(Benchmark, DisplayPlot) {
     Chomp ch;
     Benchmark input(ch, 15);
     EXPECT_NO_THROW(input.display_plot(););
 }
 
 /// Check that all error models place stars near focus.
-TEST(BenchmarkError, NearFocus) {
+TEST(Benchmark, ErrorNearFocus) {
     Chomp ch;
     
     Benchmark input(ch, 15);
@@ -172,7 +172,7 @@ TEST(BenchmarkError, NearFocus) {
 }
 
 /// Check that extra stars exist in the light adding method.
-TEST(BenchmarkError, ExtraLightAdded) {
+TEST(Benchmark, ErrorExtraLightAdded) {
     Chomp ch;
     Benchmark input(ch, 15);
     unsigned long long a = input.b.size();
@@ -181,7 +181,7 @@ TEST(BenchmarkError, ExtraLightAdded) {
 }
 
 /// Check that stars have been removed in light removal method.
-TEST(BenchmarkError, RemovedLightRemoved) {
+TEST(Benchmark, ErrorRemovedLightRemoved) {
     Chomp ch;
     Benchmark input(ch, 15);
     unsigned long long a = input.b.size();
@@ -190,7 +190,7 @@ TEST(BenchmarkError, RemovedLightRemoved) {
 }
 
 // Check that stars have been shifted in light shift method.
-TEST(BenchmarkError, ShiftedLightMoved) {
+TEST(Benchmark, ErrorShiftedLightMoved) {
     Chomp ch;
     Benchmark input(ch, 15);
     std::vector<Star> a = input.b;
@@ -209,7 +209,7 @@ TEST(BenchmarkError, ShiftedLightMoved) {
 }
 
 /// Check that stars have been shifted in light barrel method.
-TEST(BenchmarkError, BarreledLightMoved) {
+TEST(Benchmark, ErrorBarreledLightMoved) {
 //    Chomp ch;
 //    Benchmark input(ch, 15), input2 (ch, 15);
 //    Star::list a = input.b, c = input2.b;
@@ -251,7 +251,7 @@ TEST(BenchmarkError, BarreledLightMoved) {
 
 
 /// Check that an error star exists at the front of the stars vector when cap_error is raised.
-TEST(BenchmarkError, CapError) {
+TEST(Benchmark, ErrorCapError) {
     Chomp ch;
     Benchmark input(ch, 15);
     std::vector<Star> a = input.b;
@@ -265,14 +265,4 @@ TEST(BenchmarkError, CapError) {
         }
     }
     EXPECT_TRUE(error_star_at_front);
-}
-
-/// Runs all tests defined in this file.
-///
-/// @param argc Argument count. Used in Google Test initialization.
-/// @param argv Argument vector. Used in Google Test initialization.
-/// @return The result of running all tests.
-int main (int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
 }

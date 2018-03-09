@@ -24,4 +24,4 @@ target_link_libraries(PerformE Experiment Lumberjack ${HOKU_LIBS})
 # Link and Create Executable IdentifyFITS
 #
 add_executable(IdentifyFITS identify-fits.cpp)
-target_link_libraries(IdentifyFITS ${HOKU_LIBS} ${Boost_LIBRARIES})
+target_link_libraries(IdentifyFITS ${HOKU_LIBS})

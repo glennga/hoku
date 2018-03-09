@@ -1,7 +1,7 @@
 /// @file test-composite-pyramid.cpp
 /// @author Glenn Galvizo
 ///
-/// Source file for all Composite class unit tests and the test runner.
+/// Source file for all Composite class unit tests.
 
 #define ENABLE_TESTING_ACCESS
 
@@ -17,7 +17,7 @@ using testing::Contains;
 using testing::Not;
 
 /// Check that the constructor correctly sets the object's attributes.
-TEST(CompositeConstructor, Constructor) {
+TEST(CompositePyramid, Constructor) {
     Chomp ch;
     Benchmark input(ch, 20);
     Composite::Parameters p = {0.01, 0.00001, 0.000001, 0.001, 10, false, true, 10, std::make_shared<unsigned int>(0),
@@ -40,7 +40,7 @@ TEST(CompositeConstructor, Constructor) {
 }
 
 /// Check the existence and the structure of the Composite table.
-TEST(Composite, ExistenceStructure) {
+TEST(CompositePyramid, ExistenceStructure) {
     INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
     Composite::generate_table(cf);
     Nibble nb;
@@ -56,7 +56,7 @@ TEST(Composite, ExistenceStructure) {
 }
 
 /// Check that the entries in the Composite table are correct.
-TEST(CompositeTable, CorrectEntries) {
+TEST(CompositePyramid, TableCorrectEntries) {
     INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
     Composite::generate_table(cf);
     Chomp ch;
@@ -79,13 +79,13 @@ TEST(CompositeTable, CorrectEntries) {
 }
 
 ///// No test is performed here. This is just to see how long the entire table will load into memory.
-//TEST(CompositetableChomp, InMemory) {
+//TEST(CompositePyramid, ChompInMemory) {
 //    INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
 //    Chomp ch(cf.Get("table-names", "composite", ""), cf.Get("table-focus", "composite", ""));
 //}
 
 /// Check that the query_for_trios method returns the brightest set.
-TEST(CompositeTriosQuery, BrightnessSort) {
+TEST(CompositePyramid, TriosQueryBrightnessSort) {
     Chomp ch;
     Benchmark input(ch, 15);
     Identification::Parameters p = Composite::DEFAULT_PARAMETERS;
@@ -112,7 +112,7 @@ TEST(CompositeTriosQuery, BrightnessSort) {
 }
 
 /// Check that the query_for_trios method returns the correct result.
-TEST(CompositeTriosQuery, CleanInput) {
+TEST(CompositePyramid, TriosQueryCleanInput) {
     Chomp ch;
     Benchmark input(ch, 15);
     Identification::Parameters p = Composite::DEFAULT_PARAMETERS;
@@ -135,7 +135,7 @@ TEST(CompositeTriosQuery, CleanInput) {
 }
 
 /// Check that the verification works as intended with clean input.
-TEST(CompositeVerify, CleanInput) {
+TEST(CompositePyramid, VerifyCleanInput) {
     Chomp ch;
     Benchmark input(ch, 20);
     Composite::Parameters p = Composite::DEFAULT_PARAMETERS;
@@ -154,7 +154,7 @@ TEST(CompositeVerify, CleanInput) {
 }
 
 /// Check that the catalog star finder determines the correct stars.
-TEST(CompositeFind, CatalogStars) {
+TEST(CompositePyramid, FindCatalogStars) {
     Chomp ch;
     Benchmark input(ch, 20);
     Composite::Parameters p = Composite::DEFAULT_PARAMETERS;
@@ -174,7 +174,7 @@ TEST(CompositeFind, CatalogStars) {
 }
 
 /// Check that the reduction step flag is upheld when not applied with the catalog star finder.
-TEST(CompositeFind, NoReduction) {
+TEST(CompositePyramid, FindNoReduction) {
     Chomp ch;
     Benchmark input(ch, 20);
     Composite::Parameters p = Composite::DEFAULT_PARAMETERS;
@@ -193,7 +193,7 @@ TEST(CompositeFind, NoReduction) {
 }
 
 /// Check that the brightest set is returned if desired.
-TEST(CompositeFind, SortBrighteness) {
+TEST(CompositePyramid, FindSortBrighteness) {
     Chomp ch;
     Benchmark input(ch, 20);
     Composite::Parameters p = Composite::DEFAULT_PARAMETERS, p2 = Composite::DEFAULT_PARAMETERS;
@@ -208,7 +208,7 @@ TEST(CompositeFind, SortBrighteness) {
 }
 
 /// Check that the find method fails when expected.
-TEST(CompositeFind, ExpectedFailure) {
+TEST(CompositePyramid, FindExpectedFailure) {
     Chomp ch;
     Benchmark input(ch, 20);
     Composite::Parameters p = Composite::DEFAULT_PARAMETERS;
@@ -222,7 +222,7 @@ TEST(CompositeFind, ExpectedFailure) {
 }
 
 /// Check that the identification method returns a non-confident map when appropriate.
-TEST(CompositeIdentify, ExpectedFailure) {
+TEST(CompositePyramid, IdentifyExpectedFailure) {
     Chomp ch;
     Benchmark input(ch, 20);
     Composite::Parameters p = Composite::DEFAULT_PARAMETERS;
@@ -235,7 +235,7 @@ TEST(CompositeIdentify, ExpectedFailure) {
 }
 
 /// Check that the identification method returns the correct stars.
-TEST(CompositeIdentify, CleanInput) {
+TEST(CompositePyramid, IdentifyCleanInput) {
     Chomp ch;
     Benchmark input(ch, 20);
     Composite::Parameters p = Composite::DEFAULT_PARAMETERS;
@@ -259,7 +259,7 @@ TEST(CompositeIdentify, CleanInput) {
 }
 
 /// Check that a clean input returns the expected query result.
-TEST(CompositeTrial, CleanQuery) {
+TEST(CompositePyramid, TrialCleanQuery) {
     Chomp ch;
     Composite::Parameters p = Composite::DEFAULT_PARAMETERS;
     p.sigma_1 = p.sigma_2 = 0.00000000001;
@@ -271,7 +271,7 @@ TEST(CompositeTrial, CleanQuery) {
 }
 
 /// Check that a clean input returns the correct stars from a set of candidates.
-TEST(CompositeTrial, CleanReduction) {
+TEST(CompositePyramid, TrialCleanReduction) {
     Chomp ch;
     Composite::Parameters p = Composite::DEFAULT_PARAMETERS;
     p.sigma_1 = p.sigma_2 = 10e-10, p.sql_limit = 1000000;
@@ -284,7 +284,7 @@ TEST(CompositeTrial, CleanReduction) {
 }
 
 /// Check that a clean input returns the expected identification of stars.
-TEST(CompositeTrial, CleanIdentify) {
+TEST(CompositePyramid, TrialCleanIdentify) {
     Chomp ch;
     Composite::Parameters p = Composite::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0);
@@ -305,7 +305,7 @@ TEST(CompositeTrial, CleanIdentify) {
 }
 
 /// Check that the nu_max is respected in identification.
-TEST(CompositeTrial, ExceededNu) {
+TEST(CompositePyramid, TrialExceededNu) {
     Chomp ch;
     Benchmark input(ch, 15);
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
@@ -320,7 +320,7 @@ TEST(CompositeTrial, ExceededNu) {
 }
 
 /// Check that the correct result is returned when no map is found.
-TEST(CompositeTrial, NoMapFound) {
+TEST(CompositePyramid, TrialNoMapFound) {
     Chomp ch;
     Benchmark input(ch, 7);
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
@@ -331,14 +331,4 @@ TEST(CompositeTrial, NoMapFound) {
     Composite a(input, p);
     
     EXPECT_EQ(a.identify()[0], Composite::NO_CONFIDENT_A[0]);
-}
-
-/// Runs all tests defined in this file.
-///
-/// @param argc Argument count. Used in Google Test initialization.
-/// @param argv Argument vector. Used in Google Test initialization.
-/// @return The result of running all tests.
-int main (int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
 }

@@ -9,7 +9,10 @@
 #include <array>
 #include <vector>
 #include <limits>
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
 #include "third-party/gmath/Vector3.hpp"
+#pragma GCC diagnostic pop
 
 /// @brief Class for 3D vector representation of stars.
 ///

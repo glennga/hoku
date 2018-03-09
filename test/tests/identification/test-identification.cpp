@@ -1,7 +1,7 @@
 /// @file test-identification.cpp
 /// @author Glenn Galvizo
 ///
-/// Source file for all Identification class unit tests and the test runner.
+/// Source file for all Identification class unit tests.
 
 #define ENABLE_TESTING_ACCESS
 
@@ -32,7 +32,7 @@ class IdentificationDummy : public Identification {
 };
 
 /// Check that the parameter collector method transfers the appropriate parameters.
-TEST(ParameterCollect, CleanInput) {
+TEST(BaseIdentification, ParameterCollectCleanInput) {
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
     std::string temp_path = std::getenv("TEMP");
 #else
@@ -78,7 +78,7 @@ TEST(ParameterCollect, CleanInput) {
 }
 
 /// Check that the parameter collector method uses default parameters under improper conditions.
-TEST(ParameterCollect, ErrorInput) {
+TEST(BaseIdentification, ParameterCollectErrorInput) {
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
     std::string temp_path = std::getenv("TEMP");
 #else
@@ -124,7 +124,7 @@ TEST(ParameterCollect, ErrorInput) {
 }
 
 /// Check that the rotating match method marks the all stars as matched.
-TEST(FindMatches, CorrectInput) {
+TEST(BaseIdentification, FindMatchesCorrectInput) {
     Chomp ch;
     Star a = Star::chance(), b = Star::chance();
     Rotation c = Rotation::chance();
@@ -150,7 +150,7 @@ TEST(FindMatches, CorrectInput) {
 }
 
 /// Check that the rotating match method marks only the correct stars as matched.
-TEST(FindMatches, ErrorInput) {
+TEST(BaseIdentification, FindMatchesErrorInput) {
     Chomp ch;
     Star a = Star::chance(), b = Star::chance();
     Rotation c = Rotation::chance();
@@ -179,7 +179,7 @@ TEST(FindMatches, ErrorInput) {
 }
 
 /// Check that the rotating match method marks only the correct stars as matched, not the duplicate as well.
-TEST(FindMatches, RotatingDuplicateInput) {
+TEST(BaseIdentification, FindMatchesRotatingDuplicateInput) {
     Chomp ch;
     Star a = Star::chance(), b = Star::chance();
     Rotation c = Rotation::chance();
@@ -210,7 +210,7 @@ TEST(FindMatches, RotatingDuplicateInput) {
 }
 
 /// Check that the sort candidates by brightness method correctly sorts the starts.
-TEST(SortBrightness, BrightestStart) {
+TEST(BaseIdentification, SortBrightnessBrightestStart) {
     Chomp ch;
     Benchmark input(ch, 15);
     IdentificationDummy g(input.b, Identification::DEFAULT_PARAMETERS);
@@ -234,7 +234,7 @@ TEST(SortBrightness, BrightestStart) {
 
 /// Check that the alignment output using the TRIAD method returns an alignment similar to the one used to generate the
 /// image.
-TEST(Alignment, CleanInputTRIAD) {
+TEST(BaseIdentification, AlignmentCleanInputTRIAD) {
     Chomp ch;
     Star s = Star::chance();
     Rotation q = Rotation::chance();
@@ -248,7 +248,7 @@ TEST(Alignment, CleanInputTRIAD) {
 }
 
 /// Check that the complete identification output returns the correct result with a clean input.
-TEST(CompleteIdentification, CleanInput) {
+TEST(BaseIdentification, CompleteIdentificationCleanInput) {
     Chomp ch;
     Star s = Star::chance();
     Rotation q = Rotation::chance();
@@ -261,14 +261,4 @@ TEST(CompleteIdentification, CleanInput) {
     for (unsigned int i = 0; i < s_l.size(); i++) {
         EXPECT_EQ(s_l[i], input.b[i]);
     }
-}
-
-/// Runs all tests defined in this file.
-///
-/// @param argc Argument count. Used in Google Test initialization.
-/// @param argv Argument vector. Used in Google Test initialization.
-/// @return The result of running all tests.
-int main (int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
 }
