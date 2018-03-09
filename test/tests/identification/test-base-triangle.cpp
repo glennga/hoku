@@ -1,7 +1,7 @@
 /// @file test-base-triangle.cpp
 /// @author Glenn Galvizo
 ///
-/// Source file for all BaseTriangle class unit tests and the test runner. Using PlanarTriangle as a proxy class for
+/// Source file for all BaseTriangle class unit tests. Using PlanarTriangle as a proxy class for
 /// testing.
 
 #define ENABLE_TESTING_ACCESS
@@ -17,13 +17,13 @@ using testing::Each;
 using testing::Contains;
 
 /// Check that the base constructor initializes an empty pivot queue.
-TEST(BaseConstructor, EmptyPivotQueue) {
+TEST(BaseTriangle, ConstructorEmptyPivotQueue) {
     Plane p(Benchmark::black(), Plane::DEFAULT_PARAMETERS);
     EXPECT_EQ(0, p.pivot_c.size());
 }
 
 /// Check that the correct stars are returned when a single trio is requested.
-TEST(BaseQuery, CorrectInput) {
+TEST(BaseTriangle, QueryCorrectInput) {
     Chomp ch;
     Benchmark input(ch, 15);
     Identification::Parameters p = Plane::DEFAULT_PARAMETERS;
@@ -47,7 +47,7 @@ TEST(BaseQuery, CorrectInput) {
 }
 
 /// Check that the correct result is returned when there are no trios found.
-TEST(BaseQuery, NoCandidates) {
+TEST(BaseTriangle, QueryNoCandidates) {
     Chomp ch;
     Benchmark input(ch, 15);
     Identification::Parameters p = Plane::DEFAULT_PARAMETERS;
@@ -71,7 +71,7 @@ TEST(BaseQuery, NoCandidates) {
 }
 
 /// Check that stars are sorted by brightness.
-TEST(BaseQuery, FavorBrightStarsFlag) {
+TEST(BaseTriangle, QueryFavorBrightStarsFlag) {
     Chomp ch;
     Benchmark input(ch, 15);
     Identification::Parameters p = Plane::DEFAULT_PARAMETERS, p2 = Plane::DEFAULT_PARAMETERS;
@@ -96,7 +96,7 @@ TEST(BaseQuery, FavorBrightStarsFlag) {
 }
 
 /// Check that base query for trio does not return any matches when stars are out of the fov.
-TEST(BaseQueryTrios, FOV) {
+TEST(BaseTriangle, QueryTriosFOV) {
     Chomp ch;
     Plane a(Benchmark::black(), Plane::DEFAULT_PARAMETERS);
     Star b(0.998078771188383, -0.0350062881876723, 0.0511207031486225);
@@ -112,7 +112,7 @@ TEST(BaseQueryTrios, FOV) {
 }
 
 /// Check that the correct result is returned when no trios exist.
-TEST(BaseQueryTrios, NoCandidates) {
+TEST(BaseTriangle, QueryTriosNoCandidates) {
     Chomp ch;
     Plane a(Benchmark::black(), Plane::DEFAULT_PARAMETERS);
     Star::list b = {Star(1, 1, 1), Star(1.1, 1, 1), Star(1.11, 1, 1)};
@@ -126,7 +126,7 @@ TEST(BaseQueryTrios, NoCandidates) {
 }
 
 /// Check that the correct results are returned with a clean input.
-TEST(BaseQueryTrios, CorrectInput) {
+TEST(BaseTriangle, QueryTriosCorrectInput) {
     Chomp ch;
     Benchmark input(ch, 15);
     Identification::Parameters p = Plane::DEFAULT_PARAMETERS;
@@ -141,7 +141,7 @@ TEST(BaseQueryTrios, CorrectInput) {
 }
 
 /// Check that the correct pivot list is generated.
-TEST(BasePivot, PivotGenerated) {
+TEST(BaseTriangle, PivotGenerated) {
     Chomp ch;
     Benchmark input(ch, 15);
     input.b = {ch.query_hip(1), ch.query_hip(2), ch.query_hip(3), ch.query_hip(4)};
@@ -165,7 +165,7 @@ TEST(BasePivot, PivotGenerated) {
 }
 
 /// Check that a different result is returned when NO_REDUCTION is applied.
-TEST(BasePivot, DifferentResult) {
+TEST(BaseTriangle, PivotDifferentResult) {
     Chomp ch;
     Benchmark input(ch, 20);
     Plane::Parameters p = Plane::DEFAULT_PARAMETERS, p2 = Plane::DEFAULT_PARAMETERS;
@@ -189,7 +189,7 @@ TEST(BasePivot, DifferentResult) {
 }
 
 /// Check that the correct result is returned when no candidate stars are found.
-TEST(BasePivot, NoCandidateStars) {
+TEST(BaseTriangle, PivotNoCandidateStars) {
     Chomp ch;
     Benchmark input(ch, 20);
     Plane::Parameters p = Plane::DEFAULT_PARAMETERS;
@@ -206,7 +206,7 @@ TEST(BasePivot, NoCandidateStars) {
 }
 
 /// Check that the correct result is returned after performing pivots.
-TEST(BasePivot, CorrectInput) {
+TEST(BaseTriangle, PivotCorrectInput) {
     Chomp ch;
     Benchmark input(ch, 20);
     Plane::Parameters p = Plane::DEFAULT_PARAMETERS;
@@ -223,7 +223,7 @@ TEST(BasePivot, CorrectInput) {
 }
 
 /// Check that the direct match test returns the correct set.
-TEST(BaseDMT, DirectMatchTest) {
+TEST(BaseTriangle, DirectMatchTest) {
     Chomp ch;
     Rotation q = Rotation::chance();
     Star::list n = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532), ch.query_hip(101958),
@@ -247,14 +247,4 @@ TEST(BaseDMT, DirectMatchTest) {
     EXPECT_THAT(f_2, Contains(n_q[0].get_label()));
     EXPECT_THAT(f_2, Contains(n_q[1].get_label()));
     EXPECT_THAT(f_2, Contains(n_q[2].get_label()));
-}
-
-/// Runs all tests defined in this file.
-///
-/// @param argc Argument count. Used in Google Test initialization.
-/// @param argv Argument vector. Used in Google Test initialization.
-/// @return The result of running all tests.
-int main (int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
 }

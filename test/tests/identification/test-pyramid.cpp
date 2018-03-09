@@ -1,7 +1,7 @@
 /// @file test-pyramid.cpp
 /// @author Glenn Galvizo
 ///
-/// Source file for all Pyramid class unit tests and the test runner.
+/// Source file for all Pyramid class unit tests.
 
 #define ENABLE_TESTING_ACCESS
 
@@ -15,7 +15,7 @@ using testing::Contains;
 using testing::Not;
 
 /// Check that the constructor correctly sets the object's attributes.
-TEST(PyramidConstructor, Constructor) {
+TEST(Pyramid, Constructor) {
     Chomp ch;
     Benchmark input(ch, 20);
     Pyramid::Parameters p = {0.01, 0.0001, 0.000001, 0.1, 10, false, true, 10, std::make_shared<unsigned int>(0),
@@ -38,7 +38,7 @@ TEST(PyramidConstructor, Constructor) {
 }
 
 /// Check the existence and the structure of the Pyramid table.
-TEST(Pyramid, ExistenceStructure) {
+TEST(Pyramid, TableExistenceStructure) {
     INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
     Pyramid::generate_table(cf);
     Nibble nb;
@@ -54,7 +54,7 @@ TEST(Pyramid, ExistenceStructure) {
 }
 
 /// Check that the entries in the Pyramid table are correct.
-TEST(PyramidTable, CorrectEntries) {
+TEST(Pyramid, TableCorrectEntries) {
     INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
     Pyramid::generate_table(cf);
     Chomp ch;
@@ -68,7 +68,7 @@ TEST(PyramidTable, CorrectEntries) {
 }
 
 /// Check that the query_for_pairs method returns an entry with the correct result.
-TEST(PyramidQuery, Pairs) {
+TEST(Pyramid, QueryPairs) {
     Chomp ch;
     Benchmark input(ch, 15);
     Pyramid::Parameters p = Pyramid::DEFAULT_PARAMETERS;
@@ -84,7 +84,7 @@ TEST(PyramidQuery, Pairs) {
 }
 
 /// Check that the common method returns the correct common stars, and filters out not correct common stars.
-TEST(PyramidDualCommon, CleanInput) {
+TEST(Pyramid, DualCommonCleanInput) {
     Chomp ch;
     
     Pyramid::labels_list_list ei = {{3, 100}, {3, 413}, {7, 87}};
@@ -109,7 +109,7 @@ TEST(PyramidDualCommon, CleanInput) {
 }
 
 /// Check that the common method returns the correct common stars, and filters out not correct common stars.
-TEST(PyramidThreeCommon, CleanInput) {
+TEST(Pyramid, ThreeCommonCleanInput) {
     Chomp ch;
     
     Pyramid::labels_list_list ei = {{3, 100}, {3, 413}, {7, 87}};
@@ -123,7 +123,7 @@ TEST(PyramidThreeCommon, CleanInput) {
 }
 
 /// Check that the verification works as intended with clean input.
-TEST(PyramidVerify, CleanInput) {
+TEST(Pyramid, VerifyCleanInput) {
     Chomp ch;
     Benchmark input(ch, 20);
     Pyramid::Parameters p = Pyramid::DEFAULT_PARAMETERS;
@@ -142,7 +142,7 @@ TEST(PyramidVerify, CleanInput) {
 }
 
 /// Check that the catalog star finder determines the correct stars.
-TEST(PyramidFind, CatalogStars) {
+TEST(Pyramid, FindCatalogStars) {
     Chomp ch;
     Benchmark input(ch, 20);
     Pyramid::Parameters p = Pyramid::DEFAULT_PARAMETERS;
@@ -162,7 +162,7 @@ TEST(PyramidFind, CatalogStars) {
 }
 
 /// Check that the reduction step flag is upheld when not applied with the catalog star finder.
-TEST(PyramidFind, NoReduction) {
+TEST(Pyramid, FindNoReduction) {
     Chomp ch;
     Benchmark input(ch, 20);
     Pyramid::Parameters p = Pyramid::DEFAULT_PARAMETERS;
@@ -181,7 +181,7 @@ TEST(PyramidFind, NoReduction) {
 }
 
 /// Check that the brightest set is returned if desired.
-TEST(PyramidFind, SortBrighteness) {
+TEST(Pyramid, FindSortBrighteness) {
     Chomp ch;
     Benchmark input(ch, 20);
     Pyramid::Parameters p = Pyramid::DEFAULT_PARAMETERS, p2 = Pyramid::DEFAULT_PARAMETERS;
@@ -196,7 +196,7 @@ TEST(PyramidFind, SortBrighteness) {
 }
 
 /// Check that the find method fails when expected.
-TEST(PyramidFind, ExpectedFailure) {
+TEST(Pyramid, FindExpectedFailure) {
     Chomp ch;
     Benchmark input(ch, 20);
     Pyramid::Parameters p = Pyramid::DEFAULT_PARAMETERS;
@@ -211,7 +211,7 @@ TEST(PyramidFind, ExpectedFailure) {
 }
 
 /// Check that the identification method returns a non-confident map when appropriate.
-TEST(PyramidIdentify, ExpectedFailure) {
+TEST(Pyramid, IdentifyExpectedFailure) {
     Chomp ch;
     Benchmark input(ch, 20);
     Pyramid::Parameters p = Pyramid::DEFAULT_PARAMETERS;
@@ -224,7 +224,7 @@ TEST(PyramidIdentify, ExpectedFailure) {
 }
 
 /// Check that the identification method returns the correct stars.
-TEST(PyramidIdentify, CleanInput) {
+TEST(Pyramid, IdentifyCleanInput) {
     Chomp ch;
     Benchmark input(ch, 20);
     Pyramid::Parameters p = Pyramid::DEFAULT_PARAMETERS;
@@ -248,7 +248,7 @@ TEST(PyramidIdentify, CleanInput) {
 }
 
 /// Check that a clean input returns the expected query result.
-TEST(PyramidTrial, CleanQuery) {
+TEST(Pyramid, TrialCleanQuery) {
     Chomp ch;
     Pyramid::Parameters p = Pyramid::DEFAULT_PARAMETERS;
     p.sigma_1 = p.sigma_2 = 0.00000000001;
@@ -260,7 +260,7 @@ TEST(PyramidTrial, CleanQuery) {
 }
 
 /// Check that a clean input returns the correct stars from a set of candidates.
-TEST(PyramidTrial, CleanReduction) {
+TEST(Pyramid, TrialCleanReduction) {
     Chomp ch;
     Pyramid::Parameters p = Pyramid::DEFAULT_PARAMETERS;
     p.sigma_1 = p.sigma_2 = 10e-10, p.sql_limit = 1000000;
@@ -273,7 +273,7 @@ TEST(PyramidTrial, CleanReduction) {
 }
 
 /// Check that a clean input returns the expected identification of stars.
-TEST(PyramidTrial, CleanIdentify) {
+TEST(Pyramid, TrialCleanIdentify) {
     Chomp ch;
     Pyramid::Parameters p = Pyramid::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0);
@@ -294,7 +294,7 @@ TEST(PyramidTrial, CleanIdentify) {
 }
 
 /// Check that the nu_max is respected in identification.
-TEST(PyramidTrial, ExceededNu) {
+TEST(Pyramid, TrialExceededNu) {
     Chomp ch;
     Benchmark input(ch, 15);
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
@@ -309,7 +309,7 @@ TEST(PyramidTrial, ExceededNu) {
 }
 
 /// Check that the correct result is returned when no map is found.
-TEST(PyramidTrial, NoMapFound) {
+TEST(Pyramid, TrialNoMapFound) {
     Chomp ch;
     Benchmark input(ch, 7);
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
@@ -320,14 +320,4 @@ TEST(PyramidTrial, NoMapFound) {
     Pyramid a(input, p);
     
     EXPECT_EQ(a.identify()[0], Pyramid::NO_CONFIDENT_A[0]);
-}
-
-/// Runs all tests defined in this file.
-///
-/// @param argc Argument count. Used in Google Test initialization.
-/// @param argv Argument vector. Used in Google Test initialization.
-/// @return The result of running all tests.
-int main (int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
 }

@@ -1,7 +1,7 @@
 /// @file test-dot-angle.cpp
 /// @author Glenn Galvizo
 ///
-/// Source file for all DotAngle class unit tests and the test runner.
+/// Source file for all DotAngle class unit tests.
 
 #define ENABLE_TESTING_ACCESS
 
@@ -19,7 +19,7 @@ using testing::Contains;
 using testing::Not;
 
 /// Check that the constructor correctly sets the object's attributes.
-TEST(DotAngleConstructor, Constructor) {
+TEST(DotAngle, Constructor) {
     Chomp ch;
     Benchmark input(ch, 20);
     Dot::Parameters p = {0.01, 0.000001, 0.00000000001, 0.1, 10, false, true, 10, std::make_shared<unsigned int>(0),
@@ -42,7 +42,7 @@ TEST(DotAngleConstructor, Constructor) {
 }
 
 /// Check the existence and the structure of the DotAngle table.
-TEST(DotAngleTable, ExistenceStructure) {
+TEST(DotAngle, TableExistenceStructure) {
     INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
     Dot::generate_table(cf);
     Nibble nb;
@@ -58,7 +58,7 @@ TEST(DotAngleTable, ExistenceStructure) {
 }
 
 /// Check that the entries in the DotAngle table are correct.
-TEST(DotAngleTable, CorrectEntries) {
+TEST(DotAngle, TableCorrectEntries) {
     INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
     Dot::generate_table(cf);
     Chomp ch;
@@ -81,13 +81,13 @@ TEST(DotAngleTable, CorrectEntries) {
 }
 
 ///// No test is performed here. This is just to see how long the entire table will load into memory.
-//TEST(DotAngleChomp, InMemory) {
+//TEST(DotAngle, ChompInMemory) {
 //    INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
 //    Chomp ch(cf.Get("table-names", "dot", ""), cf.Get("table-focus", "dot", ""));
 //}
 
 /// Check that query_for_trio method returns the catalog ID of the correct stars, and actually returns stars.
-TEST(DotAngleQuery, Trio) {
+TEST(DotAngle, QueryTrio) {
     Chomp ch;
     Benchmark input(ch, 15);
     Dot::Parameters p = Dot::DEFAULT_PARAMETERS, p2 = Dot::DEFAULT_PARAMETERS;
@@ -113,7 +113,7 @@ TEST(DotAngleQuery, Trio) {
 }
 
 /// Check that the query_for_trio method fails when expected.
-TEST(DotAngleQuery, ExpectedFailure) {
+TEST(DotAngle, QueryExpectedFailure) {
     Chomp ch;
     Benchmark input(ch, 15), input2(ch, 15);
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
@@ -148,7 +148,7 @@ TEST(DotAngleQuery, ExpectedFailure) {
 }
 
 /// Check that the brightest pair is selected, using the fbs flag.
-TEST(DotAngleQuery, FavorBrightStarsFlag) {
+TEST(DotAngle, QueryFavorBrightStarsFlag) {
     Chomp ch;
     Benchmark input(ch, 15);
     Dot::Parameters p = Dot::DEFAULT_PARAMETERS, p2 = Dot::DEFAULT_PARAMETERS;
@@ -169,7 +169,7 @@ TEST(DotAngleQuery, FavorBrightStarsFlag) {
 }
 
 /// Check that the zero-length stars are returned given that theta is greater than the current fov.
-TEST(DotAngleCandidateTrio, FOV) {
+TEST(DotAngle, CandidateTrioFOV) {
     Chomp ch;
     Dot a(Benchmark(ch, 10), Dot::DEFAULT_PARAMETERS);
     Star b(0.998078771188383, -0.0350062881876723, 0.0511207031486225);
@@ -183,7 +183,7 @@ TEST(DotAngleCandidateTrio, FOV) {
 }
 
 /// Check that the stars that do not meet condition D are returned with an error set.
-TEST(DotAngleCandidateTrio, Condition6D) {
+TEST(DotAngle, CandidateTrioCondition6D) {
     Chomp ch;
     Dot a(Benchmark(ch, 30), Dot::DEFAULT_PARAMETERS);
     Star b(0.998078771188383, -0.0350062881876723, 0.0511207031486225);
@@ -197,7 +197,7 @@ TEST(DotAngleCandidateTrio, Condition6D) {
 }
 
 /// Check that the zero-length stars are returned when no matching theta is found.
-TEST(DotAngleCandidatePair, None) {
+TEST(DotAngle, CandidatePairNone) {
     Chomp ch;
     Dot a(Benchmark(ch, 10), Dot::DEFAULT_PARAMETERS);
     
@@ -208,7 +208,7 @@ TEST(DotAngleCandidatePair, None) {
 }
 
 /// Check that the correct stars are returned from the candidate trio query.
-TEST(DotAngleResults, Query) {
+TEST(DotAngle, ResultsQuery) {
     Chomp ch;
     Benchmark input(ch, 15);
     Dot::Parameters p = Dot::DEFAULT_PARAMETERS;
@@ -226,7 +226,7 @@ TEST(DotAngleResults, Query) {
 }
 
 /// Check that a clean input returns the expected query result.
-TEST(DotAngleTrial, CleanQuery) {
+TEST(DotAngle, TrialCleanQuery) {
     Chomp ch;
     Dot::Parameters p = Dot::DEFAULT_PARAMETERS;
     p.sigma_1 = p.sigma_2 = p.sigma_3 = 10e-7, p.no_reduction = false;
@@ -240,7 +240,7 @@ TEST(DotAngleTrial, CleanQuery) {
 }
 
 /// Check that a clean input returns the correct stars from a set of candidates.
-TEST(DotAngleTrial, CleanReduction) {
+TEST(DotAngle, TrialCleanReduction) {
     Chomp ch;
     Dot::Parameters p = Dot::DEFAULT_PARAMETERS;
     p.sigma_4 = 0.0001, p.sigma_1 = p.sigma_2 = p.sigma_3 = 0.000000001;
@@ -252,7 +252,7 @@ TEST(DotAngleTrial, CleanReduction) {
 }
 
 /// Check that a clean input returns the expected identification of stars.
-TEST(DotAngleTrial, CleanIdentify) {
+TEST(DotAngle, TrialCleanIdentify) {
     Chomp ch;
     Dot::Parameters p = Dot::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0);
@@ -271,7 +271,7 @@ TEST(DotAngleTrial, CleanIdentify) {
 }
 
 /// Check that the nu_max is respected in identification.
-TEST(DotAngleTrial, ExceededNu) {
+TEST(DotAngle, TrialExceededNu) {
     Chomp ch;
     Benchmark input(ch, 15);
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
@@ -286,7 +286,7 @@ TEST(DotAngleTrial, ExceededNu) {
 }
 
 /// Check that the correct result is returned when no map is found.
-TEST(DotAngleTrial, NoMapFound) {
+TEST(DotAngle, TrialNoMapFound) {
     Chomp ch;
     Benchmark input(ch, 7);
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
@@ -297,14 +297,4 @@ TEST(DotAngleTrial, NoMapFound) {
     Dot a(input, p);
     
     EXPECT_EQ(a.identify()[0], Dot::NO_CONFIDENT_A[0]);
-}
-
-/// Runs all tests defined in this file.
-///
-/// @param argc Argument count. Used in Google Test initialization.
-/// @param argv Argument vector. Used in Google Test initialization.
-/// @return The result of running all tests.
-int main (int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
 }

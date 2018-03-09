@@ -1,7 +1,7 @@
 /// @file test-experiment.cpp
 /// @author Glenn Galvizo
 ///
-/// Source file for all Experiment class unit tests and the test runner.
+/// Source file for all Experiment class unit tests.
 
 #define ENABLE_TESTING_ACCESS
 
@@ -15,7 +15,7 @@
 
 // Create an in-between matcher for Google Mock.
 using testing::PrintToString;
-MATCHER_P2(IsBetween, a, b,
+MATCHER_P2(IsBetweenExperiment, a, b,
            std::string(negation ? "isn't" : "is") + " between " + PrintToString(a) + " and " + PrintToString(b)) {
     return a <= arg && arg <= b;
 }
@@ -68,7 +68,7 @@ const std::string QUERY_INI = "[query-experiment]          ; Testing parameters 
     "ss-step = 0.000000001       ; Shift sigma multiplier for each variation.\n"
     "ss-iter = 5                 ; Number of shift sigma variations.\n";
 
-/// Contents of the configuration file for reducition trials.
+/// Contents of the configuration file for reduction trials.
 const std::string REDUCTION_INI = "[reduction-experiment]      ; Testing parameters for the reduction experiment.\n"
     "lu = REDUCTION              ; Name of the Lumberjack table to log results to.\n"
     "ss-step = 0.000000001       ; Shift sigma multiplier for each variation.\n"
@@ -128,7 +128,7 @@ void setup_experiment (std::shared_ptr<INIReader> &cf, std::shared_ptr<Chomp> &c
 }
 
 /// Ensure that the benchmark presentation is random, and that the specifications are met.
-TEST(ExperimentAll, PresentBenchmark) {
+TEST(Experiment, AllPresentBenchmark) {
     Chomp ch;
     Star::list big_i, old_big_i = {Star::chance()};
     Star center, old_center = Star::chance();
@@ -160,7 +160,7 @@ TEST(ExperimentAll, PresentBenchmark) {
 }
 
 /// Check that the correct number of stars are generated, and that this set is random.
-TEST(ExperimentQuery, GenerateNStars) {
+TEST(Experiment, QueryGenerateNStars) {
     Chomp ch;
     Star center, old_center = Star::chance();
     std::array<double, 2> fov_p = {20, 18};
@@ -184,7 +184,7 @@ TEST(ExperimentQuery, GenerateNStars) {
 }
 
 /// Check that the check for set existence is correct.
-TEST(ExperimentQuery, SetExistence) {
+TEST(Experiment, QuerySetExistence) {
     std::vector<Identification::labels_list> a = {{1, 2, 3}, {4, 5, 6}, {6, 7, 8}};
     std::vector<Identification::labels_list> a1 = {{1, 2, 3}, {4, 5, 6}, {6, 7, 8}};
     std::vector<Identification::labels_list> a2 = {{1, 2, 3}, {4, 5, 6}, {6, 7, 8}};
@@ -202,7 +202,7 @@ TEST(ExperimentQuery, SetExistence) {
 }
 
 /// Check that the query experiment works for the angle method.
-TEST(ExperimentQueryAngle, Trial) {
+TEST(Experiment, QueryTrialAngle) {
     std::shared_ptr<Lumberjack> lu;
     std::shared_ptr<INIReader> cf;
     std::shared_ptr<Chomp> ch;
@@ -221,13 +221,13 @@ TEST(ExperimentQueryAngle, Trial) {
                                             10);
     ASSERT_EQ(b.size(), count_b + 5);
     
-    for (const Nibble::tuple_d b_d : b) {
+    for (const Nibble::tuple_d &b_d : b) {
         EXPECT_EQ(b_d[0], (*cf).GetReal("query-sigma", "angle-1", 0));
         EXPECT_EQ(b_d[1], (*cf).GetReal("query-sigma", "angle-2", 0));
         EXPECT_EQ(b_d[2], (*cf).GetReal("query-sigma", "angle-3", 0));
-        EXPECT_THAT(b_d[3], IsBetween(0, (*cf).GetReal("query-experiment", "ss-step", 0)
-                                         * ((*cf).GetReal("query-experiment", "ss-iter", 0) - 1)));
-        EXPECT_THAT(b_d[4], IsBetween(0, 1));
+        EXPECT_THAT(b_d[3], IsBetweenExperiment(0, (*cf).GetReal("query-experiment", "ss-step", 0)
+                                                   * ((*cf).GetReal("query-experiment", "ss-iter", 0) - 1)));
+        EXPECT_THAT(b_d[4], IsBetweenExperiment(0, 1));
     }
     
     SQLite::Transaction transaction(*(*lu).conn);
@@ -237,7 +237,7 @@ TEST(ExperimentQueryAngle, Trial) {
 }
 
 /// Check that lists are correctly identified.
-TEST(ExperimentReduction, IsCorrectlyIdentified) {
+TEST(Experiment, ReductionIsCorrectlyIdentified) {
     Star::list a = {Star(0, 0, 0, 1), Star(0, 0, 0, 2), Star(0, 0, 0, 3)};
     Identification::labels_list b = {1, 2, 3}, c = {3, 2, 1}, d = {0, 0, 0};
     
@@ -247,7 +247,7 @@ TEST(ExperimentReduction, IsCorrectlyIdentified) {
 }
 
 /// Check that the reduction experiment works for the angle method.
-TEST(ExperimentReductionAngle, Trial) {
+TEST(Experiment, ReductionTrialAngle) {
     std::shared_ptr<Lumberjack> lu;
     std::shared_ptr<INIReader> cf;
     std::shared_ptr<Chomp> ch;
@@ -267,18 +267,18 @@ TEST(ExperimentReductionAngle, Trial) {
                                             10);
     ASSERT_EQ(b.size(), count_b + (5 * 5));
     
-    for (const Nibble::tuple_d b_d : b) {
+    for (const Nibble::tuple_d &b_d : b) {
         EXPECT_EQ(b_d[0], (*cf).GetReal("query-sigma", "angle-1", 0));
         EXPECT_EQ(b_d[1], (*cf).GetReal("query-sigma", "angle-2", 0));
         EXPECT_EQ(b_d[2], (*cf).GetReal("query-sigma", "angle-3", 0));
         EXPECT_EQ(b_d[3], (*cf).GetReal("id-parameters", "so", 0));
-        EXPECT_THAT(b_d[4], IsBetween(0, (*cf).GetReal("reduction-experiment", "ss-step", 0)
-                                         * ((*cf).GetReal("reduction-experiment", "ss-iter", 0) - 1)));
-        EXPECT_THAT(b_d[5], IsBetween((*cf).GetReal("reduction-experiment", "mb-min", 0),
-                                      (*cf).GetReal("reduction-experiment", "mb-min", 0)
-                                      + (*cf).GetReal("reduction-experiment", "mb-step", 0)
-                                        * ((*cf).GetReal("reduction-experiment", "mb-iter", 0) - 1)));
-        EXPECT_THAT(b_d[6], IsBetween(0, 1));
+        EXPECT_THAT(b_d[4], IsBetweenExperiment(0, (*cf).GetReal("reduction-experiment", "ss-step", 0)
+                                                   * ((*cf).GetReal("reduction-experiment", "ss-iter", 0) - 1)));
+        EXPECT_THAT(b_d[5], IsBetweenExperiment((*cf).GetReal("reduction-experiment", "mb-min", 0),
+                                                (*cf).GetReal("reduction-experiment", "mb-min", 0)
+                                                + (*cf).GetReal("reduction-experiment", "mb-step", 0)
+                                                  * ((*cf).GetReal("reduction-experiment", "mb-iter", 0) - 1)));
+        EXPECT_THAT(b_d[6], IsBetweenExperiment(0, 1));
     }
     
     SQLite::Transaction transaction(*(*lu).conn);
@@ -287,7 +287,7 @@ TEST(ExperimentReductionAngle, Trial) {
     transaction.commit();
 }
 
-TEST(ExperimentIdentification, PercentageCorrect) {
+TEST(Experiment, IdentificaitonPercentageCorrect) {
     Chomp ch;
     Star::list a = {ch.query_hip(26220), ch.query_hip(26221), ch.query_hip(26235), ch.query_hip(26224),
         ch.query_hip(26427)};
@@ -303,7 +303,7 @@ TEST(ExperimentIdentification, PercentageCorrect) {
 }
 
 /// Check that the map experiment works for the angle method.
-TEST(ExperimentIdentificationAngle, Trial) {
+TEST(Experiment, IdentificationTrialAngle) {
     std::shared_ptr<Lumberjack> lu;
     std::shared_ptr<INIReader> cf;
     std::shared_ptr<Chomp> ch;
@@ -328,32 +328,22 @@ TEST(ExperimentIdentificationAngle, Trial) {
         EXPECT_EQ(b_d[1], (*cf).GetReal("query-sigma", "angle-2", 0));
         EXPECT_EQ(b_d[2], (*cf).GetReal("query-sigma", "angle-3", 0));
         EXPECT_EQ(b_d[3], (*cf).GetReal("id-parameters", "so", 0));
-        EXPECT_THAT(b_d[4], IsBetween(0, (*cf).GetReal("identification-experiment", "ss-step", 0)
-                                         * ((*cf).GetReal("identification-experiment", "ss-iter", 0) - 1)));
-        EXPECT_THAT(b_d[5], IsBetween((*cf).GetReal("identification-experiment", "mb-min", 0),
-                                      (*cf).GetReal("identification-experiment", "mb-min", 0)
-                                      + (*cf).GetReal("identification-experiment", "mb-step", 0)
-                                        * ((*cf).GetReal("identification-experiment", "mb-iter", 0) - 1)));
-        EXPECT_THAT(b_d[6], IsBetween((*cf).GetReal("identification-experiment", "es-min", 0),
-                                      (*cf).GetReal("identification-experiment", "es-min", 0)
-                                      + (*cf).GetReal("identification-experiment", "es-step", 0)
-                                        * ((*cf).GetReal("identification-experiment", "es-iter", 0) - 1)));
-        EXPECT_THAT(b_d[7], IsBetween(1, (*cf).GetReal("id-parameters", "nu-m", 0)));
-        EXPECT_THAT(b_d[8], IsBetween(0, 1));
+        EXPECT_THAT(b_d[4], IsBetweenExperiment(0, (*cf).GetReal("identification-experiment", "ss-step", 0)
+                                                   * ((*cf).GetReal("identification-experiment", "ss-iter", 0) - 1)));
+        EXPECT_THAT(b_d[5], IsBetweenExperiment((*cf).GetReal("identification-experiment", "mb-min", 0),
+                                                (*cf).GetReal("identification-experiment", "mb-min", 0)
+                                                + (*cf).GetReal("identification-experiment", "mb-step", 0)
+                                                  * ((*cf).GetReal("identification-experiment", "mb-iter", 0) - 1)));
+        EXPECT_THAT(b_d[6], IsBetweenExperiment((*cf).GetReal("identification-experiment", "es-min", 0),
+                                                (*cf).GetReal("identification-experiment", "es-min", 0)
+                                                + (*cf).GetReal("identification-experiment", "es-step", 0)
+                                                  * ((*cf).GetReal("identification-experiment", "es-iter", 0) - 1)));
+        EXPECT_THAT(b_d[7], IsBetweenExperiment(1, (*cf).GetReal("id-parameters", "nu-m", 0)));
+        EXPECT_THAT(b_d[8], IsBetweenExperiment(0, 1));
     }
     
     SQLite::Transaction transaction(*(*lu).conn);
     (*(*lu).conn).exec(
         "DELETE FROM IDENTIFICATION WHERE Timestamp = '" + (*lu).timestamp + "' AND IdentificationMethod = 'Angle'");
     transaction.commit();
-}
-
-/// Runs all tests defined in this file.
-///
-/// @param argc Argument count. Used in Google Test initialization.
-/// @param argv Argument vector. Used in Google Test initialization.
-/// @return The result of running all tests.
-int main (int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
 }

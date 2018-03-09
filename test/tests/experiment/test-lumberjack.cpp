@@ -1,7 +1,7 @@
 /// @file test-lumberjack.cpp
 /// @author Glenn Galvizo
 ///
-/// Source file for all Lumberjack class unit tests and the test runner.
+/// Source file for all Lumberjack class unit tests.
 
 #define ENABLE_TESTING_ACCESS
 
@@ -11,7 +11,7 @@
 #include "gmock/gmock.h"
 
 /// Verify that all trial schemas and fields are correct.
-TEST(LumberjackTables, ExistenceStructure) {
+TEST(Lumberjack, TablesExistenceStructure) {
     INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
     
     EXPECT_NO_THROW(Lumberjack::create_table(cf.Get("query-experiment", "lu", ""), Experiment::Query::SCHEMA););
@@ -45,7 +45,7 @@ TEST(LumberjackTables, ExistenceStructure) {
 }
 
 /// Ensure that the correct fields are selected.
-TEST(LumberjackConstruction, Constructor) {
+TEST(Lumberjack, ConstructionConstructor) {
     std::ostringstream l;
     using clock = std::chrono::high_resolution_clock;
     l << clock::to_time_t(clock::now() - std::chrono::hours(24));
@@ -60,7 +60,7 @@ TEST(LumberjackConstruction, Constructor) {
 }
 
 /// Ensure that the buffer is flushed when the Lumberjack is flushed.
-TEST(LumberjackConstruction, Destructor) {
+TEST(Lumberjack, ConstructionDestructor) {
     std::ostringstream l;
     using clock = std::chrono::high_resolution_clock;
     l << clock::to_time_t(clock::now() - std::chrono::hours(24));
@@ -82,7 +82,7 @@ TEST(LumberjackConstruction, Destructor) {
 }
 
 /// Ensure that the log function works as intended.
-TEST(LumberjackLog, LogFunction) {
+TEST(Lumberjack, LogFunction) {
     std::ostringstream l;
     using clock = std::chrono::high_resolution_clock;
     l << clock::to_time_t(clock::now() - std::chrono::hours(24));
@@ -106,7 +106,7 @@ TEST(LumberjackLog, LogFunction) {
 }
 
 /// Ensure that the log function works past the buffer limit.
-TEST(LumberjackLog, LogFunctionFlush) {
+TEST(Lumberjack, LogFunctionFlush) {
     std::ostringstream l;
     using clock = std::chrono::high_resolution_clock;
     l << clock::to_time_t(clock::now() - std::chrono::hours(24));
@@ -138,16 +138,6 @@ TEST(LumberjackLog, LogFunctionFlush) {
 }
 
 /// Check that when two lumberjacks are trying to perform an insert at the same time, both insertions succeed.
-TEST(LumberjackLog, DualLumberjack) {
+TEST(Lumberjack, LogDualLumberjack) {
     // TODO: Determine a test for this.
-}
-
-/// Runs all tests defined in this file.
-///
-/// @param argc Argument count. Used in Google Test initialization.
-/// @param argv Argument vector. Used in Google Test initialization.
-/// @return The result of running all tests.
-int main (int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
 }

@@ -1,7 +1,7 @@
 /// @file test-angle.cpp
 /// @author Glenn Galvizo
 ///
-/// Source file for all Angle class unit tests and the test runner.
+/// Source file for all Angle class unit tests.
 
 #define ENABLE_TESTING_ACCESS
 
@@ -14,7 +14,7 @@ using testing::Contains;
 using testing::Not;
 
 /// Check that the constructor correctly sets the object's attributes.
-TEST(AngleConstructor, Constructor) {
+TEST(Angle, Constructor) {
     Chomp ch;
     Benchmark input(ch, 20);
     Angle::Parameters p = {0.001, 0.00001, 0.01, 10, false, true, 0.1, 10, std::make_shared<unsigned int>(0),
@@ -36,7 +36,7 @@ TEST(AngleConstructor, Constructor) {
 }
 
 /// Check the existence and the structure of the Angle table.
-TEST(AngleTable, ExistenceStructure) {
+TEST(Angle, TableExistenceStructure) {
     INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
     Angle::generate_table(cf, "angle");
     Nibble nb;
@@ -52,7 +52,7 @@ TEST(AngleTable, ExistenceStructure) {
 }
 
 /// Check that the entries in the Angle table are correct.
-TEST(AngleTable, CorrectEntries) {
+TEST(Angle, TableCorrectEntries) {
     INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
     Angle::generate_table(cf, "angle");
     Chomp ch;
@@ -66,7 +66,7 @@ TEST(AngleTable, CorrectEntries) {
 }
 
 /// Check that query_for_pair method returns the catalog ID of the correct stars, and actually returns stars.
-TEST(AngleQuery, Pair) {
+TEST(Angle, QueryPair) {
     Chomp ch;
     Benchmark input(ch, 15);
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS, p2 = Angle::DEFAULT_PARAMETERS;
@@ -86,7 +86,7 @@ TEST(AngleQuery, Pair) {
 }
 
 /// Check that the query_for_pair method fails when expected.
-TEST(AngleQuery, ExpectedFailure) {
+TEST(Angle, QueryExpectedFailure) {
     Chomp ch;
     Benchmark input(ch, 15), input2(ch, 15);
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
@@ -107,7 +107,7 @@ TEST(AngleQuery, ExpectedFailure) {
 }
 
 /// Check that the brightest pair is selected, using the fbs flag.
-TEST(AngleQuery, FavorBrightStarsFlag) {
+TEST(Angle, QueryFavorBrightStarsFlag) {
     Chomp ch;
     Benchmark input(ch, 15);
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS, p2 = Angle::DEFAULT_PARAMETERS;
@@ -122,7 +122,7 @@ TEST(AngleQuery, FavorBrightStarsFlag) {
 }
 
 /// Check that the zero-length stars are returned given that theta is greater than the current fov.
-TEST(AngleCandidatePair, FOV) {
+TEST(Angle, CandidatePairFOV) {
     Chomp ch;
     Angle a(Benchmark(ch, 10), Angle::DEFAULT_PARAMETERS);
     Star b(0.928454687492219, 0.132930961972911, 0.346844709665121);
@@ -134,7 +134,7 @@ TEST(AngleCandidatePair, FOV) {
 }
 
 /// Check that the zero-length stars are returned when no matching theta is found.
-TEST(AngleCandidatePair, None) {
+TEST(Angle, CandidatePairNone) {
     Chomp ch;
     Angle a(Benchmark(ch, 10), Angle::DEFAULT_PARAMETERS);
     
@@ -144,7 +144,7 @@ TEST(AngleCandidatePair, None) {
 }
 
 /// Check that the direct match test returns the correct set.
-TEST(AngleDMT, DirectMatchTest) {
+TEST(Angle, DMTDirectMatchTest) {
     Chomp ch;
     Rotation q = Rotation::chance();
     Star::list n = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532)};
@@ -168,7 +168,7 @@ TEST(AngleDMT, DirectMatchTest) {
 }
 
 /// Check that the correct stars are returned from the candidate pair query.
-TEST(AngleResults, Query) {
+TEST(Angle, ResultsQuery) {
     Chomp ch;
     Benchmark input(ch, 15);
     Angle b(input, Angle::DEFAULT_PARAMETERS);
@@ -181,7 +181,7 @@ TEST(AngleResults, Query) {
 }
 
 /// Check that a clean input returns the expected query result.
-TEST(AngleTrial, CleanQuery) {
+TEST(Angle, TrialCleanQuery) {
     Chomp ch;
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
     p.sigma_1 = 10e-7, p.no_reduction = false;
@@ -193,7 +193,7 @@ TEST(AngleTrial, CleanQuery) {
 }
 
 /// Check that a clean input returns the correct stars from a set of candidates.
-TEST(AngleTrial, CleanReduction) {
+TEST(Angle, TrialCleanReduction) {
     Chomp ch;
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
     p.sigma_4 = 0.0001, p.sigma_1 = 0.000000001;
@@ -204,7 +204,7 @@ TEST(AngleTrial, CleanReduction) {
 }
 
 /// Check that a clean input returns the expected identification of stars.
-TEST(AngleTrial, CleanIdentify) {
+TEST(Angle, TrialCleanIdentify) {
     Chomp ch;
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0);
@@ -222,7 +222,7 @@ TEST(AngleTrial, CleanIdentify) {
 }
 
 /// Check that the nu_max is respected in identification.
-TEST(AngleTrial, ExceededNu) {
+TEST(Angle, TrialExceededNu) {
     Chomp ch;
     Benchmark input(ch, 15);
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
@@ -237,7 +237,7 @@ TEST(AngleTrial, ExceededNu) {
 }
 
 /// Check that the correct result is returned when no map is found.
-TEST(AngleTrial, NoMapFound) {
+TEST(Angle, TrialNoMapFound) {
     Chomp ch;
     Benchmark input(ch, 7);
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
@@ -248,14 +248,4 @@ TEST(AngleTrial, NoMapFound) {
     Angle a(input, p);
     
     EXPECT_EQ(a.identify()[0], Angle::NO_CONFIDENT_A[0]);
-}
-
-/// Runs all tests defined in this file.
-///
-/// @param argc Argument count. Used in Google Test initialization.
-/// @param argv Argument vector. Used in Google Test initialization.
-/// @return The result of running all tests.
-int main (int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
 }
