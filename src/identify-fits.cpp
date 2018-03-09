@@ -37,63 +37,52 @@ namespace NBHA {
 /// Given the name of a FITS image file, determine the image center and the rest of the stars.
 ///
 /// @param image Reference to the filename argument passed with this program.
-/// @return Empty list if there exist less than four total stars. Otherwise, the list of stars. The first is the focus,
-/// and the following are the stars in the image.
-std::unique_ptr<std::ifstream> parse_fits (const std::string &image) {
+/// @return A pointer to the pipe containing the output from our centroid determination script.
+std::shared_ptr<FILE> parse_fits (const std::string &image) {
     // Run the FITS -> CSV centroid script.
     std::string script_path = std::string(std::getenv("HOKU_PROJECT_PATH")) + "/script/python/find_centroids.py";
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-    std::string cmd = std::string("python \"") + script_path + "\" \"" + image + "\"";
+    std::string cmd = std::string("python -E \"") + script_path + "\" \"" + image + "\"";
 #else
     std::string cmd = std::string("python3 \"") + script_path + "\" " + image;
 #endif
-    std::system(std::string("where.exe python").c_str());
-    if (int i = std::system(cmd.c_str())) {
-        throw std::runtime_error(std::string("'python/find_centroids.py' exited with an error " + std::to_string(i) +
-                                             ". Double check the file you have passed."));
+    std::shared_ptr<FILE> centroids_pipe(popen(cmd.c_str(), "r"), pclose);
+    if (!centroids_pipe) {
+        throw std::runtime_error(std::string("'python/find_centroids.py' exited with an error. Double check the file"
+                                                 " you have passed."));
     }
     
-    // Output from script above is stored in temporary directory.
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-    std::unique_ptr<std::ifstream> centroids_f = std::make_unique<std::ifstream>(std::ifstream("%TEMP%/cent.tmp"));
-#else
-    std::unique_ptr<std::ifstream> centroids_f = std::make_unique<std::ifstream>(std::ifstream("/tmp/cent.tmp"));
-#endif
-    
-    // If this file cannot be opened, then the script above has failed.
-    if (!(*centroids_f).is_open()) {
-        throw std::runtime_error(std::string("'cent.tmp' could not be opened."));
-    }
-    return centroids_f;
+    return centroids_pipe;
 }
 
 /// Given an open filestream to a CSV containing the centroids of a FITS image, determine the image center (which
 /// should be returned first) and the rest of the stars.
 ///
-/// @param image Reference to the a pointer of the filename argument passed with this program.
+/// @param centroids_pipe Reference to the a pointer of the pipe containing the centroids in comma-separated format.
 /// @return Empty list if there exist less than four total stars. Otherwise, the list of stars. The first is the focus,
 /// and the following are the stars in the image.
-Star::list parse_centroids (const std::unique_ptr<std::ifstream> &centroids) {
+Star::list parse_centroids (const std::shared_ptr<FILE> &centroids_pipe) {
     double hf = cf.GetReal("hardware", "mp", 0) / 2, dpp = cf.GetReal("hardware", "dpp", 0);
+    std::array<char, 128> buffer;
     Star::list s_i;
     
     try {
-        for (std::string entry; std::getline(*centroids, entry);) {
-            std::istringstream entry_stream(entry);
-            std::vector<double> s_c;
-            
-            // Read the line by commas.
-            while (entry_stream.good()) {
-                std::string substr;
-                std::getline(entry_stream, substr, ',');
-                s_c.push_back(std::stof(substr, nullptr));
+        while (!feof(centroids_pipe.get())) {
+            if (fgets(buffer.data(), 128, centroids_pipe.get()) != nullptr) {
+                std::istringstream entry_stream(std::string(buffer.begin(), buffer.end()));
+                std::array<double, 2> s_c;
+                std::string s_c_0, s_c_1;
+                
+                // Separate our line by commas, and convert our results into floats.
+                std::getline(entry_stream, s_c_0, ','), std::getline(entry_stream, s_c_1);
+                s_c[0] = std::stof(s_c_0, nullptr), s_c[1] = std::stof(s_c_1, nullptr);
+                
+                // Translate points to fit (0, 0) center.
+                double x = s_c[0] - hf, y = s_c[1] - hf;
+                
+                // Project the star to 3D, and save it.
+                s_i.push_back(Star::wrap(Mercator::transform_point(x, y, dpp)));
             }
-            
-            // Translate points to fit (0, 0) center.
-            double x = s_c[0] - hf, y = s_c[1] - hf;
-            
-            // Project the star to 3D, and save it.
-            s_i.push_back(Star::wrap(Mercator::transform_point(x, y, dpp)));
         }
     }
     catch (std::exception &e) {
@@ -122,13 +111,13 @@ unsigned int identifier_hash (const std::string &identifier_in) {
 int identify_fits (const std::string &id_method, const Star::list &s_i) {
     // Construct the image into a Benchmark given the arguments.
     const double fov = cf.GetReal("hardware", "fov", 0);
-    const unsigned int i = identifier_hash(id_method), nu = 0;
+    const unsigned int i = identifier_hash(id_method);
     Benchmark input(Star::list(s_i.begin() + 1, s_i.end()), s_i[0], fov);
     
     // Attach hyperparameters.
     Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
     p.table_name = cf.Get("table-names", id_method, Identification::DEFAULT_TABLE_NAME);
-    p.nu = std::make_shared<unsigned int>(nu);
+    p.nu = std::make_shared<unsigned int>(0);
     Identification::collect_parameters(p, cf, id_method);
     
     // Identify using the given ID method, and display the results through Python.

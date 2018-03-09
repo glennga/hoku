@@ -1,6 +1,6 @@
 """"
-This file is used to read a FITS file, determine the centroids of the brightest stars, and write these points to a 
-file. The only parameter required by this script is the path of the FITS image to parse.
+This file is used to read a FITS file, determine the centroids of the brightest stars, and write these points to the 
+console. The only parameter required by this script is the path of the FITS image to parse.
 
 Usage: python3 find_centroids.py [full path to FITS file]
 """""
@@ -8,7 +8,6 @@ Usage: python3 find_centroids.py [full path to FITS file]
 from astropy.io import fits
 import configparser
 import numpy as np
-import tempfile
 import cv2
 import csv
 import os
@@ -73,7 +72,5 @@ if __name__ == '__main__':
     img_stars = locate_stars(img_cv, cf)
     img_stars = [[img_data.shape[1] / 2, img_data.shape[0] / 2]] + img_stars
 
-    # Record this to the temp file.
-    with open(tempfile.gettempdir() + '/cent.tmp', 'w') as t_f:
-        csv_t = csv.writer(t_f)
-        list(map(lambda a: csv_t.writerow(a), img_stars))
+    # Output our results to console.
+    list(map(lambda a: print('{},{}'.format(a[0], a[1])), img_stars))
