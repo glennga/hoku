@@ -221,7 +221,7 @@ if __name__ == '__main__':
     # Parse each parameter.
     arg_returns = list(map(lambda a: parse_args(sys.argv[a]), range(1, len(sys.argv))))
     if not all(arg_returns):
-        print('Arguments not parsed. Enter \'python3 draw_image.py help\' for avaiable options.')
+        print('Arguments not parsed. Enter \'python3 draw_image.py help\' for available options.')
         exit(2)
 
     # Set the font size.

@@ -1,7 +1,7 @@
 /// @file test-planar-triangle.cpp
 /// @author Glenn Galvizo
 ///
-/// Source file for all PlanarTriangle class unit tests and the test runner.
+/// Source file for all PlanarTriangle class unit tests.
 
 #define ENABLE_TESTING_ACCESS
 
@@ -16,7 +16,7 @@ using testing::Each;
 using testing::Contains;
 
 /// Check that the constructor correctly sets the object's attributes.
-TEST(PlanarTriangleConstructor, Constructor) {
+TEST(PlanarTriangle, Constructor) {
     Chomp ch;
     Benchmark input(ch, 20);
     Plane::Parameters p = {0.01, 0.0001, 0.000001, 0.1, 10, false, true, 10, std::make_shared<unsigned int>(0),
@@ -39,7 +39,7 @@ TEST(PlanarTriangleConstructor, Constructor) {
 }
 
 /// Check the existence and the structure of the PlanarTriangle table.
-TEST(PlanarTriangleTable, ExistenceStructure) {
+TEST(PlanarTriangle, TableExistenceStructure) {
     INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
     Plane::generate_table(cf);
     Nibble nb;
@@ -55,7 +55,7 @@ TEST(PlanarTriangleTable, ExistenceStructure) {
 }
 
 /// Check that the entries in the PlanarTriangle table are correct.
-TEST(PlanarTriangleTable, CorrectEntries) {
+TEST(PlanarTriangle, TableCorrectEntries) {
     INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
     Plane::generate_table(cf);
     Chomp ch;
@@ -78,13 +78,13 @@ TEST(PlanarTriangleTable, CorrectEntries) {
 }
 
 ///// No test is performed here. This is just to see how long the entire table will load into memory.
-//TEST(PlanarTriangleTableChomp, InMemory) {
+//TEST(PlanarTriangle, ChompInMemory) {
 //    INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
 //    Chomp ch(cf.Get("table-names", "plane", ""), cf.Get("table-focus", "plane", ""));
 //}
 
 /// Check that the query_for_trios method returns the correct result.
-TEST(PlanarTriangleTriosQuery, CleanInput) {
+TEST(PlanarTriangle, TriosQueryCleanInput) {
     Chomp ch;
     Benchmark input(ch, 15);
     Identification::Parameters p = Plane::DEFAULT_PARAMETERS;
@@ -99,7 +99,7 @@ TEST(PlanarTriangleTriosQuery, CleanInput) {
 }
 
 /// Check that a clean input returns the expected query result.
-TEST(PlanarTriangleTrial, CleanQuery) {
+TEST(PlanarTriangle, TrialCleanQuery) {
     Chomp ch;
     Plane::Parameters p = Plane::DEFAULT_PARAMETERS;
     p.sigma_1 = p.sigma_2 = 10e-8, p.no_reduction = false;
@@ -111,7 +111,7 @@ TEST(PlanarTriangleTrial, CleanQuery) {
 }
 
 /// Check that a clean input returns the correct stars from a set of candidates.
-TEST(PlanarTriangleTrial, CleanReduction) {
+TEST(PlanarTriangle, TrialCleanReduction) {
     Chomp ch;
     Plane::Parameters p = Plane::DEFAULT_PARAMETERS;
     p.sigma_1 = p.sigma_2 = 10e-10, p.sql_limit = 1000000;
@@ -124,7 +124,7 @@ TEST(PlanarTriangleTrial, CleanReduction) {
 }
 
 /// Check that a clean input returns the expected identification of stars.
-TEST(PlanarTriangleTrial, CleanIdentify) {
+TEST(PlanarTriangle, TrialCleanIdentify) {
     Chomp ch;
     Plane::Parameters p = Plane::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0);
@@ -145,7 +145,7 @@ TEST(PlanarTriangleTrial, CleanIdentify) {
 }
 
 /// Check that the nu_max is respected in identification.
-TEST(PlanarTriangleTrial, ExceededNu) {
+TEST(PlanarTriangle, TrialExceededNu) {
     Chomp ch;
     Benchmark input(ch, 15);
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
@@ -160,7 +160,7 @@ TEST(PlanarTriangleTrial, ExceededNu) {
 }
 
 /// Check that the correct result is returned when no map is found.
-TEST(PlanarTriangleTrial, NoMapFound) {
+TEST(PlanarTriangle, TrialNoMapFound) {
     Chomp ch;
     Benchmark input(ch, 7);
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
@@ -171,14 +171,4 @@ TEST(PlanarTriangleTrial, NoMapFound) {
     Plane a(input, p);
     
     EXPECT_EQ(a.identify()[0], Plane::NO_CONFIDENT_A[0]);
-}
-
-/// Runs all tests defined in this file.
-///
-/// @param argc Argument count. Used in Google Test initialization.
-/// @param argv Argument vector. Used in Google Test initialization.
-/// @return The result of running all tests.
-int main (int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
 }

@@ -6,8 +6,11 @@
 #ifndef HOKU_ROTATION_H
 #define HOKU_ROTATION_H
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
 #include "third-party/gmath/Matrix3x3.hpp"
 #include "third-party/gmath/Quaternion.hpp"
+#pragma GCC diagnostic pop
 
 #include "math/star.h"
 
@@ -35,7 +38,7 @@
 /// @endcode
 class Rotation : public Quaternion {
   public:
-    Rotation(double w, double i, double j, double k);
+    Rotation (double w, double i, double j, double k);
     static Rotation wrap (const Quaternion &q);
     
     /// Alias for a function that solves Wahba's problem (e.g. TRIAD, SVD, etc...).

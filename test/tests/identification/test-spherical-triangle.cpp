@@ -1,7 +1,7 @@
 /// @file test-spherical-triangle.cpp
 /// @author Glenn Galvizo
 ///
-/// Source file for all SphericalTriangle class unit tests and the test runner.
+/// Source file for all SphericalTriangle class unit tests.
 
 #define ENABLE_TESTING_ACCESS
 
@@ -16,7 +16,7 @@ using testing::Each;
 using testing::Contains;
 
 /// Check that the constructor correctly sets the object's attributes.
-TEST(SphericalTriangleConstructor, Constructor) {
+TEST(SphericalTriangle, Constructor) {
     Chomp ch;
     Benchmark input(ch, 20);
     Sphere::Parameters p = {0.01, 0.00001, 0.0000001, 0.1, 10, false, true, 10, std::make_shared<unsigned int>(0),
@@ -39,7 +39,7 @@ TEST(SphericalTriangleConstructor, Constructor) {
 }
 
 /// Check the existence and the structure of the SphericalTriangle table.
-TEST(SphericalTriangleTable, ExistenceStructure) {
+TEST(SphericalTriangle, TableExistenceStructure) {
     INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
     Sphere::generate_table(cf);
     Nibble nb;
@@ -55,7 +55,7 @@ TEST(SphericalTriangleTable, ExistenceStructure) {
 }
 
 /// Check that the entries in the SphericalTriangle table are correct.
-TEST(SphericalTriangleTable, CorrectEntries) {
+TEST(SphericalTriangle, TableCorrectEntries) {
     INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
     Sphere::generate_table(cf);
     Chomp ch;
@@ -78,13 +78,13 @@ TEST(SphericalTriangleTable, CorrectEntries) {
 }
 
 ///// No test is performed here. This is just to see how long the entire table will load into memory.
-//TEST(SphericalTriangleTableChomp, InMemory) {
+//TEST(SphericalTriangle, ChompInMemory) {
 //    INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
 //    Chomp ch(cf.Get("table-names", "sphere", ""), cf.Get("table-focus", "sphere", ""));
 //}
 
 /// Check that the query_for_trios method returns the correct result.
-TEST(SphericalTriangleTriosQuery, CleanInput) {
+TEST(SphericalTriangle, TriosQueryCleanInput) {
     Chomp ch;
     Benchmark input(ch, 15);
     Identification::Parameters p = Sphere::DEFAULT_PARAMETERS;
@@ -99,7 +99,7 @@ TEST(SphericalTriangleTriosQuery, CleanInput) {
 }
 
 /// Check that a clean input returns the expected query result.
-TEST(SphericalTriangleTrial, CleanQuery) {
+TEST(SphericalTriangle, TrialCleanQuery) {
     Chomp ch;
     Sphere::Parameters p = Sphere::DEFAULT_PARAMETERS;
     p.sigma_1 = p.sigma_2 = 10e-8, p.no_reduction = false;
@@ -111,7 +111,7 @@ TEST(SphericalTriangleTrial, CleanQuery) {
 }
 
 /// Check that a clean input returns the correct stars from a set of candidates.
-TEST(SphericalTriangleTrial, CleanReduction) {
+TEST(SphericalTriangle, TrialCleanReduction) {
     Chomp ch;
     Sphere::Parameters p = Sphere::DEFAULT_PARAMETERS;
     p.sigma_1 = p.sigma_2 = 10e-10, p.sql_limit = 1000000;
@@ -124,7 +124,7 @@ TEST(SphericalTriangleTrial, CleanReduction) {
 }
 
 /// Check that a clean input returns the expected identification of stars.
-TEST(SphericalTriangleTrial, CleanIdentify) {
+TEST(SphericalTriangle, TrialCleanIdentify) {
     Chomp ch;
     Sphere::Parameters p = Sphere::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0);
@@ -145,7 +145,7 @@ TEST(SphericalTriangleTrial, CleanIdentify) {
 }
 
 /// Check that the nu_max is respected in identification.
-TEST(SphericalTriangleTrial, ExceededNu) {
+TEST(SphericalTriangle, TrialExceededNu) {
     Chomp ch;
     Benchmark input(ch, 15);
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
@@ -160,7 +160,7 @@ TEST(SphericalTriangleTrial, ExceededNu) {
 }
 
 /// Check that the correct result is returned when no map is found.
-TEST(SphericalTriangleTrial, NoMapFound) {
+TEST(SphericalTriangle, TrialNoMapFound) {
     Chomp ch;
     Benchmark input(ch, 7);
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
@@ -171,14 +171,4 @@ TEST(SphericalTriangleTrial, NoMapFound) {
     Sphere a(input, p);
     
     EXPECT_EQ(a.identify()[0], Sphere::NO_CONFIDENT_A[0]);
-}
-
-/// Runs all tests defined in this file.
-///
-/// @param argc Argument count. Used in Google Test initialization.
-/// @param argv Argument vector. Used in Google Test initialization.
-/// @return The result of running all tests.
-int main (int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
 }

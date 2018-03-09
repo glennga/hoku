@@ -1,7 +1,7 @@
 #
-# Require CMake Version 3.7
+# Require CMake Version 2.8.10
 #
-cmake_minimum_required(VERSION 3.7)
+cmake_minimum_required(VERSION 2.8.10)
 
 #
 # Include Directory for Header Files

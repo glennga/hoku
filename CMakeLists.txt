@@ -2,7 +2,7 @@
 # Project Name = HOKU
 #
 set(PROJECT_NAME HOKU)
-cmake_minimum_required(VERSION 3.7)
+cmake_minimum_required(VERSION 2.8.10)
 project(${PROJECT_NAME})
 
 #

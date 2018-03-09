@@ -41,9 +41,6 @@ class Lumberjack : public Nibble {
     /// The maximum size of our result buffer (dependent on SQLITE_MAX_VARIABLE_NUMBER). Flush above this limit.
     static constexpr int MAXIMUM_BUFFER_SIZE = 50;
     
-    /// The maximum number of times to attempt to perform the execution.
-    static constexpr int MAXIMUM_INSERTION_ATTEMPTS = 10;
-    
     /// Every trial log must be of this size.
     unsigned int expected_result_size;
     

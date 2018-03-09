@@ -11,7 +11,8 @@ picture and how we pointed the camera.
 This repository holds research toward the analysis of various lost-in-space _star identification_ procedures for 
 spacecraft. This includes a study of feature uniqueness, permutation order, candidate reduction, and identification 
 under the introduction of various noise. The process of identifying blobs in an image, constructing the image 
-coordinate system, and efficiently querying static databases is __not__ addressed here. 
+coordinate system, and efficiently querying static databases is __not__ addressed here, but there does exist some 
+rudimentary programs to execute the attitude determination process end-to-end.
 
 There has been an increasing number of approaches toward stellar attitude determination, but little comparison between
 each of these methods in a more controlled manner. Interchangeable factors are abstracted away (camera hardware, blob
@@ -23,15 +24,18 @@ This repository requires the following:
     1. Install Python 3: [https://www.python.org/downloads/](https://www.python.org/downloads/)
     2. Install Anaconda (`numpy` and `matplotlib`): [https://conda.io/docs/user-guide/install/index.html](https://conda.io/docs/user-guide/install/index.html)
     3. Install OpenCV for Python: Enter `conda install -c conda-forge opencv`
-2. `CMake 3.7` or above. Used to manage and build the C++ code here.
+2. `CMake (2.8.10)` or above. Used to manage and build the C++ code here.
     1. Install CMake: [https://cmake.org/install/](https://cmake.org/install/)
     2. CMake tutorial with CLion IDE: [https://www.jetbrains.com/help/clion/quick-cmake-tutorial.html](https://www.jetbrains.com/help/clion/quick-cmake-tutorial.html)
 3. `git` or some Git client. Used to clone this repository, and to grab GoogleTest for testing.
     1. Install Git: [https://git-scm.com/book/en/v2/Getting-Started-Installing-Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
     2. Install GitKraken (optional): [https://www.gitkraken.com/](https://www.gitkraken.com/)
-4. C++ build tools (`make`, compiler, ...).
+4. C++ build tools (`make 4.1`, `gcc 5.4`, `g++ 5.4`).
     1. Use `sudo apt-get install build-essential` on Linux.
-    2. Download CLion IDE (optional): [https://www.jetbrains.com/clion/download](https://www.jetbrains.com/clion/download)
+    2. Download 64-Bit MinGW on Windows: [https://sourceforge.net/projects/mingw-w64/](https://sourceforge
+    .net/projects/mingw-w64/)
+    3. Download CLion IDE (optional): [https://www.jetbrains.com/clion/download](https://www.jetbrains
+    .com/clion/download)
 
 To get started, clone this repository:
 ```cmd
@@ -51,17 +55,17 @@ sudo script/first-build.sh
 
 Generate the executables. The output will reside in the `bin` folder. 
 ```cmd
+# Create the Makefiles.
 cd hoku/build
 cmake -G"Unix Makefiles" ..
+
+# Build the executables.
 cd src
 make -j8 install
 ```
 
 Modify the `CONFIG.ini` file to fit your hardware and experiment parameters. A more descriptive version of the 
 **id-parameters** section is below:
-1. `sq` = Value in degrees used to vary the selectivity of a catalog search. This value corresponds to noise. 
-Increasing this value raises your chances of collecting false positives, but decreasing this value may lead to more 
-false negatives.
 2. `sl` = Maximum number of tuples to select while querying the catalog.
 3. `nr` = If toggled to 1, the reduction requirements are removed. Instead of going through each 
 identification's method specified reduction process, the first element of the list is simply selected.
@@ -76,8 +80,9 @@ possible option and consuming time, set this appropriately.
 determining a rotation given vector observations in both frame. For every instance where Wahba's problem occurs, this
 method will be applied.
 
+TODO: Add the actual link for the premade database.
 The `nibble.db` database holds all the data each identification method will reference (the catalog). The link 
-[here](https://drive.google.com/file/d/1fxId8hLzxEX9VJxO1-p_1ye_J8NRKlVK/view?usp=sharing) provides this database 
+[here](---) provides this database 
 with the given parameters:
 - Field-of-view (`fov` in `CONFIG.ini`) < 20
 - Maximum apparent magnitude seen by detector (`m-bright` in `CONFIG.ini`) = 6
@@ -138,23 +143,10 @@ cd hoku/bin
 ./IdentifyFITS [id-method] [image-file]
 ```
 
-The first argument specifies the type of identification method to run. The second argument specifies the stars in 
-the image. To run the Angle identification method on `my-image.csv` with a field of view of 20 degrees, enter the 
-following:
+The first argument specifies the type of identification method to run. The second argument specifies the FITS file to
+read. To run the Angle identification method on `my-image.fits`, enter the following:
 ```cmd
-./IdentifyFITS angle my-image.csv
-```
-
-The image file must be formatted in a comma separated manner, specifying the centroid coordinates in terms of a 
-standard FITS image:
-```cmd
-# Use the FITS coordinates of each centroid [top-left = (0, 0), bottom-right = (max-width, max-height)]
-[x-coordinate-1],[y-coordinate-1]
-[x-coordinate-2],[y-coordinate-2]
-.
-.
-.
-[x-coordinate-N],[y-coordinate-N]
+./IdentifyFITS angle my-image.fits
 ```
 
 The output runs the `visualize-image.py` script to display your image, with Hipparcos labels attached to each point. 
@@ -211,16 +203,27 @@ target_link_libraries(MyStarTracker ${SOME_OTHER_LIBS} ${HOKU_LIBS})
 ```
 
 ## Google Test Generation
-Generate the test executables. The output will reside in the `test/bin` folder.
+Generate the test runner. The output will reside in the `bin` folder.
 ```cmd
+# Create the Makefiles.
 cd hoku/build
 cmake -G"Unix Makefiles" -DBUILD_TEST=ON ..
+
+# Build the test runner.
 cd test
 make -j8 install
 ```
 
-TODO: Finish the Google Test generation.
+Execute the test runner. By default, this runs all of tests in the tests folder. If desired, you can restrict the tests 
+to a certain pattern using the `--gtest_filter` option. Note that all classes are sorted into their own test suite. 
+More information on this argument can be found 
+[here](https://github.com/google/googletest/blob/master/googletest/docs/AdvancedGuide.md#running-a-subset-of-the-tests).
+```cmd
+cd hoku/bin
 
-## LaTeX Generation
+# Run all of the tests in the 'tests' folder.
+./PerformT
 
-TODO: Finish the LaTeX generation.
+# Run only the Benchmark tests.
+./PerformT --gtest_filter=Benchmark*
+```

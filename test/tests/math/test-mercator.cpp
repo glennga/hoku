@@ -1,20 +1,23 @@
 /// @file test-mercator.cpp
 /// @author Glenn Galvizo
 ///
-/// Source file for all Mercator class unit tests and the test runner.
+/// Source file for all Mercator class unit tests.
 
 #define ENABLE_TESTING_ACCESS
 
 #define _USE_MATH_DEFINES
 #include <cmath>
-#include "third-party/gmath/Vector2.hpp"
 #include "gmock/gmock.h"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#include "third-party/gmath/Vector2.hpp"
+#pragma GCC diagnostic pop
 
 #include "math/mercator.h"
 #include "math/random-draw.h"
 
 /// Check that the conversion between 2D and 3D retains the given pixel distance. We are looking for ballpark estimates.
-TEST(MercatorTransform, Point) {
+TEST(Mercator, TransformPoint) {
     for (unsigned int i = 0; i < 20; i++) {
         Vector2 a(RandomDraw::draw_real(-2500, 2500), RandomDraw::draw_real(-2500, 2500));
         Vector2 b(RandomDraw::draw_real(-2500, 2500), RandomDraw::draw_real(-2500, 2500));
@@ -25,14 +28,4 @@ TEST(MercatorTransform, Point) {
         double theta = (180.0 / M_PI) * Vector3::Angle(c, d);
         EXPECT_NEAR(theta, distance, 0.01);
     }
-}
-
-/// Runs all tests defined in this file.
-///
-/// @param argc Argument count. Used in Google Test initialization.
-/// @param argv Argument vector. Used in Google Test initialization.
-/// @return The result of running all tests.
-int main (int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
 }

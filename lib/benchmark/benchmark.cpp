@@ -162,18 +162,18 @@ void Benchmark::record_current_plot () {
 void Benchmark::display_plot () {
     // Field-of-view and norm are parameters to the plot script.
     std::string params =
-        " fov=" + std::to_string(this->fov) + " norm=" + std::to_string(Vector3::Magnitude(this->center));
+        " q=on fov=" + std::to_string(this->fov) + " norm=" + std::to_string(Vector3::Magnitude(this->center));
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-    std::string cmd = std::string("python ") + PLOT_SCRIPT + params;
+    std::string cmd = std::string("python -E ") + PLOT_SCRIPT + params;
 #else
     std::string cmd = "python3 " + std::string(PLOT_SCRIPT) + params;
 #endif
     
     // Record the current instance, and let Python work its magic!
     this->record_current_plot();
-    if (std::system(cmd.c_str())) {
-        throw std::runtime_error(std::string("'python/draw_image.py' exited with an error."));
+    if (int i = std::system(cmd.c_str())) {
+        throw std::runtime_error(std::string("'python/draw_image.py' exited with an error: " + std::to_string(i)));
     }
 }
 

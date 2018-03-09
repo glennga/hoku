@@ -1,7 +1,7 @@
 /// @file test-nibble.cpp
 /// @author Glenn Galvizo
 ///
-/// Source file for all Nibble class unit tests and the test runner. This assumes that the bright star table
+/// Source file for all Nibble class unit tests. This assumes that the bright star table
 /// generator in Chomp works AND is used for CONFIG.ini time = 01-2018.
 
 #define ENABLE_TESTING_ACCESS
@@ -12,13 +12,13 @@
 #include "storage/chomp.h"
 
 /// Check that Nibble database is present after creating a Nibble instance.
-TEST(NibbleFile, Existence) {
+TEST(Nibble, FileExistence) {
     std::ifstream nibble(Nibble().DATABASE_LOCATION);
     ASSERT_TRUE(nibble.good());
 }
 
 /// Check that the in-memory connection of Nibble works identically to the disk connection.
-TEST(NibbleConnection, InMemoryInstance) {
+TEST(Nibble, ConnectionInMemoryInstance) {
     Chomp ch;
     
     // Check when we create an instance with a focus, and without.
@@ -42,7 +42,7 @@ TEST(NibbleConnection, InMemoryInstance) {
 }
 
 /// Check that an assertion is thrown when the selected table does not exist.
-TEST(NibbleSelect, SelectTable) {
+TEST(Nibble, SelectTable) {
     Nibble nb;
     Chomp ch;
     
@@ -53,7 +53,7 @@ TEST(NibbleSelect, SelectTable) {
 }
 
 /// Check that the bright stars table can be queried using the general search method with a constraint.
-TEST(NibbleSearch, SearchConstrained) {
+TEST(Nibble, SearchConstrained) {
     Chomp ch;
     Nibble nb;
     nb.select_table(ch.bright_table);
@@ -81,7 +81,7 @@ TEST(NibbleSearch, SearchConstrained) {
 }
 
 /// Check that the bright stars table can be queried using the general search method without a constraint.
-TEST(NibbleSearch, SearchNotConstrained) {
+TEST(Nibble, SearchNotConstrained) {
     Chomp ch;
     Nibble nb;
     nb.select_table(ch.bright_table);
@@ -97,7 +97,7 @@ TEST(NibbleSearch, SearchNotConstrained) {
 }
 
 /// Check that the single search method works as intended with a constraint and without.
-TEST(NibbleSearch, Single) {
+TEST(Nibble, SearchSingle) {
     Chomp ch;
     Nibble nb;
     nb.select_table(ch.bright_table);
@@ -110,7 +110,7 @@ TEST(NibbleSearch, Single) {
 }
 
 /// Check that the table creation method works as intended (the table persists after closing connection.
-TEST(NibbleTable, Creation) {
+TEST(Nibble, TableCreation) {
     // Clean up our mess (if it exists).
     Nibble nb2;
     (*nb2.conn).exec("DROP TABLE IF EXISTS MYTABLE");
@@ -129,7 +129,7 @@ TEST(NibbleTable, Creation) {
 }
 
 /// Check that retrieved attributes and schema are correct for a given table.
-TEST(NibbleTable, AttributeRetrieval) {
+TEST(Nibble, TableAttributeRetrieval) {
     Nibble nb;
     EXPECT_EQ (0, nb.create_table("MYTABLE", "a int, b int"));
     
@@ -145,7 +145,7 @@ TEST(NibbleTable, AttributeRetrieval) {
 }
 
 /// Check that the bright stars table has an index created.
-TEST(NibbleTable, PolishIndex) {
+TEST(Nibble, TablePolishIndex) {
     Chomp ch;
     Nibble nb;
     nb.select_table(ch.bright_table);
@@ -160,7 +160,7 @@ TEST(NibbleTable, PolishIndex) {
 }
 
 /// Check that the bright stars table has an index created. 'sort' is called with 'polish', this is tested too.
-TEST(NibbleTable, PolishSort) {
+TEST(Nibble, TablePolishSort) {
     Chomp ch;
     Nibble nb;
     nb.select_table(ch.bright_table);
@@ -180,7 +180,7 @@ TEST(NibbleTable, PolishSort) {
 }
 
 /// Test if the insertion of an entry was made.
-TEST(NibbleTable, Insertion) {
+TEST(Nibble, TableInsertion) {
     Nibble nb;
     Chomp ch;
     std::vector<double> a{0, 0, 0, 0, 0, 0, 10000000}, b;
@@ -203,14 +203,4 @@ TEST(NibbleTable, Insertion) {
     catch (std::exception &e) {
         std::cout << "Exception: " << e.what() << std::endl;
     }
-}
-
-/// Runs all tests defined in this file.
-///
-/// @param argc Argument count. Used in Google Test initialization.
-/// @param argv Argument vector. Used in Google Test initialization.
-/// @return The result of running all tests.
-int main (int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
 }

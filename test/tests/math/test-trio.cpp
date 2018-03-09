@@ -1,7 +1,7 @@
 /// @file test-trio.cpp
 /// @author Glenn Galvizo
 ///
-/// Source file for all Trio class unit tests and the test runner.
+/// Source file for all Trio class unit tests.
 
 #define ENABLE_TESTING_ACCESS
 
@@ -12,7 +12,7 @@
 #include "math/trio.h"
 
 /// Check that the private constructor contains the correct stars passed to it.
-TEST(TrioConstructor, Constructor) {
+TEST(Trio, Constructor) {
     Vector3 a(1, 1, 1), b(2, 2, 2), c(3, 3, 3);
     Trio t(a, b, c);
     EXPECT_EQ(t.b_1, a);
@@ -21,7 +21,7 @@ TEST(TrioConstructor, Constructor) {
 }
 
 /// Check that the side lengths generated for a planar triangle are correct. Answers checked with WolframAlpha.
-TEST(TrioPlanar, LengthsComputation) {
+TEST(Trio, PlanarLengthsComputation) {
     Trio::side_lengths a = Trio(Vector3(1, 1, 1), Vector3(5, 2, 0), Vector3(-1, -7, 5)).planar_lengths();
     EXPECT_NEAR(a[0], 4.24264, 0.0001);
     EXPECT_NEAR(a[1], 11.9164, 0.001);
@@ -29,7 +29,7 @@ TEST(TrioPlanar, LengthsComputation) {
 }
 
 /// Check that the side lengths generated for a spherical triangle are correct.
-TEST(TrioSpherical, LengthsComputation) {
+TEST(Trio, SphericalLengthsComputation) {
     Trio a(Vector3(1, 1, 1), Vector3(1, -1, 1), Vector3(-1, -1, 5));
     Trio c(Vector3(1, 1, 1), Vector3(1, 1, 1), Vector3(-1, -1, 5));
     Trio::side_lengths b = a.spherical_lengths(), d = c.spherical_lengths();
@@ -44,7 +44,7 @@ TEST(TrioSpherical, LengthsComputation) {
 
 /// Check that the semi perimeter is correctly computed. The should be half the triangle's perimeter. Answers checked
 /// with WolframAlpha.
-TEST(TrioCommon, SemiPerimeterComputation) {
+TEST(Trio, CommonSemiPerimeterComputation) {
     Trio a(Vector3(1, 1, 1), Vector3(-1, 0, -1), Vector3(2, 4, 3));
     std::array<double, 3> b = a.planar_lengths();
     double c = 13.1448 / 2.0;
@@ -53,7 +53,7 @@ TEST(TrioCommon, SemiPerimeterComputation) {
 
 /// Check the planar_area method. Testing involves using the approach found in the link below to verify that both
 /// formulas return a close answer: https://www.algebra.com/algebra/homework/Vectors/Vectors.faq.question.674684.html
-TEST(TrioPlanar, AreaComputation) {
+TEST(Trio, PlanarAreaComputation) {
     Trio a(Vector3(1, 1, 1), Vector3(-1, 0, -1), Vector3(2, 4, 3));
     Vector3 b = Vector3::Cross(a.b_1 - a.b_2, a.b_1 - a.b_3);
     EXPECT_NEAR(Vector3::Magnitude(b) * 0.5, Trio::planar_area(a.b_1, a.b_2, a.b_3), 0.00000000001);
@@ -62,7 +62,7 @@ TEST(TrioPlanar, AreaComputation) {
 /// Check the planar_moment method. According to the website below, the polar moment for an equilateral triangle is
 /// 0.036s^4, where s=triangle side length. This test verifies this:
 /// http://www.engineersedge.com/polar-moment-inertia.htm
-TEST(TrioPlanar, MomentComputation) {
+TEST(Trio, PlanarMomentComputation) {
     Trio a(Vector3(1, 0, 0), Vector3(0, 1, 0), Vector3(0, 0, 1));
     Trio::side_lengths c = a.planar_lengths();
     double b = 0.036 * pow(c[0], 4);
@@ -71,7 +71,7 @@ TEST(TrioPlanar, MomentComputation) {
 
 /// Check the spherical_area method. We are only checking if this function returns the same result for different
 /// triangle configurations, and that no NaN values are ever returned.
-TEST(TrioSpherical, AreaComputation) {
+TEST(Trio, SphericalAreaComputation) {
     double epsilon = 0.00000000001;
     for (int i = 0; i < 30; i++) {
         std::array<Star, 3> t = {Star::chance(), Star::chance(), Star::chance()};
@@ -86,7 +86,7 @@ TEST(TrioSpherical, AreaComputation) {
 }
 
 /// Check the planar_centroid method. Answers checked with WolframAlpha.
-TEST(TrioCommon, PlanarCentroidComputation) {
+TEST(Trio, CommonPlanarCentroidComputation) {
     Trio a(Star(1, 1, 1), Star(-1, 0, -1), Star(2, 4, 3));
     Vector3 b(0.66666666666666666, 1.6666666666666666, 1.0), c = a.planar_centroid();
     Trio d(Star(-1, 0, -1), Star(1, 1, 1), Star(2, 4, 3));
@@ -96,7 +96,7 @@ TEST(TrioCommon, PlanarCentroidComputation) {
 }
 
 /// Check that the triangle cutting method works as intended.
-TEST(TrioCut, CutTriangle) {
+TEST(Trio, CutTriangle) {
     auto p_area = [] (const Trio &t) -> double {
         return Trio::planar_area(t.b_1, t.b_2, t.b_3);
     };
@@ -122,7 +122,7 @@ TEST(TrioCut, CutTriangle) {
 
 /// Check the spherical_moment method. We are only checking if this function returns the same result for different
 /// triangle configurations.
-TEST(TrioSpherical, MomentComputation) {
+TEST(Trio, SphericalMomentComputation) {
     double epsilon = 0.0000000001;
     for (int i = 0; i < 10; i++) {
         std::array<Star, 3> t = {Star::chance(), Star::chance(), Star::chance()};
@@ -138,7 +138,7 @@ TEST(TrioSpherical, MomentComputation) {
 }
 
 /// This is not a test. We just want to see the effect of shifting stars on the planar area and moment.
-TEST(TrioPlanar, TriangleShifts) {
+TEST(Trio, PlanarTriangleShifts) {
     for (int i = 0; i < 100; i++) {
         std::array<Star, 3> t_original = {Star(1 - 0.001, 0, 0), Star(0, 1 - 0.001, 0), Star(0, 0, 1 - 0.001)};
         std::array<Star, 3> t_shaken = {Rotation::shake(t_original[0], 0.001), Rotation::shake(t_original[1], 0.001),
@@ -154,7 +154,7 @@ TEST(TrioPlanar, TriangleShifts) {
 }
 
 /// This is not a test. We just want to see the effect of shifting stars on the spherical area and moment.
-TEST(TrioSpherical, TriangleShifts) {
+TEST(Trio, SphericalTriangleShifts) {
     for (int i = 0; i < 100; i++) {
         std::array<Star, 3> t_original = {Star(1 - 0.001, 0, 0), Star(0, 1 - 0.001, 0), Star(0, 0, 1 - 0.001)};
         std::array<Star, 3> t_shaken = {Rotation::shake(t_original[0], 0.001), Rotation::shake(t_original[1], 0.001),
@@ -170,20 +170,10 @@ TEST(TrioSpherical, TriangleShifts) {
 }
 
 /// Check that the computed dot angle is consistent at 0 degrees, 90 degrees, and 180 degrees.
-TEST(TrioDot, DotAngle) {
+TEST(Trio, DotAngle) {
     EXPECT_FLOAT_EQ(0, Trio::dot_angle(Vector3::Forward(), Vector3::Forward(), Vector3::Backward()));
     EXPECT_FLOAT_EQ(180.0, Trio::dot_angle(Vector3::Forward(), Vector3::Normalized(
         Vector3(0, 0, 1 + std::numeric_limits<double>::epsilon())), Vector3::Normalized(
         Vector3(0, 0, 1 - std::numeric_limits<double>::epsilon()))));
     EXPECT_FLOAT_EQ(90.0, Trio::dot_angle(Vector3::Forward(), Vector3::Backward(), Vector3::Up()));
-}
-
-/// Runs all tests defined in this file.
-///
-/// @param argc Argument count. Used in Google Test initialization.
-/// @param argv Argument vector. Used in Google Test initialization.
-/// @return The result of running all tests.
-int main (int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
 }
