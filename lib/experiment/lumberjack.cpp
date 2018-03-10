@@ -109,11 +109,12 @@ int Lumberjack::flush_buffer () {
     // Keep trying to perform the insertion.
     while (true) {
         try {
+            SQLite::Transaction t(*conn);
             if (insert.exec() != static_cast<signed> (result_buffer.size())) {
                 throw std::runtime_error(std::string("All results were not recorded."));
             }
             else {
-                result_buffer.clear(), result_buffer.reserve(MAXIMUM_BUFFER_SIZE);
+                result_buffer.clear(), result_buffer.reserve(MAXIMUM_BUFFER_SIZE), t.commit();
                 return 0;
             }
         }
