@@ -60,12 +60,17 @@ Benchmark images were generated with the process below:
 \begin{subequations}
     \label{eq:catalogToCartesian}
     The catalog here does not refer to the raw Hipparcos Input Catalogue using spherical coordinates, rather a
-    modified catalog whose entries exist in a 3D cartesian frame.
-    Depicted below is the conversion to ($x, y, z$) points, assuming $\alpha$ and $\delta$ are in radians:
+    modified catalog whose entries exist in a 3D cartesian frame and whose positions are updated to MJD 58119 (January
+    2018) from MJD 48319 (March 1991).
+    Depicted below is the conversion to ($x, y, z$) points, with $\alpha$ \& $\delta$ in radians,
+    $\mu_\alpha$ \& $\mu_\delta$ in radians per year, and $t$ \& $\tau$ (MJD 58119 and time of catalog = MJD 48316
+    respectively) in years.
     \begin{align}
-        x &= d \times cos(\delta) cos(\alpha) \\
-        y &= d \times cos(\delta) sin(\alpha) \\
-        z &= d \times sin(\delta)
+        \alpha_t &= \alpha_\tau + \mu_\alpha (\tau - t) \\
+        \delta_t &= \delta_\tau + \mu_\delta (\tau - t) \\
+        x &= d \times \cos(\delta_t) \cos(\alpha_t) \\
+        y &= d \times \cos(\delta_t) \sin(\alpha_t) \\
+        z &= d \times \sin(\delta_t)
     \end{align}
 \end{subequations}
 
@@ -73,7 +78,7 @@ $d$ in~\autoref{eq:catalogToCartesian} represents the distance from the Earth (a
 For this set of experiments, $d = 1$ to normalize each vector and work entirely on the celestial sphere.
 Also stored with each star's ($x, y, z$) position are the star's apparent magnitude (brightness) $m$ and catalog
 identifier $\ell$.
-\textit{For simplicity, the \underline{catalog} refers to the set of stars in this Cartesian frame.}
+\textit{For simplicity, the \underline{catalog} refers to the set of stars in this Cartesian frame at time .}
 
 As mentioned before, all catalog stars exist in an inertial frame known as the \textit{catalog frame}.
 To generate clean benchmark images, three items must be specified:

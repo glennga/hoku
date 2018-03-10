@@ -2,16 +2,17 @@
 
 \subsection{Feature Uniqueness}\label{subsec:featureUniquenessAnalysis}
 $\epsilon_1, \epsilon_2, \ldots \epsilon_n$ are hyperparameters that must be defined prior to executing the algorithm.
+Recall that every $\epsilon$ term defines how selective each query is.
 The heuristic used to determine each term was a grid search, where:
 \begin{equation}
-    \label{eq:gridSearchSigma}
-    \epsilon_n \ \in \ \{1.0e^{-1}, 1.0e^{-2}, \ldots 1 .0e^{-14}\}
+    \label{eq:gridSearchEpsilon}
+    \epsilon_n \ \in \ \{1.0e^{-1}, 1.0e^{-2}, \ldots 1.0e^{-14}\}
 \end{equation}
 Each experiment was performed $14n$ times , and the largest $\epsilon$ that produced the most query hits are displayed
 below.
-These were used for all experiments in the results presented below.
+These were used for all experiments in the results presented here and in the following sections.
 \begin{align*}
-    \text{Angle}&: \sigma_\theta &= 1.0 \times 10^{-4}\\
+    \text{Angle / Pyramid}&: \sigma_\theta &= 1.0 \times 10^{-6}\\
     \text{Dot Angle}&: \sigma_{\theta_{ic}} &= 1.0 \times 10^{-4}\\
     \text{Dot Angle}&: \sigma_{\theta_{jc}} &= 1.0 \times 10^{-4}\\
     \text{Dot Angle}&: \sigma_\phi &= 1.0 \times 10^{-4} \\
@@ -21,8 +22,26 @@ These were used for all experiments in the results presented below.
     \text{Planar Triangle / Composite}&: \sigma_\imath &= 1.0 \times 10^{-4}\\
 \end{align*}
 
-Each
+What is plotted in PUTGRAPHHERE depicts
 
 \subsection{Candidate Reduction}\label{subsec:candidateReductionAnalysis}
 
+
 \subsection{Alignment Determination}\label{subsec:alignmentDeterminationAnalysis}
+In addition to the $\epsilon_n$ parameters used in the previous experiments, a parameter $\sigma_o$ must be defined
+prior to executing the \Call{DMT}{} method.
+This method is used by the Angle, Spherical Triangle, Planar Triangle, and Composite Pyramid methods.
+The heuristic used to determine this value was a linear search, where:
+\begin{equation}
+    \label{eq:gridSearchSigma}
+    \sigma_o \ \in \ \{1.0e^{-1}, 1.0e^{-2}, \ldots 1.0e^{-10}\}
+\end{equation}
+Each experiment was performed 10 times, and the largest $\sigma_o$ that identification the most stars correctly on
+average are displayed below.
+These were used for the experiment presented here.
+\begin{align*}
+    \text{Angle}&: \sigma_o &= 1.0 \times 10^{-4}\\
+    \text{Spherical Triangle}&: \sigma_o &= 1.0 \times 10^{-4}\\
+    \text{Planar Triangle}&: \sigma_o &= 1.0 \times 10^{-4}\\
+    \text{Composite Pyramid}&: \sigma_o &= 1.0 \times 10^{-4}\\
+\end{align*}

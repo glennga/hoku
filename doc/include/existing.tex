@@ -9,8 +9,8 @@
 
 \subsection{Generic Identification Method}\label{subsec:genericIdentificationMethod}
 Each identification method is presented with an image $I$ of all the stars in the image reference frame.
-The goal of each method is to find some mapping between the \textit{subset} of the image star vectors $b$ and a subset
-of the catalog star vectors $r$.
+The goal of each method is to find some 1:1 mapping between the \textit{subset} of the image star vectors $b$ and a
+subset of the catalog star vectors $r$.
 This mapping will be denoted as $a$.
 Complete identification of the all stars in each image is not the focus.
 
@@ -132,19 +132,29 @@ The mapping with the most correctly predicted stars is then returned as the resu
 The general form for this function (accepting an $B$ and $R$ of arbitrary size) is described
 in~\autoref{algorithm:angleHelper}.
 
+To determine the number of correctly predicted stars, another procedure is specified in~\autoref{algorithm:angleHelper}.
+This filters out stars in set $P$ that do not overlay with some star in $I'$, the image set rotated by some rotation
+$q$.
+An additional term $\sigma_o$ is defined, which defines how selective this filter.
+$\sigma_o$ can also be thought of as an assumption of the noise associated with the rotation $q$.
+
 \begin{algorithm} \setstretch{1.0}
     \caption{Functions for Angle Method}\label{algorithm:angleHelper}
     \begin{algorithmic}[1]
+        \Function{FindPositiveOverlay}{$P$, $I$, $q$}
+        \State $I' \gets$ stars in $I$ rotated by $q$
+        \State $\bar{P} \gets $ \{$p \in P \ | \ \exists \ i \ (i \in I' \land \angle ip < \sigma_o)$\}
+        \State \textbf{return} $\bar{P}$ \Comment stars in $P$ that \textit{overlay} with $I'$
+        \EndFunction
+        \\
         \Function{DMT}{$b, r, I$}
         \State $A \gets $ all possible permutations between $b$ and $r$
         \State $P \gets $ all stars in catalog near $r$
-        \State $M \gets \emptyset$
         \\
         \For {$a \in A$}
         \State $q \gets $ \Call{TRIAD}{$a$}
-        \State $M \gets M ||$ (stars in $P$ that align with $I$ using $q$)
+        \State $M_a \gets $ \Call{FindPositiveOverlay}{$P, I, q$}
         \EndFor
-        \\
         \State \textbf{return} map $a$ associated with \Call{Max}{$M$}
         \EndFunction
     \end{algorithmic}
@@ -275,14 +285,11 @@ defines $R_1 = \emptyset$, which requires a "check" on lines 2 and 3 of~\autoref
         \State \textbf{return} $R_1$
         \EndIf
         \\
-        \State $\bar{R_1} \gets \emptyset$
         \ForAll {$v \in R_t$}
-        \ForAll {$u \in R_1$}
-        \If{two stars in $v$ exist in $u$}
-        \State $\bar{R_1} \gets \bar{R_1} || v$
-        \State \textbf{break}
+        \LineComment $v$ and $u$ share two stars
+        \If {$\exists \ u \ | \ (u \in R_1 \land |u \cap v| > 2)$}
+        \State $\bar{R_1} \gets \bar{R_1} \cup \{v\}$
         \EndIf
-        \EndFor
         \EndFor
         \State \textbf{return} $\bar{R_1}$
         \EndFunction
