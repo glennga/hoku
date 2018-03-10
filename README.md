@@ -66,17 +66,17 @@ make -j8 install
 
 Modify the `CONFIG.ini` file to fit your hardware and experiment parameters. A more descriptive version of the 
 **id-parameters** section is below:
-2. `sl` = Maximum number of tuples to select while querying the catalog.
-3. `nr` = If toggled to 1, the reduction requirements are removed. Instead of going through each 
+1. `sl` = Maximum number of tuples to select while querying the catalog.
+2. `nr` = If toggled to 1, the reduction requirements are removed. Instead of going through each 
 identification's method specified reduction process, the first element of the list is simply selected.
-4. `fbr` = If toggled to 1, the results chosen from the reduction process will favor the bright star sets, as opposed
+3. `fbr` = If toggled to 1, the results chosen from the reduction process will favor the bright star sets, as opposed
 to the more dimmer ones. 
-5. `so` = Value in degrees used to determine if an image star overlays with a catalog star. This value corresponds to
+4. `so` = Value in degrees used to determine if an image star overlays with a catalog star. This value corresponds to
 noise. Increasing this value raises your chances of collecting false positives, but decreasing this value may lead 
 to more false negatives.
-6. `nu-m` = Maximum number of query star comparisons. To prevent an identification method from exhausting every 
+5. `nu-m` = Maximum number of query star comparisons. To prevent an identification method from exhausting every 
 possible option and consuming time, set this appropriately.
-7. `wbs` = Wabha's problem solver. Select the choices: `TRIAD`, `SVD`, or `Q`. These are different methods of 
+6. `wbs` = Wabha's problem solver. Select the choices: `TRIAD`, `SVD`, or `Q`. These are different methods of 
 determining a rotation given vector observations in both frame. For every instance where Wahba's problem occurs, this
 method will be applied.
 
@@ -203,6 +203,13 @@ target_link_libraries(MyStarTracker ${SOME_OTHER_LIBS} ${HOKU_LIBS})
 ```
 
 ## Google Test Generation
+Google Test is attached as a Git Submodule. Run the following commands to get Google Test in this repository.
+```cmd
+cd hoku
+git submodule init
+git submodule update
+```
+
 Generate the test runner. The output will reside in the `bin` folder.
 ```cmd
 # Create the Makefiles.
