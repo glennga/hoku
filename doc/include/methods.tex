@@ -60,12 +60,17 @@ Benchmark images were generated with the process below:
 \begin{subequations}
     \label{eq:catalogToCartesian}
     The catalog here does not refer to the raw Hipparcos Input Catalogue using spherical coordinates, rather a
-    modified catalog whose entries exist in a 3D cartesian frame.
-    Depicted below is the conversion to ($x, y, z$) points, assuming $\alpha$ and $\delta$ are in radians:
+    modified catalog whose entries exist in a 3D cartesian frame and whose positions are updated to MJD 58119 (January
+    2018) from MJD 48319 (March 1991).
+    Depicted below is the conversion to ($x, y, z$) points, with $\alpha$ \& $\delta$ in radians,
+    $\mu_\alpha$ \& $\mu_\delta$ in radians per year, and $t$ \& $\tau$ (MJD 58119 and time of catalog = MJD 48316
+    respectively) in years.
     \begin{align}
-        x &= d \times cos(\delta) cos(\alpha) \\
-        y &= d \times cos(\delta) sin(\alpha) \\
-        z &= d \times sin(\delta)
+        \alpha_t &= \alpha_\tau + \mu_\alpha (\tau - t) \\
+        \delta_t &= \delta_\tau + \mu_\delta (\tau - t) \\
+        x &= d \times \cos(\delta_t) \cos(\alpha_t) \\
+        y &= d \times \cos(\delta_t) \sin(\alpha_t) \\
+        z &= d \times \sin(\delta_t)
     \end{align}
 \end{subequations}
 
@@ -73,7 +78,7 @@ $d$ in~\autoref{eq:catalogToCartesian} represents the distance from the Earth (a
 For this set of experiments, $d = 1$ to normalize each vector and work entirely on the celestial sphere.
 Also stored with each star's ($x, y, z$) position are the star's apparent magnitude (brightness) $m$ and catalog
 identifier $\ell$.
-\textit{For simplicity, the \underline{catalog} refers to the set of stars in this Cartesian frame.}
+\textit{For simplicity, the \underline{catalog} refers to the set of stars in this Cartesian frame at time .}
 
 As mentioned before, all catalog stars exist in an inertial frame known as the \textit{catalog frame}.
 To generate clean benchmark images, three items must be specified:
@@ -125,41 +130,32 @@ A general SQL statement to search each $b$ set becomes:
 \begin{align*}
     \texttt{SELECT } &r_1, r_2, \ldots, r_k \\
     \texttt{FROM } &C \\
-    \texttt{WHERE } &(c_{f1} < q_{f1} + 3\epsilon) \texttt{ AND } (c_{f1} > q_{f1} - 3\epsilon) \texttt{ AND } \\
-    &(c_{f2} < q_{f2} + 3\epsilon) \texttt{ AND } (c_{f2} > q_{f2} - 3\epsilon) \texttt{ AND } \\
+    \texttt{WHERE } &(c_{f1} < q_{f1} + 3\epsilon_1) \texttt{ AND } (c_{f1} > q_{f1} - 3\epsilon_1) \texttt{ AND } \\
+    &(c_{f2} < q_{f2} + 3\epsilon_2) \texttt{ AND } (c_{f2} > q_{f2} - 3\epsilon_2) \texttt{ AND } \\
     &\vdots \\
-    &(c_{fn} < q_{fn} + 3\epsilon) \texttt{ AND } (c_{fn} > q_{fn} - 3\epsilon)
+    &(c_{fn} < q_{fn} + 3\epsilon_n) \texttt{ AND } (c_{fn} > q_{fn} - 3\epsilon_n)
 \end{align*}
 
 Here, $k$ refers to the number of stars used in the query (e.g. the Angle method uses $k = 2$ stars), $c_f$ refers to
 a catalog feature amongst $r_1, r_2, \ldots, r_k$, $q_f$ refers a the image feature amongst a body set $b$, $n$ in
-$c_{fn}$ and $q_{fn}$ refers to the number of features used to query the catalog, $\epsilon$ refers to the deviation
+$c_{fn}$ and $q_{fn}$ refers to the number of features used to query the catalog, $\epsilon_n$ refers to the deviation
 of noise, and $C$ refers to the catalog.
 
 Toloei's Composite Pyramid uses the same features as Cole and Crassidus's Planar Triangles method, so only five
 features were tested:
 \begin{itemize}
     \item Angular separation $\theta^{ij}$ between two stars.
-
-    \item Angular separations $\theta^{ic}, \theta^{jc}$ and interior angle $\phi$ between three stars.
+    \item Angular separations $\theta^{ic}, \theta^{jc}$ and dot angle $\phi$ between three stars.
     \item Planar area $a^{ijk}$ and moment $\imath^{ijk}$ between three stars.
     \item Spherical area $a^{ijk}$ and moment $\imath^{ijk}$ between three stars.
     \item Angular separations $\theta^{ij}, \theta^{ik}, \theta^{jk}$ between three stars.
 \end{itemize}
 
-The feature uniqueness of each identification method were analyzed in terms of three variables:
+The feature uniqueness of each identification method were analyzed in terms of two variables:
 \begin{enumerate}
-    \item \label{itm:featureDist} Feature frequency (histogram) across all possible combinations of stars in the
-    catalog.
     \item \label{itm:hitCountFeature} \textit{Query hits} from single catalog candidate searches.
-    \item $|R|$ from single catalog candidate searches.
+    \item $|R|$ from single catalog candidate searches (i.e. the selectivity).
 \end{enumerate}
-
-The ideal frequency distribution for an identification method's features would be low and sparse.
-
-
-TODO: Talk about the selectivity of each statement here?
-TODO: Still need to determine how distribution is going to be quantitatively analyzed.
 
 Query hit count here refers to finding a specific set of stars (the ones used to query for $R$) in the candidates.
 Single catalog candidate searches refer to feeding an image to each identification method and running it to produce
@@ -206,22 +202,21 @@ An accurate map will reduce an attitude determination problem to Wahba's problem
 
 Referencing~\autoref{figure:genericIdentificationMethodFlowchart} again, this experiment runs the identification
 method end to end.
-To characteize the identification portion, the mapping process must be isolated.
+To characterize the identification portion, the mapping process must be isolated.
 Only results that pass the first and second filter (the previous experiment) steps will be counted, to avoid
 characterizing the entire identification method.
-The number of correct maps with the correctly reduced sets was recorded against the total number of incorrect maps
-with correctly reduced sets.
+Partial correctness was recorded by counting the number of correct stars against the total amount of stars in a given
+map.
 
 The end to end trials were analyzed using two variables:
 \begin{enumerate}
     \item \label{itm:correctReducedCandidates} Number of correctly reduced candidate sets $R \rightarrow r$.
-    \item Number of correct maps in~\itmref{Map Experiment}{itm:correctReducedCandidates}.
+    \item Correctness of maps in~\itmref{Map Experiment}{itm:correctReducedCandidates}.
 \end{enumerate}
 
 To start, complete images were generated containing $S_b$, $c_b$, and $f$.
 Each identification method was run from start to finish, producing a map $a$ (or not one at all).
 If the map references the correct stars in $S_b$ (i.e.\ the reduction experiment), this is recorded as a
 \textit{reduction hit}.
-If the map references the correct stars and the map $a$ is accurate, this is recorded as a \textit{map hit}.
 
-A larger map to reduction hit ratio suggests a more accurate map determination process.
+A larger map correctness fraction to reduction hit ratio suggests a more accurate map determination process.
