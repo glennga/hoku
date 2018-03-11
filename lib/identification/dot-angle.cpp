@@ -9,6 +9,9 @@
 #include "math/trio.h"
 #include "identification/dot-angle.h"
 
+/// Exact number of query stars required for query experiment.
+const unsigned int Dot::QUERY_STAR_SET_SIZE = 3;
+
 /// Default parameters for the dot angle identification method.
 const Identification::Parameters Dot::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_QUERY,
     DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_4, DEFAULT_SQL_LIMIT, DEFAULT_NO_REDUCTION, DEFAULT_FAVOR_BRIGHT_STARS,
@@ -103,7 +106,7 @@ Identification::labels_list Dot::query_for_trio (double theta_1, double theta_2,
                               labels_list {static_cast<int> (t[0]), static_cast<int> (t[1]), static_cast<int>(t[2])});
                       }
                   });
-
+    
     // |R| = 1 restriction. Applied with the PASS_R_SET_CARDINALITY flag.
     if (big_r_ell.empty() || (this->parameters.no_reduction && big_r_ell.size() > 1)) {
         return EMPTY_BIG_R_ELL;

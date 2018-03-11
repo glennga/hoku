@@ -33,14 +33,12 @@ class Lumberjack : public Nibble {
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
+    static const int MAXIMUM_BUFFER_SIZE;
     int flush_buffer ();
 
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif
-    /// The maximum size of our result buffer (dependent on SQLITE_MAX_VARIABLE_NUMBER). Flush above this limit.
-    static constexpr int MAXIMUM_BUFFER_SIZE = 50;
-    
     /// Every trial log must be of this size.
     unsigned int expected_result_size;
     

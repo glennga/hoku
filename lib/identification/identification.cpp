@@ -8,6 +8,33 @@
 #include "benchmark/benchmark.h"
 #include "identification/identification.h"
 
+/// Default sigma query for all identification methods.
+const double Identification::DEFAULT_SIGMA_QUERY = std::numeric_limits<double>::epsilon() * 10000;
+
+/// Default SQL limit for all identification methods.
+const unsigned int Identification::DEFAULT_SQL_LIMIT = 500;
+
+/// Default no reduction flag for all identification methods.
+const bool Identification::DEFAULT_NO_REDUCTION = false;
+
+/// Default favor bright stars flag for all identification methods.
+const bool Identification::DEFAULT_FAVOR_BRIGHT_STARS = false;
+
+/// Default sigma overlay (for matching) for all identification methods.
+const double Identification::DEFAULT_SIGMA_4 = std::numeric_limits<double>::epsilon() * 10000;
+
+/// Default nu max (comparison counts) for all identification methods.
+const unsigned int Identification::DEFAULT_NU_MAX = 50000;
+
+/// Default pointer to nu (comparison count) for all identification methods.
+const std::shared_ptr<unsigned int> Identification::DEFAULT_NU = nullptr;
+
+/// Default solution to Wahba's problem for all identification methods.
+const Rotation::wahba_function Identification::DEFAULT_F = Rotation::triad;
+
+/// Default table name for all identification methods.
+const char *Identification::DEFAULT_TABLE_NAME = "NO_TABLE";
+
 /// Returned when no candidates are found from a query.
 const Identification::labels_list Identification::EMPTY_BIG_R_ELL = {-1, -1};
 
@@ -16,6 +43,9 @@ const Star::list Identification::NO_CONFIDENT_A = {Star::wrap(Vector3::Zero(), -
 
 /// Returned when we count past our defined max nu from a crown or identification trial.
 const Star::list Identification::EXCEEDED_NU_MAX = {Star::wrap(Vector3::Zero())};
+
+/// Indicates that a table already exists upon a table creation attempt.
+const int Identification::TABLE_ALREADY_EXISTS = -1;
 
 /// Default parameters for a general identification object.
 const Identification::Parameters Identification::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_QUERY,

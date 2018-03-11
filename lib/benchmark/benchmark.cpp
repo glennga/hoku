@@ -10,6 +10,12 @@
 #include "benchmark/benchmark.h"
 #include "math/random-draw.h"
 
+/// Indicates that a given identification object does not have an designated field of view.
+const double Benchmark::NO_FOV = -1;
+
+/// The default apparent magnitude, minimum brightness from Earth.
+const double Benchmark::DEFAULT_M_BAR = 6.0;
+
 /// String of HOKU_PROJECT_PATH environment variable.
 const std::string Benchmark::PROJECT_LOCATION = std::getenv("HOKU_PROJECT_PATH");
 

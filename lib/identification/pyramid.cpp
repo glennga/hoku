@@ -11,6 +11,9 @@
 #include "math/random-draw.h"
 #include "identification/pyramid.h"
 
+/// Exact number of query stars required for query experiment.
+const unsigned int Pyramid::QUERY_STAR_SET_SIZE = 3;
+
 /// Default parameters for the pyramid identification method.
 const Identification::Parameters Pyramid::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_QUERY,
     DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_4, DEFAULT_SQL_LIMIT, DEFAULT_NO_REDUCTION, DEFAULT_FAVOR_BRIGHT_STARS,

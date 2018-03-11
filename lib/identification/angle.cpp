@@ -8,6 +8,9 @@
 
 #include "identification/angle.h"
 
+/// Exact number of query stars required for query experiment.
+const unsigned int Angle::QUERY_STAR_SET_SIZE = 2;
+
 /// Default parameters for the angle identification method.
 const Identification::Parameters Angle::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_QUERY,
     DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_4, DEFAULT_SQL_LIMIT, DEFAULT_NO_REDUCTION, DEFAULT_FAVOR_BRIGHT_STARS,

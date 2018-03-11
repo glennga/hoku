@@ -43,13 +43,10 @@ class DotAngle : public Identification {
     
     static const Parameters DEFAULT_PARAMETERS;
     static const Star::trio NO_CANDIDATE_TRIO_FOUND;
-  
-  public:
-    /// Exact number of query stars required for query experiment.
-    static constexpr unsigned int QUERY_STAR_SET_SIZE = 3;
+    static const unsigned int QUERY_STAR_SET_SIZE;
 
 #if !defined ENABLE_TESTING_ACCESS
-  private:
+    private:
 #endif
     labels_list query_for_trio (double theta_1, double theta_2, double phi);
     Star::trio find_candidate_trio (const Star &b_i, const Star &b_j, const Star &b_c);

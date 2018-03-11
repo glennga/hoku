@@ -55,15 +55,6 @@ class Nibble {
     /// Open and unique database connection object. This must be public to work with SQLiteCpp library.
     std::unique_ptr<SQLite::Database> conn;
     
-    /// Returned when the result of a search returns no tuples.
-    static constexpr double NO_RESULT_FOUND = 0;
-    
-    /// Returned when a table creation is not successful.
-    static constexpr int TABLE_NOT_CREATED = -1;
-    
-    /// Used when a limit constraint should not be specified.
-    static constexpr int NO_LIMIT = -1;
-  
   public:
     Nibble ();
     explicit Nibble (const std::string &table_name, const std::string &focus = "");
@@ -80,7 +71,10 @@ class Nibble {
     int find_attributes (std::string &schema, std::string &fields);
     int sort_table (const std::string &focus_column);
     int polish_table (const std::string &focus_column);
-  
+
+    static const int TABLE_NOT_CREATED;
+    static const double NO_RESULT_FOUND;
+    static const int NO_LIMIT;
   public:
     /// Using the currently selected table, insert the set of values in order of the fields given.
     ///
