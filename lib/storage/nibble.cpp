@@ -6,6 +6,15 @@
 #include <algorithm>
 #include "storage/nibble.h"
 
+/// Returned when a table creation is not successful.
+const int Nibble::TABLE_NOT_CREATED = -1;
+
+/// Returned when the result of a search returns no tuples.
+const double Nibble::NO_RESULT_FOUND = 0;
+
+/// Used when a limit constraint should not be specified.
+const int Nibble::NO_LIMIT = -1;
+
 /// String of the HOKU_PROJECT_PATH environment variable.
 const std::string Nibble::PROJECT_LOCATION = std::getenv("HOKU_PROJECT_PATH");
 

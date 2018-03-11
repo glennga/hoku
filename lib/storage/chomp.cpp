@@ -13,6 +13,15 @@
 
 #include "storage/chomp.h"
 
+/// Length of the bright stars table. Necessary if loading all stars into RAM.
+const unsigned int Chomp::BRIGHT_TABLE_LENGTH = 4559;
+
+/// Length of the general stars table. Necessary if loading all stars into RAM.
+const unsigned int Chomp::HIP_TABLE_LENGTH = 117956;
+
+/// Returned from table generators when the table already exists in the database.
+const int Chomp::TABLE_EXISTS = -1;
+
 /// Standard machine epsilon for doubles. This represents the smallest possible change in precision.
 const double Chomp::DOUBLE_EPSILON = std::numeric_limits<double>::epsilon();
 

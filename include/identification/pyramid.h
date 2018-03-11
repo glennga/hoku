@@ -41,10 +41,7 @@ class Pyramid : public Identification {
     static int generate_table (INIReader &cf);
     
     static const Parameters DEFAULT_PARAMETERS;
-  
-  public:
-    /// Exact number of query stars required for query experiment.
-    static constexpr unsigned int QUERY_STAR_SET_SIZE = 3;
+    static const unsigned int QUERY_STAR_SET_SIZE;
 
 #if !defined ENABLE_TESTING_ACCESS
     protected:

@@ -243,7 +243,7 @@ TEST(BaseIdentification, AlignmentCleanInputTRIAD) {
     Rotation q_1 = g.align();
     
     Star a = input.b[3], b = input.b[4];
-    EXPECT_LT((180.0 / M_PI) * Vector3::Angle(Rotation::rotate(a, q), Rotation::rotate(a, q_1)), 00000000000001);
+    EXPECT_LT((180.0 / M_PI) * Vector3::Angle(Rotation::rotate(a, q), Rotation::rotate(a, q_1)), 0.000000000001);
     EXPECT_LT((180.0 / M_PI) * Vector3::Angle(Rotation::rotate(b, q), Rotation::rotate(b, q_1)), 0.000000000001);
 }
 

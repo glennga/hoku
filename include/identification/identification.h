@@ -34,42 +34,11 @@ class Identification {
         std::string table_name; ///< Name of the Nibble database table created with 'generate_sep_table'.
     };
     
-    /// Default sigma query for all identification methods.
-    static constexpr double DEFAULT_SIGMA_QUERY = std::numeric_limits<double>::epsilon() * 10000;
-    
-    /// Default SQL limit for all identification methods.
-    static constexpr unsigned int DEFAULT_SQL_LIMIT = 500;
-    
-    /// Default no reduction flag for all identification methods.
-    static constexpr bool DEFAULT_NO_REDUCTION = false;
-    
-    /// Default favor bright stars flag for all identification methods.
-    static constexpr bool DEFAULT_FAVOR_BRIGHT_STARS = false;
-    
-    /// Default sigma overlay (for matching) for all identification methods.
-    static constexpr double DEFAULT_SIGMA_4 = std::numeric_limits<double>::epsilon() * 10000;
-    
-    /// Default nu max (comparison counts) for all identification methods.
-    static constexpr unsigned int DEFAULT_NU_MAX = 50000;
-    
-    /// Default pointer to nu (comparison count) for all identification methods.
-    static constexpr auto DEFAULT_NU = nullptr;
-    
-    /// Default solution to Wahba's problem for all identification methods.
-    static constexpr auto DEFAULT_F = Rotation::triad;
-    
-    /// Default table name for all identification methods.
-    static constexpr const char *DEFAULT_TABLE_NAME = "NO_TABLE";
-    
     /// Alias for a list of labels.
     using labels_list = std::vector<int>;
-    
-    /// Indicates that a table already exists upon a table creation attempt.
-    static constexpr int TABLE_ALREADY_EXISTS = -1;
-  
   public:
     Identification ();
-    static void collect_parameters(Parameters &p, INIReader &cf, const std::string &identifier);
+    static void collect_parameters (Parameters &p, INIReader &cf, const std::string &identifier);
     
     virtual std::vector<labels_list> query (const Star::list &s) = 0;
     virtual labels_list reduce () = 0;
@@ -78,20 +47,32 @@ class Identification {
     Rotation align ();
     Star::list identify_all ();
     
+    static const int TABLE_ALREADY_EXISTS;
+    
     static const Star::list NO_CONFIDENT_A;
     static const labels_list EMPTY_BIG_R_ELL;
     
     static const Star::list EXCEEDED_NU_MAX;
     static const Parameters DEFAULT_PARAMETERS;
+    
+    static const double DEFAULT_SIGMA_QUERY;
+    static const unsigned int DEFAULT_SQL_LIMIT;
+    static const bool DEFAULT_NO_REDUCTION;
+    static const bool DEFAULT_FAVOR_BRIGHT_STARS;
+    static const double DEFAULT_SIGMA_4;
+    static const unsigned int DEFAULT_NU_MAX;
+    static const std::shared_ptr<unsigned int> DEFAULT_NU;
+    static const Rotation::wahba_function DEFAULT_F;
+    static const char *DEFAULT_TABLE_NAME;
 
 #if !defined ENABLE_TESTING_ACCESS
-  protected:
+    protected:
 #endif
     Star::list find_positive_overlay (const Star::list &big_p, const Rotation &q);
     void sort_brightness (std::vector<labels_list> &big_r_ell);
 
 #if !defined ENABLE_TESTING_ACCESS
-  protected:
+    protected:
 #endif
     /// The star set we are working with. The catalog ID values are all set to 0 here.
     Star::list big_i;

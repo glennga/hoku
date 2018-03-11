@@ -10,6 +10,9 @@
 #include "math/random-draw.h"
 #include "experiment/lumberjack.h"
 
+/// The maximum size of our result buffer (dependent on SQLITE_MAX_VARIABLE_NUMBER). Flush above this limit.
+const int Lumberjack::MAXIMUM_BUFFER_SIZE = 50;
+
 /// String of the HOKU_PROJECT_PATH environment variable.
 const std::string Lumberjack::PROJECT_LOCATION = std::getenv("HOKU_PROJECT_PATH");
 

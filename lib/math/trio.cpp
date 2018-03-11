@@ -8,6 +8,15 @@
 
 #include "math/trio.h"
 
+/// Returned if we cannot compute a spherical area for a given trio.
+const double Trio::INVALID_TRIO_A = -1;
+
+/// Returned if we cannot compute a spherical moment for a given trio.
+const double Trio::INVALID_TRIO_M = -1;
+
+/// Returned if there exists duplicate stars for a given trio.
+const double Trio::DUPLICATE_STARS_IN_TRIO = 0;
+
 /// Private constructor. Sets the individual stars.
 ///
 /// @param b_1 Star B_1 of the trio.
