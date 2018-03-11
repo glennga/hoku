@@ -1,113 +1,126 @@
 """"
 This file is used to produce plots to show the relationship between various parameters in the Query, Reduction, 
-and Identification trials. We assume these trials use the following attributes:
+and Identification trials. We assume these trials use the following schema:
 
-Query:      IdentificationMethod,QuerySigma,ShiftSigma,CandidateSetSize,SExistence [5]
-....
+Query:          IdentificationMethod TEXT, Timestamp TEXT, Sigma1 FLOAT, Sigma2 FLOAT, Sigma3 FLOAT, 
+                    ShiftDeviation FLOAT, CandidateSetSize FLOAT, SExistence INT
+Reduction:      IdentificationMethod TEXT, Timestamp TEXT, Sigma1 FLOAT, Sigma2 FLOAT, Sigma3 FLOAT, Sigma4 FLOAT, 
+                    ShiftDeviation FLOAT, CameraSensitivity FLOAT, ResultMatchesInput INT
+Identification: IdentificationMethod TEXT, Timestamp TEXT, Sigma1 FLOAT, Sigma2 FLOAT, Sigma3 FLOAT, Sigma4 FLOAT, 
+                    ShiftDeviation FLOAT, CameraSensitivity FLOAT, FalseStars INT, ComparisonCount INT, 
+                    PercentageCorrect FLOAT        
 
-The first argument is the location of the log file. We can infer the type of trial from the fifth element of the header.
+The only argument passed to this file is type of experiment to plot. This must be in the space [query, reduction, 
+identification].
 
-Usage: visualize-trial [angle-log] [sphere-log] [plane-log] [pyramid-log] [coin-log]
+Usage: plot_experiment [experiment-to-visualize]
 """""
 
-import csv
+import sqlite3
+import json
 import sys
+import os
 
 import numpy as np
-import visualize_base_trial as v
-
-# Points per variation, defined in each experiment's header file.
-qu_ppv, al_ppv, r_ppv, sc_ppv, cr_ppv = 1000, 1000, 1000, 1000, 1000
-
-# Plot parameters for query trials.
-# noinspection PyRedeclaration
-query_params = {"yll": iter([[0, 1.05], [0, 1.3]]),
-                "xtl": iter([[r'$0$'] + [r'$10^{-7}$'] + [r'$10^{-6}$'] + [r'$10^{-5}$'] + [r'$10^{-4}$']
-                             for _ in range(0, 2)]),
-                "ll": iter([['Angle', 'Spherical Triangle', 'Planar Triangle', 'Pyramid', 'CoIn'] for _ in range(3)]),
-                "xal": iter(['Noise (Degrees)', 'Noise (Degrees)']),
-                "yal": iter(['P(Correct Star Set in Candidates)', r'$|$Candidate Set$|$'])}
-
-# Plot parameters for identification trials.
-# noinspection PyRedeclaration
-identification_params = {"yll": iter([[0, 0.002], [0, 1]]),
-                         "xtl": iter([['6.0', '6.25', '6.5', '6.75', '7.0']] +
-                                     [[r'$0$'] + [r'$10^{-6}$'] + [r'$10^{-5}$'] + [r'$10^{-4}$'] + [r'$10^{-3}$']]),
-                         "ll": iter([['Angle', 'Spherical Triangle', 'Planar Triangle', 'Pyramid', 'CoIn']
-                                     for _ in range(2)]),
-                         "xal": iter([r'Camera Sensitivity (m)', 'Noise (Degrees)']),
-                         "yal": iter([r'Rotational Error' for _ in range(2)])}
-
-# Plot parameters for reduction trials.
-# noinspection PyRedeclaration
-reduction_params = {"yll": iter([[0, 1.05], [0, 1]]),
-                    "xtl": iter([[r'$0$'] + [r'$10^{-7}$'] + [r'$10^{-6}$'] + [r'$10^{-5}$'] + [r'$10^{-4}$']] +
-                                [['6.0'] + ['6.25'] + ['6.5'] + ['6.75'] + ['7.0']]),
-                    "ll": iter([['Angle', 'Spherical Triangle', 'Planar Triangle', 'Pyramid', 'CoIn']
-                                for _ in range(2)]),
-                    "xal": iter(['Noise (Degrees)'] + ['Camera Sensitivity (m)']),
-                    "yal": iter(['P(Correct Star Set After Reduction)' for _ in range(2)])}
-
-# Plot parameters for semi-crown trials.
-semi_crown_params = {"yll": iter([[0, 1], [0, 1], [0, 1.3], [0, 40]]),
-                     "xtl": iter([['0', '5', '10', '15', '20']] +
-                                 [[r'$0$'] + [r'$10^{-7}$'] + [r'$10^{-6}$'] + [r'$10^{-5}$'] + [r'$10^{-4}$']] +
-                                 [['0', '5', '10', '15', '20']] +
-                                 [[r'$0$'] + [r'$10^{-7}$'] + [r'$10^{-6}$'] + [r'$10^{-5}$'] + [r'$10^{-4}$']]),
-                     "ll": iter([['Angle', 'Spherical Triangle', 'Planar Triangle', 'Pyramid', 'CoIn']
-                                 for _ in range(4)]),
-                     "xal": iter(['False Stars'] + ['Noise (Degrees)'] + ['False Stars'] + ['Noise (Degrees)']),
-                     "yal": iter(['Rotational Error'] + ['Rotational Error'] + ['Star Sets Exhausted'] +
-                                 ['Star Sets Exhausted'])}
-
-# Plot parameters for crown trials.
-# noinspection PyRedeclaration
-crown_params = {"yll": iter([]),
-                "xtl": iter([]),
-                "ll": iter([]),
-                "xal": iter([]),
-                "yal": iter([])}
+from matplotlib import pyplot as plt
+from plot_parameters import params
 
 
-def visualize_trial(angle_log, sphere_log, plane_log, pyramid_log, coin_log):
-    """ Source function, used to display a plot of the given exactly four log files.
+def attach_plot_info(att):
+    """ Attach plot characteristics to the global 'plt' object, given the attributes in 'att'.
 
-    :param angle_log Location of the angle log file to use.
-    :param sphere_log Location of the sphere log file to use.
-    :param plane_log Location of the plane log file to use.
-    :param pyramid_log Location of the pyramid log file to use.
-    :param coin_log Location of the coin log file to use.
+    :param att: Dictionary containing attributes, y transformation, and configuration file prefix to plot with.
     :return: None.
     """
-    with open(angle_log, 'r') as f_1, open(sphere_log, 'r') as f_2, open(plane_log, 'r') as f_3, \
-            open(pyramid_log, 'r') as f_4, open(coin_log, 'r') as f_5:
-        csvs = list(map(lambda f: csv.reader(f, delimiter=','), [f_1, f_2, f_3, f_4, f_5]))
+    plt.rc('text', usetex=True), plt.rc('font', family='serif', size=12)
+    sec, pre = att['param_section'], att['params_prefix']
 
-        # with open(angle_log, 'r') as f_1, open(sphere_log, 'r') as f_2, open(pyramid_log, 'r') as f_4, \
-        #         open(coin_log, 'r') as f_5:
-        #     csvs = list(map(lambda f: csv.reader(f, delimiter=','), [f_1, f_2, f_4, f_5]))
+    # Set Y limits.
+    ax = plt.gca()
+    ax.set_ylim(params[sec][pre + '-yll'])
 
-        # Parse our header, and the rest of the logs.
-        attributes = list(map(lambda c: next(c), csvs))
-        logs = list(map(lambda c: np.array(np.array([tuple for tuple in c])), csvs))
+    # Add the bar chart X axis tick labels.
+    x_labels = params[sec][pre + '-xtl']
+    plt.xticks(np.arange(len(x_labels)), x_labels)
 
-        # Based on the header, determine what plots to produce.
-        if all(map(lambda a: len(a) == 5, attributes)):
-            v.query_trial_plot(qu_ppv, logs, query_params)
-        elif all(map(lambda a: a[4] == 'OptimalConfigRotation', attributes)):
-            v.identification_trial_plot(al_ppv, logs, identification_params)
-        elif all(map(lambda a: len(a) == 6, attributes)):
-            v.reduction_trial_plot(r_ppv, logs, reduction_params)
-        elif all(map(lambda a: a[4] == 'CameraSensitivity' and len(a) == 8, attributes)):
-            v.semi_crown_trial_plot(sc_ppv, logs, semi_crown_params)
-        elif all(map(lambda a: len(a) == 10, attributes)):
-            v.crown_trial_plot(cr_ppv, logs, crown_params)
-        else:
-            raise ValueError('Not a log file or corrupt header.')
+    # Add the chart X and Y labels.
+    plt.xlabel(params[sec][pre + '-xal']), plt.ylabel(params[sec][pre + '-yal'])
 
 
-# Perform the trials!
-if len(sys.argv) is not 6:
-    print('Usage: visualize-experiment [angle-log] [sphere-log] [plane-log] [pyramid-log] [coin-log]')
-else:
-    visualize_trial(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
+def bar_plot(cur_i, att):
+    """ Generic bar plot function. Given a cursor to the results database and a dictionary of attributes, create a bar
+    plot in global 'plt' object. User can choose to move this into a subplot or make this one plot.
+
+    :param cur_i: Cursor to database containing result data.
+    :param att: Dictionary containing attributes, y transformation, and params prefix to plot with.
+    :return: None.
+    """
+    for k, m in enumerate(['Angle', 'Dot', 'Sphere', 'Plane', 'Pyramid', 'Composite']):
+        # Grab the possible X-axis values.
+        x_space = cur_i.execute('SELECT DISTINCT ? '
+                                'FROM {}'.format(att['table_name']), (att['x_attribute'],)).fetchall()
+        x_space = list(map(lambda x: x[0], x_space))
+
+        # Construct the points to plot.
+        y_avg, y_std = [[] for _ in x_space], [[] for _ in x_space]
+        for x_p in x_space:
+            y_data = cur_i.execute('SELECT ? '  # Grab our Y axis data. 
+                                   'FROM {} '
+                                   'WHERE IdentificationMethod = ? '
+                                   'AND ? = ? ' +
+                                   ('' if 'constrain_that' not in att.keys()
+                                   else 'AND ' + att['constrain_that']).format(att['table_name']),
+                                   (att['y_attribute'], m, att['x_attribute'], x_p)).fetchall()
+            y_data = list(map(lambda y: y[0], y_data))
+
+            # Divide data into n sections. Apply lambda to each split of y data.
+            y_data = np.split(np.array(y_data), params['split-n'])
+            y_data = list(map(lambda y: att['y_function'](y), y_data))
+
+            # Collect averages and deviations for each partition of data.
+            y_avg.append(np.mean(y_data)[0]), y_std.append(np.std(y_data)[0])
+
+        # Construct the bar plot and attach plot info.
+        plt.bar(np.arange(len(x_space)) + 0.15 * k - 0.3, y_avg, 0.15, yerr=y_std)
+        attach_plot_info(att)
+
+
+if __name__ == '__main__':
+    # Ensure that there exists only one argument, and that it is in the appropriate space.
+    if len(sys.argv) != 2 or sys.argv[1] not in ['query', 'reduction', 'identification']:
+        print('Usage: python3 plot_experiment.py [query/reduction/identification]'), exit(1)
+
+    # Experiment data in lumberjack.db.
+    conn = ''
+    try:
+        conn = sqlite3.connect(os.environ['HOKU_PROJECT_PATH'] + '/CONFIG.ini')
+    except sqlite3.Error as e:
+        print('SQL Error: ' + str(e)), exit(2)
+    cur = conn.cursor(os.environ['HOKU_PROJECT_PATH'] + '/data/lumberjack.db')
+
+    if sys.argv[1] == 'query':
+        # Run all query visualizations.
+        plt.figure()
+        bar_plot(cur, {table_name: 'QUERY', x_attribute: 'ShiftDeviation', y_attribute: 'SExistence',
+                   y_function: lambda y: np.sum(y), params_section: 'query-plot', params_prefix: 'sdse'})
+        plt.show()
+        plt.figure()
+        bar_plot(cur, {table_name: 'QUERY', x_attribute: 'ShiftDeviation', y_attribute: 'CandidateSetSize',
+                   y_function: lambda y: np.mean(y), params_section: 'query-plot', params_prefix: 'sdcss'})
+        plt.show()
+    elif sys.argv[1] == 'reduction':
+        # Run all reduction visualizations.
+        bar_plot(cur, {table_name: 'REDUCTION', x_attribute: 'ShiftDeviation', y_attribute: 'ResultMatchesInput',
+                   constrain_that: 'CameraSensitivity = 6.0', y_function: lambda y: np.sum(y),
+                   params_section: 'reduction-plot', params_prefix: 'sdrmi'})
+        bar_plot(cur, {table_name: 'REDUCTION', x_attribute: 'CameraSensitivity', y_attribute: 'ResultMatchesInput',
+                   constrain_that: 'ShiftDeviation = 1.0e-3', y_function: lambda y: np.sum(y),
+                   params_section: 'reduction-plot', params_prefix: 'csrmi'})
+    else:
+        # Run all identification visualizations.
+        bar_plot(cf, cur, 'ShiftDeviation', 'ComparisonCount', 'AVG', 'i-sdcc')
+        bar_plot(cf, cur, 'ShiftDeviation', 'PercentageCorrect', 'AVG', 'i-sspc')
+        bar_plot(cf, cur, 'CameraSensitivity', 'ComparisonCount', 'AVG', 'i-cscc')
+        bar_plot(cf, cur, 'CameraSensitivity', 'PercentageCorrect', 'AVG', 'i-cspc')
+        bar_plot(cf, cur, 'FalseStars', 'ComparisonCount', 'AVG', 'i-fscc')
+        bar_plot(cf, cur, 'FalseStars', 'PercentageCorrect', 'AVG', 'i-fspc')
