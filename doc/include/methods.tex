@@ -108,10 +108,12 @@ The resulting image is presented in~\autoref{figure:benchmarkImageExample}.
 What is presented to each identification method are the stars in the image $S_b$, the center of the image $c_b$, and
 the field-of-view $f$.
 
+% Citation: Pyramid method, pg14
 Noise is assumed to exist in two forms here: misrepresentations of the centroid (i.e.\ centroiding error) and as
 falsely identified sources of light in the image.
 Centroiding error is applied to $S_b$ by slightly rotating a star $s$ in a random direction, whose severity is
 determined by a Gaussian distribution $N(0, \sigma^2)$.
+For this set of experiments, $\sigma = 50\mu rad$.
 False stars were added to $S_b$ by generating a random vector $s$ within $f$ of $c_b$.
 
 \subsection{Which set of features best distinguish a set of stars?}\label{subsec:featureUniquenessMethods}
@@ -139,15 +141,8 @@ a catalog feature amongst $r_1, r_2, \ldots, r_k$, $q_f$ refers a the image feat
 $c_{fn}$ and $q_{fn}$ refers to the number of features used to query the catalog, $\epsilon_n$ refers to the deviation
 of noise, and $C$ refers to the catalog.
 
-The heuristic used to determine each $\epsilon$ term was a grid search, iteratively performing the same experiment with
-different permutations of $\sigma = 3\epsilon$.
-The largest term that produces the most query hits was used to determine the optimal $\sigma$ for each different
-feature.
-Each method could then be analyzed in terms of this hyperparameter selection, and how forgiving each method was in terms
-of estimating $\sigma$.
-
-There are five features tested, given that Toloei's Composite Pyramid uses the same features as the Cole and
-Crassidus's Planar Triangles method.
+Toloei's Composite Pyramid uses the same features as Cole and Crassidus's Planar Triangles method, so only five
+features were tested:
 \begin{itemize}
     \item Angular separation $\theta^{ij}$ between two stars.
     \item Angular separations $\theta^{ic}, \theta^{jc}$ and dot angle $\phi$ between three stars.
