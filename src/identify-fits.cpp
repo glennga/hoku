@@ -81,7 +81,7 @@ Star::list parse_centroids (const std::shared_ptr<FILE> &centroids_pipe) {
                 double x = s_c[0] - hf, y = s_c[1] - hf;
                 
                 // Project the star to 3D, and save it.
-                s_i.push_back(Star::wrap(Mercator::transform_point(x, y, dpp)));
+                s_i.emplace_back(Star::wrap(Mercator::transform_point(x, y, dpp)));
             }
         }
     }

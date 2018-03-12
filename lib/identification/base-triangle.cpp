@@ -80,7 +80,6 @@ int BaseTriangle::generate_triangle_table (INIReader &cf, const std::string &tri
         transaction.commit();
     }
     
-    // Create an index for area searches. We aren't searching for polar moments.
     return ch.polish_table(cf.Get("table-focus", triangle_type, ""));
 }
 
@@ -93,18 +92,16 @@ int BaseTriangle::generate_triangle_table (INIReader &cf, const std::string &tri
 std::vector<BaseTriangle::labels_list> BaseTriangle::query_for_trio (const double a, const double i) {
     double epsilon_1 = 3.0 * this->parameters.sigma_1, epsilon_2 = 3.0 * this->parameters.sigma_2;
     std::vector<labels_list> big_r_ell = NO_CANDIDATE_TRIOS_FOUND;
-    Nibble::tuples_d a_match;
+    Nibble::tuples_d matches;
     
-    // First, search for trio of stars matching area condition.
-    a_match = ch.simple_bound_query("a", "label_a, label_b, label_c, i", a - epsilon_1, a + epsilon_1,
-                                    this->parameters.sql_limit);
+    // Query for candidates using all fields.
+    matches = ch.simple_bound_query({"a", "i"}, "label_a, label_b, label_c", {a - epsilon_1, i - epsilon_2},
+                                    {a + epsilon_1, i + epsilon_2}, this->parameters.sql_limit);
     
-    // Next, search this trio for stars matching the moment condition.
-    big_r_ell.reserve(a_match.size() / 4);
-    std::for_each(a_match.begin(), a_match.end(), [&epsilon_2, &big_r_ell, &i] (const Chomp::tuple_d &t) -> void {
-        if (t[3] >= i - epsilon_2 && t[3] < i + epsilon_2) {
-            big_r_ell.push_back(labels_list {static_cast<int> (t[0]), static_cast<int> (t[1]), static_cast<int>(t[2])});
-        }
+    // Next, transform this set into candidate set labels.
+    big_r_ell.reserve(matches.size());
+    std::for_each(matches.begin(), matches.end(), [&big_r_ell] (const Chomp::tuple_d &t) -> void {
+        big_r_ell.emplace_back(labels_list {static_cast<int> (t[0]), static_cast<int> (t[1]), static_cast<int>(t[2])});
     });
     
     // If results are found, remove the initialized value of NO_CANDIDATE_TRIOS_FOUND.
@@ -140,7 +137,7 @@ std::vector<Star::trio> BaseTriangle::base_query_for_trios (const index_trio &c,
     
     // Search for the current trio. If this is empty, then break early.
     big_r_ell = this->query_for_trio(compute_area(b[0], b[1], b[2]), compute_moment(b[0], b[1], b[2]));
-    if (std::equal(big_r_ell[0].begin() + 1, big_r_ell[0].end(), big_r_ell[0].begin())) {
+    if (std::equal(big_r_ell.begin(), big_r_ell.end(), NO_CANDIDATE_TRIOS_FOUND.begin())) {
         return NO_CANDIDATE_STARS_FOUND;
     }
     
@@ -220,15 +217,14 @@ Star::trio BaseTriangle::pivot (const index_trio &c) {
 /// @return The star list corresponding to largest set of matching stars across the body and inertial in all pairing
 /// configurations.
 Star::list BaseTriangle::direct_match_test (const Star::list &big_p, const Star::trio &r, const Star::trio &b) {
-    std::array<index_trio, 6> big_a_c;
     std::array<Star::list, 6> big_m = {}, big_a = {};
+    
+    // Generate unique permutations using previously generated trio.
+    std::array<index_trio, 6> big_a_c = {STARTING_INDEX_TRIO, index_trio {0, 2, 1}, index_trio {1, 0, 2}, index_trio
+        {1, 2, 0}, index_trio {2, 0, 1}, index_trio {2, 1, 0}};
     auto attach_ell = [&r, &b, &big_a_c] (const int i, const int j) -> Star {
         return Star::define_label(b[j], r[big_a_c[i][j]].get_label());
     };
-    
-    // Generate unique permutations using previously generated trio.
-    big_a_c = {STARTING_INDEX_TRIO, index_trio {0, 2, 1}, index_trio {1, 0, 2}, index_trio {1, 2, 0},
-        index_trio {2, 0, 1}, index_trio {2, 1, 0}};
     
     // Determine the rotation to take frame R to B.
     for (unsigned int i = 0; i < 6; i++) {

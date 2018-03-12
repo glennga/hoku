@@ -224,9 +224,20 @@ TEST(Chomp, NearbyHipStars) {
 TEST(Chomp, QuerySimpleBound) {
     Chomp ch;
     ch.select_table("ANGLE_20");
-    Nibble::tuples_d a = ch.simple_bound_query("theta", "theta", 5.004, 5.005, 90);
+    Nibble::tuples_d a = ch.simple_bound_query({"theta"}, "theta", {5.004}, {5.005}, 90);
     for (Nibble::tuple_d &q : a) {
         EXPECT_THAT(q[0], IsBetweenChomp(5.004, 5.005));
+    }
+}
+
+/// Check that the regular query returns correct results with multiple fields.
+TEST(Chomp, QuerySimpleBoundMultipleFields) {
+    Chomp ch;
+    ch.select_table("ANGLE_20");
+    Nibble::tuples_d a = ch.simple_bound_query({"theta", "label_a"}, "theta, label_a", {5.000, 1}, {5.1, 10000}, 90);
+    for (Nibble::tuple_d &q : a) {
+        EXPECT_THAT(q[0], IsBetweenChomp(5.000, 5.1));
+        EXPECT_THAT(q[1], IsBetweenChomp(1, 10000));
     }
 }
 

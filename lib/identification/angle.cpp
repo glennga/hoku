@@ -81,11 +81,11 @@ Identification::labels_list Angle::query_for_pair (const double theta) {
     Nibble::tuples_d big_r_ell_tuples;
     
     // Query using theta with epsilon bounds. Return EMPTY_BIG_R_ELL if nothing is found.
-    big_r_ell_tuples = ch.simple_bound_query("theta", "label_a, label_b, theta", theta - epsilon, theta + epsilon,
+    big_r_ell_tuples = ch.simple_bound_query({"theta"}, "label_a, label_b", {theta - epsilon}, {theta + epsilon},
                                              this->parameters.sql_limit);
     
     // |R| = 1 restriction. Applied with the PASS_R_SET_CARDINALITY flag.
-    if (big_r_ell_tuples.empty() || (this->parameters.no_reduction && big_r_ell_tuples.size() > 1)) {
+    if (big_r_ell_tuples.empty() || (!this->parameters.no_reduction && big_r_ell_tuples.size() > 1)) {
         return EMPTY_BIG_R_ELL;
     }
     
@@ -173,8 +173,8 @@ std::vector<Identification::labels_list> Angle::query (const Star::list &s) {
     
     // Query using theta with epsilon bounds.
     ch.select_table(this->parameters.table_name);
-    Nibble::tuples_d big_r_tuples = ch.simple_bound_query("theta", "label_a, label_b", theta - epsilon, theta + epsilon,
-                                                          this->parameters.sql_limit);
+    Nibble::tuples_d big_r_tuples = ch.simple_bound_query({"theta"}, "label_a, label_b", {theta - epsilon},
+                                                          {theta + epsilon}, this->parameters.sql_limit);
     
     // Sort r into list of catalog ID pairs.
     big_r_ell.reserve(big_r_tuples.size() / 2);
@@ -251,7 +251,7 @@ Star::list Angle::identify () {
             
             // Find candidate stars around the candidate pair.
             Star::list big_p = ch.nearby_hip_stars(r[0], fov, static_cast<unsigned int>(3 * big_i.size()));
-    
+            
             // Find the most likely pair combination given the two pairs.
             return direct_match_test(big_p, {r[0], r[1]}, {big_i[i], big_i[j]});
         }

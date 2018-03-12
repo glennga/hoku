@@ -91,22 +91,22 @@ TEST(DotAngle, QueryTrio) {
     Chomp ch;
     Benchmark input(ch, 15);
     Dot::Parameters p = Dot::DEFAULT_PARAMETERS, p2 = Dot::DEFAULT_PARAMETERS;
-    p.sigma_1 = p.sigma_2 = p.sigma_3 = 0.000000001;
-    p.sigma_1 = p.sigma_2 = p.sigma_3 = 0.1;
+    p.sigma_1 = p.sigma_2 = p.sigma_3 = 0.000001;
+    p2.sigma_1 = p2.sigma_2 = p2.sigma_3 = 0.1;
     
-    Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532)};
+    Star::list b = {ch.query_hip(102531), ch.query_hip(109240), ch.query_hip(102532)};
     double theta_1 = (180.0 / M_PI) * Vector3::Angle(b[0], b[2]);
     double theta_2 = (180.0 / M_PI) * Vector3::Angle(b[1], b[2]);
     double phi = Trio::dot_angle(b[0], b[1], b[2]);
     
     Identification::labels_list c = Dot(input, p).query_for_trio(theta_1, theta_2, phi);
-    Identification::labels_list d = {102531, 95498, 102532};
+    Identification::labels_list d = {102531, 109240, 102532};
     ASSERT_EQ(c.size(), 3);
     EXPECT_EQ(d[0], c[0]);
     EXPECT_EQ(d[1], c[1]);
     EXPECT_EQ(d[2], c[2]);
     
-    p2.no_reduction = false;
+    p2.no_reduction = true;
     Identification::labels_list e = Dot(input, p2).query_for_trio(theta_1, theta_2, phi);
     EXPECT_THAT(Dot::EMPTY_BIG_R_ELL, Not(Contains(e[0])));
     EXPECT_THAT(Dot::EMPTY_BIG_R_ELL, Not(Contains(e[1])));
@@ -141,7 +141,7 @@ TEST(DotAngle, QueryExpectedFailure) {
     }
     double phi_2 = Trio::dot_angle(input2.b[0], input2.b[1], input2.b[2]);
     
-    p.sigma_1 = p.sigma_2 = p.sigma_3 = 0.01;
+    p.sigma_1 = p.sigma_2 = p.sigma_3 = 10;
     Identification::labels_list c = Dot(input, p).query_for_trio(theta_1_b, theta_2_b, phi_2);
     EXPECT_THAT(Dot::EMPTY_BIG_R_ELL, Contains(c[0]));
     EXPECT_THAT(Dot::EMPTY_BIG_R_ELL, Contains(c[1]));
@@ -153,7 +153,7 @@ TEST(DotAngle, QueryFavorBrightStarsFlag) {
     Benchmark input(ch, 15);
     Dot::Parameters p = Dot::DEFAULT_PARAMETERS, p2 = Dot::DEFAULT_PARAMETERS;
     p.sigma_1 = p.sigma_2 = p.sigma_3 = 0.1, p2.sigma_1 = p2.sigma_2 = p2.sigma_3 = 0.1, p.favor_bright_stars = true;
-    p.no_reduction = false, p2.no_reduction = false, p.sql_limit = 100000, p2.sql_limit = 100000;
+    p.no_reduction = true, p2.no_reduction = true, p.sql_limit = 100000, p2.sql_limit = 100000;
     
     Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532)};
     double theta_1 = (180.0 / M_PI) * Vector3::Angle(b[0], b[2]);
@@ -231,11 +231,11 @@ TEST(DotAngle, TrialCleanQuery) {
     Dot::Parameters p = Dot::DEFAULT_PARAMETERS;
     p.sigma_1 = p.sigma_2 = p.sigma_3 = 10e-7, p.no_reduction = false;
     Dot a(Benchmark::black(), p);
-    Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532)};
+    Star::list b = {ch.query_hip(102531), ch.query_hip(109240), ch.query_hip(102532)};
     
     std::vector<Identification::labels_list> d = a.query(b);
     EXPECT_EQ(d[0][0], 102531);
-    EXPECT_EQ(d[0][1], 95498);
+    EXPECT_EQ(d[0][1], 109240);
     EXPECT_EQ(d[0][2], 102532);
 }
 
@@ -245,10 +245,10 @@ TEST(DotAngle, TrialCleanReduction) {
     Dot::Parameters p = Dot::DEFAULT_PARAMETERS;
     p.sigma_4 = 0.0001, p.sigma_1 = p.sigma_2 = p.sigma_3 = 0.000000001;
     
-    Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532)};
+    Star::list b = {ch.query_hip(102531), ch.query_hip(109240), ch.query_hip(102532)};
     Benchmark i(b, b[0], 20);
     Dot a(i, p);
-    EXPECT_THAT(a.reduce(), UnorderedElementsAre(102531, 95498, 102532));
+    EXPECT_THAT(a.reduce(), UnorderedElementsAre(102531, 109240, 102532));
 }
 
 /// Check that a clean input returns the expected identification of stars.
@@ -260,13 +260,13 @@ TEST(DotAngle, TrialCleanIdentify) {
     p.sigma_4 = 0.000001;
     
     Rotation q = Rotation::chance();
-    Star b = ch.query_hip(102531), c = ch.query_hip(95498), d = ch.query_hip(102532);
+    Star b = ch.query_hip(102531), c = ch.query_hip(109240), d = ch.query_hip(102532);
     Star e = Rotation::rotate(b, q), f = Rotation::rotate(c, q), g = Rotation::rotate(d, q);
     
     Dot a(Benchmark({e, f, g}, e, 20), p);
     Star::list h = a.identify();
     EXPECT_THAT(h, Contains(Star::define_label(e, 102531)));
-    EXPECT_THAT(h, Contains(Star::define_label(f, 95498)));
+    EXPECT_THAT(h, Contains(Star::define_label(f, 109240)));
     EXPECT_THAT(h, Contains(Star::define_label(g, 102532)));
 }
 
