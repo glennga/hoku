@@ -208,22 +208,22 @@ int Nibble::find_attributes (std::string &schema, std::string &fields) {
     return 0;
 }
 
-/// In the given table, sort using the selected column.
+/// In the given table, sort using the selected column(s).
 ///
-/// @param focus_column The new table will be sorted and index by this column.
+/// @param focus The new table will be sorted and index by this/these column/columns.
 /// @return 0 when finished.
-int Nibble::sort_table (const std::string &focus_column) {
+int Nibble::sort_table (const std::string &focus) {
     SQLite::Transaction transaction(*conn);
     std::string fields, schema;
     
     // Grab the fields and schema of the table.
     find_attributes(schema, fields);
     
-    // Create temporary table to insert sorted data. Insert the sorted data by focus column.
+    // Create temporary table to insert sorted data. Insert the sorted data by focus.
     (*conn).exec("CREATE TABLE " + table + "_SORTED (" + schema + ")");
     (*conn).exec(
         "INSERT INTO " + table + "_SORTED (" + fields + ")" + " SELECT " + fields + " FROM " + table + " ORDER BY "
-        + focus_column);
+        + focus);
     
     // Remove old table. Rename the table to original table name.
     (*conn).exec("DROP TABLE " + table);
@@ -233,16 +233,16 @@ int Nibble::sort_table (const std::string &focus_column) {
     return 0;
 }
 
-/// In the given table, sort using the selected column and create an index using the same column.
+/// In the given table, sort using the selected column(s) and create an index using the same column(s).
 ///
-/// @param focus_column The new table will be sorted and index by this column.
+/// @param focus The new table will be sorted and index by this column(s).
 /// @return 0 when finished.
-int Nibble::polish_table (const std::string &focus_column) {
-    sort_table(focus_column);
+int Nibble::polish_table (const std::string &focus) {
+    sort_table(focus);
     
-    // Create the index name 'TABLE_FOCUSCOLUMN'.
+    // Create the index name 'TABLE_IDX'.
     SQLite::Transaction transaction(*conn);
-    (*conn).exec("CREATE INDEX " + table + "_" + focus_column + " ON " + table + "(" + focus_column + ")");
+    (*conn).exec("CREATE INDEX " + table + "_IDX ON " + table + "(" + focus + ")");
     transaction.commit();
     
     return 0;

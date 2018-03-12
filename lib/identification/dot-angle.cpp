@@ -90,25 +90,22 @@ Identification::labels_list Dot::query_for_trio (double theta_1, double theta_2,
     double epsilon_1 = 3.0 * this->parameters.sigma_1, epsilon_2 = 3.0 * this->parameters.sigma_2;
     double epsilon_3 = 3.0 * parameters.sigma_3;
     std::vector<labels_list> big_r_ell;
-    Nibble::tuples_d theta_1_match;
+    Nibble::tuples_d matches;
     
-    // Query using theta_1 with epsilon bounds.
-    theta_1_match = ch.simple_bound_query("theta_1", "label_a, label_b, label_c, theta_2, phi", theta_1 - epsilon_1,
-                                          theta_1 + epsilon_1, this->parameters.sql_limit);
+    // Query for candidates using all fields.
+    matches = ch.simple_bound_query({"theta_1", "theta_2", "phi"}, "label_a, label_b, label_c",
+                                    {theta_1 - epsilon_1, theta_2 - epsilon_2, phi - epsilon_3},
+                                    {theta_1 + epsilon_1, theta_2 + epsilon_2, phi + epsilon_3},
+                                    this->parameters.sql_limit);
     
-    // Apply entire query filter. Return EMPTY_BIG_R_ELL if nothing is found.
-    big_r_ell.reserve(theta_1_match.size());
-    std::for_each(theta_1_match.begin(), theta_1_match.end(),
-                  [&theta_2, &epsilon_2, &phi, &epsilon_3, &big_r_ell] (const Chomp::tuple_d &t) -> void {
-                      if (t[3] >= theta_2 - epsilon_2 && t[3] < theta_2 + epsilon_2 && t[4] >= phi - epsilon_3
-                          && t[4] < phi + epsilon_3) {
-                          big_r_ell.push_back(
-                              labels_list {static_cast<int> (t[0]), static_cast<int> (t[1]), static_cast<int>(t[2])});
-                      }
-                  });
+    // Transform each tuple into a candidate list of labels.
+    big_r_ell.reserve(matches.size());
+    std::for_each(matches.begin(), matches.end(), [&big_r_ell] (const Chomp::tuple_d &t) -> void {
+        big_r_ell.emplace_back(labels_list {static_cast<int> (t[0]), static_cast<int> (t[1]), static_cast<int>(t[2])});
+    });
     
     // |R| = 1 restriction. Applied with the PASS_R_SET_CARDINALITY flag.
-    if (big_r_ell.empty() || (this->parameters.no_reduction && big_r_ell.size() > 1)) {
+    if (big_r_ell.empty() || (!this->parameters.no_reduction && big_r_ell.size() > 1)) {
         return EMPTY_BIG_R_ELL;
     }
     
@@ -168,7 +165,7 @@ std::vector<Identification::labels_list> Dot::query (const Star::list &s) {
     double epsilon_1 = 3.0 * this->parameters.sigma_1, epsilon_2 = 3.0 * this->parameters.sigma_2;
     double epsilon_3 = 3.0 * parameters.sigma_3;
     std::vector<labels_list> big_r_ell;
-    Nibble::tuples_d theta_1_match;
+    Nibble::tuples_d matches;
     
     // Ensure that condition 6d holds: switch if not.
     if (theta_1 > theta_2) {
@@ -176,20 +173,17 @@ std::vector<Identification::labels_list> Dot::query (const Star::list &s) {
         theta_1 = theta_2, theta_2 = theta_t;
     }
     
-    // Query using theta_1 with epsilon bounds.
-    theta_1_match = ch.simple_bound_query("theta_1", "label_a, label_b, label_c, theta_2, phi", theta_1 - epsilon_1,
-                                          theta_1 + epsilon_1, this->parameters.sql_limit);
+    // Query for our candidate set.
+    matches = ch.simple_bound_query({"theta_1", "theta_2", "phi"}, "label_a, label_b, label_c",
+                                    {theta_1 - epsilon_1, theta_2 - epsilon_2, phi - epsilon_3},
+                                    {theta_1 + epsilon_1, theta_2 + epsilon_2, phi + epsilon_3},
+                                    this->parameters.sql_limit);
     
-    // Apply entire query filter. Return EMPTY_BIG_R_ELL if nothing is found.
-    big_r_ell.reserve(theta_1_match.size());
-    std::for_each(theta_1_match.begin(), theta_1_match.end(),
-                  [&theta_2, &epsilon_2, &phi, &epsilon_3, &big_r_ell] (const Chomp::tuple_d &t) -> void {
-                      if (t[3] >= theta_2 - epsilon_2 && t[3] < theta_2 + epsilon_2 && t[4] >= phi - epsilon_3
-                          && t[4] < phi + epsilon_3) {
-                          big_r_ell.push_back(
-                              labels_list {static_cast<int> (t[0]), static_cast<int> (t[1]), static_cast<int>(t[2])});
-                      }
-                  });
+    // Transform candidate set tuples into labels list.
+    big_r_ell.reserve(matches.size());
+    std::for_each(matches.begin(), matches.end(), [&big_r_ell] (const Chomp::tuple_d &t) -> void {
+        big_r_ell.emplace_back(labels_list {static_cast<int> (t[0]), static_cast<int> (t[1]), static_cast<int>(t[2])});
+    });
     
     return big_r_ell;
 }

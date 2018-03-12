@@ -56,13 +56,13 @@ Pyramid::labels_list_list Pyramid::query_for_pairs (const double theta) {
     
     // Query using theta with epsilon bounds.
     ch.select_table(parameters.table_name);
-    big_r_mn_tuples = ch.simple_bound_query("theta", "label_a, label_b, theta", theta - epsilon, theta + epsilon,
+    big_r_mn_tuples = ch.simple_bound_query({"theta"}, "label_a, label_b, theta", {theta - epsilon}, {theta + epsilon},
                                             3 * this->parameters.sql_limit);
     
     // Append the results to our candidate list.
-    big_r_mn_ell.reserve(big_r_mn_tuples.size() / 2);
+    big_r_mn_ell.reserve(big_r_mn_tuples.size());
     for (const Nibble::tuple_d &result: big_r_mn_tuples) {
-        big_r_mn_ell.push_back({(static_cast<int> (result[0])), static_cast<int> (result[1])});
+        big_r_mn_ell.emplace_back(labels_list {(static_cast<int> (result[0])), static_cast<int> (result[1])});
     }
     
     return big_r_mn_ell;
@@ -222,7 +222,7 @@ Star::trio Pyramid::find_catalog_stars (const Star::trio &b) {
         for (const Star &s_i : big_t_i) {
             for (const Star &s_j : big_t_j) {
                 for (const Star &s_k : big_t_k) {
-                    r_ell.push_back({s_i.get_label(), s_j.get_label(), s_k.get_label()});
+                    r_ell.emplace_back(labels_list {s_i.get_label(), s_j.get_label(), s_k.get_label()});
                 }
             }
         }
@@ -288,7 +288,12 @@ std::vector<Identification::labels_list> Pyramid::query (const Star::list &s) {
     for (const Star &s_i : t_i) {
         for (const Star &s_j : t_j) {
             for (const Star &s_k : t_k) {
-                big_r_ell.push_back({s_i.get_label(), s_j.get_label(), s_k.get_label()});
+                big_r_ell.emplace_back(labels_list {s_i.get_label(), s_j.get_label(), s_k.get_label()});
+                
+                // Follow the SQL limit in the parameters.
+                if (big_r_ell.size() == parameters.sql_limit) {
+                    return big_r_ell;
+                }
             }
         }
     }

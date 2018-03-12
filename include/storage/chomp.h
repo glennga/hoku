@@ -52,8 +52,8 @@ class Chomp : public Nibble {
     int create_k_vector (const std::string &focus);
     tuples_d k_vector_query (const std::string &focus, const std::string &fields, double y_a, double y_b,
                              unsigned int expected);
-    tuples_d simple_bound_query (const std::string &focus, const std::string &fields, double y_a, double y_b,
-                                 unsigned int limit);
+    tuples_d simple_bound_query (const std::vector<std::string> &foci, const std::string &fields,
+                                 const std::vector<double> &y_a, const std::vector<double> &y_b, unsigned int limit);
     
     Star::list nearby_bright_stars (const Vector3 &focus, double fov, unsigned int expected);
     Star::list nearby_hip_stars (const Vector3 &focus, double fov, unsigned int expected);

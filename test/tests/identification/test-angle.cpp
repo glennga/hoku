@@ -79,7 +79,7 @@ TEST(Angle, QueryPair) {
     EXPECT_THAT(c, Contains(b[0]));
     EXPECT_THAT(c, Contains(b[1]));
     
-    p2.no_reduction = false;
+    p2.no_reduction = true;
     Identification::labels_list d = Angle(input, p2).query_for_pair(a);
     EXPECT_THAT(Angle::EMPTY_BIG_R_ELL, Not(Contains(d[0])));
     EXPECT_THAT(Angle::EMPTY_BIG_R_ELL, Not(Contains(d[1])));
@@ -99,7 +99,7 @@ TEST(Angle, QueryExpectedFailure) {
     EXPECT_THAT(Angle::EMPTY_BIG_R_ELL, Contains(b[1]));
     
     // |R| restriction should prevent an answer from being displayed.
-    p.sigma_1 = 0.1, p.no_reduction = true;
+    p.sigma_1 = 0.1, p.no_reduction = false;
     double d = (180.0 / M_PI) * Vector3::Angle(input2.b[0], input2.b[1]);
     Identification::labels_list c = Angle(input2, p).query_for_pair(d);
     EXPECT_THAT(Angle::EMPTY_BIG_R_ELL, Contains(c[0]));

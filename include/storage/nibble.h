@@ -69,8 +69,8 @@ class Nibble {
     int create_table (const std::string &table, const std::string &schema);
     
     int find_attributes (std::string &schema, std::string &fields);
-    int sort_table (const std::string &focus_column);
-    int polish_table (const std::string &focus_column);
+    int sort_table (const std::string &focus);
+    int polish_table (const std::string &focus);
 
     static const int TABLE_NOT_CREATED;
     static const double NO_RESULT_FOUND;
