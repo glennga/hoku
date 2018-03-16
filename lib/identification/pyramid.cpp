@@ -288,7 +288,9 @@ std::vector<Identification::labels_list> Pyramid::query (const Star::list &s) {
     for (const Star &s_i : t_i) {
         for (const Star &s_j : t_j) {
             for (const Star &s_k : t_k) {
-                big_r_ell.emplace_back(labels_list {s_i.get_label(), s_j.get_label(), s_k.get_label()});
+                if (s_i != NO_COMMON_FOUND[0]) {
+                    big_r_ell.emplace_back(labels_list {s_i.get_label(), s_j.get_label(), s_k.get_label()});
+                }
                 
                 // Follow the SQL limit in the parameters.
                 if (big_r_ell.size() == parameters.sql_limit) {

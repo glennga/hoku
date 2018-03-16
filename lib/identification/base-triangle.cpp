@@ -244,9 +244,10 @@ Star::list BaseTriangle::direct_match_test (const Star::list &big_p, const Star:
 ///
 /// @param a Area (planar or spherical) to search with.
 /// @param i_t Polar moment (planar or spherical) to search with.
-/// @return NO_CANDIDATE_TRIOS_FOUND if no candidates found. Otherwise, all elements that met the criteria.
+/// @return All candidates that meet the criteria.
 std::vector<BaseTriangle::labels_list> BaseTriangle::e_query (double a, double i) {
-    return query_for_trio(a, i);
+    std::vector<labels_list> big_r_ell = query_for_trio(a, i);
+    return (big_r_ell[0] == NO_CANDIDATE_TRIOS_FOUND[0]) ? std::vector<labels_list> {labels_list {}} : big_r_ell;
 }
 
 /// Find the **best** matching pair to the first three stars in our benchmark using the appropriate triangle table.
