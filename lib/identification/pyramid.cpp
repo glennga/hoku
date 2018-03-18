@@ -322,7 +322,8 @@ Identification::labels_list Pyramid::reduce () {
     for (unsigned int dj = 1; dj < big_i.size() - 1; dj++) {
         for (unsigned int dk = 1; dk < big_i.size() - dj - 1; dk++) {
             for (unsigned int di = 0; di < big_i.size() - dj - dk - 1; di++) {
-                Star::list r = identify_as_list({big_i[0], big_i[1], big_i[2]});
+                int i = di, j = di + dj, k = j + dk;
+                Star::list r = identify_as_list({big_i[i], big_i[j], big_i[k]});
                 (*parameters.nu)++;
     
                 // Practical limit: exit early if we have iterated through too many comparisons without match.
