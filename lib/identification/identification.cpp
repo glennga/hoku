@@ -70,10 +70,10 @@ void Identification::collect_parameters (Parameters &p, INIReader &cf, const std
     p.sigma_3 = cf.GetReal("query-sigma", identifier + "-3", 0);
     p.sigma_4 = cf.GetReal("id-parameters", "so", DEFAULT_SIGMA_4);
     p.table_name = cf.Get("table-names", identifier, DEFAULT_TABLE_NAME);
-    p.sql_limit = static_cast<unsigned>(cf.GetInteger("id-parameters", "sl", DEFAULT_SQL_LIMIT));
+    p.sql_limit = static_cast<unsigned>(cf.GetInteger("id-parameters", "sl", static_cast<long>(DEFAULT_SQL_LIMIT)));
     p.no_reduction = cf.GetBoolean("id-parameters", "nr", DEFAULT_NO_REDUCTION);
     p.favor_bright_stars = cf.GetBoolean("id-parameters", "fbr", DEFAULT_FAVOR_BRIGHT_STARS);
-    p.nu_max = static_cast<unsigned>(cf.GetInteger("id-parameters", "nu-m", DEFAULT_NU_MAX));
+    p.nu_max = static_cast<unsigned>(cf.GetInteger("id-parameters", "nu-m", static_cast<long> (DEFAULT_NU_MAX)));
     
     const std::array<std::string, 3> ws_id = {"TRIAD", "Q", "SVD"};
     const std::array<Rotation::wahba_function, 3> ws = {Rotation::triad, Rotation::q_method, Rotation::svd};

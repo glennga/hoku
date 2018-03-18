@@ -91,7 +91,7 @@ namespace Experiment {
     namespace Reduction {
         /// Schema header that corresponds to the log file for all reduction trials.
         const char *const SCHEMA = "IdentificationMethod TEXT, Timestamp TEXT, Sigma1 FLOAT, Sigma2 FLOAT, "
-            "Sigma3 FLOAT, Sigma4 FLOAT, ShiftDeviation FLOAT, CameraSensitivity FLOAT, ResultMatchesInput INT";
+            "Sigma3 FLOAT, ShiftDeviation FLOAT, FalseStars INT, ComparisonCount INT, ResultMatchesInput INT";
         
         bool is_correctly_identified (const Star::list &big_i, const Identification::labels_list &r_ell);
         
@@ -106,41 +106,43 @@ namespace Experiment {
         /// pyramid, composite].
         template <class T>
         void trial (Chomp &ch, Lumberjack &lu, INIReader &cf, const std::string &identifier) {
+            std::shared_ptr<unsigned int> nu = std::make_shared<unsigned int>(0);
             Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
             double fov = cf.GetReal("hardware", "fov", 0);
             Star::list body;
             Star focus;
             
             // Define our hyperparameters and testing parameters.
-            Identification::collect_parameters(p, cf, identifier), p.nu = std::make_shared<unsigned int>(0);
+            Identification::collect_parameters(p, cf, identifier), p.nu = nu;
             int samples = cf.GetInteger("general-experiment", "samples", 0);
             int ss_iter = cf.GetInteger("reduction-experiment", "ss-iter", 0);
-            int mb_iter = cf.GetInteger("reduction-experiment", "mb-iter", 0);
+            int es_iter = cf.GetInteger("reduction-experiment", "es-iter", 0);
             double ss_step = cf.GetReal("reduction-experiment", "ss-step", 0);
-            double mb_min = cf.GetReal("reduction-experiment", "mb-min", 0);
-            double mb_step = cf.GetReal("reduction-experiment", "mb-step", 0);
+            double es_min = cf.GetReal("reduction-experiment", "es-min", 0);
+            double es_step = cf.GetReal("reduction-experiment", "es-step", 0);
             
-            // First run is clean, without shifts. Following are the shift trials.
-            for (int ss_i = 0; ss_i < ss_iter; ss_i++) {
-                double ss = (ss_i == 0) ? 0 : pow(ss_step, ss_i);
-                for (int mb_i = 0; mb_i < mb_iter; mb_i++) {
-                    double mb = mb_min + static_cast<double>(mb_i) * mb_step;
+            // Perform the shift trials, then the extra stars trial.
+            auto trial_specific_error = [&] (const bool is_shift, const int iter, const double step, const double min) {
+                for (int s_i = 0; s_i < iter; s_i++) {
+                    double s = is_shift ? ((s_i == 0) ? 0 : pow(step, s_i)) : (min + static_cast<double>(s_i) * step);
                     
                     // Repeat each trial n = SAMPLES times.
                     for (int i = 0; i < samples; i++) {
-                        present_benchmark(ch, body, focus, fov, mb);
+                        present_benchmark(ch, body, focus, fov);
                         Benchmark input(body, focus, fov);
-                        input.shift_light(static_cast<signed> (body.size()), ss);
+                        (is_shift) ? input.shift_light(static_cast<signed> (body.size()), s) : input.add_extra_light(
+                            static_cast<unsigned int> (s));
                         
                         // Perform a single trial.
                         Identification::labels_list w = T(input, p).reduce();
                         
                         // Log the results of our trial.
-                        lu.log_trial({p.sigma_1, p.sigma_2, p.sigma_3, p.sigma_4, ss, mb,
-                                         (is_correctly_identified(body, w) ? 1.0 : 0)});
+                        lu.log_trial({p.sigma_1, p.sigma_2, p.sigma_3, is_shift ? s : 0, !is_shift ? s : es_min,
+                                         static_cast<double>(*nu), (is_correctly_identified(body, w) ? 1.0 : 0)});
                     }
                 }
-            }
+            };
+            trial_specific_error(true, ss_iter, ss_step, 0), trial_specific_error(false, es_iter, es_step, es_min);
         }
     }
     
@@ -150,8 +152,8 @@ namespace Experiment {
     namespace Map {
         /// Schema header that corresponds to the log file for all identification trials.
         const char *const SCHEMA = "IdentificationMethod TEXT, Timestamp TEXT, Sigma1 FLOAT, Sigma2 FLOAT, "
-            "Sigma3 FLOAT, Sigma4 FLOAT, ShiftDeviation FLOAT, CameraSensitivity FLOAT, FalseStars INT, "
-            "ComparisonCount INT, PercentageCorrect FLOAT";
+            "Sigma3 FLOAT, Sigma4 FLOAT, ShiftDeviation FLOAT, FalseStars INT, ComparisonCount INT, "
+            "PercentageCorrect FLOAT";
         
         double percentage_correct (const Star::list &big_i, const Star::list &b);
         
@@ -172,44 +174,38 @@ namespace Experiment {
             Star::list body;
             Star focus;
             
-            // Define our hyperparameters, and testing parameters.
+            // Define our hyperparameters and testing parameters.
             Identification::collect_parameters(p, cf, identifier), p.nu = nu;
             int samples = cf.GetInteger("general-experiment", "samples", 0);
             int ss_iter = cf.GetInteger("identification-experiment", "ss-iter", 0);
-            int mb_iter = cf.GetInteger("identification-experiment", "mb-iter", 0);
             int es_iter = cf.GetInteger("identification-experiment", "es-iter", 0);
             double ss_step = cf.GetReal("identification-experiment", "ss-step", 0);
-            double mb_min = cf.GetReal("identification-experiment", "mb-min", 0);
-            double mb_step = cf.GetReal("identification-experiment", "mb-step", 0);
             double es_min = cf.GetReal("identification-experiment", "es-min", 0);
             double es_step = cf.GetReal("identification-experiment", "es-step", 0);
             
-            for (int ss_i = 0; ss_i < ss_iter; ss_i++) {
-                double ss = (ss_i == 0) ? 0 : pow(ss_step, ss_i);
-                for (int mb_i = 0; mb_i < mb_iter; mb_i++) {
-                    double mb = mb_min + static_cast<double>(mb_i) * mb_step;
-                    for (int es_i = 0; es_i < es_iter; es_i++) {
-                        double es = es_min + static_cast<double>(es_i) * es_step;
+            // Perform the shift trials, then the extra stars trial.
+            auto trial_specific_error = [&] (const bool is_shift, const int iter, const double step, const double min) {
+                for (int s_i = 0; s_i < iter; s_i++) {
+                    double s = is_shift ? ((s_i == 0) ? 0 : pow(step, s_i)) : (min + static_cast<double>(s_i) * step);
+                    
+                    // Repeat each trial n = SAMPLES times.
+                    for (int i = 0; i < samples; i++) {
+                        present_benchmark(ch, body, focus, fov);
+                        Benchmark input(body, focus, fov);
+                        (is_shift) ? input.shift_light(static_cast<signed> (body.size()), s) : input.add_extra_light(
+                            static_cast<unsigned int> (s));
                         
-                        // Repeat each trial n = SAMPLES times.
-                        for (int i = 0; i < samples; i++) {
-                            present_benchmark(ch, body, focus, fov, mb);
-                            Benchmark input(body, focus, fov);
-                            
-                            // Append our error.
-                            input.shift_light(static_cast<int> (body.size()), ss);
-                            input.add_extra_light(static_cast<unsigned int> (es));
-                            
-                            // Perform a single trial.
-                            Star::list w = T(input, p).identify();
-                            
-                            // Log the results of our trial.
-                            lu.log_trial({p.sigma_1, p.sigma_2, p.sigma_3, p.sigma_4, ss, mb, es, static_cast<double>
-                            (*nu), percentage_correct(body, w)});
-                        }
+                        // Perform a single trial.
+                        Star::list w = T(input, p).identify();
+                        
+                        // Log the results of our trial.
+                        lu.log_trial(
+                            {p.sigma_1, p.sigma_2, p.sigma_3, p.sigma_4, is_shift ? s : 0, !is_shift ? s : es_min,
+                                static_cast<double>(*nu), percentage_correct(body, w)});
                     }
                 }
-            }
+            };
+            trial_specific_error(true, ss_iter, ss_step, 0), trial_specific_error(false, es_iter, es_step, es_min);
         }
     }
 }

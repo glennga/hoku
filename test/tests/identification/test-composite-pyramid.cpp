@@ -193,7 +193,7 @@ TEST(CompositePyramid, FindNoReduction) {
 }
 
 /// Check that the brightest set is returned if desired.
-TEST(CompositePyramid, FindSortBrighteness) {
+TEST(CompositePyramid, FindSortBrightness) {
     Chomp ch;
     Benchmark input(ch, 20);
     Composite::Parameters p = Composite::DEFAULT_PARAMETERS, p2 = Composite::DEFAULT_PARAMETERS;
@@ -274,7 +274,7 @@ TEST(CompositePyramid, TrialCleanQuery) {
 TEST(CompositePyramid, TrialCleanReduction) {
     Chomp ch;
     Composite::Parameters p = Composite::DEFAULT_PARAMETERS;
-    p.sigma_1 = p.sigma_2 = 10e-10, p.sql_limit = 1000000;
+    p.sigma_1 = p.sigma_2 = 10e-10, p.sql_limit = 1000000, p.nu = std::make_shared<unsigned int> (0);
     Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532), ch.query_hip(101958),
         ch.query_hip(101909)};
     
@@ -311,8 +311,7 @@ TEST(CompositePyramid, TrialExceededNu) {
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
     Composite::Parameters p = Composite::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0), p.nu_max = 10;
-    p.sigma_1 = p.sigma_2 = std::numeric_limits<double>::epsilon();
-    p.sigma_4 = std::numeric_limits<double>::epsilon();
+    p.sigma_1 = p.sigma_2 = p.sigma_4 = 1.0e-19;
     Composite a(input, p);
     
     EXPECT_EQ(a.identify()[0], Composite::EXCEEDED_NU_MAX[0]);
@@ -322,12 +321,11 @@ TEST(CompositePyramid, TrialExceededNu) {
 /// Check that the correct result is returned when no map is found.
 TEST(CompositePyramid, TrialNoMapFound) {
     Chomp ch;
-    Benchmark input(ch, 7);
+    Benchmark input(ch, 15);
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
     Composite::Parameters p = Composite::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0), p.nu_max = std::numeric_limits<unsigned int>::max();
-    p.sigma_1 = p.sigma_2 = std::numeric_limits<double>::epsilon();
-    p.sigma_4 = std::numeric_limits<double>::epsilon();
+    p.sigma_1 = p.sigma_2 = 1.0e-19, p.sigma_4 = 1.0e-19;
     Composite a(input, p);
     
     EXPECT_EQ(a.identify()[0], Composite::NO_CONFIDENT_A[0]);

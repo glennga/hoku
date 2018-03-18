@@ -195,18 +195,22 @@ std::vector<Identification::labels_list> Dot::query (const Star::list &s) {
 ///     - table_name
 ///     - sigma_query
 ///     - sql_limit
+///     - nu
+///     - nu_max
 /// @endcode
 ///
 /// @return EMPTY_BIG_R_ELL if there does not exist exactly one image star set. Otherwise, a single match configuration
 /// found by the query method.
 Dot::labels_list Dot::reduce () {
     ch.select_table(parameters.table_name);
+    *parameters.nu = 0;
     
     for (unsigned int i = 0; i < big_i.size() - 2; i++) {
         for (unsigned int j = i + 1; j < big_i.size() - 1; j++) {
             for (unsigned int c = j + 1; c < big_i.size(); c++) {
                 Star::trio big_r = find_candidate_trio(big_i[i], big_i[j], big_i[c]);
-                
+                (*parameters.nu)++;
+    
                 // The reduction step: |R| = 1.
                 if (std::equal(big_r.begin(), big_r.end(), NO_CANDIDATE_TRIO_FOUND.begin())) {
                     continue;

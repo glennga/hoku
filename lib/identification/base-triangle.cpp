@@ -174,6 +174,7 @@ void BaseTriangle::initialize_pivot (const index_trio &c) {
 /// stars to R stars.
 Star::trio BaseTriangle::pivot (const index_trio &c) {
     std::vector<Star::trio> big_r = this->query_for_trios(c);
+    (*parameters.nu)++;
     
     // This is our first run. Initialize our r_1 match set.
     if (this->big_r_1 == nullptr) {
@@ -252,9 +253,20 @@ std::vector<BaseTriangle::labels_list> BaseTriangle::e_query (double a, double i
 
 /// Find the **best** matching pair to the first three stars in our benchmark using the appropriate triangle table.
 /// Assumes noise is normally distributed, searches using epsilon (3 * sigma_a) and a basic bounded query.
+/// We require the following be defined:
+///
+/// @code{.cpp}
+///     - table_name
+///     - sigma_query
+///     - sql_limit
+///     - nu
+///     - nu_max
+/// @endcode
 ///
 /// @return NO_CANDIDATES_FOUND if no candidates found. Otherwise, a single elements that best meets the criteria.
 Identification::labels_list BaseTriangle::e_reduction () {
+    *parameters.nu = 0;
+    
     for (int i = 0; i < static_cast<signed> (big_i.size() - 2); i++) {
         for (int j = i + 1; j < static_cast<signed> (big_i.size() - 1); j++) {
             for (int k = j + 1; k < static_cast<signed> (big_i.size()); k++) {

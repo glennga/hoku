@@ -33,15 +33,15 @@ TEST(Lumberjack, TablesExistenceStructure) {
     nb.find_attributes(schema, fields);
     EXPECT_EQ(schema, Experiment::Reduction::SCHEMA);
     EXPECT_EQ(fields,
-              "IdentificationMethod, Timestamp, Sigma1, Sigma2, Sigma3, Sigma4, ShiftDeviation, CameraSensitivity, "
+              "IdentificationMethod, Timestamp, Sigma1, Sigma2, Sigma3, ShiftDeviation, FalseStars, ComparisonCount, "
                   "ResultMatchesInput");
     
     EXPECT_NO_THROW(nb.select_table(cf.Get("identification-experiment", "lu", "")););
     nb.find_attributes(schema, fields);
     EXPECT_EQ(schema, Experiment::Map::SCHEMA);
     EXPECT_EQ(fields,
-              "IdentificationMethod, Timestamp, Sigma1, Sigma2, Sigma3, Sigma4, ShiftDeviation, CameraSensitivity, "
-                  "FalseStars, ComparisonCount, PercentageCorrect");
+              "IdentificationMethod, Timestamp, Sigma1, Sigma2, Sigma3, Sigma4, ShiftDeviation, FalseStars, "
+                  "ComparisonCount, PercentageCorrect");
 }
 
 /// Ensure that the correct fields are selected.

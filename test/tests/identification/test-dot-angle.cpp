@@ -118,7 +118,7 @@ TEST(DotAngle, QueryExpectedFailure) {
     Benchmark input(ch, 15), input2(ch, 15);
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
     Dot::Parameters p = Dot::DEFAULT_PARAMETERS;
-    p.sigma_1 = p.sigma_2 = p.sigma_3 = std::numeric_limits<double>::epsilon();
+    p.sigma_1 = p.sigma_2 = p.sigma_3 = 1.0e-19;
     
     double theta_1 = (180.0 / M_PI) * Vector3::Angle(input.b[0], input.b[2]);
     double theta_2 = (180.0 / M_PI) * Vector3::Angle(input.b[1], input.b[2]);
@@ -243,7 +243,7 @@ TEST(DotAngle, TrialCleanQuery) {
 TEST(DotAngle, TrialCleanReduction) {
     Chomp ch;
     Dot::Parameters p = Dot::DEFAULT_PARAMETERS;
-    p.sigma_4 = 0.0001, p.sigma_1 = p.sigma_2 = p.sigma_3 = 0.000000001;
+    p.nu = std::make_shared<unsigned int>(0), p.sigma_1 = p.sigma_2 = p.sigma_3 = 0.000000001;
     
     Star::list b = {ch.query_hip(102531), ch.query_hip(109240), ch.query_hip(102532)};
     Benchmark i(b, b[0], 20);
@@ -277,8 +277,8 @@ TEST(DotAngle, TrialExceededNu) {
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
     Dot::Parameters p = Dot::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0), p.nu_max = 10;
-    p.sigma_1 = p.sigma_2 = p.sigma_3 = std::numeric_limits<double>::epsilon();
-    p.sigma_4 = std::numeric_limits<double>::epsilon();
+    p.sigma_1 = p.sigma_2 = p.sigma_3 = 1.0e-19;
+    p.sigma_4 = 1.0e-19;
     Dot a(input, p);
     
     EXPECT_EQ(a.identify()[0], Dot::EXCEEDED_NU_MAX[0]);
@@ -292,8 +292,8 @@ TEST(DotAngle, TrialNoMapFound) {
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
     Dot::Parameters p = Dot::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0), p.nu_max = std::numeric_limits<unsigned int>::max();
-    p.sigma_1 = p.sigma_2 = p.sigma_3 = std::numeric_limits<double>::epsilon();
-    p.sigma_4 = std::numeric_limits<double>::epsilon();
+    p.sigma_1 = p.sigma_2 = p.sigma_3 = 1.0e-19;
+    p.sigma_4 = 1.0e-19;
     Dot a(input, p);
     
     EXPECT_EQ(a.identify()[0], Dot::NO_CONFIDENT_A[0]);

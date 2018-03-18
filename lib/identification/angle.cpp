@@ -91,7 +91,7 @@ Identification::labels_list Angle::query_for_pair (const double theta) {
     
     // Create the candidate label list.
     for (const Nibble::tuple_d &candidate : big_r_ell_tuples) {
-        big_r_ell.push_back({static_cast<int>(candidate[0]), static_cast<int>(candidate[1])});
+        big_r_ell.emplace_back(labels_list {static_cast<int>(candidate[0]), static_cast<int>(candidate[1])});
     }
     
     // Favor bright stars if specified. Applied with the FAVOR_BRIGHT_STARS flag.
@@ -192,14 +192,18 @@ std::vector<Identification::labels_list> Angle::query (const Star::list &s) {
 ///     - table_name
 ///     - sigma_query
 ///     - sql_limit
+///     - nu
+///     - nu_max
 /// @endcode
 ///
 /// @return EMPTY_BIG_R_ELL if a single match configuration cannot be found. Otherwise, a single match configuration.
 Angle::labels_list Angle::reduce () {
     ch.select_table(parameters.table_name);
+    *parameters.nu = 0;
     
     for (unsigned int i = 0; i < big_i.size() - 1; i++) {
         for (unsigned int j = i + 1; j < big_i.size(); j++) {
+            (*parameters.nu)++;
             Star::pair r = find_candidate_pair(big_i[i], big_i[j]);
             
             // The reduction step: |R| = 1.

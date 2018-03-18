@@ -173,7 +173,7 @@ TEST(Trio, SphericalTriangleShifts) {
 TEST(Trio, DotAngle) {
     EXPECT_FLOAT_EQ(0, Trio::dot_angle(Vector3::Forward(), Vector3::Forward(), Vector3::Backward()));
     EXPECT_FLOAT_EQ(180.0, Trio::dot_angle(Vector3::Forward(), Vector3::Normalized(
-        Vector3(0, 0, 1 + std::numeric_limits<double>::epsilon())), Vector3::Normalized(
-        Vector3(0, 0, 1 - std::numeric_limits<double>::epsilon()))));
+        Vector3(0, 0, 1 + 1.0e-19)), Vector3::Normalized(
+        Vector3(0, 0, 1 - 1.0e-19))));
     EXPECT_FLOAT_EQ(90.0, Trio::dot_angle(Vector3::Forward(), Vector3::Backward(), Vector3::Up()));
 }

@@ -309,16 +309,22 @@ std::vector<Identification::labels_list> Pyramid::query (const Star::list &s) {
 ///     - table_name
 ///     - sigma_query
 ///     - sql_limit
+///     - nu
+///     - nu_max
 /// @endcode
 ///
 /// @return EMPTY_BIG_R_ELL if a candidate quad cannot be found. Otherwise, a single match configuration found
 /// by the angle method.
 Identification::labels_list Pyramid::reduce () {
+    ch.select_table(parameters.table_name);
+    *parameters.nu = 0;
+    
     for (unsigned int dj = 1; dj < big_i.size() - 1; dj++) {
         for (unsigned int dk = 1; dk < big_i.size() - dj - 1; dk++) {
             for (unsigned int di = 0; di < big_i.size() - dj - dk - 1; di++) {
                 Star::list r = identify_as_list({big_i[0], big_i[1], big_i[2]});
-                
+                (*parameters.nu)++;
+    
                 // The reduction step: |R| = 1.
                 if (std::equal(r.begin(), r.end(), NO_CONFIDENT_A.begin())) {
                     continue;

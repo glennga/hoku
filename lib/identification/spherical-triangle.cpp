@@ -84,6 +84,8 @@ std::vector<Identification::labels_list> Sphere::query (const Star::list &s) {
 ///     - table_name
 ///     - sigma_query
 ///     - sql_limit
+///     - nu
+///     - nu_max
 /// @endcode
 ///
 /// @return NO_CANDIDATES_FOUND if we cannot query anything. Otherwise, a single match configuration found by the

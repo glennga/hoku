@@ -51,7 +51,7 @@ TEST(BaseTriangle, QueryNoCandidates) {
     Chomp ch;
     Benchmark input(ch, 15);
     Identification::Parameters p = Plane::DEFAULT_PARAMETERS;
-    p.sigma_1 = p.sigma_2 = std::numeric_limits<double>::epsilon();
+    p.sigma_1 = p.sigma_2 = 1.0e-19;
     
     Star::list b = {Star(1, 1, 1), Star(1.101, 1, 1), Star(1.11, 1, 1)};
     std::sort(b.begin(), b.end(), [] (const Star &s_1, const Star &s_2) -> bool {
@@ -116,7 +116,7 @@ TEST(BaseTriangle, QueryTriosNoCandidates) {
     Chomp ch;
     Plane a(Benchmark::black(), Plane::DEFAULT_PARAMETERS);
     Star::list b = {Star(1, 1, 1), Star(1.1, 1, 1), Star(1.11, 1, 1)};
-    a.fov = 10, a.big_i = b, a.parameters.sigma_1 = a.parameters.sigma_2 = std::numeric_limits<double>::epsilon();
+    a.fov = 10, a.big_i = b, a.parameters.sigma_1 = a.parameters.sigma_2 = 1.0e-19;
     
     std::vector<Star::trio> e = a.base_query_for_trios({0, 1, 2}, Trio::planar_area, Trio::planar_moment);
     EXPECT_EQ(e.size(), 1);
@@ -172,6 +172,7 @@ TEST(BaseTriangle, PivotDifferentResult) {
     input.b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532), ch.query_hip(101958),
         ch.query_hip(101909)};
     p.sigma_1 = p.sigma_2 = 10e-9, p2.sigma_1 = p2.sigma_2 = 10e-9, p.no_reduction = true;
+    p.nu = std::make_shared<unsigned int> (0), p2.nu = std::make_shared<unsigned int> (0);
     Plane c(input, p), d(input, p2);
     
     c.initialize_pivot({0, 1, 2}), d.initialize_pivot({0, 1, 2});
@@ -194,7 +195,7 @@ TEST(BaseTriangle, PivotNoCandidateStars) {
     Benchmark input(ch, 20);
     Plane::Parameters p = Plane::DEFAULT_PARAMETERS;
     input.b = {Star(1, 1, 1), Star(1.1, 1, 1), Star(1.11, 1, 1)};
-    p.sigma_1 = p.sigma_2 = std::numeric_limits<double>::epsilon();
+    p.sigma_1 = p.sigma_2 = 1.0e-19, p.nu = std::make_shared<unsigned int> (0);
     Plane c(input, p);
     
     c.initialize_pivot({0, 1, 2});
@@ -210,7 +211,7 @@ TEST(BaseTriangle, PivotCorrectInput) {
     Chomp ch;
     Benchmark input(ch, 20);
     Plane::Parameters p = Plane::DEFAULT_PARAMETERS;
-    p.sigma_1 = p.sigma_2 = 1.0e-10;
+    p.sigma_1 = p.sigma_2 = 1.0e-10, p.nu = std::make_shared<unsigned int> (0);
     Plane c(input, p);
     
     c.initialize_pivot({0, 1, 2});

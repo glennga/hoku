@@ -181,7 +181,7 @@ TEST(Pyramid, FindNoReduction) {
 }
 
 /// Check that the brightest set is returned if desired.
-TEST(Pyramid, FindSortBrighteness) {
+TEST(Pyramid, FindSortBrightness) {
     Chomp ch;
     Benchmark input(ch, 20);
     Pyramid::Parameters p = Pyramid::DEFAULT_PARAMETERS, p2 = Pyramid::DEFAULT_PARAMETERS;
@@ -215,7 +215,7 @@ TEST(Pyramid, IdentifyExpectedFailure) {
     Chomp ch;
     Benchmark input(ch, 20);
     Pyramid::Parameters p = Pyramid::DEFAULT_PARAMETERS;
-    p.sigma_1 = p.sigma_2 = std::numeric_limits<double>::epsilon();
+    p.sigma_1 = p.sigma_2 = 1.0e-19;
     
     Star::list k = Pyramid(input, p).identify_as_list({input.b[0], input.b[1], input.b[2]});
     EXPECT_EQ(k.size(), 1);
@@ -263,7 +263,7 @@ TEST(Pyramid, TrialCleanQuery) {
 TEST(Pyramid, TrialCleanReduction) {
     Chomp ch;
     Pyramid::Parameters p = Pyramid::DEFAULT_PARAMETERS;
-    p.sigma_1 = p.sigma_2 = 10e-10, p.sql_limit = 1000000;
+    p.sigma_1 = p.sigma_2 = 10e-10, p.sql_limit = 1000000, p.nu = std::make_shared<unsigned int>(0);
     Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532), ch.query_hip(101958),
         ch.query_hip(101909)};
     
@@ -300,8 +300,8 @@ TEST(Pyramid, TrialExceededNu) {
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
     Pyramid::Parameters p = Pyramid::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0), p.nu_max = 10;
-    p.sigma_1 = p.sigma_2 = std::numeric_limits<double>::epsilon();
-    p.sigma_4 = std::numeric_limits<double>::epsilon();
+    p.sigma_1 = p.sigma_2 = 1.0e-19;
+    p.sigma_4 = 1.0e-19;
     Pyramid a(input, p);
     
     EXPECT_EQ(a.identify()[0], Pyramid::EXCEEDED_NU_MAX[0]);
@@ -315,8 +315,8 @@ TEST(Pyramid, TrialNoMapFound) {
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
     Pyramid::Parameters p = Pyramid::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0), p.nu_max = std::numeric_limits<unsigned int>::max();
-    p.sigma_1 = p.sigma_2 = std::numeric_limits<double>::epsilon();
-    p.sigma_4 = std::numeric_limits<double>::epsilon();
+    p.sigma_1 = p.sigma_2 = 1.0e-19;
+    p.sigma_4 = 1.0e-19;
     Pyramid a(input, p);
     
     EXPECT_EQ(a.identify()[0], Pyramid::NO_CONFIDENT_A[0]);

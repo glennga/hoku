@@ -91,7 +91,7 @@ TEST(Angle, QueryExpectedFailure) {
     Benchmark input(ch, 15), input2(ch, 15);
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
-    p.sigma_1 = std::numeric_limits<double>::epsilon();
+    p.sigma_1 = 1.0e-19;
     
     double a = (180.0 / M_PI) * Vector3::Angle(input.b[0], input.b[1]);
     Identification::labels_list b = Angle(input, p).query_for_pair(a);
@@ -196,11 +196,12 @@ TEST(Angle, TrialCleanQuery) {
 TEST(Angle, TrialCleanReduction) {
     Chomp ch;
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
-    p.sigma_4 = 0.0001, p.sigma_1 = 0.000000001;
+    p.nu = std::make_shared<unsigned int>(0), p.sigma_1 = 0.000000001;
     
     Benchmark i({ch.query_hip(22667), ch.query_hip(27913)}, ch.query_hip(22667), 20);
     Angle a(i, p);
     EXPECT_THAT(a.reduce(), UnorderedElementsAre(22667, 27913));
+    EXPECT_EQ(*(a.parameters.nu), 1);
 }
 
 /// Check that a clean input returns the expected identification of stars.
@@ -228,8 +229,8 @@ TEST(Angle, TrialExceededNu) {
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0), p.nu_max = 10;
-    p.sigma_1 = std::numeric_limits<double>::epsilon();
-    p.sigma_4 = std::numeric_limits<double>::epsilon();
+    p.sigma_1 = 1.0e-19;
+    p.sigma_4 = 1.0e-19;
     Angle a(input, p);
     
     EXPECT_EQ(a.identify()[0], Angle::EXCEEDED_NU_MAX[0]);
@@ -243,8 +244,8 @@ TEST(Angle, TrialNoMapFound) {
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0), p.nu_max = std::numeric_limits<unsigned int>::max();
-    p.sigma_1 = std::numeric_limits<double>::epsilon();
-    p.sigma_4 = std::numeric_limits<double>::epsilon();
+    p.sigma_1 = 1.0e-19;
+    p.sigma_4 = 1.0e-19;
     Angle a(input, p);
     
     EXPECT_EQ(a.identify()[0], Angle::NO_CONFIDENT_A[0]);
