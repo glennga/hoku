@@ -173,10 +173,15 @@ void BaseTriangle::initialize_pivot (const index_trio &c) {
 /// @return NO_CANDIDATE_STAR_SET_FOUND if pivoting is unsuccessful. Otherwise, a trio of stars that match the given B
 /// stars to R stars.
 Star::trio BaseTriangle::pivot (const index_trio &c) {
-    std::vector<Star::trio> big_r = this->query_for_trios(c);
     (*parameters.nu)++;
     
+    // Practical limit: exit early if we have iterated through too many comparisons without match.
+    if (*parameters.nu > parameters.nu_max) {
+        return NO_CANDIDATE_STAR_SET_FOUND;
+    }
+    
     // This is our first run. Initialize our r_1 match set.
+    std::vector<Star::trio> big_r = this->query_for_trios(c);
     if (this->big_r_1 == nullptr) {
         big_r_1 = std::make_unique<std::vector<Star::trio>>(big_r);
     }
@@ -272,11 +277,6 @@ Identification::labels_list BaseTriangle::e_reduction () {
             for (int k = j + 1; k < static_cast<signed> (big_i.size()); k++) {
                 initialize_pivot({i, j, k});
                 Star::trio p = pivot({i, j, k});
-    
-                // Practical limit: exit early if we have iterated through too many comparisons without match.
-                if (*parameters.nu > parameters.nu_max) {
-                    return EMPTY_BIG_R_ELL;
-                }
                 
                 // Require that the pivot produces a meaningful result.
                 if (std::equal(p.begin(), p.end(), NO_CANDIDATE_STAR_SET_FOUND.begin())) {
