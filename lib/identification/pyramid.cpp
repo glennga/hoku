@@ -325,6 +325,11 @@ Identification::labels_list Pyramid::reduce () {
                 Star::list r = identify_as_list({big_i[0], big_i[1], big_i[2]});
                 (*parameters.nu)++;
     
+                // Practical limit: exit early if we have iterated through too many comparisons without match.
+                if (*parameters.nu > parameters.nu_max) {
+                    return EMPTY_BIG_R_ELL;
+                }
+                
                 // The reduction step: |R| = 1.
                 if (std::equal(r.begin(), r.end(), NO_CONFIDENT_A.begin())) {
                     continue;

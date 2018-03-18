@@ -272,6 +272,11 @@ Identification::labels_list BaseTriangle::e_reduction () {
             for (int k = j + 1; k < static_cast<signed> (big_i.size()); k++) {
                 initialize_pivot({i, j, k});
                 Star::trio p = pivot({i, j, k});
+    
+                // Practical limit: exit early if we have iterated through too many comparisons without match.
+                if (*parameters.nu > parameters.nu_max) {
+                    return EMPTY_BIG_R_ELL;
+                }
                 
                 // Require that the pivot produces a meaningful result.
                 if (std::equal(p.begin(), p.end(), NO_CANDIDATE_STAR_SET_FOUND.begin())) {

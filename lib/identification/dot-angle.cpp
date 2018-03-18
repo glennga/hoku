@@ -211,6 +211,11 @@ Dot::labels_list Dot::reduce () {
                 Star::trio big_r = find_candidate_trio(big_i[i], big_i[j], big_i[c]);
                 (*parameters.nu)++;
     
+                // Practical limit: exit early if we have iterated through too many comparisons without match.
+                if (*parameters.nu > parameters.nu_max) {
+                    return EMPTY_BIG_R_ELL;
+                }
+                
                 // The reduction step: |R| = 1.
                 if (std::equal(big_r.begin(), big_r.end(), NO_CANDIDATE_TRIO_FOUND.begin())) {
                     continue;

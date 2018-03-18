@@ -205,6 +205,11 @@ Angle::labels_list Angle::reduce () {
         for (unsigned int j = i + 1; j < big_i.size(); j++) {
             (*parameters.nu)++;
             Star::pair r = find_candidate_pair(big_i[i], big_i[j]);
+    
+            // Practical limit: exit early if we have iterated through too many comparisons without match.
+            if (*parameters.nu > parameters.nu_max) {
+                return EMPTY_BIG_R_ELL;
+            }
             
             // The reduction step: |R| = 1.
             if (std::equal(r.begin(), r.end(), NO_CANDIDATE_PAIR_FOUND.begin())) {

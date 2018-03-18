@@ -34,7 +34,7 @@ class Pyramid : public Identification {
   public:
     Pyramid (const Benchmark &input, const Parameters &p);
     
-    virtual std::vector<labels_list> query (const Star::list &s);
+    std::vector<labels_list> query (const Star::list &s);
     labels_list reduce ();
     Star::list identify ();
     
