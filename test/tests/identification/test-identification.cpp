@@ -21,10 +21,10 @@ class IdentificationDummy : public Identification {
         this->big_i = s, parameters = p;
     }
     std::vector<labels_list> query (const Star::list &) {
-        return {Identification::EMPTY_BIG_R_ELL};
+        return {};
     }
-    labels_list reduce () {
-        return Identification::EMPTY_BIG_R_ELL;
+    Star::list reduce () {
+        return Identification::NO_CONFIDENT_R;
     }
     Star::list identify () {
         return this->big_i;

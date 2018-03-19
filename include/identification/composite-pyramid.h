@@ -35,6 +35,7 @@ class CompositePyramid : public Pyramid {
     CompositePyramid (const Benchmark &input, const Parameters &p);
     
     std::vector<labels_list> query (const Star::list &s) override;
+    Star::list reduce () override;
     static int generate_table (INIReader &cf);
     
     static const Parameters DEFAULT_PARAMETERS;

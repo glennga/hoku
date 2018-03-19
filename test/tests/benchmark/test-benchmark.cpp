@@ -67,7 +67,7 @@ TEST(Benchmark, ImageBlack) {
 /// Check that the stars are not in the same order after shuffling.
 TEST(Benchmark, ImageStarShuffle) {
     Chomp ch;
-    Benchmark input(ch, 20);
+    Benchmark input(ch, 25);
     Star a = input.b[0];
     
     input.shuffle();

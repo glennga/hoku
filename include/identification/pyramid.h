@@ -34,8 +34,8 @@ class Pyramid : public Identification {
   public:
     Pyramid (const Benchmark &input, const Parameters &p);
     
-    virtual std::vector<labels_list> query (const Star::list &s);
-    labels_list reduce ();
+    std::vector<labels_list> query (const Star::list &s);
+    Star::list reduce ();
     Star::list identify ();
     
     static int generate_table (INIReader &cf);

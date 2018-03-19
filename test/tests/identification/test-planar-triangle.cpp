@@ -114,13 +114,13 @@ TEST(PlanarTriangle, TrialCleanQuery) {
 TEST(PlanarTriangle, TrialCleanReduction) {
     Chomp ch;
     Plane::Parameters p = Plane::DEFAULT_PARAMETERS;
-    p.sigma_1 = p.sigma_2 = 10e-10, p.sql_limit = 1000000;
+    p.sigma_1 = p.sigma_2 = 10e-10, p.sql_limit = 1000000, p.nu = std::make_shared<unsigned int>(0);
     Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532), ch.query_hip(101958),
         ch.query_hip(101909)};
     
     Benchmark i(b, b[0], 20);
     Plane a(i, p);
-    EXPECT_THAT(a.reduce(), UnorderedElementsAre(102531, 95498, 102532));
+    EXPECT_THAT(a.reduce(), UnorderedElementsAre(b[0], b[1], b[2]));
 }
 
 /// Check that a clean input returns the expected identification of stars.
@@ -151,8 +151,8 @@ TEST(PlanarTriangle, TrialExceededNu) {
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
     Plane::Parameters p = Plane::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0), p.nu_max = 10;
-    p.sigma_1 = p.sigma_2 = std::numeric_limits<double>::epsilon();
-    p.sigma_4 = std::numeric_limits<double>::epsilon();
+    p.sigma_1 = p.sigma_2 = 1.0e-19;
+    p.sigma_4 = 1.0e-19;
     Plane a(input, p);
     
     EXPECT_EQ(a.identify()[0], Plane::EXCEEDED_NU_MAX[0]);
@@ -166,8 +166,8 @@ TEST(PlanarTriangle, TrialNoMapFound) {
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
     Plane::Parameters p = Plane::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0), p.nu_max = std::numeric_limits<unsigned int>::max();
-    p.sigma_1 = p.sigma_2 = std::numeric_limits<double>::epsilon();
-    p.sigma_4 = std::numeric_limits<double>::epsilon();
+    p.sigma_1 = p.sigma_2 = 1.0e-19;
+    p.sigma_4 = 1.0e-19;
     Plane a(input, p);
     
     EXPECT_EQ(a.identify()[0], Plane::NO_CONFIDENT_A[0]);

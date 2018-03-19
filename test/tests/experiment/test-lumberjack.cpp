@@ -17,6 +17,7 @@ TEST(Lumberjack, TablesExistenceStructure) {
     EXPECT_NO_THROW(Lumberjack::create_table(cf.Get("query-experiment", "lu", ""), Experiment::Query::SCHEMA););
     EXPECT_NO_THROW(Lumberjack::create_table(cf.Get("reduction-experiment", "lu", ""), Experiment::Reduction::SCHEMA););
     EXPECT_NO_THROW(Lumberjack::create_table(cf.Get("identification-experiment", "lu", ""), Experiment::Map::SCHEMA););
+    EXPECT_NO_THROW(Lumberjack::create_table(cf.Get("overlay-experiment", "lu", ""), Experiment::Overlay::SCHEMA););
     
     Nibble nb;
     std::string schema, fields;
@@ -33,15 +34,21 @@ TEST(Lumberjack, TablesExistenceStructure) {
     nb.find_attributes(schema, fields);
     EXPECT_EQ(schema, Experiment::Reduction::SCHEMA);
     EXPECT_EQ(fields,
-              "IdentificationMethod, Timestamp, Sigma1, Sigma2, Sigma3, Sigma4, ShiftDeviation, CameraSensitivity, "
-                  "ResultMatchesInput");
+              "IdentificationMethod, Timestamp, Sigma1, Sigma2, Sigma3, ShiftDeviation, FalseStars, ComparisonCount, "
+                  "PercentageCorrect");
     
     EXPECT_NO_THROW(nb.select_table(cf.Get("identification-experiment", "lu", "")););
     nb.find_attributes(schema, fields);
     EXPECT_EQ(schema, Experiment::Map::SCHEMA);
+    EXPECT_EQ(fields, "IdentificationMethod, Timestamp, Sigma1, Sigma2, Sigma3, Sigma4, ShiftDeviation, FalseStars, "
+        "ComparisonCount, PercentageCorrect");
+    
+    EXPECT_NO_THROW(nb.select_table(cf.Get("overlay-experiment", "lu", "")););
+    nb.find_attributes(schema, fields);
+    EXPECT_EQ(schema, Experiment::Overlay::SCHEMA);
     EXPECT_EQ(fields,
-              "IdentificationMethod, Timestamp, Sigma1, Sigma2, Sigma3, Sigma4, ShiftDeviation, CameraSensitivity, "
-                  "FalseStars, ComparisonCount, PercentageCorrect");
+              "IdentificationMethod, Timestamp, Sigma4, ShiftDeviation, FalseStars, TruePositive, FalsePositive, "
+                  "TrueNegative, FalseNegative");
 }
 
 /// Ensure that the correct fields are selected.

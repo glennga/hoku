@@ -173,9 +173,15 @@ void BaseTriangle::initialize_pivot (const index_trio &c) {
 /// @return NO_CANDIDATE_STAR_SET_FOUND if pivoting is unsuccessful. Otherwise, a trio of stars that match the given B
 /// stars to R stars.
 Star::trio BaseTriangle::pivot (const index_trio &c) {
-    std::vector<Star::trio> big_r = this->query_for_trios(c);
+    (*parameters.nu)++;
+    
+    // Practical limit: exit early if we have iterated through too many comparisons without match.
+    if (*parameters.nu > parameters.nu_max) {
+        return NO_CANDIDATE_STAR_SET_FOUND;
+    }
     
     // This is our first run. Initialize our r_1 match set.
+    std::vector<Star::trio> big_r = this->query_for_trios(c);
     if (this->big_r_1 == nullptr) {
         big_r_1 = std::make_unique<std::vector<Star::trio>>(big_r);
     }
@@ -244,31 +250,48 @@ Star::list BaseTriangle::direct_match_test (const Star::list &big_p, const Star:
 ///
 /// @param a Area (planar or spherical) to search with.
 /// @param i_t Polar moment (planar or spherical) to search with.
-/// @return NO_CANDIDATE_TRIOS_FOUND if no candidates found. Otherwise, all elements that met the criteria.
+/// @return All candidates that meet the criteria.
 std::vector<BaseTriangle::labels_list> BaseTriangle::e_query (double a, double i) {
-    return query_for_trio(a, i);
+    std::vector<labels_list> big_r_ell = query_for_trio(a, i);
+    return (big_r_ell[0] == NO_CANDIDATE_TRIOS_FOUND[0]) ? std::vector<labels_list> {labels_list {}} : big_r_ell;
 }
 
 /// Find the **best** matching pair to the first three stars in our benchmark using the appropriate triangle table.
 /// Assumes noise is normally distributed, searches using epsilon (3 * sigma_a) and a basic bounded query.
+/// We require the following be defined:
 ///
-/// @return NO_CANDIDATES_FOUND if no candidates found. Otherwise, a single elements that best meets the criteria.
-Identification::labels_list BaseTriangle::e_reduction () {
+/// @code{.cpp}
+///     - table_name
+///     - sigma_query
+///     - sql_limit
+///     - nu
+///     - nu_max
+/// @endcode
+///
+/// @return NO_CONFIDENT_R if no candidates found. Otherwise, a single elements that best meets the criteria.
+Star::list BaseTriangle::e_reduction () {
+    *parameters.nu = 0;
+    
     for (int i = 0; i < static_cast<signed> (big_i.size() - 2); i++) {
         for (int j = i + 1; j < static_cast<signed> (big_i.size() - 1); j++) {
             for (int k = j + 1; k < static_cast<signed> (big_i.size()); k++) {
                 initialize_pivot({i, j, k});
                 Star::trio p = pivot({i, j, k});
                 
+                // Practical limit: exit early if we have iterated through too many comparisons without match.
+                if (*parameters.nu > parameters.nu_max) {
+                    return NO_CONFIDENT_R;
+                } 
+
                 // Require that the pivot produces a meaningful result.
                 if (std::equal(p.begin(), p.end(), NO_CANDIDATE_STAR_SET_FOUND.begin())) {
                     continue;
                 }
-                return {p[0].get_label(), p[1].get_label(), p[2].get_label()};
+                return {p[0], p[1], p[2]};
             }
         }
     }
-    return EMPTY_BIG_R_ELL;
+    return NO_CONFIDENT_R;
 }
 
 /// Find the rotation from the images in our current benchmark to our inertial frame (i.e. the catalog).

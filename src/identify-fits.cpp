@@ -121,7 +121,7 @@ int identify_fits (const std::string &id_method, const Star::list &s_i) {
     Identification::collect_parameters(p, cf, id_method);
     
     // Identify using the given ID method, and display the results through Python.
-    auto identify = [&input, &p, &s_i, &fov] (const Star::list &result) -> int {
+    auto identify = [&] (const Star::list &result) -> int {
         Benchmark output(result, s_i[0], fov);
         output.display_plot();
         return 0;

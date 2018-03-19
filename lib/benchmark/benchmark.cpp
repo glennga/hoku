@@ -77,6 +77,14 @@ const Benchmark Benchmark::black () {
     return Benchmark({}, Vector3::Zero(), 0);
 }
 
+/// Access method for the b list components. Overloads the [] operator.
+///
+/// @param n Star of b to return.
+/// @return Star located at index n inside B.
+Star Benchmark::operator[] (const unsigned int n) const {
+    return this->b[n];
+}
+
 /// Shuffle the current star set. Uses C++11 random library.
 void Benchmark::shuffle () {
     std::shuffle(this->b.begin(), this->b.end(), RandomDraw::mersenne_twister);

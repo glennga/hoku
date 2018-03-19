@@ -49,7 +49,7 @@ class BaseTriangle : public Identification {
   protected:
 #endif
     std::vector<labels_list> e_query (double a, double i);
-    labels_list e_reduction ();
+    Star::list e_reduction ();
     Star::list e_identify ();
     
     static int generate_triangle_table (INIReader &cf, const std::string &triangle_type, area_function compute_area,

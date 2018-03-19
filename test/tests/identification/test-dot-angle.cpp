@@ -108,8 +108,8 @@ TEST(DotAngle, QueryTrio) {
     
     p2.no_reduction = true;
     Identification::labels_list e = Dot(input, p2).query_for_trio(theta_1, theta_2, phi);
-    EXPECT_THAT(Dot::EMPTY_BIG_R_ELL, Not(Contains(e[0])));
-    EXPECT_THAT(Dot::EMPTY_BIG_R_ELL, Not(Contains(e[1])));
+    EXPECT_THAT(Dot::NO_CANDIDATES_FOUND, Not(Contains(e[0])));
+    EXPECT_THAT(Dot::NO_CANDIDATES_FOUND, Not(Contains(e[1])));
 }
 
 /// Check that the query_for_trio method fails when expected.
@@ -118,7 +118,7 @@ TEST(DotAngle, QueryExpectedFailure) {
     Benchmark input(ch, 15), input2(ch, 15);
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
     Dot::Parameters p = Dot::DEFAULT_PARAMETERS;
-    p.sigma_1 = p.sigma_2 = p.sigma_3 = std::numeric_limits<double>::epsilon();
+    p.sigma_1 = p.sigma_2 = p.sigma_3 = 1.0e-19;
     
     double theta_1 = (180.0 / M_PI) * Vector3::Angle(input.b[0], input.b[2]);
     double theta_2 = (180.0 / M_PI) * Vector3::Angle(input.b[1], input.b[2]);
@@ -129,8 +129,8 @@ TEST(DotAngle, QueryExpectedFailure) {
     double phi = Trio::dot_angle(input.b[0], input.b[1], input.b[2]);
     
     Identification::labels_list b = Dot(input, p).query_for_trio(theta_1, theta_2, phi);
-    EXPECT_THAT(Dot::EMPTY_BIG_R_ELL, Contains(b[0]));
-    EXPECT_THAT(Dot::EMPTY_BIG_R_ELL, Contains(b[1]));
+    EXPECT_THAT(Dot::NO_CANDIDATES_FOUND, Contains(b[0]));
+    EXPECT_THAT(Dot::NO_CANDIDATES_FOUND, Contains(b[1]));
     
     // |R| restriction should prevent an answer from being displayed.
     double theta_1_b = (180.0 / M_PI) * Vector3::Angle(input2.b[0], input2.b[2]);
@@ -143,8 +143,8 @@ TEST(DotAngle, QueryExpectedFailure) {
     
     p.sigma_1 = p.sigma_2 = p.sigma_3 = 10;
     Identification::labels_list c = Dot(input, p).query_for_trio(theta_1_b, theta_2_b, phi_2);
-    EXPECT_THAT(Dot::EMPTY_BIG_R_ELL, Contains(c[0]));
-    EXPECT_THAT(Dot::EMPTY_BIG_R_ELL, Contains(c[1]));
+    EXPECT_THAT(Dot::NO_CANDIDATES_FOUND, Contains(c[0]));
+    EXPECT_THAT(Dot::NO_CANDIDATES_FOUND, Contains(c[1]));
 }
 
 /// Check that the brightest pair is selected, using the fbs flag.
@@ -243,12 +243,12 @@ TEST(DotAngle, TrialCleanQuery) {
 TEST(DotAngle, TrialCleanReduction) {
     Chomp ch;
     Dot::Parameters p = Dot::DEFAULT_PARAMETERS;
-    p.sigma_4 = 0.0001, p.sigma_1 = p.sigma_2 = p.sigma_3 = 0.000000001;
+    p.nu = std::make_shared<unsigned int>(0), p.sigma_1 = p.sigma_2 = p.sigma_3 = 0.000000001;
     
     Star::list b = {ch.query_hip(102531), ch.query_hip(109240), ch.query_hip(102532)};
     Benchmark i(b, b[0], 20);
     Dot a(i, p);
-    EXPECT_THAT(a.reduce(), UnorderedElementsAre(102531, 109240, 102532));
+    EXPECT_THAT(a.reduce(), UnorderedElementsAre(b[0], b[1], b[2]));
 }
 
 /// Check that a clean input returns the expected identification of stars.
@@ -277,8 +277,8 @@ TEST(DotAngle, TrialExceededNu) {
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
     Dot::Parameters p = Dot::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0), p.nu_max = 10;
-    p.sigma_1 = p.sigma_2 = p.sigma_3 = std::numeric_limits<double>::epsilon();
-    p.sigma_4 = std::numeric_limits<double>::epsilon();
+    p.sigma_1 = p.sigma_2 = p.sigma_3 = 1.0e-19;
+    p.sigma_4 = 1.0e-19;
     Dot a(input, p);
     
     EXPECT_EQ(a.identify()[0], Dot::EXCEEDED_NU_MAX[0]);
@@ -292,8 +292,8 @@ TEST(DotAngle, TrialNoMapFound) {
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
     Dot::Parameters p = Dot::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0), p.nu_max = std::numeric_limits<unsigned int>::max();
-    p.sigma_1 = p.sigma_2 = p.sigma_3 = std::numeric_limits<double>::epsilon();
-    p.sigma_4 = std::numeric_limits<double>::epsilon();
+    p.sigma_1 = p.sigma_2 = p.sigma_3 = 1.0e-19;
+    p.sigma_4 = 1.0e-19;
     Dot a(input, p);
     
     EXPECT_EQ(a.identify()[0], Dot::NO_CONFIDENT_A[0]);

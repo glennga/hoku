@@ -174,3 +174,47 @@ std::vector<Identification::labels_list> Composite::query (const Star::list &s) 
     // Return the trios.
     return big_r_ell;
 }
+
+/// Finds the single, most likely result for the first four stars in our current benchmark. This trial is
+/// basically the same as the first identification trials. Input image is used. We require the following to be defined:
+///
+/// @code{.cpp}
+///     - table_name
+///     - sigma_query
+///     - sql_limit
+///     - nu
+///     - nu_max
+/// @endcode
+///
+/// @return NO_CONFIDENT_R if a candidate quad cannot be found. Otherwise, a single match configuration found
+/// by the angle method.
+Star::list Composite::reduce () {
+    ch.select_table(parameters.table_name);
+    *parameters.nu = 0;
+    
+    for (unsigned int dj = 1; dj < big_i.size() - 1; dj++) {
+        for (unsigned int dk = 1; dk < big_i.size() - dj - 1; dk++) {
+            for (unsigned int di = 0; di < big_i.size() - dj - dk - 1; di++) {
+                int i = di, j = di + dj, k = j + dk;
+                (*parameters.nu)++;
+    
+                // Practical limit: exit early if we have iterated through too many comparisons without match.
+                if (*parameters.nu > parameters.nu_max) {
+                    return NO_CONFIDENT_R;
+                }
+                
+                labels_list_list big_r_ell = this->query_for_trios(Trio::planar_area(big_i[i], big_i[j], big_i[k]),
+                                                                   Trio::planar_moment(big_i[i], big_i[j], big_i[k]));
+    
+                // |R| = 1 restriction, reduction step.
+                if (std::equal(big_r_ell.begin(), big_r_ell.end(), BaseTriangle::NO_CANDIDATE_TRIOS_FOUND.begin())) {
+                    continue;
+                }
+                
+                return {ch.query_hip(big_r_ell[0][0]), ch.query_hip(big_r_ell[0][1]), ch.query_hip(big_r_ell[0][2])};
+            }
+        }
+    }
+    
+    return NO_CONFIDENT_R;
+}

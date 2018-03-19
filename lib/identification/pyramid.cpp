@@ -288,7 +288,9 @@ std::vector<Identification::labels_list> Pyramid::query (const Star::list &s) {
     for (const Star &s_i : t_i) {
         for (const Star &s_j : t_j) {
             for (const Star &s_k : t_k) {
-                big_r_ell.emplace_back(labels_list {s_i.get_label(), s_j.get_label(), s_k.get_label()});
+                if (s_i != NO_COMMON_FOUND[0]) {
+                    big_r_ell.emplace_back(labels_list {s_i.get_label(), s_j.get_label(), s_k.get_label()});
+                }
                 
                 // Follow the SQL limit in the parameters.
                 if (big_r_ell.size() == parameters.sql_limit) {
@@ -307,26 +309,38 @@ std::vector<Identification::labels_list> Pyramid::query (const Star::list &s) {
 ///     - table_name
 ///     - sigma_query
 ///     - sql_limit
+///     - nu
+///     - nu_max
 /// @endcode
 ///
 /// @return EMPTY_BIG_R_ELL if a candidate quad cannot be found. Otherwise, a single match configuration found
 /// by the angle method.
-Identification::labels_list Pyramid::reduce () {
+Star::list Pyramid::reduce () {
+    ch.select_table(parameters.table_name);
+    *parameters.nu = 0;
+    
     for (unsigned int dj = 1; dj < big_i.size() - 1; dj++) {
         for (unsigned int dk = 1; dk < big_i.size() - dj - 1; dk++) {
             for (unsigned int di = 0; di < big_i.size() - dj - dk - 1; di++) {
-                Star::list r = identify_as_list({big_i[0], big_i[1], big_i[2]});
+                int i = di, j = di + dj, k = j + dk;
+                Star::list r = identify_as_list({big_i[i], big_i[j], big_i[k]});
+                (*parameters.nu)++;
+    
+                // Practical limit: exit early if we have iterated through too many comparisons without match.
+                if (*parameters.nu > parameters.nu_max) {
+                    return NO_CONFIDENT_R;
+                }
                 
                 // The reduction step: |R| = 1.
                 if (std::equal(r.begin(), r.end(), NO_CONFIDENT_A.begin())) {
                     continue;
                 }
-                return labels_list {r[0].get_label(), r[1].get_label(), r[2].get_label()};
+                return {r[0], r[1], r[2]};
             }
         }
     }
     
-    return EMPTY_BIG_R_ELL;
+    return NO_CONFIDENT_R;
 }
 
 /// Reproduction of the Pyramid method's process from beginning to the orientation determination. Input image is used.

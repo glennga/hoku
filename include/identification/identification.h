@@ -36,12 +36,14 @@ class Identification {
     
     /// Alias for a list of labels.
     using labels_list = std::vector<int>;
+    
   public:
     Identification ();
     static void collect_parameters (Parameters &p, INIReader &cf, const std::string &identifier);
     
+    Star::list find_positive_overlay (const Star::list &big_p, const Rotation &q);
     virtual std::vector<labels_list> query (const Star::list &s) = 0;
-    virtual labels_list reduce () = 0;
+    virtual Star::list reduce () = 0;
     virtual Star::list identify () = 0;
     
     Rotation align ();
@@ -50,7 +52,7 @@ class Identification {
     static const int TABLE_ALREADY_EXISTS;
     
     static const Star::list NO_CONFIDENT_A;
-    static const labels_list EMPTY_BIG_R_ELL;
+    static const Star::list NO_CONFIDENT_R;
     
     static const Star::list EXCEEDED_NU_MAX;
     static const Parameters DEFAULT_PARAMETERS;
@@ -68,7 +70,6 @@ class Identification {
 #if !defined ENABLE_TESTING_ACCESS
     protected:
 #endif
-    Star::list find_positive_overlay (const Star::list &big_p, const Rotation &q);
     void sort_brightness (std::vector<labels_list> &big_r_ell);
 
 #if !defined ENABLE_TESTING_ACCESS
