@@ -108,8 +108,8 @@ double Experiment::Reduction::percentage_correct (const Star::list &big_c, const
     // Count the number of correct stars in r.
     std::for_each(r.begin(), r.end(), [&result, &big_c] (const Star &r_i) -> void {
         result += (std::find_if(big_c.begin(), big_c.end(), [&r_i] (const Star &c) -> bool {
-         return c == r_i && c.get_label() == r_i.get_label();
-       }) != big_c.end()) ? 1.0 : 0;
+            return c == r_i && c.get_label() == r_i.get_label();
+        }) != big_c.end()) ? 1.0 : 0;
     });
     
     return result / r.size();
@@ -145,17 +145,28 @@ double Experiment::Map::percentage_correct (const Star::list &big_i, const Star:
 void Experiment::Overlay::count_correct (const Star::list &big_i_prime, const Star::list &big_i, const int es,
                                          double &tn, double &fp, double &fn, double &tp) {
     tn = fp = fn = tp = 0;
-    
-    // Determine the true positives (in I', I) and false negatives (in I, not in I').
-    std::for_each(big_i.begin(), big_i.end(), [&big_i_prime, &tp, &fn] (const Star &s_i) -> void {
-        (std::find(big_i_prime.begin(), big_i_prime.end(), s_i) != big_i_prime.end()) ? tp++ : fn++;
+
+    // Determine the true positives (in I', in I).
+    std::for_each(big_i.begin(), big_i.end(), [&big_i_prime, &tp] (const Star &s_i) -> void {
+        tp += (std::find_if(big_i_prime.begin(), big_i_prime.end(), [&s_i] (const Star &s_prime_i) {
+            return s_i.get_label() == s_prime_i.get_label();
+        }) != big_i_prime.end()) ? 1 : 0;
     });
     
     // Determine the false positives (in I', not in I).
-    std::for_each(big_i_prime.begin(), big_i_prime.end(), [&big_i, &fp] (const Star &s_i_prime) -> void {
-        fp += (std::find(big_i.begin(), big_i.end(), s_i_prime) == big_i.end()) ? 1 : 0;
+    std::for_each(big_i_prime.begin(), big_i_prime.end(), [&big_i, &fp] (const Star &s_prime_i) -> void {
+        fp += (std::find_if(big_i.begin(), big_i.end(), [&s_prime_i] (const Star &s_i) {
+            return s_i.get_label() == s_prime_i.get_label();
+        }) == big_i.end()) ? 1 : 0;
+    });
+    
+    // Determine the false negatives (not in I', in I).
+    std::for_each(big_i.begin(), big_i.end(), [&big_i_prime, &fn] (const Star &s_i) -> void {
+        fn += (std::find_if(big_i_prime.begin(), big_i_prime.end(), [&s_i] (const Star &s_prime_i) {
+            return s_i.get_label() == s_prime_i.get_label();
+        }) == big_i_prime.end()) ? 1 : 0;
     });
     
     // Determine the true negatives (not in I', not in I).
-    tn = (big_i.size() + es) - (fn + fp + tp);
+    tn = (big_i.size() + es) - (tp + fp + fn);
 }
