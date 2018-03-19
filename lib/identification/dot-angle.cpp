@@ -17,6 +17,9 @@ const Identification::Parameters Dot::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY,
     DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_4, DEFAULT_SQL_LIMIT, DEFAULT_NO_REDUCTION, DEFAULT_FAVOR_BRIGHT_STARS,
     DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_F, "DOT_20"};
 
+/// Returned when the reduction step does not pass in the query function.
+const Identification::labels_list Dot::NO_CANDIDATES_FOUND = {-1, -1};
+
 /// Returned when no candidate pair is found from a query.
 const Star::trio Dot::NO_CANDIDATE_TRIO_FOUND = {Star::wrap(Vector3::Zero()), Star::wrap(Vector3::Zero()),
     Star::wrap(Vector3::Zero())};
@@ -106,7 +109,7 @@ Identification::labels_list Dot::query_for_trio (double theta_1, double theta_2,
     
     // |R| = 1 restriction. Applied with the PASS_R_SET_CARDINALITY flag.
     if (big_r_ell.empty() || (!this->parameters.no_reduction && big_r_ell.size() > 1)) {
-        return EMPTY_BIG_R_ELL;
+        return NO_CANDIDATES_FOUND;
     }
     
     // Favor bright stars if specified. Applied with the FAVOR_BRIGHT_STARS flag.
@@ -136,7 +139,7 @@ Star::trio Dot::find_candidate_trio (const Star &b_i, const Star &b_j, const Sta
     
     // If not candidate is found, break early.
     labels_list big_r_ell = this->query_for_trio(theta_1, theta_2, phi);
-    if (std::equal(big_r_ell.begin(), big_r_ell.end(), EMPTY_BIG_R_ELL.begin())) {
+    if (std::equal(big_r_ell.begin(), big_r_ell.end(), NO_CONFIDENT_R.begin())) {
         return NO_CANDIDATE_TRIO_FOUND;
     }
     
@@ -201,7 +204,7 @@ std::vector<Identification::labels_list> Dot::query (const Star::list &s) {
 ///
 /// @return EMPTY_BIG_R_ELL if there does not exist exactly one image star set. Otherwise, a single match configuration
 /// found by the query method.
-Dot::labels_list Dot::reduce () {
+Star::list Dot::reduce () {
     ch.select_table(parameters.table_name);
     *parameters.nu = 0;
     
@@ -213,7 +216,7 @@ Dot::labels_list Dot::reduce () {
     
                 // Practical limit: exit early if we have iterated through too many comparisons without match.
                 if (*parameters.nu > parameters.nu_max) {
-                    return EMPTY_BIG_R_ELL;
+                    return NO_CONFIDENT_R;
                 }
                 
                 // The reduction step: |R| = 1.
@@ -221,11 +224,11 @@ Dot::labels_list Dot::reduce () {
                     continue;
                 }
                 
-                return {big_r[0].get_label(), big_r[1].get_label(), big_r[2].get_label()};
+                return {big_r[0], big_r[1], big_r[2]};
             }
         }
     }
-    return EMPTY_BIG_R_ELL;
+    return NO_CONFIDENT_R;
 }
 
 /// Reproduction of the DotAngle method's process from beginning to the orientation determination. Input image is used.

@@ -11,6 +11,9 @@
 /// Exact number of query stars required for query experiment.
 const unsigned int Angle::QUERY_STAR_SET_SIZE = 2;
 
+/// Returned when the reduction step does not pass in the query function.
+const Identification::labels_list Angle::NO_CANDIDATES_FOUND = {-1, -1};
+
 /// Default parameters for the angle identification method.
 const Identification::Parameters Angle::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_QUERY,
     DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_4, DEFAULT_SQL_LIMIT, DEFAULT_NO_REDUCTION, DEFAULT_FAVOR_BRIGHT_STARS,
@@ -80,13 +83,13 @@ Identification::labels_list Angle::query_for_pair (const double theta) {
     std::vector<labels_list> big_r_ell;
     Nibble::tuples_d big_r_ell_tuples;
     
-    // Query using theta with epsilon bounds. Return EMPTY_BIG_R_ELL if nothing is found.
+    // Query using theta with epsilon bounds. Return NO_CONFIDENT_R if nothing is found.
     big_r_ell_tuples = ch.simple_bound_query({"theta"}, "label_a, label_b", {theta - epsilon}, {theta + epsilon},
                                              this->parameters.sql_limit);
     
     // |R| = 1 restriction. Applied with the PASS_R_SET_CARDINALITY flag.
     if (big_r_ell_tuples.empty() || (!this->parameters.no_reduction && big_r_ell_tuples.size() > 1)) {
-        return EMPTY_BIG_R_ELL;
+        return NO_CANDIDATES_FOUND;
     }
     
     // Create the candidate label list.
@@ -118,7 +121,7 @@ Star::pair Angle::find_candidate_pair (const Star &b_i, const Star &b_j) {
     
     // If no candidate is found, break early.
     labels_list big_r_ell = this->query_for_pair(theta);
-    if (std::equal(big_r_ell.begin(), big_r_ell.end(), EMPTY_BIG_R_ELL.begin())) {
+    if (std::equal(big_r_ell.begin(), big_r_ell.end(), NO_CONFIDENT_R.begin())) {
         return NO_CANDIDATE_PAIR_FOUND;
     }
     
@@ -196,8 +199,8 @@ std::vector<Identification::labels_list> Angle::query (const Star::list &s) {
 ///     - nu_max
 /// @endcode
 ///
-/// @return EMPTY_BIG_R_ELL if a single match configuration cannot be found. Otherwise, a single match configuration.
-Angle::labels_list Angle::reduce () {
+/// @return NO_CONFIDENT_R if a single match configuration cannot be found. Otherwise, a single match configuration.
+Star::list Angle::reduce () {
     ch.select_table(parameters.table_name);
     *parameters.nu = 0;
     
@@ -208,7 +211,7 @@ Angle::labels_list Angle::reduce () {
     
             // Practical limit: exit early if we have iterated through too many comparisons without match.
             if (*parameters.nu > parameters.nu_max) {
-                return EMPTY_BIG_R_ELL;
+                return NO_CONFIDENT_R;
             }
             
             // The reduction step: |R| = 1.
@@ -216,10 +219,10 @@ Angle::labels_list Angle::reduce () {
                 continue;
             }
             
-            return {r[0].get_label(), r[1].get_label()};
+            return {r[0], r[1]};
         }
     }
-    return EMPTY_BIG_R_ELL;
+    return NO_CONFIDENT_R;
 }
 
 /// Reproduction of the Angle method's process from beginning to the orientation determination. Input image is used.

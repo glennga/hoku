@@ -86,6 +86,15 @@ const std::string IDENTIFICATION_INI = "[identification-experiment] ; Some comme
     "es-step = 3                 ; Step to increment false star count with.\n"
     "es-iter = 5                 ; Number of false star count variations.\n";
 
+/// Contents of the configuration file for overlay trials.
+const std::string OVERLAY_INI = "[overlay-experiment] ; Some comment...\n"
+    "lu = OVERLAY                ; Name of the Lumberjack table to log results to.\n"
+    "ss-step = 0.000000001       ; Shift sigma multiplier for each variation.\n"
+    "ss-iter = 5                 ; Number of shift sigma variations.\n"
+    "es-min = 0                  ; Starting number of false stars to add to image.\n"
+    "es-step = 3                 ; Step to increment false star count with.\n"
+    "es-iter = 5                 ; Number of false star count variations.\n";
+
 /// Create the three objects required for an experiment: Chomp connection, Lumberjack connection, and the configuration
 /// file. Return these through the parameters.
 ///
@@ -113,8 +122,11 @@ void setup_experiment (std::shared_ptr<INIReader> &cf, std::shared_ptr<Chomp> &c
     else if (trial == "reduction") {
         f1 << ALL_INI << REDUCTION_INI;
     }
-    else {
+    else if (trial == "identification") {
         f1 << ALL_INI << IDENTIFICATION_INI;
+    }
+    else {
+        f1 << ALL_INI << OVERLAY_INI;
     }
     f1.close();
     
@@ -126,13 +138,13 @@ void setup_experiment (std::shared_ptr<INIReader> &cf, std::shared_ptr<Chomp> &c
 /// Ensure that the benchmark presentation is random, and that the specifications are met.
 TEST(Experiment, AllPresentBenchmark) {
     Chomp ch;
-    Star::list big_i, old_big_i = {Star::chance()};
+    Star::list big_i, big_c, old_big_i = {Star::chance()};
     Star center, old_center = Star::chance();
     std::array<double, 2> fov_p = {20, 10}, m_p = {6.0, 7.0};
     
     for (int p = 0; p < 2; p++) {
         for (int i = 0; i < 100; i++) {
-            Experiment::present_benchmark(ch, big_i, center, fov_p[p], m_p[p]);
+            Experiment::present_benchmark(ch, big_i, big_c, center, fov_p[p], m_p[p]);
             
             // Ensure that at-least 5 stars exist for each generated benchmark.
             EXPECT_GT(big_i.size(), 5);
@@ -232,13 +244,15 @@ TEST(Experiment, QueryTrialAngle) {
 }
 
 /// Check that lists are correctly identified.
-TEST(Experiment, ReductionIsCorrectlyIdentified) {
-    Star::list a = {Star(0, 0, 0, 1), Star(0, 0, 0, 2), Star(0, 0, 0, 3)};
-    Identification::labels_list b = {1, 2, 3}, c = {3, 2, 1}, d = {0, 0, 0};
+TEST(Experiment, ReductionPercentageCorrect) {
+    Star::list a = {Star(0, 1, 0, 1), Star(2, 0, 0, 2), Star(3, 0, 0, 3), Star(0, 0, 0, 4)};
+    Star::list b = {Star(0, 1, 0, 1), Star(3, 0, 0, 3), Star(2, 0, 0, 2)};
+    Star::list c = {Star(0, 1, 0, 1), Star(0, 10, 0, 3), Star(0, 10, 0, 2)};
+    Star::list d = {Star(0, 1, 0, 1), Star(2, 0, 0, 2), Star(0, 0, 0, 5)};
     
-    EXPECT_TRUE(Experiment::Reduction::is_correctly_identified(a, b));
-    EXPECT_TRUE(Experiment::Reduction::is_correctly_identified(a, c));
-    EXPECT_FALSE(Experiment::Reduction::is_correctly_identified(a, d));
+    EXPECT_FLOAT_EQ(Experiment::Reduction::percentage_correct(a, b), 1.0);
+    EXPECT_FLOAT_EQ(Experiment::Reduction::percentage_correct(a, c), 1.0 / 3.0);
+    EXPECT_FLOAT_EQ(Experiment::Reduction::percentage_correct(a, d), 2.0 / 3.0);
 }
 
 /// Check that the reduction experiment works for the angle method.
@@ -334,5 +348,41 @@ TEST(Experiment, IdentificationTrialAngle) {
     SQLite::Transaction transaction(*(*lu).conn);
     (*(*lu).conn).exec(
         "DELETE FROM IDENTIFICATION WHERE Timestamp = '" + (*lu).timestamp + "' AND IdentificationMethod = 'Angle'");
+    transaction.commit();
+}
+
+/// Check that the overlay experiment works.
+TEST(Experiment, OverlayTrial) {
+    std::shared_ptr<Lumberjack> lu;
+    std::shared_ptr<INIReader> cf;
+    std::shared_ptr<Chomp> ch;
+    setup_experiment(cf, ch, lu, "overlay", "Angle");
+    
+    Nibble::tuples_d a = (*lu).search_table("*",
+                                            "IdentificationMethod = 'Angle' AND Timestamp = '" + (*lu).timestamp + "'",
+                                            1);
+    double count_b = a.size();
+    
+    Experiment::Overlay::trial<Angle>((*ch), (*lu), (*cf), "angle");
+    (*lu).flush_buffer();
+    
+    Nibble::tuples_d b = (*lu).search_table("Sigma4, ShiftDeviation, FalseStars, TruePositive, FalsePositive, "
+                                                "TrueNegative, FalseNegative",
+                                            "IdentificationMethod = 'Angle' AND Timestamp = '" + (*lu).timestamp + "'",
+                                            10);
+    ASSERT_EQ(b.size(), count_b + 5 + 5);
+    
+    for (const Nibble::tuple_d b_d : b) {
+        EXPECT_EQ(b_d[0], (*cf).GetReal("id-parameters", "so", 0));
+        EXPECT_THAT(b_d[1], IsBetweenExperiment(0, pow((*cf).GetReal("overlay-experiment", "ss-step", 0), 1)));
+        EXPECT_THAT(b_d[2], IsBetweenExperiment((*cf).GetReal("overlay-experiment", "es-min", 0),
+                                                (*cf).GetReal("overlay-experiment", "es-min", 0)
+                                                + (*cf).GetReal("overlay-experiment", "es-step", 0)
+                                                  * ((*cf).GetReal("overlay-experiment", "es-iter", 0) - 1)));
+    }
+    
+    SQLite::Transaction transaction(*(*lu).conn);
+    (*(*lu).conn).exec(
+        "DELETE FROM OVERLAY WHERE Timestamp = '" + (*lu).timestamp + "' AND IdentificationMethod = 'Angle'");
     transaction.commit();
 }

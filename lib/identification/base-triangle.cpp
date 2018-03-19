@@ -268,8 +268,8 @@ std::vector<BaseTriangle::labels_list> BaseTriangle::e_query (double a, double i
 ///     - nu_max
 /// @endcode
 ///
-/// @return NO_CANDIDATES_FOUND if no candidates found. Otherwise, a single elements that best meets the criteria.
-Identification::labels_list BaseTriangle::e_reduction () {
+/// @return NO_CONFIDENT_R if no candidates found. Otherwise, a single elements that best meets the criteria.
+Star::list BaseTriangle::e_reduction () {
     *parameters.nu = 0;
     
     for (int i = 0; i < static_cast<signed> (big_i.size() - 2); i++) {
@@ -282,11 +282,11 @@ Identification::labels_list BaseTriangle::e_reduction () {
                 if (std::equal(p.begin(), p.end(), NO_CANDIDATE_STAR_SET_FOUND.begin())) {
                     continue;
                 }
-                return {p[0].get_label(), p[1].get_label(), p[2].get_label()};
+                return {p[0], p[1], p[2]};
             }
         }
     }
-    return EMPTY_BIG_R_ELL;
+    return NO_CONFIDENT_R;
 }
 
 /// Find the rotation from the images in our current benchmark to our inertial frame (i.e. the catalog).

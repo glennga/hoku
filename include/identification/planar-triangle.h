@@ -38,7 +38,7 @@ class PlanarTriangle : public BaseTriangle {
     PlanarTriangle (const Benchmark &, const Parameters &);
     
     std::vector<labels_list> query (const Star::list &s);
-    labels_list reduce ();
+    Star::list reduce ();
     Star::list identify ();
     
     static int generate_table (INIReader &cf, const std::string &id_name = "plane");

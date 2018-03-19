@@ -315,7 +315,7 @@ std::vector<Identification::labels_list> Pyramid::query (const Star::list &s) {
 ///
 /// @return EMPTY_BIG_R_ELL if a candidate quad cannot be found. Otherwise, a single match configuration found
 /// by the angle method.
-Identification::labels_list Pyramid::reduce () {
+Star::list Pyramid::reduce () {
     ch.select_table(parameters.table_name);
     *parameters.nu = 0;
     
@@ -328,19 +328,19 @@ Identification::labels_list Pyramid::reduce () {
     
                 // Practical limit: exit early if we have iterated through too many comparisons without match.
                 if (*parameters.nu > parameters.nu_max) {
-                    return EMPTY_BIG_R_ELL;
+                    return NO_CONFIDENT_R;
                 }
                 
                 // The reduction step: |R| = 1.
                 if (std::equal(r.begin(), r.end(), NO_CONFIDENT_A.begin())) {
                     continue;
                 }
-                return labels_list {r[0].get_label(), r[1].get_label(), r[2].get_label()};
+                return {r[0], r[1], r[2]};
             }
         }
     }
     
-    return EMPTY_BIG_R_ELL;
+    return NO_CONFIDENT_R;
 }
 
 /// Reproduction of the Pyramid method's process from beginning to the orientation determination. Input image is used.

@@ -186,9 +186,9 @@ std::vector<Identification::labels_list> Composite::query (const Star::list &s) 
 ///     - nu_max
 /// @endcode
 ///
-/// @return EMPTY_BIG_R_ELL if a candidate quad cannot be found. Otherwise, a single match configuration found
+/// @return NO_CONFIDENT_R if a candidate quad cannot be found. Otherwise, a single match configuration found
 /// by the angle method.
-Identification::labels_list Composite::reduce () {
+Star::list Composite::reduce () {
     ch.select_table(parameters.table_name);
     *parameters.nu = 0;
     
@@ -200,7 +200,7 @@ Identification::labels_list Composite::reduce () {
     
                 // Practical limit: exit early if we have iterated through too many comparisons without match.
                 if (*parameters.nu > parameters.nu_max) {
-                    return EMPTY_BIG_R_ELL;
+                    return NO_CONFIDENT_R;
                 }
                 
                 labels_list_list big_r_ell = this->query_for_trios(Trio::planar_area(big_i[i], big_i[j], big_i[k]),
@@ -211,10 +211,10 @@ Identification::labels_list Composite::reduce () {
                     continue;
                 }
                 
-                return big_r_ell[0];
+                return {ch.query_hip(big_r_ell[0][0]), ch.query_hip(big_r_ell[0][1]), ch.query_hip(big_r_ell[0][2])};
             }
         }
     }
     
-    return EMPTY_BIG_R_ELL;
+    return NO_CONFIDENT_R;
 }

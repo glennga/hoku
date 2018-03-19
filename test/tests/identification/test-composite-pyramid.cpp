@@ -280,7 +280,7 @@ TEST(CompositePyramid, TrialCleanReduction) {
     
     Benchmark i(b, b[0], 20);
     Composite a(i, p);
-    EXPECT_THAT(a.reduce(), UnorderedElementsAre(102531, 95498, 102532));
+    EXPECT_THAT(a.reduce(), UnorderedElementsAre(b[0], b[1], b[2]));
 }
 
 /// Check that a clean input returns the expected identification of stars.

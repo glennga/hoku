@@ -81,8 +81,8 @@ TEST(Angle, QueryPair) {
     
     p2.no_reduction = true;
     Identification::labels_list d = Angle(input, p2).query_for_pair(a);
-    EXPECT_THAT(Angle::EMPTY_BIG_R_ELL, Not(Contains(d[0])));
-    EXPECT_THAT(Angle::EMPTY_BIG_R_ELL, Not(Contains(d[1])));
+    EXPECT_THAT(Angle::NO_CANDIDATES_FOUND, Not(Contains(d[0])));
+    EXPECT_THAT(Angle::NO_CANDIDATES_FOUND, Not(Contains(d[1])));
 }
 
 /// Check that the query_for_pair method fails when expected.
@@ -95,15 +95,15 @@ TEST(Angle, QueryExpectedFailure) {
     
     double a = (180.0 / M_PI) * Vector3::Angle(input.b[0], input.b[1]);
     Identification::labels_list b = Angle(input, p).query_for_pair(a);
-    EXPECT_THAT(Angle::EMPTY_BIG_R_ELL, Contains(b[0]));
-    EXPECT_THAT(Angle::EMPTY_BIG_R_ELL, Contains(b[1]));
+    EXPECT_THAT(Angle::NO_CANDIDATES_FOUND, Contains(b[0]));
+    EXPECT_THAT(Angle::NO_CANDIDATES_FOUND, Contains(b[1]));
     
     // |R| restriction should prevent an answer from being displayed.
     p.sigma_1 = 0.1, p.no_reduction = false;
     double d = (180.0 / M_PI) * Vector3::Angle(input2.b[0], input2.b[1]);
     Identification::labels_list c = Angle(input2, p).query_for_pair(d);
-    EXPECT_THAT(Angle::EMPTY_BIG_R_ELL, Contains(c[0]));
-    EXPECT_THAT(Angle::EMPTY_BIG_R_ELL, Contains(c[1]));
+    EXPECT_THAT(Angle::NO_CANDIDATES_FOUND, Contains(c[0]));
+    EXPECT_THAT(Angle::NO_CANDIDATES_FOUND, Contains(c[1]));
 }
 
 /// Check that the brightest pair is selected, using the fbs flag.
@@ -200,7 +200,7 @@ TEST(Angle, TrialCleanReduction) {
     
     Benchmark i({ch.query_hip(22667), ch.query_hip(27913)}, ch.query_hip(22667), 20);
     Angle a(i, p);
-    EXPECT_THAT(a.reduce(), UnorderedElementsAre(22667, 27913));
+    EXPECT_THAT(a.reduce(), UnorderedElementsAre(ch.query_hip(22667), ch.query_hip(27913)));
     EXPECT_EQ(*(a.parameters.nu), 1);
 }
 

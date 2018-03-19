@@ -24,7 +24,8 @@
 /// 3. Identification
 /// @endcode
 namespace Experiment {
-    void present_benchmark (Chomp &ch, Star::list &big_i, Star &center, double fov, double m_bar = 6.0);
+    void present_benchmark (Chomp &ch, Star::list &big_i, Star::list &big_c, Star &center, double fov,
+                            double m_bar = 6.0);
     
     /// @brief Namespace that holds all parameters and functions to conduct the query experiment with.
     ///
@@ -44,6 +45,7 @@ namespace Experiment {
         /// @tparam T Identification class to perform query experiment with.
         /// @param ch Nibble connection used to generate the input image.
         /// @param lu Lumberjack connection used to record the results of each trial.
+        /// @param cf Configuration reader holding all parameters to use.
         /// @param identifier Name of the identification method, in format (space): [angle, dot, sphere, plane,
         /// pyramid, composite].
         template <class T>
@@ -91,9 +93,9 @@ namespace Experiment {
     namespace Reduction {
         /// Schema header that corresponds to the log file for all reduction trials.
         const char *const SCHEMA = "IdentificationMethod TEXT, Timestamp TEXT, Sigma1 FLOAT, Sigma2 FLOAT, "
-            "Sigma3 FLOAT, ShiftDeviation FLOAT, FalseStars INT, ComparisonCount INT, ResultMatchesInput INT";
+            "Sigma3 FLOAT, ShiftDeviation FLOAT, FalseStars INT, ComparisonCount INT, PercentageCorrect FLOAT";
         
-        bool is_correctly_identified (const Star::list &big_i, const Identification::labels_list &r_ell);
+        double percentage_correct (const Star::list &big_i, const Star::list &r);
         
         /// Generic experiment function for the reduction trials. Performs a reduction trial and records the experiment
         /// in the lumberjack. The provided Nibble connection is used for generating the input image.
@@ -109,7 +111,7 @@ namespace Experiment {
             std::shared_ptr<unsigned int> nu = std::make_shared<unsigned int>(0);
             Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
             double fov = cf.GetReal("hardware", "fov", 0);
-            Star::list body;
+            Star::list big_i, big_c;
             Star focus;
             
             // Define our hyperparameters and testing parameters.
@@ -128,17 +130,17 @@ namespace Experiment {
                     
                     // Repeat each trial n = SAMPLES times.
                     for (int i = 0; i < samples; i++) {
-                        present_benchmark(ch, body, focus, fov);
-                        Benchmark input(body, focus, fov);
-                        (is_shift) ? input.shift_light(static_cast<signed> (body.size()), s) : input.add_extra_light(
+                        present_benchmark(ch, big_i, big_c, focus, fov);
+                        Benchmark input(big_i, focus, fov);
+                        (is_shift) ? input.shift_light(static_cast<signed> (big_i.size()), s) : input.add_extra_light(
                             static_cast<unsigned int> (s));
                         
                         // Perform a single trial.
-                        Identification::labels_list w = T(input, p).reduce();
+                        Star::list w = T(input, p).reduce();
                         
                         // Log the results of our trial.
                         lu.log_trial({p.sigma_1, p.sigma_2, p.sigma_3, is_shift ? s : 0, !is_shift ? s : es_min,
-                                         static_cast<double>(*nu), (is_correctly_identified(body, w) ? 1.0 : 0)});
+                                         static_cast<double>(*nu), percentage_correct(big_c, w)});
                     }
                 }
             };
@@ -171,7 +173,7 @@ namespace Experiment {
             std::shared_ptr<unsigned int> nu = std::make_shared<unsigned int>(0);
             Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
             double fov = cf.GetReal("hardware", "fov", 0);
-            Star::list body;
+            Star::list big_i, big_c;
             Star focus;
             
             // Define our hyperparameters and testing parameters.
@@ -190,9 +192,9 @@ namespace Experiment {
                     
                     // Repeat each trial n = SAMPLES times.
                     for (int i = 0; i < samples; i++) {
-                        present_benchmark(ch, body, focus, fov);
-                        Benchmark input(body, focus, fov);
-                        (is_shift) ? input.shift_light(static_cast<signed> (body.size()), s) : input.add_extra_light(
+                        present_benchmark(ch, big_i, big_c, focus, fov);
+                        Benchmark input(big_i, focus, fov);
+                        (is_shift) ? input.shift_light(static_cast<signed> (big_i.size()), s) : input.add_extra_light(
                             static_cast<unsigned int> (s));
                         
                         // Perform a single trial.
@@ -201,7 +203,69 @@ namespace Experiment {
                         // Log the results of our trial.
                         lu.log_trial(
                             {p.sigma_1, p.sigma_2, p.sigma_3, p.sigma_4, is_shift ? s : 0, !is_shift ? s : es_min,
-                                static_cast<double>(*nu), percentage_correct(body, w)});
+                                static_cast<double>(*nu), percentage_correct(big_i, w)});
+                    }
+                }
+            };
+            trial_specific_error(true, ss_iter, ss_step, 0), trial_specific_error(false, es_iter, es_step, es_min);
+        }
+    }
+    
+    /// @brief Namespace that holds all parameters and functions to conduct the Overlay experiment with.
+    ///
+    /// The overlay experiment is used to characterize the direct match test process.
+    namespace Overlay {
+        /// Schema comma separated string that corresponds to the creation of the DMT table.
+        const char *const SCHEMA = "IdentificationMethod TEXT, Timestamp TEXT, Sigma4 FLOAT, ShiftDeviation FLOAT, "
+            "FalseStars INT, TruePositive INT, FalsePositive INT, TrueNegative INT, FalseNegative INT";
+        
+        void count_correct (const Star::list &big_i_prime, const Star::list &big_i, int es, double &tn, double &fp,
+                            double &fn, double &tp);
+        
+        /// Experiment function for the DMT trials. Performs a overlay trial and records the experiment in the
+        /// lumberjack. The provided Nibble connection is used for generating the input image.
+        ///
+        /// @tparam T Identification class to perform overlay trials with. Used only as a wrapper for FPO method.
+        /// @param ch Nibble connection used to generate the input image.
+        /// @param lu Lumberjack connection used to record the results of each trial.
+        /// @param cf Configuration reader holding all parameters to use.
+        /// @param identifier Name of the identification method, in format (space): [angle, dot, sphere, plane,
+        /// pyramid, composite].
+        template <class T>
+        void trial (Chomp &ch, Lumberjack &lu, INIReader &cf, const std::string &identifier) {
+            Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
+            double fov = cf.GetReal("hardware", "fov", 0), tn, fp, fn, tp;
+            Star::list big_i, big_c;
+            Star focus;
+            
+            // Define our hyperparameters and testing parameters.
+            Identification::collect_parameters(p, cf, identifier);
+            int samples = cf.GetInteger("general-experiment", "samples", 0);
+            int ss_iter = cf.GetInteger("overlay-experiment", "ss-iter", 0);
+            int es_iter = cf.GetInteger("overlay-experiment", "es-iter", 0);
+            double ss_step = cf.GetReal("overlay-experiment", "ss-step", 0);
+            double es_min = cf.GetReal("overlay-experiment", "es-min", 0);
+            double es_step = cf.GetReal("overlay-experiment", "es-step", 0);
+            
+            // Perform the shift trials, then the extra stars trial.
+            auto trial_specific_error = [&] (const bool is_shift, const int iter, const double step, const double min) {
+                for (int s_i = 0; s_i < iter; s_i++) {
+                    double s = is_shift ? ((s_i == 0) ? 0 : pow(step, s_i)) : (min + static_cast<double>(s_i) * step);
+                    
+                    // Repeat each trial n = SAMPLES times.
+                    for (int i = 0; i < samples; i++) {
+                        present_benchmark(ch, big_i, big_c, focus, fov);
+                        Benchmark input(big_i, focus, fov);
+                        (is_shift) ? input.shift_light(static_cast<signed> (big_i.size()), s) : input.add_extra_light(
+                            static_cast<unsigned int> (s));
+                        
+                        // Perform a single trial.
+                        Star::list w = T(input, p).find_positive_overlay(big_c, p.f({big_i[0], big_i[1]},
+                                                                                    {big_c[0], big_c[1]}));
+                        
+                        // Log the results of our trial.
+                        count_correct(w, big_i, static_cast<int> ((is_shift) ? es_min : s), tn, fp, fn, tp);
+                        lu.log_trial({p.sigma_4, is_shift ? s : 0, !is_shift ? s : es_min, tp, fp, tn, fn});
                     }
                 }
             };

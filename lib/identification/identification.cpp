@@ -36,7 +36,7 @@ const Rotation::wahba_function Identification::DEFAULT_F = Rotation::triad;
 const char *Identification::DEFAULT_TABLE_NAME = "NO_TABLE";
 
 /// Returned when no candidates are found from a query.
-const Identification::labels_list Identification::EMPTY_BIG_R_ELL = {-1, -1};
+const Star::list Identification::NO_CONFIDENT_R = {Star::wrap(Vector3::Zero(), -2)};
 
 /// Returned when there exists no confident identity from an identification trial.
 const Star::list Identification::NO_CONFIDENT_A = {Star::wrap(Vector3::Zero(), -1)};

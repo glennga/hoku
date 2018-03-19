@@ -52,6 +52,7 @@ class Benchmark {
     Benchmark (Chomp &ch, const Vector3 &center, const Rotation &q, double fov, double m_bar = DEFAULT_M_BAR);
     Benchmark (const Star::list &s, const Vector3 &center, double fov);
     static const Benchmark black ();
+    Star operator[] (unsigned int n) const;
     
     void generate_stars (Chomp &ch, double m_bar = DEFAULT_M_BAR);
     void present_image (Star::list &image_s, double &image_fov) const;
