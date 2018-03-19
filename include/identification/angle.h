@@ -36,18 +36,16 @@ class Angle : public Identification {
     explicit Angle (const Benchmark &input, const Parameters &p);
     
     std::vector<labels_list> query (const Star::list &s);
-    labels_list reduce ();
+    Star::list reduce ();
     Star::list identify ();
     
     static int generate_table (INIReader &cf, const std::string &id_name = "angle");
     
     static const Parameters DEFAULT_PARAMETERS;
     static const Star::pair NO_CANDIDATE_PAIR_FOUND;
-  
-  public:
-    /// Exact number of query stars required for query experiment.
-    static constexpr unsigned int QUERY_STAR_SET_SIZE = 2;
-
+    static const labels_list NO_CANDIDATES_FOUND;
+    
+    static const unsigned int QUERY_STAR_SET_SIZE;
 #if !defined ENABLE_TESTING_ACCESS
   private:
 #endif

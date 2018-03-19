@@ -35,19 +35,18 @@ class CompositePyramid : public Pyramid {
     CompositePyramid (const Benchmark &input, const Parameters &p);
     
     std::vector<labels_list> query (const Star::list &s) override;
+    Star::list reduce () override;
     static int generate_table (INIReader &cf);
     
     static const Parameters DEFAULT_PARAMETERS;
   
   public:
-    /// Exact number of query stars required for query experiment.
-    static constexpr unsigned int QUERY_STAR_SET_SIZE = 3;
 
 #if !defined ENABLE_TESTING_ACCESS
-  private:
+    private:
 #endif
     labels_list_list query_for_trios (double, double);
-    bool verification (const  Star::trio &r, const  Star::trio &b) override;
+    bool verification (const Star::trio &r, const Star::trio &b) override;
     Star::trio find_catalog_stars (const Star::trio &) override;
 };
 

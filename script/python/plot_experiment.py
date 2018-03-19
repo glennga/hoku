@@ -1,113 +1,170 @@
 """"
 This file is used to produce plots to show the relationship between various parameters in the Query, Reduction, 
-and Identification trials. We assume these trials use the following attributes:
+and Identification trials, or to visualize density in the Nibble database. We assume these trials use the following 
+schema:
 
-Query:      IdentificationMethod,QuerySigma,ShiftSigma,CandidateSetSize,SExistence [5]
-....
+Query:          IdentificationMethod TEXT, Timestamp TEXT, Sigma1 FLOAT, Sigma2 FLOAT, Sigma3 FLOAT, 
+                    ShiftDeviation FLOAT, CandidateSetSize FLOAT, SExistence INT
+Reduction:      IdentificationMethod TEXT, Timestamp TEXT, Sigma1 FLOAT, Sigma2 FLOAT, Sigma3 FLOAT, Sigma4 FLOAT, 
+                    ShiftDeviation FLOAT, CameraSensitivity FLOAT, ResultMatchesInput INT
+Identification: IdentificationMethod TEXT, Timestamp TEXT, Sigma1 FLOAT, Sigma2 FLOAT, Sigma3 FLOAT, Sigma4 FLOAT, 
+                    ShiftDeviation FLOAT, CameraSensitivity FLOAT, FalseStars INT, ComparisonCount INT, 
+                    PercentageCorrect FLOAT        
 
-The first argument is the location of the log file. We can infer the type of trial from the fifth element of the header.
+There exists two possible arguments passed to this file: the experiment to plot and a secondary location to the
+database involved with the operation.
 
-Usage: visualize-trial [angle-log] [sphere-log] [plane-log] [pyramid-log] [coin-log]
+Usage: plot_experiment [experiment-to-visualize] [location-of-database]
 """""
 
-import csv
+import sqlite3
+import json
 import sys
+import os
 
 import numpy as np
-import visualize_base_trial as v
-
-# Points per variation, defined in each experiment's header file.
-qu_ppv, al_ppv, r_ppv, sc_ppv, cr_ppv = 1000, 1000, 1000, 1000, 1000
-
-# Plot parameters for query trials.
-# noinspection PyRedeclaration
-query_params = {"yll": iter([[0, 1.05], [0, 1.3]]),
-                "xtl": iter([[r'$0$'] + [r'$10^{-7}$'] + [r'$10^{-6}$'] + [r'$10^{-5}$'] + [r'$10^{-4}$']
-                             for _ in range(0, 2)]),
-                "ll": iter([['Angle', 'Spherical Triangle', 'Planar Triangle', 'Pyramid', 'CoIn'] for _ in range(3)]),
-                "xal": iter(['Noise (Degrees)', 'Noise (Degrees)']),
-                "yal": iter(['P(Correct Star Set in Candidates)', r'$|$Candidate Set$|$'])}
-
-# Plot parameters for identification trials.
-# noinspection PyRedeclaration
-identification_params = {"yll": iter([[0, 0.002], [0, 1]]),
-                         "xtl": iter([['6.0', '6.25', '6.5', '6.75', '7.0']] +
-                                     [[r'$0$'] + [r'$10^{-6}$'] + [r'$10^{-5}$'] + [r'$10^{-4}$'] + [r'$10^{-3}$']]),
-                         "ll": iter([['Angle', 'Spherical Triangle', 'Planar Triangle', 'Pyramid', 'CoIn']
-                                     for _ in range(2)]),
-                         "xal": iter([r'Camera Sensitivity (m)', 'Noise (Degrees)']),
-                         "yal": iter([r'Rotational Error' for _ in range(2)])}
-
-# Plot parameters for reduction trials.
-# noinspection PyRedeclaration
-reduction_params = {"yll": iter([[0, 1.05], [0, 1]]),
-                    "xtl": iter([[r'$0$'] + [r'$10^{-7}$'] + [r'$10^{-6}$'] + [r'$10^{-5}$'] + [r'$10^{-4}$']] +
-                                [['6.0'] + ['6.25'] + ['6.5'] + ['6.75'] + ['7.0']]),
-                    "ll": iter([['Angle', 'Spherical Triangle', 'Planar Triangle', 'Pyramid', 'CoIn']
-                                for _ in range(2)]),
-                    "xal": iter(['Noise (Degrees)'] + ['Camera Sensitivity (m)']),
-                    "yal": iter(['P(Correct Star Set After Reduction)' for _ in range(2)])}
-
-# Plot parameters for semi-crown trials.
-semi_crown_params = {"yll": iter([[0, 1], [0, 1], [0, 1.3], [0, 40]]),
-                     "xtl": iter([['0', '5', '10', '15', '20']] +
-                                 [[r'$0$'] + [r'$10^{-7}$'] + [r'$10^{-6}$'] + [r'$10^{-5}$'] + [r'$10^{-4}$']] +
-                                 [['0', '5', '10', '15', '20']] +
-                                 [[r'$0$'] + [r'$10^{-7}$'] + [r'$10^{-6}$'] + [r'$10^{-5}$'] + [r'$10^{-4}$']]),
-                     "ll": iter([['Angle', 'Spherical Triangle', 'Planar Triangle', 'Pyramid', 'CoIn']
-                                 for _ in range(4)]),
-                     "xal": iter(['False Stars'] + ['Noise (Degrees)'] + ['False Stars'] + ['Noise (Degrees)']),
-                     "yal": iter(['Rotational Error'] + ['Rotational Error'] + ['Star Sets Exhausted'] +
-                                 ['Star Sets Exhausted'])}
-
-# Plot parameters for crown trials.
-# noinspection PyRedeclaration
-crown_params = {"yll": iter([]),
-                "xtl": iter([]),
-                "ll": iter([]),
-                "xal": iter([]),
-                "yal": iter([])}
+from matplotlib import pyplot as plt
+from plot_parameters import params
+from plot_base import attach_plot_info, attach_figure_legend, e_plot, d_plot
 
 
-def visualize_trial(angle_log, sphere_log, plane_log, pyramid_log, coin_log):
-    """ Source function, used to display a plot of the given exactly four log files.
+def nibble_plots(cur_j):
+    """ Display the plots associated with the nibble database.
 
-    :param angle_log Location of the angle log file to use.
-    :param sphere_log Location of the sphere log file to use.
-    :param plane_log Location of the plane log file to use.
-    :param pyramid_log Location of the pyramid log file to use.
-    :param coin_log Location of the coin log file to use.
+    :param cur_j: Cursor to database containing the nibble database.
     :return: None.
     """
-    with open(angle_log, 'r') as f_1, open(sphere_log, 'r') as f_2, open(plane_log, 'r') as f_3, \
-            open(pyramid_log, 'r') as f_4, open(coin_log, 'r') as f_5:
-        csvs = list(map(lambda f: csv.reader(f, delimiter=','), [f_1, f_2, f_3, f_4, f_5]))
+    plt.rc('text', usetex=True), plt.rc('font', family='serif', size=20)
 
-        # with open(angle_log, 'r') as f_1, open(sphere_log, 'r') as f_2, open(pyramid_log, 'r') as f_4, \
-        #         open(coin_log, 'r') as f_5:
-        #     csvs = list(map(lambda f: csv.reader(f, delimiter=','), [f_1, f_2, f_4, f_5]))
+    # Angle histogram.
+    plt.figure()
+    d_plot(cur_j, {'table_name': 'ANGLE_20', 'attributes': ['theta'], 'params_section': 'nibble-plot',
+                   'params_prefix': 'nat'})
 
-        # Parse our header, and the rest of the logs.
-        attributes = list(map(lambda c: next(c), csvs))
-        logs = list(map(lambda c: np.array(np.array([tuple for tuple in c])), csvs))
+    # Dot Angle heat maps.
+    plt.figure()
+    plt.subplot(131)
+    d_plot(cur_j, {'table_name': 'DOT_20', 'attributes': ['theta_1', 'phi'], 'params_section': 'nibble-plot',
+                   'params_prefix': 'ndat1p'})
+    plt.subplot(132)
+    d_plot(cur_j, {'table_name': 'DOT_20', 'attributes': ['theta_2', 'phi'], 'params_section': 'nibble-plot',
+                   'params_prefix': 'ndat2p'})
+    plt.subplot(133)
+    d_plot(cur_j, {'table_name': 'DOT_20', 'attributes': ['theta_1', 'theta_2'], 'params_section': 'nibble-plot',
+                   'params_prefix': 'ndat1t2'})
 
-        # Based on the header, determine what plots to produce.
-        if all(map(lambda a: len(a) == 5, attributes)):
-            v.query_trial_plot(qu_ppv, logs, query_params)
-        elif all(map(lambda a: a[4] == 'OptimalConfigRotation', attributes)):
-            v.identification_trial_plot(al_ppv, logs, identification_params)
-        elif all(map(lambda a: len(a) == 6, attributes)):
-            v.reduction_trial_plot(r_ppv, logs, reduction_params)
-        elif all(map(lambda a: a[4] == 'CameraSensitivity' and len(a) == 8, attributes)):
-            v.semi_crown_trial_plot(sc_ppv, logs, semi_crown_params)
-        elif all(map(lambda a: len(a) == 10, attributes)):
-            v.crown_trial_plot(cr_ppv, logs, crown_params)
+    # Planar Triangle heat map.
+    plt.figure()
+    d_plot(cur_j, {'table_name': 'PLANE_20', 'attributes': ['a', 'i'], 'params_section': 'nibble-plot',
+                   'params_prefix': 'nptai'})
+
+    # Spherical Triangle heat map.
+    plt.figure()
+    d_plot(cur_j, {'table_name': 'SPHERE_20', 'attributes': ['a', 'i'], 'params_section': 'nibble-plot',
+                   'params_prefix': 'nstai'})
+    plt.show()
+
+
+def query_sigma_plots(cur_i):
+    """ Display the plots associated with the query-sigma experiment.
+
+    :param cur_i: Cursor to database containing result data.
+    :return: None.
+    """
+    plt.rc('text', usetex=True), plt.rc('font', family='serif', size=20)
+
+    plt.figure()
+    plt.subplot(121)  # Sigma1 vs. SExistence visualization.
+    e_plot(cur_i, {'table_name': 'QUERY', 'x_attribute': 'Sigma1', 'y_attribute': 'SExistence',
+                   'constrain_that': '(Sigma2 = Sigma1 OR Sigma2 = 0) '
+                                     'AND (Sigma3 = Sigma1 OR Sigma3 = 0) '
+                                     'AND ShiftDeviation=0 ',
+                   'params_section': 'query-sigma-plot', 'params_prefix': 's1se', 'plot_type': 'LINE'})
+
+    plt.subplot(122)  # Sigma1 vs. CandidateSetSize visualization.
+    e_plot(cur_i, {'table_name': 'QUERY', 'x_attribute': 'Sigma1', 'y_attribute': 'CandidateSetSize',
+                   'constrain_that': '(Sigma2 = Sigma1 OR Sigma2 = 0) '
+                                     'AND (Sigma3 = Sigma1 OR Sigma3 = 0) '
+                                     'AND ShiftDeviation=0 ',
+                   'params_section': 'query-sigma-plot', 'params_prefix': 's1css', 'plot_type': 'LINE'})
+
+
+def query_plots(cur_i):
+    """ Display the plots associated with the query experiment.
+
+    :param cur_i: Cursor to database containing result data.
+    :return: None.
+    """
+    plt.rc('text', usetex=True), plt.rc('font', family='serif', size=20)
+
+    fig = plt.figure()
+    plt.subplot(121)  # ShiftDeviation vs. SExistence visualization.
+    e_plot(cur_i, {'table_name': 'QUERY', 'x_attribute': 'ShiftDeviation', 'y_attribute': 'SExistence',
+                   'params_section': 'query-plot', 'params_prefix': 'sdse', 'plot_type': 'BAR'})
+
+    plt.subplot(122)  # ShiftDeviation vs. CandidateSetSize visualization.
+    p = e_plot(cur_i, {'table_name': 'QUERY', 'x_attribute': 'ShiftDeviation', 'y_attribute': 'CandidateSetSize',
+                       'params_section': 'query-plot', 'params_prefix': 'sdcss', 'plot_type': 'BAR'})
+    attach_figure_legend({'params_section': 'query-plot'}, fig, p)
+    plt.show()
+
+
+def reduction_plots(cur_i):
+    """ Display the plots associated with the reduction experiment.
+
+    :param cur_i: Cursor to database containing result data.
+    :return: None.
+    """
+    plt.rc('text', usetex=True), plt.rc('font', family='serif', size=12)
+
+    plt.figure()
+    plt.subplot(121)
+    e_plot(cur_i, {'table_name': 'REDUCTION', 'x_attribute': 'ShiftDeviation', 'y_attribute': 'ResultMatchesInput',
+                   'constrain_that': 'CameraSensitivity = 6.0', 'params_section': 'reduction-plot',
+                   'params_prefix': 'sdrmi'})
+
+    plt.subplot(122)
+    e_plot(cur_i, {'table_name': 'REDUCTION', 'x_attribute': 'CameraSensitivity', 'y_attribute': 'ResultMatchesInput',
+                   'constrain_that': 'ShiftDeviation = 1.0e-3', 'params_section': 'reduction-plot',
+                   'params_prefix': 'csrmi'})
+    plt.show()
+
+
+def identification_plots(cur_i):
+    """ Display the plots associated with the identification experiment.
+
+    :param cur_i: Cursor to database containing result data.
+    :return: None.
+    """
+    plt.rc('text', usetex=True), plt.rc('font', family='serif', size=12)
+
+
+if __name__ == '__main__':
+    # Ensure that there exists between one and three arguments, and that it is in the appropriate space.
+    if len(sys.argv) < 1 or len(sys.argv) > 4 or sys.argv[1] not in ['nibble', 'query-sigma', 'query', 'reduction',
+                                                                     'identification']:
+        print('Usage: python3 plot_experiment.py [experiment-to-visualize] [location-of-database]'), exit(1)
+
+    # Experiment data in lumberjack.db, or is specified by the user (second argument).
+    conn = ''
+    try:
+        if len(sys.argv) == 3 and not os.path.isabs(sys.argv[2]):
+            conn = sqlite3.connect(os.getcwd() + '/' + sys.argv[2])
+        elif len(sys.argv) == 3:
+            conn = sqlite3.connect(sys.argv[2])
         else:
-            raise ValueError('Not a log file or corrupt header.')
+            conn = sqlite3.connect(os.environ['HOKU_PROJECT_PATH'] + '/data/lumberjack.db')
+    except sqlite3.Error as e:
+        print('SQL Error: ' + str(e)), exit(2)
+    cur = conn.cursor()
 
-
-# Perform the trials!
-if len(sys.argv) is not 6:
-    print('Usage: visualize-experiment [angle-log] [sphere-log] [plane-log] [pyramid-log] [coin-log]')
-else:
-    visualize_trial(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
+    if sys.argv[1] == 'nibble':
+        nibble_plots(cur)
+    elif sys.argv[1] == 'query-sigma':
+        query_sigma_plots(cur)
+    elif sys.argv[1] == 'query':
+        query_plots(cur)
+    elif sys.argv[1] == 'reduction':
+        reduction_plots(cur)
+    else:
+        identification_plots(cur)

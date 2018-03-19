@@ -60,7 +60,7 @@ TEST(Nibble, SearchConstrained) {
     
     // Check the method with a constraint, given an expected amount and not.
     Nibble::tuples_d a = nb.search_table("i, j, k", "label = 88", 3);
-    Nibble::tuples_d b = nb.search_table("i, j, k", "label = 88 or label = 107", 6, 2);
+    Nibble::tuples_d b = nb.search_table("i, j, k", "label = 88 or label = 107 ORDER BY label", 6, 2);
     
     EXPECT_FLOAT_EQ(a[0][0], 0.658552173330720);
     EXPECT_FLOAT_EQ(a[0][1], 0.003092250084512);
@@ -106,7 +106,7 @@ TEST(Nibble, SearchSingle) {
     EXPECT_FLOAT_EQ(nb.search_single("j", "label = 88"), 0.003092250084512);
     EXPECT_FLOAT_EQ(nb.search_single("k", "label = 88"), -0.752528719047187);
     
-    EXPECT_FLOAT_EQ(nb.search_single("i"), 0.658552173330720);
+    EXPECT_EQ(nb.search_single("COUNT(*)"), ch.bright_as_list().size());
 }
 
 /// Check that the table creation method works as intended (the table persists after closing connection.
@@ -151,10 +151,25 @@ TEST(Nibble, TablePolishIndex) {
     nb.select_table(ch.bright_table);
     nb.polish_table("alpha");
     
-    EXPECT_ANY_THROW((*nb.conn).exec("CREATE INDEX HIP_BRIGHT_alpha on " + ch.bright_table + "(alpha)"););
+    EXPECT_ANY_THROW((*nb.conn).exec("CREATE INDEX HIP_BRIGHT_IDX on " + ch.bright_table + "(alpha)"););
     
     // Delete new table and index. Rerun original bright table generation.
-    (*nb.conn).exec("DROP INDEX HIP_BRIGHT_alpha");
+    (*nb.conn).exec("DROP INDEX HIP_BRIGHT_IDX");
+    (*nb.conn).exec("DROP TABLE " + ch.bright_table);
+    Chomp();
+}
+
+/// Check that the bright stars table has an dual-index created.
+TEST(Nibble, TablePolishDualIndex) {
+    Chomp ch;
+    Nibble nb;
+    nb.select_table(ch.bright_table);
+    nb.polish_table("alpha, delta");
+    
+    EXPECT_ANY_THROW((*nb.conn).exec("CREATE INDEX HIP_BRIGHT_IDX on " + ch.bright_table + "(alpha, delta)"););
+    
+    // Delete new table and index. Rerun original bright table generation.
+    (*nb.conn).exec("DROP INDEX HIP_BRIGHT_IDX");
     (*nb.conn).exec("DROP TABLE " + ch.bright_table);
     Chomp();
 }
@@ -170,7 +185,7 @@ TEST(Nibble, TablePolishSort) {
     
     // Delete new table and index. Rerun original BSC5 table generation.
     try {
-        (*nb.conn).exec("DROP INDEX HIP_BRIGHT_delta");
+        (*nb.conn).exec("DROP INDEX HIP_BRIGHT_IDX");
         (*nb.conn).exec("DROP TABLE " + ch.bright_table);
         Chomp();
     }

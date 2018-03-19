@@ -38,17 +38,14 @@ class PlanarTriangle : public BaseTriangle {
     PlanarTriangle (const Benchmark &, const Parameters &);
     
     std::vector<labels_list> query (const Star::list &s);
-    labels_list reduce ();
+    Star::list reduce ();
     Star::list identify ();
     
-    static int generate_table(INIReader &cf, const std::string &id_name = "plane");
-  
-  public:
-    /// Exact number of query stars required for query experiment.
-    static constexpr unsigned int QUERY_STAR_SET_SIZE = 3;
-    
+    static int generate_table (INIReader &cf, const std::string &id_name = "plane");
+    static const unsigned int QUERY_STAR_SET_SIZE;
+
 #if !defined ENABLE_TESTING_ACCESS
-  private:
+    private:
 #endif
     std::vector<Star::trio> query_for_trios (const index_trio &);
 };

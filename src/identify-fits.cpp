@@ -81,7 +81,7 @@ Star::list parse_centroids (const std::shared_ptr<FILE> &centroids_pipe) {
                 double x = s_c[0] - hf, y = s_c[1] - hf;
                 
                 // Project the star to 3D, and save it.
-                s_i.push_back(Star::wrap(Mercator::transform_point(x, y, dpp)));
+                s_i.emplace_back(Star::wrap(Mercator::transform_point(x, y, dpp)));
             }
         }
     }
@@ -121,7 +121,7 @@ int identify_fits (const std::string &id_method, const Star::list &s_i) {
     Identification::collect_parameters(p, cf, id_method);
     
     // Identify using the given ID method, and display the results through Python.
-    auto identify = [&input, &p, &s_i, &fov] (const Star::list &result) -> int {
+    auto identify = [&] (const Star::list &result) -> int {
         Benchmark output(result, s_i[0], fov);
         output.display_plot();
         return 0;

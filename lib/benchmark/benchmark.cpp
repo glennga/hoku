@@ -10,6 +10,12 @@
 #include "benchmark/benchmark.h"
 #include "math/random-draw.h"
 
+/// Indicates that a given identification object does not have an designated field of view.
+const double Benchmark::NO_FOV = -1;
+
+/// The default apparent magnitude, minimum brightness from Earth.
+const double Benchmark::DEFAULT_M_BAR = 6.0;
+
 /// String of HOKU_PROJECT_PATH environment variable.
 const std::string Benchmark::PROJECT_LOCATION = std::getenv("HOKU_PROJECT_PATH");
 
@@ -69,6 +75,14 @@ Benchmark::Benchmark (const Star::list &s, const Vector3 &center, const double f
 /// @return A dummy image without stars.
 const Benchmark Benchmark::black () {
     return Benchmark({}, Vector3::Zero(), 0);
+}
+
+/// Access method for the b list components. Overloads the [] operator.
+///
+/// @param n Star of b to return.
+/// @return Star located at index n inside B.
+Star Benchmark::operator[] (const unsigned int n) const {
+    return this->b[n];
 }
 
 /// Shuffle the current star set. Uses C++11 random library.

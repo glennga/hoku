@@ -9,6 +9,12 @@
 #include "math/trio.h"
 #include "identification/spherical-triangle.h"
 
+/// Default tree depth for calculating the spherical moment.
+const int Sphere::DEFAULT_TD_H = 3;
+
+/// Exact number of query stars required for query experiment.
+const unsigned int Sphere::QUERY_STAR_SET_SIZE = 3;
+
 /// Default parameters for the spherical triangle identification method.
 const Identification::Parameters Sphere::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_QUERY,
     DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_4, DEFAULT_SQL_LIMIT, DEFAULT_NO_REDUCTION, DEFAULT_FAVOR_BRIGHT_STARS,
@@ -78,11 +84,13 @@ std::vector<Identification::labels_list> Sphere::query (const Star::list &s) {
 ///     - table_name
 ///     - sigma_query
 ///     - sql_limit
+///     - nu
+///     - nu_max
 /// @endcode
 ///
-/// @return NO_CANDIDATES_FOUND if we cannot query anything. Otherwise, a single match configuration found by the
+/// @return NO_CONFIDENT_R if we cannot query anything. Otherwise, a single match configuration found by the
 /// spherical triangle method.
-Identification::labels_list Sphere::reduce () {
+Star::list Sphere::reduce () {
     return e_reduction();
 }
 

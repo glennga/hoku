@@ -186,8 +186,8 @@ TEST(Rotation, QChance) {
     Star::list c = {Rotation::rotate(b[0], a), Rotation::rotate(b[1], a), Rotation::rotate(b[2], a)};
     Rotation d = Rotation::q_method(b, c);
     Star e = Rotation::rotate(c[0], d), f = Rotation::rotate(c[1], d);
-    EXPECT_LT((180.0 / M_PI) * Vector3::Angle(e, b[0]), 0.000001);
-    EXPECT_LT((180.0 / M_PI) * Vector3::Angle(f, b[1]), 0.000001);
+    EXPECT_LT((180.0 / M_PI) * Vector3::Angle(e, b[0]), 0.00001);
+    EXPECT_LT((180.0 / M_PI) * Vector3::Angle(f, b[1]), 0.00001);
 }
 
 /// Check that for each star in set A and the same rotated set B, there exists a quaternion H such that A = HB.
@@ -204,6 +204,6 @@ TEST(Rotation, QMultipleStars) {
     
     for (int q = 0; q < 5; q++) {
         Star e = Rotation::rotate(c[q], d);
-        EXPECT_LT((180.0 / M_PI) * Vector3::Angle(e, b[q]), 0.000001);
+        EXPECT_LT((180.0 / M_PI) * Vector3::Angle(e, b[q]), 0.00001);
     }
 }

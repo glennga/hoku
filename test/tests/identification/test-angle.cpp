@@ -79,10 +79,10 @@ TEST(Angle, QueryPair) {
     EXPECT_THAT(c, Contains(b[0]));
     EXPECT_THAT(c, Contains(b[1]));
     
-    p2.no_reduction = false;
+    p2.no_reduction = true;
     Identification::labels_list d = Angle(input, p2).query_for_pair(a);
-    EXPECT_THAT(Angle::EMPTY_BIG_R_ELL, Not(Contains(d[0])));
-    EXPECT_THAT(Angle::EMPTY_BIG_R_ELL, Not(Contains(d[1])));
+    EXPECT_THAT(Angle::NO_CANDIDATES_FOUND, Not(Contains(d[0])));
+    EXPECT_THAT(Angle::NO_CANDIDATES_FOUND, Not(Contains(d[1])));
 }
 
 /// Check that the query_for_pair method fails when expected.
@@ -91,19 +91,19 @@ TEST(Angle, QueryExpectedFailure) {
     Benchmark input(ch, 15), input2(ch, 15);
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
-    p.sigma_1 = std::numeric_limits<double>::epsilon();
+    p.sigma_1 = 1.0e-19;
     
     double a = (180.0 / M_PI) * Vector3::Angle(input.b[0], input.b[1]);
     Identification::labels_list b = Angle(input, p).query_for_pair(a);
-    EXPECT_THAT(Angle::EMPTY_BIG_R_ELL, Contains(b[0]));
-    EXPECT_THAT(Angle::EMPTY_BIG_R_ELL, Contains(b[1]));
+    EXPECT_THAT(Angle::NO_CANDIDATES_FOUND, Contains(b[0]));
+    EXPECT_THAT(Angle::NO_CANDIDATES_FOUND, Contains(b[1]));
     
     // |R| restriction should prevent an answer from being displayed.
-    p.sigma_1 = 0.1, p.no_reduction = true;
+    p.sigma_1 = 0.1, p.no_reduction = false;
     double d = (180.0 / M_PI) * Vector3::Angle(input2.b[0], input2.b[1]);
     Identification::labels_list c = Angle(input2, p).query_for_pair(d);
-    EXPECT_THAT(Angle::EMPTY_BIG_R_ELL, Contains(c[0]));
-    EXPECT_THAT(Angle::EMPTY_BIG_R_ELL, Contains(c[1]));
+    EXPECT_THAT(Angle::NO_CANDIDATES_FOUND, Contains(c[0]));
+    EXPECT_THAT(Angle::NO_CANDIDATES_FOUND, Contains(c[1]));
 }
 
 /// Check that the brightest pair is selected, using the fbs flag.
@@ -196,11 +196,12 @@ TEST(Angle, TrialCleanQuery) {
 TEST(Angle, TrialCleanReduction) {
     Chomp ch;
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
-    p.sigma_4 = 0.0001, p.sigma_1 = 0.000000001;
+    p.nu = std::make_shared<unsigned int>(0), p.sigma_1 = 0.000000001;
     
     Benchmark i({ch.query_hip(22667), ch.query_hip(27913)}, ch.query_hip(22667), 20);
     Angle a(i, p);
-    EXPECT_THAT(a.reduce(), UnorderedElementsAre(22667, 27913));
+    EXPECT_THAT(a.reduce(), UnorderedElementsAre(ch.query_hip(22667), ch.query_hip(27913)));
+    EXPECT_EQ(*(a.parameters.nu), 1);
 }
 
 /// Check that a clean input returns the expected identification of stars.
@@ -228,8 +229,8 @@ TEST(Angle, TrialExceededNu) {
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0), p.nu_max = 10;
-    p.sigma_1 = std::numeric_limits<double>::epsilon();
-    p.sigma_4 = std::numeric_limits<double>::epsilon();
+    p.sigma_1 = 1.0e-19;
+    p.sigma_4 = 1.0e-19;
     Angle a(input, p);
     
     EXPECT_EQ(a.identify()[0], Angle::EXCEEDED_NU_MAX[0]);
@@ -243,8 +244,8 @@ TEST(Angle, TrialNoMapFound) {
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0), p.nu_max = std::numeric_limits<unsigned int>::max();
-    p.sigma_1 = std::numeric_limits<double>::epsilon();
-    p.sigma_4 = std::numeric_limits<double>::epsilon();
+    p.sigma_1 = 1.0e-19;
+    p.sigma_4 = 1.0e-19;
     Angle a(input, p);
     
     EXPECT_EQ(a.identify()[0], Angle::NO_CONFIDENT_A[0]);

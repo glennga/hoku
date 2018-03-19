@@ -34,17 +34,14 @@ class Pyramid : public Identification {
   public:
     Pyramid (const Benchmark &input, const Parameters &p);
     
-    virtual std::vector<labels_list> query (const Star::list &s);
-    labels_list reduce ();
+    std::vector<labels_list> query (const Star::list &s);
+    Star::list reduce ();
     Star::list identify ();
     
     static int generate_table (INIReader &cf);
     
     static const Parameters DEFAULT_PARAMETERS;
-  
-  public:
-    /// Exact number of query stars required for query experiment.
-    static constexpr unsigned int QUERY_STAR_SET_SIZE = 3;
+    static const unsigned int QUERY_STAR_SET_SIZE;
 
 #if !defined ENABLE_TESTING_ACCESS
     protected:

@@ -9,6 +9,9 @@
 #include "math/trio.h"
 #include "identification/planar-triangle.h"
 
+/// Exact number of query stars required for query experiment.
+const unsigned int Plane::QUERY_STAR_SET_SIZE = 3;
+
 /// Default parameters for the planar triangle identification method.
 const Identification::Parameters Plane::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_QUERY,
     DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_4, DEFAULT_SQL_LIMIT, DEFAULT_NO_REDUCTION, DEFAULT_FAVOR_BRIGHT_STARS,
@@ -73,11 +76,13 @@ std::vector<Identification::labels_list> Plane::query (const Star::list &s) {
 ///     - table_name
 ///     - sigma_query
 ///     - sql_limit
+///     - nu
+///     - nu_max
 /// @endcode
 ///
-/// @return NO_CANDIDATES_FOUND if we cannot query anything. Otherwise, a single match configuration found by the
+/// @return NO_CONFIDENT_R if we cannot query anything. Otherwise, a single match configuration found by the
 /// planar triangle method.
-Identification::labels_list Plane::reduce () {
+Star::list Plane::reduce () {
     return e_reduction();
 }
 

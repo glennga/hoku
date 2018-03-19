@@ -2,7 +2,7 @@
 /// @author Glenn Galvizo
 ///
 /// Source file for the trial runner. Based on the arguments, run the specific trial for the given identification
-/// method and log the data to a database. There exists five trial types, and five identification methods.
+/// method and log the data to a database. There exists four trial types, and six identification methods.
 ///
 /// @code{.cpp}
 /// To perform and log experiments...
@@ -16,6 +16,7 @@
 /// - b query -> Run the query trials with the B method.
 /// - b reduction -> Run the reduction trials with the B method.
 /// - b identification -> Run the identification trials with the B method.
+/// - b overlay -> Run the overlay trials. The passed B method does not matter.
 /// @endcode{.cpp}
 /// @example
 /// @code{.cpp}
@@ -48,7 +49,7 @@ namespace EHA {
     /// @param experiment_in Input given by the user, to identify the type of experiment table.
     /// @return Index of the name space below. 3 is given if the given input is not in the name space.
     int experiment_to_hash (const std::string &experiment_in) {
-        std::array<std::string, 3> space = {"query", "reduction", "identification"};
+        std::array<std::string, 4> space = {"query", "reduction", "identification", "overlay"};
         return static_cast<int> (std::distance(space.begin(), std::find(space.begin(), space.end(), experiment_in)));
     }
     
@@ -61,6 +62,7 @@ namespace EHA {
             case 0: return cf.Get("query-experiment", "lu", "QUERY");
             case 1: return cf.Get("reduction-experiment", "lu", "REDUCTION");
             case 2: return cf.Get("identification-experiment", "lu", "IDENTIFICATION");
+            case 3: return cf.Get("overlay-experiment", "lu", "OVERLAY");
             default: throw std::runtime_error(std::string("Experiment name is not in the space of trial names."));
         }
     }
@@ -87,6 +89,7 @@ int create_lumberjack_table (const std::string &experiment_in) {
         case 0: return Lumberjack::create_table(table, Experiment::Query::SCHEMA);
         case 1: return Lumberjack::create_table(table, Experiment::Reduction::SCHEMA);
         case 2: return Lumberjack::create_table(table, Experiment::Map::SCHEMA);
+        case 3: return Lumberjack::create_table(table, Experiment::Overlay::SCHEMA);
         default: throw std::runtime_error(std::string("Experiment name is not in the space of trial names."));
     }
 }
@@ -104,27 +107,33 @@ void perform_trial (Lumberjack &lu, const std::string &identifier_in, const std:
         case 0: return Experiment::Query::trial<Angle>(ch, lu, cf, identifier_in);
         case 1: return Experiment::Reduction::trial<Angle>(ch, lu, cf, identifier_in);
         case 2: return Experiment::Map::trial<Angle>(ch, lu, cf, identifier_in);
+        case 3: return Experiment::Overlay::trial<Angle>(ch, lu, cf, identifier_in);
         
-        case 3: return Experiment::Query::trial<Dot>(ch, lu, cf, identifier_in);
-        case 4: return Experiment::Reduction::trial<Dot>(ch, lu, cf, identifier_in);
-        case 5: return Experiment::Map::trial<Dot>(ch, lu, cf, identifier_in);
-        
-        case 6: return Experiment::Query::trial<Sphere>(ch, lu, cf, identifier_in);
-        case 7: return Experiment::Reduction::trial<Sphere>(ch, lu, cf, identifier_in);
-        case 8: return Experiment::Map::trial<Sphere>(ch, lu, cf, identifier_in);
-        
-        case 9: return Experiment::Query::trial<Plane>(ch, lu, cf, identifier_in);
-        case 10: return Experiment::Reduction::trial<Plane>(ch, lu, cf, identifier_in);
-        case 11: return Experiment::Map::trial<Plane>(ch, lu, cf, identifier_in);
-        
-        case 12: return Experiment::Query::trial<Pyramid>(ch, lu, cf, identifier_in);
-        case 13: return Experiment::Reduction::trial<Pyramid>(ch, lu, cf, identifier_in);
-        case 14: return Experiment::Map::trial<Pyramid>(ch, lu, cf, identifier_in);
-        
-        case 15: return Experiment::Query::trial<Composite>(ch, lu, cf, identifier_in);
-        case 16: return Experiment::Reduction::trial<Composite>(ch, lu, cf, identifier_in);
-        case 17: return Experiment::Map::trial<Composite>(ch, lu, cf, identifier_in);
-        
+        case 4: return Experiment::Query::trial<Dot>(ch, lu, cf, identifier_in);
+        case 5: return Experiment::Reduction::trial<Dot>(ch, lu, cf, identifier_in);
+        case 6: return Experiment::Map::trial<Dot>(ch, lu, cf, identifier_in);
+        case 7: return Experiment::Overlay::trial<Dot>(ch, lu, cf, identifier_in);
+    
+        case 8: return Experiment::Query::trial<Sphere>(ch, lu, cf, identifier_in);
+        case 9: return Experiment::Reduction::trial<Sphere>(ch, lu, cf, identifier_in);
+        case 10: return Experiment::Map::trial<Sphere>(ch, lu, cf, identifier_in);
+        case 11: return Experiment::Overlay::trial<Sphere>(ch, lu, cf, identifier_in);
+    
+        case 12: return Experiment::Query::trial<Plane>(ch, lu, cf, identifier_in);
+        case 13: return Experiment::Reduction::trial<Plane>(ch, lu, cf, identifier_in);
+        case 14: return Experiment::Map::trial<Plane>(ch, lu, cf, identifier_in);
+        case 15: return Experiment::Overlay::trial<Plane>(ch, lu, cf, identifier_in);
+    
+        case 16: return Experiment::Query::trial<Pyramid>(ch, lu, cf, identifier_in);
+        case 17: return Experiment::Reduction::trial<Pyramid>(ch, lu, cf, identifier_in);
+        case 18: return Experiment::Map::trial<Pyramid>(ch, lu, cf, identifier_in);
+        case 19: return Experiment::Overlay::trial<Pyramid>(ch, lu, cf, identifier_in);
+    
+        case 20: return Experiment::Query::trial<Composite>(ch, lu, cf, identifier_in);
+        case 21: return Experiment::Reduction::trial<Composite>(ch, lu, cf, identifier_in);
+        case 22: return Experiment::Map::trial<Composite>(ch, lu, cf, identifier_in);
+        case 23: return Experiment::Overlay::trial<Composite>(ch, lu, cf, identifier_in);
+    
         default: throw std::runtime_error(std::string("Choices not in appropriate spaces or test does not exist."));
     }
 }
@@ -144,6 +153,7 @@ void perform_trial (Lumberjack &lu, const std::string &identifier_in, const std:
 /// - b query -> Run the query trials with the B method.
 /// - b reduction -> Run the reduction trials with the B method.
 /// - b identification -> Run the identification trials with the B method.
+/// - b overlay -> Run the overlay trials. The passed B method does not matter.
 /// @endcode{.cpp}
 ///
 /// @param argc Argument count. This must be equal to 3.
@@ -170,7 +180,7 @@ int main (int argc, char *argv[]) {
         };
         
         if (!is_valid_arg(argv[1], {"angle", "dot", "sphere", "plane", "pyramid", "composite"})
-            || !is_valid_arg(argv[2], {"query", "reduction", "identification"})) {
+            || !is_valid_arg(argv[2], {"query", "reduction", "identification", "overlay"})) {
             std::cout << "Usage: RunTrial ['angle', ... , 'composite'] ['query', ... , 'identification']" << std::endl;
             return -1;
         }

@@ -46,16 +46,6 @@ class Star : public Vector3 {
     
     /// Quad type, defined as a 4-element array of Stars.
     using quad = std::array<Star, 4>;
-    
-    /// Returned when a user attempts to access an item using the [] operator for n > 1.
-    static constexpr double INVALID_ELEMENT_ACCESSED = 0;
-    
-    /// The default label of all stars.
-    static constexpr int NO_LABEL = 0;
-    
-    /// The default magnitude of all stars (brighter than our Sun).
-    static constexpr double NO_MAGNITUDE = -30.0;
-  
   public:
     Star (double i, double j, double k, int label = NO_LABEL, double m = NO_MAGNITUDE);
     Star ();
@@ -75,9 +65,13 @@ class Star : public Vector3 {
     
     static Star define_label (const Star &s, int label);
     static Star reset_label (const Star &s);
+    
+    static const double INVALID_ELEMENT_ACCESSED;
+    static const double NO_MAGNITUDE;
+    static const int NO_LABEL;
 
 #if !defined ENABLE_TESTING_ACCESS
-  private:
+    private:
 #endif
     /// Catalog specific ID for the given star.
     int label;

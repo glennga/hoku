@@ -42,18 +42,16 @@ int Composite::generate_table (INIReader &cf) {
 Composite::labels_list_list Composite::query_for_trios (const double a, const double i) {
     double epsilon_1 = 3.0 * this->parameters.sigma_1, epsilon_2 = 3.0 * this->parameters.sigma_2;
     std::vector<labels_list> big_r_ell = BaseTriangle::NO_CANDIDATE_TRIOS_FOUND;
-    Nibble::tuples_d a_match;
+    Nibble::tuples_d matches;
     
-    // First, search for trio of stars matching area condition.
-    a_match = ch.simple_bound_query("a", "label_a, label_b, label_c, i", a - epsilon_1, a + epsilon_1,
-                                    this->parameters.sql_limit);
+    // Query for candidates using all fields.
+    matches = ch.simple_bound_query({"a", "i"}, "label_a, label_b, label_c, i", {a - epsilon_1, i - epsilon_2},
+                                    {a + epsilon_1, i + epsilon_2}, this->parameters.sql_limit);
     
     // Next, search this trio for stars matching the moment condition.
-    big_r_ell.reserve(a_match.size() / 4);
-    std::for_each(a_match.begin(), a_match.end(), [&epsilon_2, &big_r_ell, &i] (const Chomp::tuple_d &t) -> void {
-        if (t[3] >= i - epsilon_2 && t[3] < i + epsilon_2) {
-            big_r_ell.push_back({static_cast<int> (t[0]), static_cast<int> (t[1]), static_cast<int>(t[2])});
-        }
+    big_r_ell.reserve(matches.size());
+    std::for_each(matches.begin(), matches.end(), [&big_r_ell] (const Chomp::tuple_d &t) -> void {
+        big_r_ell.emplace_back(labels_list {static_cast<int> (t[0]), static_cast<int> (t[1]), static_cast<int>(t[2])});
     });
     
     // If results are found, remove the initialized value of NO_CANDIDATE_TRIOS_FOUND.
@@ -117,13 +115,12 @@ Star::trio Composite::find_catalog_stars (const Star::trio &b_f) {
     }
     
     // Otherwise, perform the identification (DMT performed below).
-    std::array<BaseTriangle::index_trio, 6> big_a_c;
     std::array<Star::list, 6> big_m = {}, big_a = {};
     
     // Generate all permutations of <0, 1, 2>.
-    big_a_c = {BaseTriangle::STARTING_INDEX_TRIO, BaseTriangle::index_trio {0, 2, 1},
-        BaseTriangle::index_trio {1, 0, 2}, BaseTriangle::index_trio {1, 2, 0}, BaseTriangle::index_trio {2, 0, 1},
-        BaseTriangle::index_trio {2, 1, 0}};
+    std::array<BaseTriangle::index_trio, 6> big_a_c = {BaseTriangle::STARTING_INDEX_TRIO, BaseTriangle::index_trio
+        {0, 2, 1}, BaseTriangle::index_trio {1, 0, 2}, BaseTriangle::index_trio {1, 2, 0},
+        BaseTriangle::index_trio {2, 0, 1}, BaseTriangle::index_trio {2, 1, 0}};
     
     // Determine the rotation to take frame R to B.
     for (unsigned int i = 0; i < 6; i++) {
@@ -161,21 +158,63 @@ std::vector<Identification::labels_list> Composite::query (const Star::list &s) 
     }
     double epsilon_1 = 3.0 * this->parameters.sigma_1, epsilon_2 = 3.0 * this->parameters.sigma_2;
     std::vector<labels_list> big_r_ell = {};
-    Nibble::tuples_d a_match;
+    Nibble::tuples_d matches;
     
     // First, search for trio of stars matching area condition.
     double a = Trio::planar_area(s[0], s[1], s[2]), i = Trio::planar_moment(s[0], s[1], s[2]);
-    a_match = ch.simple_bound_query("a", "label_a, label_b, label_c, i", a - epsilon_1, a + epsilon_1,
-                                    this->parameters.sql_limit);
+    matches = ch.simple_bound_query({"a", "i"}, "label_a, label_b, label_c, i", {a - epsilon_1, i - epsilon_2},
+                                    {a + epsilon_1, i + epsilon_2}, this->parameters.sql_limit);
     
-    // Next, search this trio for stars matching the moment condition.
-    big_r_ell.reserve(a_match.size() / 4);
-    std::for_each(a_match.begin(), a_match.end(), [&big_r_ell, &epsilon_2, &i] (const Chomp::tuple_d &t) -> void {
-        if (t[3] >= i - epsilon_2 && t[3] < i + epsilon_2) {
-            big_r_ell.push_back({static_cast<int> (t[0]), static_cast<int> (t[1]), static_cast<int>(t[2])});
-        }
+    // Next, transform all stars into candidate set labels.
+    big_r_ell.reserve(matches.size());
+    std::for_each(matches.begin(), matches.end(), [&big_r_ell] (const Chomp::tuple_d &t) -> void {
+        big_r_ell.emplace_back(labels_list {static_cast<int> (t[0]), static_cast<int> (t[1]), static_cast<int>(t[2])});
     });
     
     // Return the trios.
     return big_r_ell;
+}
+
+/// Finds the single, most likely result for the first four stars in our current benchmark. This trial is
+/// basically the same as the first identification trials. Input image is used. We require the following to be defined:
+///
+/// @code{.cpp}
+///     - table_name
+///     - sigma_query
+///     - sql_limit
+///     - nu
+///     - nu_max
+/// @endcode
+///
+/// @return NO_CONFIDENT_R if a candidate quad cannot be found. Otherwise, a single match configuration found
+/// by the angle method.
+Star::list Composite::reduce () {
+    ch.select_table(parameters.table_name);
+    *parameters.nu = 0;
+    
+    for (unsigned int dj = 1; dj < big_i.size() - 1; dj++) {
+        for (unsigned int dk = 1; dk < big_i.size() - dj - 1; dk++) {
+            for (unsigned int di = 0; di < big_i.size() - dj - dk - 1; di++) {
+                int i = di, j = di + dj, k = j + dk;
+                (*parameters.nu)++;
+    
+                // Practical limit: exit early if we have iterated through too many comparisons without match.
+                if (*parameters.nu > parameters.nu_max) {
+                    return NO_CONFIDENT_R;
+                }
+                
+                labels_list_list big_r_ell = this->query_for_trios(Trio::planar_area(big_i[i], big_i[j], big_i[k]),
+                                                                   Trio::planar_moment(big_i[i], big_i[j], big_i[k]));
+    
+                // |R| = 1 restriction, reduction step.
+                if (std::equal(big_r_ell.begin(), big_r_ell.end(), BaseTriangle::NO_CANDIDATE_TRIOS_FOUND.begin())) {
+                    continue;
+                }
+                
+                return {ch.query_hip(big_r_ell[0][0]), ch.query_hip(big_r_ell[0][1]), ch.query_hip(big_r_ell[0][2])};
+            }
+        }
+    }
+    
+    return NO_CONFIDENT_R;
 }

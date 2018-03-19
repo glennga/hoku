@@ -21,10 +21,10 @@ class IdentificationDummy : public Identification {
         this->big_i = s, parameters = p;
     }
     std::vector<labels_list> query (const Star::list &) {
-        return {Identification::EMPTY_BIG_R_ELL};
+        return {};
     }
-    labels_list reduce () {
-        return Identification::EMPTY_BIG_R_ELL;
+    Star::list reduce () {
+        return Identification::NO_CONFIDENT_R;
     }
     Star::list identify () {
         return this->big_i;
@@ -242,8 +242,8 @@ TEST(BaseIdentification, AlignmentCleanInputTRIAD) {
     IdentificationDummy g(input.b, Identification::DEFAULT_PARAMETERS);
     Rotation q_1 = g.align();
     
-    Star a = input.b[3], b = input.b[4];
-    EXPECT_LT((180.0 / M_PI) * Vector3::Angle(Rotation::rotate(a, q), Rotation::rotate(a, q_1)), 00000000000001);
+    Star a = input.b[0], b = input.b[1];
+    EXPECT_LT((180.0 / M_PI) * Vector3::Angle(Rotation::rotate(a, q), Rotation::rotate(a, q_1)), 0.000000000001);
     EXPECT_LT((180.0 / M_PI) * Vector3::Angle(Rotation::rotate(b, q), Rotation::rotate(b, q_1)), 0.000000000001);
 }
 

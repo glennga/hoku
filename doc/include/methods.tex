@@ -44,7 +44,7 @@ Once the images were generated, three experiments were performed: one for featur
 effectiveness, and one for identification performance and accuracy.
 
 All trials were performed on an Intel i7-7700 CPU, 3.60GHz with 16 GB RAM\@.
-Each algorithm was implemented in C++17, and compiled without optimization (at \texttt{-O0}).
+Each algorithm was implemented in C++14, and compiled without optimization (at \texttt{-O0}).
 The exact implementation is available at the following link: \newline
 \url{https://github.com/glennga/hoku}.
 
@@ -60,20 +60,23 @@ Benchmark images were generated with the process below:
 \begin{subequations}
     \label{eq:catalogToCartesian}
     The catalog here does not refer to the raw Hipparcos Input Catalogue using spherical coordinates, rather a
-    modified catalog whose entries exist in a 3D cartesian frame.
-    Depicted below is the conversion to ($x, y, z$) points, assuming $\alpha$ and $\delta$ are in radians:
+    modified catalog whose entries exist in a 3D cartesian frame and whose positions are updated to MJD 58119 (January
+    2018) from MJD 48319 (March 1991).
+    Depicted below is the conversion to ($x, y, z$) points, with $\alpha$ \& $\delta$ in radians,
+    $\mu_\alpha$ \& $\mu_\delta$ in radians per year, and $t$ \& $\tau$ (MJD 58119 and time of catalog = MJD 48316
+    respectively) in years.
     \begin{align}
-        x &= d \times cos(\delta) cos(\alpha) \\
-        y &= d \times cos(\delta) sin(\alpha) \\
-        z &= d \times sin(\delta)
+        \alpha_t &= \alpha_\tau + \mu_\alpha (\tau - t) \\
+        \delta_t &= \delta_\tau + \mu_\delta (\tau - t) \\
+        x &= d \times \cos(\delta_t) \cos(\alpha_t) \\
+        y &= d \times \cos(\delta_t) \sin(\alpha_t) \\
+        z &= d \times \sin(\delta_t)
     \end{align}
 \end{subequations}
 
 $d$ in~\autoref{eq:catalogToCartesian} represents the distance from the Earth (an observer) to the star.
 For this set of experiments, $d = 1$ to normalize each vector and work entirely on the celestial sphere.
-Also stored with each star's ($x, y, z$) position are the star's apparent magnitude (brightness) $m$ and catalog
-identifier $\ell$.
-\textit{For simplicity, the \underline{catalog} refers to the set of stars in this Cartesian frame.}
+\textit{For simplicity, the \underline{catalog} refers to the set of stars in this Cartesian frame at time = MJD 58119.}
 
 As mentioned before, all catalog stars exist in an inertial frame known as the \textit{catalog frame}.
 To generate clean benchmark images, three items must be specified:
@@ -96,22 +99,97 @@ Note that the goal of attitude determination is to find this true attitude $q_{r
     }
 \end{figure}
 
-All stars $S_r$ from the catalog are selected such that no star exists more than $f$ away from $c_r$.
-$S_r$ and $c_r$ are then rotated by $q_{rb}$ to construct the image stars: $S_b$ and $c_b$.
-$S_b$ is then stripped of their catalog identifiers, as it is the job of the identification method to guess these.
+All stars from the catalog are selected such that no star exists more than $\frac{f}{2}$ away from the image center.
+These stars and the image center are then rotated by $q_{rb}$ to construct the image stars.
 The resulting image is presented in~\autoref{figure:benchmarkImageExample}.
-What is presented to each identification method are the stars in the image $S_b$, the center of the image $c_b$, and
-the field-of-view $f$.
+What is presented to each identification method are the set of rotated catalog stars, the rotated image center, and
+the field of view.
 
-% Citation: Pyramid method, pg14
-Noise is assumed to exist in two forms here: misrepresentations of the centroid (i.e.\ centroiding error) and as
+Noise is assumed to exist in two forms here: misrepresentations of the centroid (i.e.\ centroiding error and as
 falsely identified sources of light in the image.
-Centroiding error is applied to $S_b$ by slightly rotating a star $s$ in a random direction, whose severity is
-determined by a Gaussian distribution $N(0, \sigma^2)$.
-For this set of experiments, $\sigma = 50\mu rad$.
-False stars were added to $S_b$ by generating a random vector $s$ within $f$ of $c_b$.
+Centroiding error is applied to the rotated catalog star set by slightly rotating some star in this set, in some
+random direction.
+The severity is determined by a Gaussian distribution $N(0, \sigma^2)$.
+False stars were added by generating a random vector within $\frac{f}{2}$ of the image center.
 
-\subsection{Which set of features best distinguish a set of stars?}\label{subsec:featureUniquenessMethods}
+\subsection{What are the best hyperparameters for each algorithm?}\label{subsec:hyperparameterSelectionMethods}
+This experiment helps determine the optimal hyperparameters (i.e.\ query $\sigma$, overlay $\sigma$) for each
+identification method.
+Referencing~\autoref{figure:genericIdentificationMethodFlowchart}, different values for this deviation in the
+\textit{Search Catalog} step, or "query" step may lead to exclusion of the correct candidates in $R$.
+Similarly, differing values for this deviation in the \textit{Identify} step may lead to the wrong map $a$ being
+produced.
+
+The heuristic used to determine the optimal hyperparameters here was a grid search, iteratively exhausting every
+permutation of some set of deviations and measuring the outcome of each trial.
+The advantage of this heuristic is that every permutation is tested, but this comes at a cost of time and resources.
+For this reason, a smaller number of trials were performed than that of the other experiments when determining
+hyperparameters.
+
+To determine the deviation for the query step, a permutation $P_n^{\sigma_n}$ is defined for some integer set $M$,
+where:
+\begin{equation}
+    \label{eq:gridSearchQuery}
+    \sigma_n \ \in \ \{ 1.0e^{M_1}, 1.0e^{M_2}, \ldots 1.0e^{M_N} \}
+\end{equation}
+Each deviation above corresponds to some feature used to query the catalog.
+For example, $n = 3$ for the Dot Angle method.
+$\sigma_1$ corresponds to the query associated with $\theta_{ic}$, $\sigma_2$ corresponds to the query associated
+with $\theta_{jc}$, and $\sigma_3$ corresponds to the query associated with $\phi$.
+
+\begin{subequations}
+    \label{eq:stabilityQuery}
+    For each output in~\autoref{eq:querySelectivityMeasures}, a value is considered stable if all queries hit and have a
+    sole element in the candidate set.
+    \begin{align}
+        \text{Length of stable } Q \text{ region } &= \sum_{i = 0}^N \left[ \frac{Q_{i}}{N} = 1 \right] \\
+        \text{Length of stable } \lvert R \rvert \text{ region } &= \sum_{i = 0}^N \left[ \frac{\lvert R \rvert_{i}}{N}
+        = 1\right]
+    \end{align}
+\end{subequations}
+where $Q = $ probability that the correct star set exists in $R$ (query hit probability).
+
+% Local Method: https://en.wikipedia.org/wiki/Sensitivity_analysis
+\begin{subequations}
+    \label{eq:sensitivityQuery}
+    For the same outputs in~\autoref{eq:querySelectivityMeasures}, the sensitivity of some critical point $\sigma_c$
+    can be represented as:
+    % TODO: Is response the right word here?
+    \begin{align}
+        \left\lvert\frac{\partial Q}{\partial \sigma}\right\rvert_{\sigma_{c1}} &= \text{response of } Q \text{ to }
+        \sigma \text{ at } \sigma_{c1} \\
+        \left\lvert\frac{\partial \lvert R \rvert}{\partial \sigma}\right\rvert_{\sigma_{c2}} &=
+        \text{response of } |R| \text{ to } \sigma \text{ at } \sigma_{c2}
+    \end{align}
+\end{subequations}
+
+% TODO: Incoorperate derivatives above, a larger change indicates more large sensitivity at that point.
+The length of the stability region indicates
+
+The longer that the responses above remain at zero, the less sensitive the hyperparameter selection is for that
+specific feature.
+This suggests that the method may be less susceptible to noise, as there will be less dependence on $\sigma$ itself.
+
+To determine $\sigma$ for the identification step, the grid search devolves into a linear search.
+$\sigma_o$ (overlay) is defined as~\autoref{eq:gridSearchQuery}, for some different set of $M$.
+
+$\sigma_o$ is used by the \Call{DMT}{} call, a function used by the Angle, Spherical Triangle, Planar Triangle, and
+Composite Pyramid methods.
+Given that this function operates the same for all identification methods above, this function was tested separately
+as a binary classifier.
+The sensitivity of this hyperparameter selection was characterized in terms of the resulting accuracy of the
+classification:
+\begin{equation}
+    \label{eq:sensitivityIdentification}
+    \left\lvert\frac{\partial A}{\partial \sigma}\right\rvert_{\sigma_o} = \text{response of } A \text{ at }
+    \sigma_o \\
+\end{equation}
+where $A = $ accuracy of the resulting classification.
+
+Similarly, the longer the response above remains at zero the less sensitive the hyperparameter selection will be for
+the \Call{DMT}{} call.
+
+\subsection{Which set of features best distinguish a set of stars?}\label{subsec:querySelectivityMethods}
 This experiment helps determine which identification method has the best querying process for catalog candidates $R$.
 This is the first filter step, reducing the entire catalog to a subset of combinations.
 If the correct stars do not exist here (filter produces false negatives), then the following steps will not be able to
@@ -121,107 +199,116 @@ On the other hand if not enough of the catalog is filtered, there is a greater c
 Differences in catalog querying are specified in each paper (K-Vector, KD Trees, \ldots), but in this set of
 experiments all catalog querying uses a B-Tree index.
 The only unique portion of each query that remains are what features each method uses to search the catalog.
-A general SQL statement to search each $b$ set becomes:
+A general SQL statement to search each image star subset becomes:
 \begin{align*}
     \texttt{SELECT } &r_1, r_2, \ldots, r_k \\
     \texttt{FROM } &C \\
-    \texttt{WHERE } &(c_{f1} < q_{f1} + 3\epsilon) \texttt{ AND } (c_{f1} > q_{f1} - 3\epsilon) \texttt{ AND } \\
-    &(c_{f2} < q_{f2} + 3\epsilon) \texttt{ AND } (c_{f2} > q_{f2} - 3\epsilon) \texttt{ AND } \\
+    \texttt{WHERE } &(c_{f1} < q_{f1} + 3\sigma_1) \texttt{ AND } (c_{f1} > q_{f1} - 3\sigma_1) \texttt{ AND } \\
+    &(c_{f2} < q_{f2} + 3\sigma_2) \texttt{ AND } (c_{f2} > q_{f2} - 3\sigma_2) \texttt{ AND } \\
     &\vdots \\
-    &(c_{fn} < q_{fn} + 3\epsilon) \texttt{ AND } (c_{fn} > q_{fn} - 3\epsilon)
+    &(c_{fn} < q_{fn} + 3\sigma_n) \texttt{ AND } (c_{fn} > q_{fn} - 3\sigma_n)
+\end{align*}
+\begin{align*}
+    k =& \text{ number of stars used in the query.} \\
+    c_f =& \text{ catalog feature amongst } r_1, r_2, \ldots, r_k.\\
+    q_f =& \text{ image feature amongst an image star subset } b. \\
+    n =& \text{ number of features used to query the catalog.} \\
+    \sigma_n =& \text{ deviation of Gaussian noise.} \\
+    C =& \text{ the catalog.}
 \end{align*}
 
-Here, $k$ refers to the number of stars used in the query (e.g. the Angle method uses $k = 2$ stars), $c_f$ refers to
-a catalog feature amongst $r_1, r_2, \ldots, r_k$, $q_f$ refers a the image feature amongst a body set $b$, $n$ in
-$c_{fn}$ and $q_{fn}$ refers to the number of features used to query the catalog, $\epsilon$ refers to the deviation
-of noise, and $C$ refers to the catalog.
-
-Toloei's Composite Pyramid uses the same features as Cole and Crassidus's Planar Triangles method, so only five
-features were tested:
+There are five features tested, given that Toloei's Composite Pyramid uses the same features as the Cole and
+Crassidus's Planar Triangles method.
 \begin{itemize}
     \item Angular separation $\theta^{ij}$ between two stars.
-
-    \item Angular separations $\theta^{ic}, \theta^{jc}$ and interior angle $\phi$ between three stars.
+    \item Angular separations $\theta^{ic}, \theta^{jc}$ and dot angle $\phi$ between three stars.
     \item Planar area $a^{ijk}$ and moment $\imath^{ijk}$ between three stars.
     \item Spherical area $a^{ijk}$ and moment $\imath^{ijk}$ between three stars.
     \item Angular separations $\theta^{ij}, \theta^{ik}, \theta^{jk}$ between three stars.
 \end{itemize}
 
-The feature uniqueness of each identification method were analyzed in terms of three variables:
-\begin{enumerate}
-    \item \label{itm:featureDist} Feature frequency (histogram) across all possible combinations of stars in the
-    catalog.
-    \item \label{itm:hitCountFeature} \textit{Query hits} from single catalog candidate searches.
-    \item $|R|$ from single catalog candidate searches.
-\end{enumerate}
+\begin{subequations}
+    \label{eq:querySelectivityMeasures}
+    To quantify the selectivity and accuracy of each feature, we looked at:
+    \begin{align}
+        \text{Query hit probability} &= \frac{1}{N} \sum_{i = 0}^N y(i) \\
+        \text{Query selectivity} &= \frac{1}{N} \sum_{i = 0}^{N} \lvert R(i)) \rvert
+    \end{align}
 
-The ideal frequency distribution for an identification method's features would be low and sparse.
+    Where $N$ is defined as the number of samples and $p$ defined as:
+    \[ y =
+    \begin{cases}
+        1 & \text{if correct star set } \in R \\
+        0 & \text{otherwise}
+    \end{cases}
+    \]
+\end{subequations}
 
-
-TODO: Talk about the selectivity of each statement here?
-TODO: Still need to determine how distribution is going to be quantitatively analyzed.
-
-Query hit count here refers to finding a specific set of stars (the ones used to query for $R$) in the candidates.
-Single catalog candidate searches refer to feeding an image to each identification method and running it to produce
-an $R$ set.
 Referencing~\autoref{figure:genericIdentificationMethodFlowchart}, this consists of performing the \textit{Get Camera
 Image} step and executing the identification method past the \textit{Search Catalog} step to the first decision
 block.
-$R$ would then be analyzed for hits.
+The resulting candidate sets represents one element inside the \textit{set} of $R$ sets.
+Repeating this $N$ times would give us the measures in~\autoref{eq:querySelectivityMeasures}.
 
-A more even distribution of features, a higher query hit count, and a smaller $|R|$ suggest a better chance of uniquely
-identifying candidates.
+An ideal querying processes consists of a query hit probability = 1 and a selectivity of 1 candidate set.
+The latter is desired as this reduces the amount of work required by the reduction process.
 
 \subsection{What is the best process for reducing catalog candidates?}\label{subsec:candidateReductionMethods}
 This experiment helps determine which identification method has the best querying + candidate reduction process.
 If a reduction process is too restrictive, then a single match in $R$ will never be found.
 If a reduction process is not restrictive enough, then the following steps will rarely determine a correct map.
 
+For a majority of these methods, a reduction process is a matter of repeating the query steps until $\lvert R \rvert=1$
+holds true.
+For the triangle methods however, their reduction process is the \Call{Pivot}{} method.
+The experiment reduces down to $\lvert R \rvert=1$ reduction vs. \Call{Pivot}{} reduction, coupled with each individual
+method's query steps.
+
+\begin{subequations}
+    \label{eq:reductionAccuracyMeasures}
+    To quantify the accuracy and efficiency of each query + reduction process, we looked at:
+    \begin{align}
+        \text{Reduction hit probability} &= \sum_{i = 0}^N y(i) \\
+        \text{Average reduction efficiency} &= \sum_{i = 0}^N \tau(i)
+    \end{align}
+
+    Where $\tau$ is defined as the number of iterations to obtain a result and $y$ is defined as:
+    \[
+        y =
+        \begin{cases}
+            1 & \text{if }r \in \text{original, non-rotated image set} \\
+            0 & \text{otherwise}
+        \end{cases}
+    \]
+\end{subequations}
+
 Referencing~\autoref{figure:genericIdentificationMethodFlowchart}, the experiment starts at the \textit{Get Camera
 Image} step and executes the identification method to past the \textit{Confident in $r$?} decision block to produce a
-single match $r$ for some $b$.
+single match from the catalog candidate set for some image star subset.
+The resulting candidate set represent one element inside the set of $r$ sets.
+Repeating this $N$ times would give us the measures in~\autoref{eq:reductionAccuracyMeasures}.
 
-To characterize the reduction portion, the reduction process must be isolated.
-Only results that pass the first filter (the previous experiment) step will be counted, to avoid characterizing the
-query \textit{and} the reduction steps.
-The number of correctly reduced $R$ sets with a query experiment hit was recorded against the number of incorrectly
-reduced $R$ sets with a query experiment hit.
-
-For a majority of these methods, a reduction process is a matter of repeating the query steps until $|R|=1$ holds true.
-For the triangle methods however, their reduction process is the \Call{Pivot}{} method.
-The experiment reduces down to $|R|=1$ reduction vs. \Call{Pivot}{} reduction, coupled with each individual method's
-query steps.
-
-To start, complete images were generated containing $S_b$, $c_b$, and $f$.
-Each identification method was run until a singular set $r$ in $R$ is found.
-If all $r$ exists in the original set $S_r$ used to generate the image, then this was counted as a
-\textit{reduction hit}.
-
-A higher reduction hit count suggests a more accurate feature set and reduction process.
+An ideal reduction processes consists of a reduction hit probability = 1 and an average reduction effiency = 1.
 
 \subsection{Which method most accurately determines a map?}\label{subsec:identificationMethods}
-This experiment helps determine which identification method produces the most accurate catalog to image maps, running
-the entire process from end to end.
+This experiment helps determine which identification method produces the most accurate catalog to image maps.
 An accurate map will reduce an attitude determination problem to Wahba's problem, which can be solved.
+
 
 Referencing~\autoref{figure:genericIdentificationMethodFlowchart} again, this experiment runs the identification
 method end to end.
-To characteize the identification portion, the mapping process must be isolated.
-Only results that pass the first and second filter (the previous experiment) steps will be counted, to avoid
-characterizing the entire identification method.
-The number of correct maps with the correctly reduced sets was recorded against the total number of incorrect maps
-with correctly reduced sets.
+Partial accuracy was recorded by counting the number of correct stars against the total amount of stars in a given
+map.
 
 The end to end trials were analyzed using two variables:
 \begin{enumerate}
     \item \label{itm:correctReducedCandidates} Number of correctly reduced candidate sets $R \rightarrow r$.
-    \item Number of correct maps in~\itmref{Map Experiment}{itm:correctReducedCandidates}.
+    \item Accuracy of maps in~\itmref{Map Experiment}{itm:correctReducedCandidates}.
 \end{enumerate}
 
 To start, complete images were generated containing $S_b$, $c_b$, and $f$.
 Each identification method was run from start to finish, producing a map $a$ (or not one at all).
 If the map references the correct stars in $S_b$ (i.e.\ the reduction experiment), this is recorded as a
 \textit{reduction hit}.
-If the map references the correct stars and the map $a$ is accurate, this is recorded as a \textit{map hit}.
 
-A larger map to reduction hit ratio suggests a more accurate map determination process.
+A larger map accuracy to reduction hit ratio suggests a more optimal map determination process.

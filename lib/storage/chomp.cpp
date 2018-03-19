@@ -13,6 +13,15 @@
 
 #include "storage/chomp.h"
 
+/// Length of the bright stars table. Necessary if loading all stars into RAM.
+const unsigned int Chomp::BRIGHT_TABLE_LENGTH = 4559;
+
+/// Length of the general stars table. Necessary if loading all stars into RAM.
+const unsigned int Chomp::HIP_TABLE_LENGTH = 117956;
+
+/// Returned from table generators when the table already exists in the database.
+const int Chomp::TABLE_EXISTS = -1;
+
 /// Standard machine epsilon for doubles. This represents the smallest possible change in precision.
 const double Chomp::DOUBLE_EPSILON = std::numeric_limits<double>::epsilon();
 
@@ -243,20 +252,27 @@ void Chomp::load_all_stars () {
 /// Search a table for the specified fields given a focus column using a simple bound query. Searches for all results
 /// between y_a and y_b.
 ///
-/// @param focus Our search attribute.
+/// @param foci Our search attributes.
 /// @param fields The attributes to search for in the given table.
-/// @param y_a Lower bound of the focus to search for.
-/// @param y_b Upper bound of the focus to search for.
+/// @param y_a Lower bounds corresponding to each foci by index.
+/// @param y_b Upper bounds corresponding to each foci by index.
 /// @param limit Maximum number of results to retrieve.
 /// @return RESULTANT_EMPTY if there exists no results returned. Otherwise, A list of results (in form of tuples),
 /// in order of that queried from Nibble.
-Nibble::tuples_d Chomp::simple_bound_query (const std::string &focus, const std::string &fields, const double y_a,
-                                            const double y_b, const unsigned int limit) {
+Nibble::tuples_d Chomp::simple_bound_query (const std::vector<std::string> &foci, const std::string &fields,
+                                            const std::vector<double> &y_a, const std::vector<double> &y_b,
+                                            const unsigned int limit) {
     std::ostringstream condition;
-    
     select_table(table);
-    condition << focus << " BETWEEN " << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed;
-    condition << y_a << " AND " << y_b;
+    
+    condition << std::setprecision(std::numeric_limits<double>::digits10 + 1) << std::fixed;
+    for (unsigned int i = 0; i < foci.size(); i++) {
+        condition << foci[i] << " BETWEEN " << y_a[i] << " AND " << y_b[i] << " ";
+        if (i < foci.size() - 1) {
+            condition << " AND ";
+        }
+    }
+    
     Nibble::tuples_d result = search_table(fields, condition.str(), limit * 3, limit);
     
     return (result.empty()) ? RESULTANT_EMPTY : result;

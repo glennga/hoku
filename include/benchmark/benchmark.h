@@ -43,18 +43,16 @@ class Benchmark {
         std::string plot_color; ///< MatPlotLib color to label the affected points.
         Star::list affected; ///< List of stars affected by the error.
     };
-    
-    /// Indicates that a given identification object does not have an designated field of view.
-    static constexpr double NO_FOV = -1;
-    
-    /// The default apparent magnitude, minimum brightness from Earth.
-    static constexpr double DEFAULT_M_BAR = 6.0;
   
   public:
+    static const double DEFAULT_M_BAR;
+    static const double NO_FOV;
+
     Benchmark (Chomp &ch, double fov, double m_bar = DEFAULT_M_BAR);
     Benchmark (Chomp &ch, const Vector3 &center, const Rotation &q, double fov, double m_bar = DEFAULT_M_BAR);
     Benchmark (const Star::list &s, const Vector3 &center, double fov);
     static const Benchmark black ();
+    Star operator[] (unsigned int n) const;
     
     void generate_stars (Chomp &ch, double m_bar = DEFAULT_M_BAR);
     void present_image (Star::list &image_s, double &image_fov) const;

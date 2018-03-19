@@ -9,6 +9,15 @@
 #include "math/star.h"
 #include "math/random-draw.h"
 
+/// Returned when a user attempts to access an item using the [] operator for n > 1.
+const double Star::INVALID_ELEMENT_ACCESSED = 0;
+
+/// The default label of all stars.
+const int Star::NO_LABEL = 0;
+
+/// The default magnitude of all stars (brighter than our Sun).
+const double Star::NO_MAGNITUDE = -30.0;
+
 /// Constructor. Sets the i, j, and k components, as well as the catalog ID and the magnitude of the star.
 ///
 /// @param i The i'th component from the observer to the star.
@@ -34,7 +43,6 @@ Star::Star (const double i, const double j, const double k, const int label, con
 Star Star::wrap (Vector3 v, int label, double m) {
     return Star(v.data[0], v.data[1], v.data[2], label, m);
 }
-
 
 /// Place all components of S into the given stream.
 ///

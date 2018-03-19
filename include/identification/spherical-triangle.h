@@ -32,26 +32,22 @@
 /// @endcode
 class SphericalTriangle : public BaseTriangle {
   public:
-    /// Default tree depth for calculating the spherical moment.
-    static constexpr int DEFAULT_TD_H = 3;
-    
-    /// Exact number of query stars required for query experiment.
-    static constexpr unsigned int QUERY_STAR_SET_SIZE = 3;
-  
-  public:
     using BaseTriangle::Parameters;
     static const Parameters DEFAULT_PARAMETERS;
     
     SphericalTriangle (const Benchmark &, const Parameters &);
     
     std::vector<labels_list> query (const Star::list &s);
-    labels_list reduce ();
+    Star::list reduce ();
     Star::list identify ();
     
     static int generate_table (INIReader &cf);
+    
+    static const int DEFAULT_TD_H;
+    static const unsigned int QUERY_STAR_SET_SIZE;
 
 #if !defined ENABLE_TESTING_ACCESS
-  private:
+    private:
 #endif
     std::vector<Star::trio> query_for_trios (const index_trio &);
 };

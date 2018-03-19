@@ -42,16 +42,6 @@
 /// @endcode
 class Chomp : public Nibble {
   public:
-    /// Length of the bright stars table. Necessary if loading all stars into RAM.
-    static constexpr unsigned int BRIGHT_TABLE_LENGTH = 4559;
-    
-    /// Length of the general stars table. Necessary if loading all stars into RAM.
-    static constexpr unsigned int HIP_TABLE_LENGTH = 117956;
-    
-    /// Returned from table generators when the table already exists in the database.
-    static constexpr int TABLE_EXISTS = -1;
-  
-  public:
     using Nibble::tuples_d;
     
     Chomp ();
@@ -62,8 +52,8 @@ class Chomp : public Nibble {
     int create_k_vector (const std::string &focus);
     tuples_d k_vector_query (const std::string &focus, const std::string &fields, double y_a, double y_b,
                              unsigned int expected);
-    tuples_d simple_bound_query (const std::string &focus, const std::string &fields, double y_a, double y_b,
-                                 unsigned int limit);
+    tuples_d simple_bound_query (const std::vector<std::string> &foci, const std::string &fields,
+                                 const std::vector<double> &y_a, const std::vector<double> &y_b, unsigned int limit);
     
     Star::list nearby_bright_stars (const Vector3 &focus, double fov, unsigned int expected);
     Star::list nearby_hip_stars (const Vector3 &focus, double fov, unsigned int expected);
@@ -73,6 +63,9 @@ class Chomp : public Nibble {
     
     static const Star NONEXISTENT_STAR;
     static const tuples_d RESULTANT_EMPTY;
+    static const unsigned int BRIGHT_TABLE_LENGTH;
+    static const unsigned int HIP_TABLE_LENGTH;
+    static const int TABLE_EXISTS;
 
 #if !defined ENABLE_TESTING_ACCESS
     private:

@@ -36,20 +36,18 @@ class DotAngle : public Identification {
     explicit DotAngle (const Benchmark &input, const Parameters &p);
     
     std::vector<labels_list> query (const Star::list &s);
-    labels_list reduce ();
+    Star::list reduce ();
     Star::list identify ();
     
     static int generate_table (INIReader &cf);
     
     static const Parameters DEFAULT_PARAMETERS;
     static const Star::trio NO_CANDIDATE_TRIO_FOUND;
-  
-  public:
-    /// Exact number of query stars required for query experiment.
-    static constexpr unsigned int QUERY_STAR_SET_SIZE = 3;
+    static const labels_list NO_CANDIDATES_FOUND;
+    static const unsigned int QUERY_STAR_SET_SIZE;
 
 #if !defined ENABLE_TESTING_ACCESS
-  private:
+    private:
 #endif
     labels_list query_for_trio (double theta_1, double theta_2, double phi);
     Star::trio find_candidate_trio (const Star &b_i, const Star &b_j, const Star &b_c);

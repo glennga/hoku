@@ -8,6 +8,12 @@
 
 #include "identification/angle.h"
 
+/// Exact number of query stars required for query experiment.
+const unsigned int Angle::QUERY_STAR_SET_SIZE = 2;
+
+/// Returned when the reduction step does not pass in the query function.
+const Identification::labels_list Angle::NO_CANDIDATES_FOUND = {-1, -1};
+
 /// Default parameters for the angle identification method.
 const Identification::Parameters Angle::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_QUERY,
     DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_4, DEFAULT_SQL_LIMIT, DEFAULT_NO_REDUCTION, DEFAULT_FAVOR_BRIGHT_STARS,
@@ -77,18 +83,18 @@ Identification::labels_list Angle::query_for_pair (const double theta) {
     std::vector<labels_list> big_r_ell;
     Nibble::tuples_d big_r_ell_tuples;
     
-    // Query using theta with epsilon bounds. Return EMPTY_BIG_R_ELL if nothing is found.
-    big_r_ell_tuples = ch.simple_bound_query("theta", "label_a, label_b, theta", theta - epsilon, theta + epsilon,
+    // Query using theta with epsilon bounds. Return NO_CONFIDENT_R if nothing is found.
+    big_r_ell_tuples = ch.simple_bound_query({"theta"}, "label_a, label_b", {theta - epsilon}, {theta + epsilon},
                                              this->parameters.sql_limit);
     
     // |R| = 1 restriction. Applied with the PASS_R_SET_CARDINALITY flag.
-    if (big_r_ell_tuples.empty() || (this->parameters.no_reduction && big_r_ell_tuples.size() > 1)) {
-        return EMPTY_BIG_R_ELL;
+    if (big_r_ell_tuples.empty() || (!this->parameters.no_reduction && big_r_ell_tuples.size() > 1)) {
+        return NO_CANDIDATES_FOUND;
     }
     
     // Create the candidate label list.
     for (const Nibble::tuple_d &candidate : big_r_ell_tuples) {
-        big_r_ell.push_back({static_cast<int>(candidate[0]), static_cast<int>(candidate[1])});
+        big_r_ell.emplace_back(labels_list {static_cast<int>(candidate[0]), static_cast<int>(candidate[1])});
     }
     
     // Favor bright stars if specified. Applied with the FAVOR_BRIGHT_STARS flag.
@@ -115,7 +121,7 @@ Star::pair Angle::find_candidate_pair (const Star &b_i, const Star &b_j) {
     
     // If no candidate is found, break early.
     labels_list big_r_ell = this->query_for_pair(theta);
-    if (std::equal(big_r_ell.begin(), big_r_ell.end(), EMPTY_BIG_R_ELL.begin())) {
+    if (std::equal(big_r_ell.begin(), big_r_ell.end(), NO_CONFIDENT_R.begin())) {
         return NO_CANDIDATE_PAIR_FOUND;
     }
     
@@ -170,8 +176,8 @@ std::vector<Identification::labels_list> Angle::query (const Star::list &s) {
     
     // Query using theta with epsilon bounds.
     ch.select_table(this->parameters.table_name);
-    Nibble::tuples_d big_r_tuples = ch.simple_bound_query("theta", "label_a, label_b", theta - epsilon, theta + epsilon,
-                                                          this->parameters.sql_limit);
+    Nibble::tuples_d big_r_tuples = ch.simple_bound_query({"theta"}, "label_a, label_b", {theta - epsilon},
+                                                          {theta + epsilon}, this->parameters.sql_limit);
     
     // Sort r into list of catalog ID pairs.
     big_r_ell.reserve(big_r_tuples.size() / 2);
@@ -189,25 +195,34 @@ std::vector<Identification::labels_list> Angle::query (const Star::list &s) {
 ///     - table_name
 ///     - sigma_query
 ///     - sql_limit
+///     - nu
+///     - nu_max
 /// @endcode
 ///
-/// @return EMPTY_BIG_R_ELL if a single match configuration cannot be found. Otherwise, a single match configuration.
-Angle::labels_list Angle::reduce () {
+/// @return NO_CONFIDENT_R if a single match configuration cannot be found. Otherwise, a single match configuration.
+Star::list Angle::reduce () {
     ch.select_table(parameters.table_name);
+    *parameters.nu = 0;
     
     for (unsigned int i = 0; i < big_i.size() - 1; i++) {
         for (unsigned int j = i + 1; j < big_i.size(); j++) {
+            (*parameters.nu)++;
             Star::pair r = find_candidate_pair(big_i[i], big_i[j]);
+    
+            // Practical limit: exit early if we have iterated through too many comparisons without match.
+            if (*parameters.nu > parameters.nu_max) {
+                return NO_CONFIDENT_R;
+            }
             
             // The reduction step: |R| = 1.
             if (std::equal(r.begin(), r.end(), NO_CANDIDATE_PAIR_FOUND.begin())) {
                 continue;
             }
             
-            return {r[0].get_label(), r[1].get_label()};
+            return {r[0], r[1]};
         }
     }
-    return EMPTY_BIG_R_ELL;
+    return NO_CONFIDENT_R;
 }
 
 /// Reproduction of the Angle method's process from beginning to the orientation determination. Input image is used.
@@ -248,7 +263,7 @@ Star::list Angle::identify () {
             
             // Find candidate stars around the candidate pair.
             Star::list big_p = ch.nearby_hip_stars(r[0], fov, static_cast<unsigned int>(3 * big_i.size()));
-    
+            
             // Find the most likely pair combination given the two pairs.
             return direct_match_test(big_p, {r[0], r[1]}, {big_i[i], big_i[j]});
         }
