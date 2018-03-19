@@ -82,7 +82,7 @@ method will be applied.
 
 TODO: Add the actual link for the premade database.
 The `nibble.db` database holds all the data each identification method will reference (the catalog). The link 
-[here](---) provides this database 
+[here](https://drive.google.com/file/d/14ZOKBnu3MJV_Fiw9LmygzdUokeYpNVVz/view?usp=sharing) provides this database 
 with the given parameters:
 - Field-of-view (`fov` in `CONFIG.ini`) < 20
 - Maximum apparent magnitude seen by detector (`m-bright` in `CONFIG.ini`) = 6
@@ -112,6 +112,7 @@ There exist three experiments in this research:
 1. Feature Uniqueness (`query`)
 2. Candidate Reduction (`reduction`)
 3. Identification (`identification`)
+4. Overlay (`overlay`)
 
 There exist six different identification methods implemented here:
 1. Gottlieb's Angle Method (`angle`)
@@ -130,7 +131,7 @@ cd hoku/bin
 ```
 
 The results will be logged in the Lumberjack database (`lumberjack.db`), stored in tables according to the experiments 
-and grouped by the experiment timestamp. To view the results of these experiments, use the visualize script.
+and grouped by the experiment timestamp. To view the results of these experiments, use the visualize script. 
 
 TODO: Finish the `visualize_results.py` portion.
 
