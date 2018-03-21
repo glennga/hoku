@@ -41,6 +41,23 @@ params = {
         'nstai-xhl': ['0.01', '0.02', '0.03', '0.04', '0.05'],  # X-axis histogram tick labels.
         'nstai-yhl': ['0.001', '0.002', '0.003', '0.004', '0.005'],  # Y-axis histogram tick labels.
     },
+    'overlay-plot': {
+        'll': ['Angle'],  # Legend list.
+
+        # Sigma4 vs. TruePositive + TrueNegative w/ ShiftDeviation = 0.1 plot parameters.
+        's4as-yll': [-0.001, 1.001],  # Y-axis limits.
+        's4as-xal': r'$\sigma_4$',  # X axis label.
+        's4as-yal': r'Accuracy ($\frac{TP + TN}{|r|}$)',  # Y axis label.
+        's4as-lxa': 1,  # Set the X axis as logarithmic.
+        's4as-nll': 1,  # Do not plot the legend.
+
+        # Sigma4 vs. TruePositive + TrueNegative w/ FalseStars = 9 plot parameters.
+        's4af-yll': [-0.001, 1.001],  # Y-axis limits.
+        's4af-xal': r'$\sigma_4$',  # X axis label.
+        's4af-lxa': 1,  # Set the X axis as logarithmic.
+        # 's4af-yal': r'Accuracy ($\frac{TP + TN}{|r|}$)',  # Y axis label.
+        's4af-nll': 1,  # Do not plot the legend.
+    },
     'query-sigma-plot': {
         'll': ['Angle', 'Dot', 'Sphere', 'Plane', 'Pyramid'],  # Legend list.
 

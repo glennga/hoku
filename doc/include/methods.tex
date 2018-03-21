@@ -130,7 +130,7 @@ To determine the deviation for the query step, a permutation $P_n^{\sigma_n}$ is
 where:
 \begin{equation}
     \label{eq:gridSearchQuery}
-    \sigma_n \ \in \ \{ 1.0e^{M_1}, 1.0e^{M_2}, \ldots 1.0e^{M_N} \}
+    \sigma_n \ \in \ \{ 10^{M_1}, 10^{M_2}, \ldots 10^{M_N} \}
 \end{equation}
 Each deviation above corresponds to some feature used to query the catalog.
 For example, $n = 3$ for the Dot Angle method.
@@ -163,12 +163,11 @@ where $Q = $ probability that the correct star set exists in $R$ (query hit prob
     \end{align}
 \end{subequations}
 
-% TODO: Incoorperate derivatives above, a larger change indicates more large sensitivity at that point.
-The length of the stability region indicates
-
+The more gradual the response is to the candidate set size or probability, the less penalizing an incorrect deviation
+choice will be.
 The longer that the responses above remain at zero, the less sensitive the hyperparameter selection is for that
 specific feature.
-This suggests that the method may be less susceptible to noise, as there will be less dependence on $\sigma$ itself.
+The ideal feature set is one that has a long period of stability, and one with low responses to a deviation change.
 
 To determine $\sigma$ for the identification step, the grid search devolves into a linear search.
 $\sigma_o$ (overlay) is defined as~\autoref{eq:gridSearchQuery}, for some different set of $M$.
@@ -232,10 +231,10 @@ Crassidus's Planar Triangles method.
     To quantify the selectivity and accuracy of each feature, we looked at:
     \begin{align}
         \text{Query hit probability} &= \frac{1}{N} \sum_{i = 0}^N y(i) \\
-        \text{Query selectivity} &= \frac{1}{N} \sum_{i = 0}^{N} \lvert R(i)) \rvert
+        \text{Query selectivity} &= \frac{1}{N} \sum_{i = 0}^{N} \lvert R(i) \rvert
     \end{align}
 
-    Where $N$ is defined as the number of samples and $p$ defined as:
+    Where $N$ is defined as the number of samples and $p$ is defined as:
     \[ y =
     \begin{cases}
         1 & \text{if correct star set } \in R \\
@@ -268,8 +267,8 @@ method's query steps.
     \label{eq:reductionAccuracyMeasures}
     To quantify the accuracy and efficiency of each query + reduction process, we looked at:
     \begin{align}
-        \text{Reduction hit probability} &= \sum_{i = 0}^N y(i) \\
-        \text{Average reduction efficiency} &= \sum_{i = 0}^N \tau(i)
+        \text{Reduction hit probability} &= \frac{1}{N} \sum_{i = 0}^N y(i) \\
+        \text{Average reduction efficiency} &= \frac{1}{N} \sum_{i = 0}^N \tau(i)
     \end{align}
 
     Where $\tau$ is defined as the number of iterations to obtain a result and $y$ is defined as:
@@ -288,11 +287,25 @@ single match from the catalog candidate set for some image star subset.
 The resulting candidate set represent one element inside the set of $r$ sets.
 Repeating this $N$ times would give us the measures in~\autoref{eq:reductionAccuracyMeasures}.
 
-An ideal reduction processes consists of a reduction hit probability = 1 and an average reduction effiency = 1.
+An ideal reduction processes consists of a reduction hit probability = 1 and an average reduction efficiency = 1.
 
 \subsection{Which method most accurately determines a map?}\label{subsec:identificationMethods}
 This experiment helps determine which identification method produces the most accurate catalog to image maps.
 An accurate map will reduce an attitude determination problem to Wahba's problem, which can be solved.
+
+\begin{subequations}
+    \label{eq:identificationAccuracyMeasures}
+    To quantify the accuracy and efficiency of each identification process (end-to-end), we looked at:
+    \begin{align}
+        \text{Average identification accuracy} &= \frac{1}{N} \sum_{i = 0}^N y(i) \\
+        \text{Average identification efficiency} &= \frac{1}{N} \sum_{i = 0}^N \tau(i)
+    \end{align}
+
+    Where $\tau$ is defined as the number of iterations to obtain a result and $y$ is defined as:
+    \begin{equation}
+        y = \frac{\text{number of correct mappings } b \rightarrow r}{\lvert b \lvert}
+    \end{equation}
+\end{subequations}
 
 
 Referencing~\autoref{figure:genericIdentificationMethodFlowchart} again, this experiment runs the identification
@@ -300,15 +313,5 @@ method end to end.
 Partial accuracy was recorded by counting the number of correct stars against the total amount of stars in a given
 map.
 
-The end to end trials were analyzed using two variables:
-\begin{enumerate}
-    \item \label{itm:correctReducedCandidates} Number of correctly reduced candidate sets $R \rightarrow r$.
-    \item Accuracy of maps in~\itmref{Map Experiment}{itm:correctReducedCandidates}.
-\end{enumerate}
-
-To start, complete images were generated containing $S_b$, $c_b$, and $f$.
-Each identification method was run from start to finish, producing a map $a$ (or not one at all).
-If the map references the correct stars in $S_b$ (i.e.\ the reduction experiment), this is recorded as a
-\textit{reduction hit}.
-
-A larger map accuracy to reduction hit ratio suggests a more optimal map determination process.
+An ideal identification method consists of an average identification accuracy = 1 and an average identification
+efficiency = 1.

@@ -80,7 +80,6 @@ possible option and consuming time, set this appropriately.
 determining a rotation given vector observations in both frame. For every instance where Wahba's problem occurs, this
 method will be applied.
 
-TODO: Add the actual link for the premade database.
 The `nibble.db` database holds all the data each identification method will reference (the catalog). The link 
 [here](https://drive.google.com/file/d/14ZOKBnu3MJV_Fiw9LmygzdUokeYpNVVz/view?usp=sharing) provides this database 
 with the given parameters:

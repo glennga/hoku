@@ -6,7 +6,7 @@ algorithm.
 The grid search exhausts every permutation $P_n^{\sigma_n}$, where:
 \begin{equation}
     \label{eq:gridSearchQuerySigma}
-    \sigma_n \ \in \ \{1.0e^{-16}, 1.0e^{-15}, \ldots 1.0e^{1}\}
+    \sigma_n \ \in \ \{10^{-16}, 10^{-15}, \ldots 10^{1}\}
 \end{equation}
 % 2.22 * 10^-16 is the machine epsilon for double
 
@@ -19,7 +19,7 @@ The grid search exhausts every permutation $P_n^{\sigma_n}$, where:
     The right plot depicts the effect of varying $\sigma$ on the size of the candidate set after the query, bounded
     by 30 candidates at maximum.
     The field-of-view is bounded by $f = 20^\circ$ and the apparent magnitude is bounded by $m = 6.0$.
-    Each point represents the average of 100 query steps without noise introduced.
+    Each point represents the average of 500 query steps without noise introduced.
     For brevity, all deviations associated with methods of more than one feature term (i.e.\ Dot Angle, Spherical
     Triangle, \ldots) had all corresponding $\sigma$ terms set equal to each other.
     } \label{figure:sigmaHyperparameterPlots}
@@ -68,11 +68,11 @@ Regardless of the feature, a deviation choice between these bounds should be acc
         \textbf{Method} & $\ell$ & $\frac{\partial Q}{\partial\sigma} \text{ at } \sigma_{c1}$ &
         $\frac{\partial \lvert R \rvert}{\partial \sigma} \text{ at } \sigma_{c2}$ \\
         \hline \hline
-        \textbf{Angle} & 5 & -0.415 & 0.015 \\ \hline
-        \textbf{Dot Angle} & 10 & -0.460 & 0.235 \\ \hline
-        \textbf{Spherical \newline Triangle} & 8 & -0.055 & 0.205 \\ \hline
-        \textbf{Planar \newline Triangle} & 8 & -0.035 & 0.150 \\ \hline
-        \textbf{Pyramid} & 8 & -0.005 & 0.145
+        \textbf{Angle} & 3 & -0.375 & 0.001 \\ \hline
+        \textbf{Dot Angle} & 9 & -0.453 & 0.183 \\ \hline
+        \textbf{Spherical \newline Triangle} & 8 & -0.042 & 0.181\\ \hline
+        \textbf{Planar \newline Triangle} & 6 & -0.041 & 0.001 \\ \hline
+        \textbf{Pyramid} & 7 & -0.001 & 0.002
     \end{tabular}
     }
 \end{table}
@@ -85,9 +85,6 @@ The Pyramid method uses three similar features, which has the same stable region
 using two distinct features.
 The Angle method uses only one feature for its query, and suffers in stable region length.
 
-% TODO: How to interpret the Q response?
-The largest response belongs to
-
 The candidate set size responses are most likely a result of the size of possible candidates that belong to each
 method's respective feature (i.e.\ the number of rows of the table used in query).
 The Angle method has the least number of possible candidates given the $f < 20 \land m < 6.0$ constraint, at 353700
@@ -96,6 +93,12 @@ The triangle methods have roughly 35 times as many possible catalog sets as the 
 The Dot Angle method has 3 times as many possible catalog sets as the triangle methods, and roughly 105 times as many
 possible catalog sets as the Angle method.
 Given a larger pool of results to choose from, it follows that the number of false positive increases as well.
+
+% TODO: How to interpret the Q response?
+The largest $Q$ response belongs to the Dot Angle method, while the smallest response belongs to the Pyramid method.
+Unlike the candidate set size response, there appears to be no obvious correlation between the response of correct
+star set existence and the number of features used.
+If noise is not known, the most forgiving feature set in terms of both responses is the Pyramid method.
 
 The $\sigma$ parameters for the following experiments were chosen using the results of the grid search, and selecting
 the largest $\sigma_1, \sigma_2, \sigma_3$ (ordered as such) that maintained all the
@@ -114,6 +117,28 @@ conditions in~\autoref{eq:stabilityQuery}.
 
 In addition to the $\sigma_n$ parameters used in the previous experiments, a parameter $\sigma_o$ must be defined
 prior to executing the \Call{DMT}{} method.
+The linear search exhausts every overlay deviation selection:
+\begin{equation}
+    \label{eq:linearSearchSigmaOverlay}
+    \sigma_o \ \in \ \{10^{-16}, 10^{-15}, \ldots 10^{1}\}
+\end{equation}
+
+\begin{figure*}
+    \centering{
+    \includegraphics[scale=0.45]{images/sigma1-pcss-css.png}
+    \caption{
+    The left plot depicts the effect of varying $\sigma$ on the probability that the correct star set exists in the
+    resulting candidates after the query.
+    The right plot depicts the effect of varying $\sigma$ on the size of the candidate set after the query, bounded
+    by 30 candidates at maximum.
+    The field-of-view is bounded by $f = 20^\circ$ and the apparent magnitude is bounded by $m = 6.0$.
+    Each point represents the average of 500 query steps without noise introduced.
+    For brevity, all deviations associated with methods of more than one feature term (i.e.\ Dot Angle, Spherical
+    Triangle, \ldots) had all corresponding $\sigma$ terms set equal to each other.
+    } \label{figure:sigmaOverlayHyperparameterPlots}
+    }
+\end{figure*}
+
 Each experiment was performed 10 times, and the largest $\sigma_o$ that identification the most stars correctly on
 average are displayed below.
 These were used for the experiment presented here.

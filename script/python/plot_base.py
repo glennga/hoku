@@ -28,12 +28,12 @@ from plot_parameters import params
 
 
 def attach_figure_legend(att, fig, p):
-    """
+    """ Attach a legend to a figure, rather than the current 'plt' object.
 
-    :param att:
-    :param fig:
-    :param p:
-    :return:
+    :param att: Attributes dictionary, containing the key to which axes to label.
+    :param fig: Figure to attach the legend to.
+    :param p: Plot object to attach the legend to (grabs what was just plotted).
+    :return: None.
     """
     sec = att['params_section']
     leg = fig.legend(p, params[sec]['ll'], fontsize=18,
@@ -148,7 +148,7 @@ def e_plot(cur_i, att):
                                 'WHERE IdentificationMethod = ? ' +
                                 ('' if 'constrain_that' not in att.keys() else 'AND ' + att['constrain_that']),
                                 (m,)).fetchall()
-        x_space = list(map(lambda x: x[0], x_space))
+        x_space = sorted(list(map(lambda x: x[0], x_space)))
 
         # Construct the points to plot.
         y_avg, y_std = [], []
