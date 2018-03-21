@@ -295,8 +295,7 @@ void Benchmark::shift_light (const unsigned int n, const double sigma, bool cap_
     
     // Shuffle to maintain randomness. If desired, an error star remains at the front.
     std::iter_swap(this->b.begin(), this->b.end() - 1);
-    cap_error ? std::shuffle(this->b.begin() + 1, this->b.end(), std::mt19937(std::random_device()()))
-              : this->shuffle();
+    cap_error ? std::shuffle(this->b.begin() + 1, this->b.end(), RandomDraw::mersenne_twister) : this->shuffle();
     
     // Remove first element. Append this to the error models.
     shifted_light.affected.erase(shifted_light.affected.begin());
