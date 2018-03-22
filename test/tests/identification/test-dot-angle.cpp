@@ -288,7 +288,7 @@ TEST(DotAngle, TrialExceededNu) {
 /// Check that the correct result is returned when no map is found.
 TEST(DotAngle, TrialNoMapFound) {
     Chomp ch;
-    Benchmark input(ch, 7);
+    Benchmark input(ch, 5);
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
     Dot::Parameters p = Dot::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0), p.nu_max = std::numeric_limits<unsigned int>::max();

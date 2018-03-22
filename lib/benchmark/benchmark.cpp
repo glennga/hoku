@@ -195,8 +195,8 @@ void Benchmark::display_plot () {
 /// randomly wander into the detector.
 ///
 /// @param n Number of extra stars to add.
-/// @param cap_error Flag to move an error star to the front of the star list.
-void Benchmark::add_extra_light (const unsigned int n, bool cap_error) {
+/// @param shuffle Flag to enable reshuffling of the I set.
+void Benchmark::add_extra_light (const unsigned int n, bool shuffle) {
     unsigned int current_n = 0;
     ErrorModel extra_light = {"Extra Light", "r", {Star::wrap(Vector3::Zero())}};
     
@@ -209,10 +209,10 @@ void Benchmark::add_extra_light (const unsigned int n, bool cap_error) {
         }
     }
     
-    // Shuffle to maintain randomness. If desired, an error star remains at the front.
-    std::iter_swap(this->b.begin(), this->b.end() - 1);
-    (!cap_error) ? std::shuffle(this->b.begin() + 1, this->b.end(), std::mt19937(std::random_device()()))
-                 : this->shuffle();
+    // Shuffle to maintain randomness (if desired).
+    if (shuffle) {
+        this->shuffle();
+    }
     
     // Remove the first element. Append to error models.
     extra_light.affected.erase(extra_light.affected.begin());
@@ -224,7 +224,7 @@ void Benchmark::add_extra_light (const unsigned int n, bool cap_error) {
 ///
 /// @param n Number of blobs to generate.
 /// @param psi Dark spot size (degrees). This is the cone size of the dark spot vectors.
-void Benchmark::remove_light (const unsigned int n, const double psi) {
+void Benchmark::remove_light (const unsigned int n, const double psi, const bool shuffle) {
     unsigned int current_n = 0;
     std::vector<Star> blobs;
     ErrorModel removed_light = {"Removed Light", "0.5", {Star::wrap(Vector3::Zero())}};
@@ -254,8 +254,10 @@ void Benchmark::remove_light (const unsigned int n, const double psi) {
         is_affected = !removed_light.affected.empty();
     }
     
-    // Shuffle to maintain randomness.
-    this->shuffle();
+    // Shuffle to maintain randomness (if desired).
+    if (shuffle) {
+        this->shuffle();
+    }
     
     // Remove first element. Append this to the error models.
     removed_light.affected.erase(removed_light.affected.begin());
@@ -267,8 +269,8 @@ void Benchmark::remove_light (const unsigned int n, const double psi) {
 ///
 /// @param n Number of stars to move.
 /// @param sigma Amount to shift stars by, in terms of degrees.
-/// @param cap_error Flag to move an error star to the front of the star list.
-void Benchmark::shift_light (const unsigned int n, const double sigma, bool cap_error) {
+/// @param shuffle Flag to enable reshuffling of the I set.
+void Benchmark::shift_light (const unsigned int n, const double sigma, bool shuffle) {
     ErrorModel shifted_light = {"Shifted Light", "g", {Star::wrap(Vector3::Zero())}};
     unsigned int current_n = 0;
     
@@ -293,10 +295,10 @@ void Benchmark::shift_light (const unsigned int n, const double sigma, bool cap_
         }
     }
     
-    // Shuffle to maintain randomness. If desired, an error star remains at the front.
-    std::iter_swap(this->b.begin(), this->b.end() - 1);
-    cap_error ? std::shuffle(this->b.begin() + 1, this->b.end(), std::mt19937(std::random_device()()))
-              : this->shuffle();
+    // Shuffle to maintain randomness (if desired).
+    if (shuffle) {
+        this->shuffle();
+    }
     
     // Remove first element. Append this to the error models.
     shifted_light.affected.erase(shifted_light.affected.begin());

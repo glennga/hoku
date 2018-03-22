@@ -217,10 +217,10 @@ namespace Experiment {
     namespace Overlay {
         /// Schema comma separated string that corresponds to the creation of the DMT table.
         const char *const SCHEMA = "IdentificationMethod TEXT, Timestamp TEXT, Sigma4 FLOAT, ShiftDeviation FLOAT, "
-            "FalseStars INT, TruePositive INT, FalsePositive INT, TrueNegative INT, FalseNegative INT";
+            "FalseStars INT, PercentageCorrect FLOAT";
         
-        void count_correct (const Star::list &big_i_prime, const Star::list &big_i, int es, double &tn, double &fp,
-                            double &fn, double &tp);
+        double percentage_correct (const Star::list &big_i_prime, const Star::list &big_i,
+                                   const std::vector<int> &big_i_i, double es);
         
         /// Experiment function for the DMT trials. Performs a overlay trial and records the experiment in the
         /// lumberjack. The provided Nibble connection is used for generating the input image.
@@ -234,7 +234,8 @@ namespace Experiment {
         template <class T>
         void trial (Chomp &ch, Lumberjack &lu, INIReader &cf, const std::string &identifier) {
             Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
-            double fov = cf.GetReal("hardware", "fov", 0), tn, fp, fn, tp;
+            double fov = cf.GetReal("hardware", "fov", 0);
+            std::vector<int> big_i_i;
             Star::list big_i, big_c;
             Star focus;
             
@@ -256,16 +257,16 @@ namespace Experiment {
                     for (int i = 0; i < samples; i++) {
                         present_benchmark(ch, big_i, big_c, focus, fov);
                         Benchmark input(big_i, focus, fov);
-                        (is_shift) ? input.shift_light(static_cast<signed> (big_i.size()), s) : input.add_extra_light(
-                            static_cast<unsigned int> (s));
+                        (is_shift) ? input.shift_light(static_cast<signed> (big_i.size()), s, false)
+                                   : input.add_extra_light(static_cast<unsigned int> (s), false);
                         
                         // Perform a single trial.
                         Star::list w = T(input, p).find_positive_overlay(big_c, p.f({big_i[0], big_i[1]},
-                                                                                    {big_c[0], big_c[1]}));
+                                                                                    {big_c[0], big_c[1]}), big_i_i);
                         
                         // Log the results of our trial.
-                        count_correct(w, big_i, static_cast<int> ((is_shift) ? es_min : s), tn, fp, fn, tp);
-                        lu.log_trial({p.sigma_4, is_shift ? s : 0, !is_shift ? s : es_min, tp, fp, tn, fn});
+                        lu.log_trial({p.sigma_4, is_shift ? s : 0, !is_shift ? s : es_min,
+                                         percentage_correct(w, big_i, big_i_i, (is_shift) ? es_min : s)});
                     }
                 }
             };

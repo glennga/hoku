@@ -91,7 +91,39 @@ void Identification::collect_parameters (Parameters &p, INIReader &cf, const std
     }
 }
 
-/// Rotate every point the given rotation and check if the angle of separation between any two stars is within a
+/// Overloaded FPO implementation. Rotate every point with the given rotation and check if the angle of separation
+/// between any two stars is within a given limit sigma. Record which stars (by index) pass the test in the I vector.
+/// Note that this assumes that the shuffling on the other is **disabled**.
+///
+/// @param big_p All stars to check against the existing image body star set.
+/// @param q The rotation to apply to all stars.
+/// @param i Reference to the index vector to record which stars were saved.
+/// @return Set of matching stars found in candidates and the body sets.
+Star::list Identification::find_positive_overlay(const Star::list &big_p, const Rotation &q, std::vector<int> &i) {
+    double epsilon = 3.0 * this->parameters.sigma_4;
+    Star::list m;
+    
+    // Clear our index vector.
+    i.clear();
+    i.reserve(this->big_i.size()), m.reserve(big_i.size());
+    
+    std::for_each(big_p.begin(), big_p.end(), [&] (const Star &p_i) -> void {
+        Star r_prime = Rotation::rotate(p_i, q);
+    
+        for (unsigned int j = 0; j < big_i.size(); j++) {
+            // Avoid stars that have been added.
+            if (std::find(i.begin(), i.end(), j) == i.end() && Star::within_angle(r_prime, big_i[j], epsilon)) {
+                // Add this match to the list by noting the candidate star's catalog ID.
+                m.emplace_back(Star(big_i[j][0], big_i[j][1], big_i[j][2], p_i.get_label())), i.emplace_back(j);
+                break;
+            }
+        }
+    });
+
+    return m;
+}
+
+/// Rotate every point with the given rotation and check if the angle of separation between any two stars is within a
 /// given limit sigma.
 ///
 /// @param big_p All stars to check against the existing image body star set.
