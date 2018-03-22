@@ -271,7 +271,7 @@ TEST(Experiment, ReductionTrialAngle) {
     (*lu).flush_buffer();
     
     Nibble::tuples_d b = (*lu).search_table("Sigma1, Sigma2, Sigma3, ShiftDeviation, FalseStars, ComparisonCount, "
-                                                "ResultMatchesInput",
+                                                "PercentageCorrect",
                                             "IdentificationMethod = 'Angle' AND Timestamp = '" + (*lu).timestamp + "'",
                                             10);
     ASSERT_EQ(b.size(), count_b + 5 + 5);
@@ -366,8 +366,7 @@ TEST(Experiment, OverlayTrial) {
     Experiment::Overlay::trial<Angle>((*ch), (*lu), (*cf), "angle");
     (*lu).flush_buffer();
     
-    Nibble::tuples_d b = (*lu).search_table("Sigma4, ShiftDeviation, FalseStars, TruePositive, FalsePositive, "
-                                                "TrueNegative, FalseNegative",
+    Nibble::tuples_d b = (*lu).search_table("Sigma4, ShiftDeviation, FalseStars, PercentageCorrect",
                                             "IdentificationMethod = 'Angle' AND Timestamp = '" + (*lu).timestamp + "'",
                                             10);
     ASSERT_EQ(b.size(), count_b + 5 + 5);

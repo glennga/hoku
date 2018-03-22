@@ -36,12 +36,12 @@ class Identification {
     
     /// Alias for a list of labels.
     using labels_list = std::vector<int>;
-    
+  
   public:
     Identification ();
     static void collect_parameters (Parameters &p, INIReader &cf, const std::string &identifier);
     
-    Star::list find_positive_overlay (const Star::list &big_p, const Rotation &q);
+    Star::list find_positive_overlay (const Star::list &big_p, const Rotation &q, std::vector<int> &i);
     virtual std::vector<labels_list> query (const Star::list &s) = 0;
     virtual Star::list reduce () = 0;
     virtual Star::list identify () = 0;
@@ -71,6 +71,7 @@ class Identification {
     protected:
 #endif
     void sort_brightness (std::vector<labels_list> &big_r_ell);
+    Star::list find_positive_overlay (const Star::list &big_p, const Rotation &q);
 
 #if !defined ENABLE_TESTING_ACCESS
     protected:
