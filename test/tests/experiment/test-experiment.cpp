@@ -295,7 +295,7 @@ TEST(Experiment, ReductionTrialAngle) {
     transaction.commit();
 }
 
-TEST(Experiment, IdentificaitonPercentageCorrect) {
+TEST(Experiment, IdentificationPercentageCorrect) {
     Chomp ch;
     Star::list a = {ch.query_hip(26220), ch.query_hip(26221), ch.query_hip(26235), ch.query_hip(26224),
         ch.query_hip(26427)};
@@ -366,7 +366,8 @@ TEST(Experiment, OverlayTrial) {
     Experiment::Overlay::trial<Angle>((*ch), (*lu), (*cf), "angle");
     (*lu).flush_buffer();
     
-    Nibble::tuples_d b = (*lu).search_table("Sigma4, ShiftDeviation, FalseStars, PercentageCorrect",
+    Nibble::tuples_d b = (*lu).search_table("Sigma4, ShiftDeviation, FalseStars, TruePositive, FalsePositive, "
+                                                "TrueNegative, FalseNegative, N",
                                             "IdentificationMethod = 'Angle' AND Timestamp = '" + (*lu).timestamp + "'",
                                             10);
     ASSERT_EQ(b.size(), count_b + 5 + 5);

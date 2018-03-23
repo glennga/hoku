@@ -217,10 +217,10 @@ namespace Experiment {
     namespace Overlay {
         /// Schema comma separated string that corresponds to the creation of the DMT table.
         const char *const SCHEMA = "IdentificationMethod TEXT, Timestamp TEXT, Sigma4 FLOAT, ShiftDeviation FLOAT, "
-            "FalseStars INT, PercentageCorrect FLOAT";
+            "FalseStars INT, TruePositive INT, FalsePositive INT, TrueNegative INT, FalseNegative INT, N INT";
         
-        double percentage_correct (const Star::list &big_i_prime, const Star::list &big_i,
-                                   const std::vector<int> &big_i_i, double es);
+        std::array<double, 5> confusion_matrix (const Star::list &big_i_prime, const Star::list &big_i,
+                                                const std::vector<int> &big_i_i, double es);
         
         /// Experiment function for the DMT trials. Performs a overlay trial and records the experiment in the
         /// lumberjack. The provided Nibble connection is used for generating the input image.
@@ -265,8 +265,9 @@ namespace Experiment {
                                                                                     {big_c[0], big_c[1]}), big_i_i);
                         
                         // Log the results of our trial.
-                        lu.log_trial({p.sigma_4, is_shift ? s : 0, !is_shift ? s : es_min,
-                                         percentage_correct(w, big_i, big_i_i, (is_shift) ? es_min : s)});
+                        std::array<double, 5> c = confusion_matrix(w, big_i, big_i_i, (is_shift) ? es_min : s);
+                        lu.log_trial(
+                            {p.sigma_4, is_shift ? s : 0, !is_shift ? s : es_min, c[0], c[1], c[2], c[3], c[4]});
                     }
                 }
             };

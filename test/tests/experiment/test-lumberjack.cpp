@@ -46,7 +46,8 @@ TEST(Lumberjack, TablesExistenceStructure) {
     EXPECT_NO_THROW(nb.select_table(cf.Get("overlay-experiment", "lu", "")););
     nb.find_attributes(schema, fields);
     EXPECT_EQ(schema, Experiment::Overlay::SCHEMA);
-    EXPECT_EQ(fields, "IdentificationMethod, Timestamp, Sigma4, ShiftDeviation, FalseStars, PercentageCorrect");
+    EXPECT_EQ(fields, "IdentificationMethod, Timestamp, Sigma4, ShiftDeviation, FalseStars, TruePositive, "
+        "FalsePositive, TrueNegative, FalseNegative, N");
 }
 
 /// Ensure that the correct fields are selected.
