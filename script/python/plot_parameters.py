@@ -4,7 +4,7 @@ how the plots are visually represented.
 """""
 
 params = {
-    'split-n': 5,  # Number of splits to perform for each member in X space.
+    'split-n': 4,  # Number of splits to perform for each member in X space.
     'nibble-plot': {
         'image-bits': 64,  # Number of pixels for heatmap.
 
@@ -44,18 +44,18 @@ params = {
     'overlay-plot': {
         'll': ['Angle'],  # Legend list.
 
-        # Sigma4 vs. TruePositive + TrueNegative w/ ShiftDeviation = 0.1 plot parameters.
+        # Sigma4 vs. TruePositive + TrueNegative w/ ShiftDeviation plot parameters.
         's4as-yll': [-0.001, 1.001],  # Y-axis limits.
         's4as-xal': r'$\sigma_4$',  # X axis label.
-        's4as-yal': r'Accuracy ($\frac{TP + TN}{|r|}$)',  # Y axis label.
+        's4as-yal': r'Accuracy',  # Y axis label.
         's4as-lxa': 1,  # Set the X axis as logarithmic.
         's4as-nll': 1,  # Do not plot the legend.
 
-        # Sigma4 vs. TruePositive + TrueNegative w/ FalseStars = 9 plot parameters.
+        # Sigma4 vs. TruePositive + TrueNegative w/ FalseStars plot parameters.
         's4af-yll': [-0.001, 1.001],  # Y-axis limits.
         's4af-xal': r'$\sigma_4$',  # X axis label.
         's4af-lxa': 1,  # Set the X axis as logarithmic.
-        # 's4af-yal': r'Accuracy ($\frac{TP + TN}{|r|}$)',  # Y axis label.
+        's4af-yal': r'Accuracy',  # Y axis label.
         's4af-nll': 1,  # Do not plot the legend.
     },
     'query-sigma-plot': {

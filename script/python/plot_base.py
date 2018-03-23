@@ -172,9 +172,11 @@ def e_plot(cur_i, att):
         if att['plot_type'] == 'BAR':
             plots.append(plt.bar(np.arange(len(x_space)) + 0.15 * k - 0.3, y_avg, 0.15, yerr=y_std))
             attach_plot_info(att)
-        else:
+        elif att['plot_type'] in ['LINE', 'LINE_NOERR']:
             plots.append(plt.plot(x_space, y_avg))
             attach_plot_info(att)
-            # plt.errorbar(x_space, y_avg, yerr=y_std)
+        else:
+            plots.append(plt.errorbar(x_space, y_avg, yerr=y_std))
+            attach_plot_info(att)
 
     return plots

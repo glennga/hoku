@@ -37,22 +37,20 @@ def overlay_plots(cur_i):
     plt.rc('text', usetex=True), plt.rc('font', family='serif', size=20)
 
     plt.figure()
-    plt.subplot(121)  # Sigma4 vs. TruePositive + TrueNegative w/ ShiftDeviation = 0.1 visualization.
-    for i in ['0.0', '0.1', '0.01', '0.001', '0.0001']:
+    plt.subplot(121)  # Sigma4 vs. TruePositive + TrueNegative w/ ShiftDeviation visualization.
+    for i in ['0.0', '0.1', '0.01', '0.001', '0.0001', '0.00001', '0.000001', '0.0000001']:
         e_plot(cur_i, {'table_name': 'OVERLAY', 'x_attribute': 'Sigma4',
-                       'y_attribute': '(TruePositive + TrueNegative) / (TruePositive + FalsePositive + '
-                                      'TrueNegative + FalseNegative)',
-                       'constrain_that': 'ABS(ShiftDeviation - {}) < 1.0e-16 '.format(i) +
+                       'y_attribute': 'PercentageCorrect',
+                       'constrain_that': 'ABS(ShiftDeviation - {}) < 1.0e-17 '.format(i) +
                                          'AND FalseStars = 0 ',
                        'params_section': 'overlay-plot', 'params_prefix': 's4as', 'plot_type': 'LINE'})
-    a = plt.legend(['0.0', '0.1', '0.01', '0.001', '0.0001'])
+    a = plt.legend(['0.0', '0.1', '0.01', '0.001', '0.0001', '0.00001', '0.000001', '0.0000001'])
     a.draggable(True)
 
-    plt.subplot(122)  # Sigma4 vs. TruePositive + TrueNegative w/ FalseStars = 9 visualization.
+    plt.subplot(122)  # Sigma4 vs. TruePositive + TrueNegative w/ FalseStars visualization.
     for i in ['0', '3', '6', '9', '12']:
         e_plot(cur_i, {'table_name': 'OVERLAY', 'x_attribute': 'Sigma4',
-                       'y_attribute': '(TruePositive + TrueNegative) / (TruePositive + FalsePositive + '
-                                      'TrueNegative + FalseNegative)',
+                       'y_attribute': 'PercentageCorrect',
                        'constrain_that': 'ShiftDeviation = 0.0 '
                                          'AND FalseStars = {} '.format(i),
                        'params_section': 'overlay-plot', 'params_prefix': 's4af', 'plot_type': 'LINE'})
