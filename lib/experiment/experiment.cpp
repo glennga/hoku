@@ -142,12 +142,24 @@ double Experiment::Map::percentage_correct (const Star::list &big_i, const Star:
 /// @return Number of correctly predicted catalog labels matches the ground truth labels as a fraction.
 double Experiment::Overlay::percentage_correct (const Star::list &big_i_prime, const Star::list &big_i,
                                                 const std::vector<int> &big_i_i, const double es) {
-    int count = 0, false_positive = static_cast<int> (es);
-    
+    int tp = 0, fp = 0, tn = 0, fn = 0;
+   
     for (unsigned int i = 0; i < big_i_i.size(); i++) {
-        count += (i < big_i.size() && big_i_prime[i].get_label() == big_i[big_i_i[i]].get_label()) ? 1 : 0;
-        false_positive -= (i >= big_i.size()) ? 1 : 0;
+        // True Positive: in I', in I.
+        tp += (i < big_i.size() && big_i_prime[i].get_label() == big_i[big_i_i[i]].get_label()) ? 1 : 0;
+
+        // False Positive: in I', not in I.
+        fp += (i >= big_i.size()) ? 1 : 0;
     }
-    
-    return (count + false_positive) / (big_i.size() + es);
+
+    // False Negative: in I, not in I'.
+    for (unsigned int j = 0; j < big_i.size(); j++) {
+        fn += (std::find(big_i_i.begin(), big_i_i.end(), j) == big_i_i.end()) ? 1 : 0;
+    }
+
+    // True Negative: the complement.
+    tn = (big_i.size() + es) - (tp + fp + fn);
+
+    // Return the accuracy.
+    return (tp + tn) / (tp + fp + fn + tn);
 }
