@@ -37,21 +37,23 @@ def overlay_plots(cur_i):
     plt.rc('text', usetex=True), plt.rc('font', family='serif', size=20)
 
     plt.figure()
-    plt.subplot(121)  # Sigma4 vs. TruePositive + TrueNegative w/ ShiftDeviation visualization.
-    for i in ['0.0', '0.1', '0.01', '0.001', '0.0001', '0.00001', '0.000001', '0.0000001']:
+    plt.subplot(121)  # Sigma4 vs. F1 w/ ShiftDeviation visualization.
+    for i in ['0.0', '1.0e-15', '1.0e-13', '1.0e-11', '1.0e-9', '1.0e-7', '1.0e-5']:
         e_plot(cur_i, {'table_name': 'OVERLAY', 'x_attribute': 'Sigma4',
-                       'y_attribute': 'PercentageCorrect',
+                       'y_attribute': '(2 * TruePositive) / (2 * TruePositive + FalsePositive + FalseNegative)',
+                       # 'y_attribute': '(TruePositive + TrueNegative) / N ',
                        'constrain_that': 'ABS(ShiftDeviation - {}) < 1.0e-17 '.format(i) +
                                          'AND FalseStars = 0 ',
                        'params_section': 'overlay-plot', 'params_prefix': 's4as', 'plot_type': 'LINE'})
-    a = plt.legend(['0.0', '0.1', '0.01', '0.001', '0.0001', '0.00001', '0.000001', '0.0000001'])
+    a = plt.legend(['0', r'$10^{-15}$', r'$10^{-13}$', r'$10^{-11}$', r'$10^{-9}$', r'$10^{-7}$', r'$10^{-5}$'])
     a.draggable(True)
 
-    plt.subplot(122)  # Sigma4 vs. TruePositive + TrueNegative w/ FalseStars visualization.
+    plt.subplot(122)  # Sigma4 vs. F1 w/ FalseStars visualization.
     for i in ['0', '3', '6', '9', '12']:
         e_plot(cur_i, {'table_name': 'OVERLAY', 'x_attribute': 'Sigma4',
-                       'y_attribute': 'PercentageCorrect',
-                       'constrain_that': 'ShiftDeviation = 0.0 '
+                       'y_attribute': '(2 * TruePositive) / (2 * TruePositive + FalsePositive + FalseNegative)',
+                       # 'y_attribute': '(TruePositive + TrueNegative) / N ',
+                       'constrain_that': 'ABS(ShiftDeviation - 0.0) < 1.0e-17 '
                                          'AND FalseStars = {} '.format(i),
                        'params_section': 'overlay-plot', 'params_prefix': 's4af', 'plot_type': 'LINE'})
     a = plt.legend(['0', '3', '6', '9', '12'])
@@ -172,8 +174,8 @@ def identification_plots(cur_i):
 
 if __name__ == '__main__':
     # Ensure that there exists between one and three arguments, and that it is in the appropriate space.
-    if len(sys.argv) < 1 or len(sys.argv) > 4 or sys.argv[1] not in ['nibble', 'query-sigma', 'query', 'reduction',
-                                                                     'identification', 'overlay']:
+    arg_space = ['nibble', 'query-sigma', 'query', 'reduction', 'identification', 'overlay']
+    if len(sys.argv) < 1 or len(sys.argv) > 4 or sys.argv[1] not in arg_space:
         print('Usage: python3 plot_experiment.py [experiment-to-visualize] [location-of-database]'), exit(1)
 
     # Experiment data in lumberjack.db, or is specified by the user (second argument).
@@ -189,15 +191,5 @@ if __name__ == '__main__':
         print('SQL Error: ' + str(e)), exit(2)
     cur = conn.cursor()
 
-    if sys.argv[1] == 'nibble':
-        nibble_plots(cur)
-    elif sys.argv[1] == 'query-sigma':
-        query_sigma_plots(cur)
-    elif sys.argv[1] == 'query':
-        query_plots(cur)
-    elif sys.argv[1] == 'reduction':
-        reduction_plots(cur)
-    elif sys.argv[1] == 'overlay':
-        overlay_plots(cur)
-    else:
-        identification_plots(cur)
+    plots = [nibble_plots, query_sigma_plots, query_plots, reduction_plots, identification_plots, overlay_plots]
+    plots[arg_space.index(sys.argv[1])](cur)

@@ -153,7 +153,7 @@ def e_plot(cur_i, att):
         # Construct the points to plot.
         y_avg, y_std = [], []
         for x_p in x_space:
-            y_data = cur_i.execute('SELECT {} '.format(att['y_attribute']) +  # Grab our Y axis data.
+            y_data = cur_i.execute('SELECT COALESCE ({}, 0) '.format(att['y_attribute']) +  # Grab our Y axis data.
                                    'FROM {} '.format(att['table_name']) +
                                    'WHERE IdentificationMethod = ? '
                                    'AND {} = ? '.format(att['x_attribute']) +
@@ -167,6 +167,10 @@ def e_plot(cur_i, att):
 
             # Collect averages and deviations for each partition of data.
             y_avg.append(np.mean(y_data)), y_std.append(np.std(y_data))
+
+            # Display the results to console (X = ... | ID = ... | mu = ... +/- sigma)
+            f_str = '| {} | {} = {} | ID = {} | mu = {} +/- {} |'
+            print(f_str.format(att['y_attribute'], att['x_attribute'], x_p, m, y_avg[-1], y_std[-1]))
 
         # Construct the appropriate plot and attach plot info.
         if att['plot_type'] == 'BAR':

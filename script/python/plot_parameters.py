@@ -44,18 +44,17 @@ params = {
     'overlay-plot': {
         'll': ['Angle'],  # Legend list.
 
-        # Sigma4 vs. TruePositive + TrueNegative w/ ShiftDeviation plot parameters.
-        's4as-yll': [-0.001, 1.001],  # Y-axis limits.
+        # Sigma4 vs. F1 w/ ShiftDeviation plot parameters.
+        's4as-yll': [0, 1.05],  # Y-axis limits.
         's4as-xal': r'$\sigma_4$',  # X axis label.
-        's4as-yal': r'Accuracy',  # Y axis label.
+        's4as-yal': r'$F_1$ score',  # Y axis label.
         's4as-lxa': 1,  # Set the X axis as logarithmic.
         's4as-nll': 1,  # Do not plot the legend.
 
-        # Sigma4 vs. TruePositive + TrueNegative w/ FalseStars plot parameters.
-        's4af-yll': [-0.001, 1.001],  # Y-axis limits.
+        # Sigma4 vs. F1 w/ FalseStars plot parameters.
+        's4af-yll': [0, 1.05],  # Y-axis limits.
         's4af-xal': r'$\sigma_4$',  # X axis label.
         's4af-lxa': 1,  # Set the X axis as logarithmic.
-        's4af-yal': r'Accuracy',  # Y axis label.
         's4af-nll': 1,  # Do not plot the legend.
     },
     'query-sigma-plot': {

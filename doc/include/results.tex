@@ -120,63 +120,88 @@ prior to executing the \Call{DMT}{} method.
 The linear search exhausts every overlay deviation selection:
 \begin{equation}
     \label{eq:linearSearchSigmaOverlay}
-    \sigma_o \ \in \ \{10^{-16}, 10^{-15}, \ldots 10^{1}\}
+    \sigma_n \ \in (10^{-16}, 10^{2})
 \end{equation}
 
 \begin{figure*}
     \centering{
-    \includegraphics[scale=0.45]{images/sigma1-pcss-css.png}
+    \includegraphics[scale=0.45]{images/sigma4-f1.png}
     \caption{
-    The left plot depicts the effect of varying $\sigma$ on the probability that the correct star set exists in the
-    resulting candidates after the query.
-    The right plot depicts the effect of varying $\sigma$ on the size of the candidate set after the query, bounded
-    by 30 candidates at maximum.
+    Both plots depict the effect of varying $\sigma$ on the F-score.
+    The left plot depicts this relationship for different variations in noise, while the right plot depicts the same
+    relationship for different numbers of false stars.
     The field-of-view is bounded by $f = 20^\circ$ and the apparent magnitude is bounded by $m = 6.0$.
-    Each point represents the average of 500 query steps without noise introduced.
-    For brevity, all deviations associated with methods of more than one feature term (i.e.\ Dot Angle, Spherical
-    Triangle, \ldots) had all corresponding $\sigma$ terms set equal to each other.
+    Each point represents the average of 200 query steps.
     } \label{figure:sigmaOverlayHyperparameterPlots}
     }
 \end{figure*}
 
-Each experiment was performed 10 times, and the largest $\sigma_o$ that identification the most stars correctly on
-average are displayed below.
-These were used for the experiment presented here.
-\begin{align*}
-    \sigma_o &= 1.0 \times 10^{-4}\\
-\end{align*}
+The set of plots in~\autoref{figure:sigmaOverlayHyperparameterPlots} depict the effect on different $\sigma$ terms
+against the F score.
+The period of stability for Gaussian noise under $\sigma = 10^{-9}$ and for all false star introductions occurs when:
+\begin{equation}
+    \label{eq:sigmaOverlayStableRegion}
+    \sigma_4 \ \in (10^{-6}, 10^{-3})
+\end{equation}
+
+It is important to note that under all
 
 \subsection{Query Selectivity}\label{subsec:querySelectivityResults}
 Using the optimal hyperparameters described in the previous section, each query step was analyzed in terms of its
-response to varying Gaussian noise.
+response to an introduction of Gaussian noise.
 
-\begin{figure*}
-    \centering{
-    \includegraphics[scale=0.45]{images/query-exp.png}
+%\begin{figure*}
+%    \centering{
+%    \includegraphics[scale=0.45]{images/query-exp.png}
+%    \caption{
+%    The left plot depicts the effect of varying the deviation of Gaussian noise on the probability that the correct
+%    star set exists in the resulting candidates after the query.
+%    The right plot depicts the effect of varying this same noise on the size of the candidate set after the query,
+%    bounded by 5000 candidates at maximum.
+%    Field of view limit is $f = 20^\circ$.
+%    Each point represents the average of 5000 query steps.
+%    For the probability measure these 5000 steps were split into 1000 averages, and the mean of these averages are
+%    presented above.
+%    } \label{figure:queryPlots}
+%    }
+%\end{figure*}
+
+\begin{table}
+    \centering {
     \caption{
-    The left plot depicts the effect of varying the deviation of Gaussian noise on the probability that the correct
-    star set exists in the resulting candidates after the query.
-    The right plot depicts the effect of varying this same noise on the size of the candidate set after the query,
-    bounded by 5000 candidates at maximum.
-    Field of view limit is $f = 20^\circ$.
-    Each point represents the average of 5000 query steps.
-    For the probability measure these 5000 steps were split into 1000 averages, and the mean of these averages are
-    presented above.
-    } \label{figure:queryPlots}
+    Each method's probability that the correct star set exists after querying ($Q$) and candidate set size under the
+    precense of Gaussian noise.
+    Every star in the image presented to each identification method's querying process was shifted toward some
+    random direction, whose magnitude was normally distributed by $\sigma=0.1^\circ, \mu = 0^\circ$.
+    Each point represents the average of five 1000 query steps.
+    } \label{tab:queryExperimentResults}
+    \begin{tabular}{m{0.18\columnwidth}|m{0.34\columnwidth}|m{0.34\columnwidth}}
+        \textbf{Method} & $Q$ & $\lvert R \rvert$ \\
+        \hline \hline
+        \textbf{Angle} & $1.000 \pm 0.00 $ & $10.90 \pm 1.96 \times 10^{-1}$ \\ \hline
+        \textbf{Dot Angle} & $1.000 \pm 0.00 $ & $04.52 \pm 1.08 \times 10^{-1}$ \\ \hline
+        \textbf{Spherical \newline Triangle} & $1.000 \pm 0.00 $ & $12.84 \pm 6.61 \times 10^{-1}$ \\ \hline
+        \textbf{Planar \newline Triangle} & $1.000 \pm 0.00 $ & $11.43 \pm 2.46 \times 10^{-1}$ \\ \hline
+        \textbf{Pyramid} & $0.994 \pm 6.63 \times 10^{-3}$ & $01.31 \pm 2.20 \times 10^{-2}$
+    \end{tabular}
     }
-\end{figure*}
+\end{table}
 
-In~\autoref{figure:queryPlots}, noise is plotted against the probability that the correct stars exist in this
-candidate set (on the left) and the size of the candidate set (on the right).
-Looking at both graphs, there is no discernible effect of noise on both the probability and the $\lvert R \rvert$ per
-method.
-This suggests that the \ldots.
+In~\autoref{tab:queryExperimentResults}, each method's $Q$ and $\lvert R \rvert$ is displayed under the presence of
+noise.
+All methods are able to produce no false negatives after the query step except for the Pyramid method, whose accuracy
+dips very slightly.
+On the other hand, the Pyramid method consistently produces the smallest candidate set size.
+By sacrificing $Q$, the Pyramid method ensures a smaller candidate set size.
+This tradeoff can only be made when there exists other stars to choose from, as star trackers with a small number of
+stars to choose from will be left without other combinations to identify stars from.
 
-On the left, it can be seen that nearly all methods accurate at all levels of noise except for the Pyramid method.
-This dips slightly below $P(\text{Correct Stars in } R) = 1$.
-On the right, it can be seen that this slight dip in accuracy results in a much smaller $\lvert R \rvert$ size than
-the other methods.
-The next largest $\lvert R \rvert$ size is seen with the Dot Angle method.
+The next smallest candidate set size can be seen with the Dot Angle method, followed by the Angle method, and the
+triangle methods last.
+Feature sets involving angular separation are more selective than those using triangular features.
+
+
+The most selective feature set that does not sacrifice accuracy is the Dot Angle.
 
 \subsection{Candidate Reduction}\label{subsec:candidateReductionResults}
 

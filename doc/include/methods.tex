@@ -172,18 +172,17 @@ The ideal feature set is one that has a long period of stability, and one with l
 To determine $\sigma$ for the identification step, the grid search devolves into a linear search.
 $\sigma_o$ (overlay) is defined as~\autoref{eq:gridSearchQuery}, for some different set of $M$.
 
-$\sigma_o$ is used by the \Call{DMT}{} call, a function used by the Angle, Spherical Triangle, Planar Triangle, and
+This deviation is used by the \Call{DMT}{} call, a function used by the Angle, Spherical Triangle, Planar Triangle, and
 Composite Pyramid methods.
 Given that this function operates the same for all identification methods above, this function was tested separately
 as a binary classifier.
-The sensitivity of this hyperparameter selection was characterized in terms of the resulting accuracy of the
+The sensitivity of this hyperparameter selection was characterized in terms of the resulting F-score of the
 classification:
 \begin{equation}
     \label{eq:sensitivityIdentification}
-    \left\lvert\frac{\partial A}{\partial \sigma}\right\rvert_{\sigma_o} = \text{response of } A \text{ at }
+    \left\lvert\frac{\partial F_1}{\partial \sigma}\right\rvert_{\sigma_o} = \text{response of } F_1 \text{ at }
     \sigma_o \\
 \end{equation}
-where $A = $ accuracy of the resulting classification.
 
 Similarly, the longer the response above remains at zero the less sensitive the hyperparameter selection will be for
 the \Call{DMT}{} call.
