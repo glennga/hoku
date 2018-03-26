@@ -189,7 +189,7 @@ TEST(Benchmark, ErrorRemovedLightRemoved) {
     EXPECT_LT(input.b.size(), a);
 }
 
-// Check that stars have been shifted in light shift method.
+/// Check that stars have been shifted in light shift method.
 TEST(Benchmark, ErrorShiftedLightMoved) {
     Chomp ch;
     Benchmark input(ch, 15);

@@ -85,6 +85,35 @@ TEST(Rotation, Shake) {
     EXPECT_GT((180.0 / M_PI) * Vector3::Angle(a, c), 1.0);
 }
 
+/// Check that the deviation of angular separation is roughly equal to deviation passed to the shake method.
+TEST(Rotation, ShakeDeviation) {
+    static auto sd = [] (const std::vector<double> &samples) -> double {
+        int size = samples.size();
+        double variance = 0, t = samples[0];
+    
+        for (int i = 1; i < size; i++) {
+            t += samples[i];
+            double diff = ((i + 1) * samples[i]) - t;
+            variance += (diff * diff) / ((i + 1.0) *i);
+        }
+        
+        return sqrt(variance / (size - 1));
+    };
+    
+    Star a = Star::chance();
+//    std::vector<double> sigma = {1.0e-13, 1.0e-12, 1.0e-11, 1.0e-9, 1.0e-7, 1.0e-5, 1.0e-3};
+    std::vector<double> sigma = {1.0e-7, 1.0e-6, 1.0e-5, 0.1};
+    for (const double &s : sigma) {
+        std::vector<double> theta_std (10000);
+        for (unsigned int i = 0; i < 10000; i++) {
+            Star b = Rotation::shake(a, s);
+            theta_std[i] = (180.0 / M_PI) * Vector3::Angle(a, b);
+        }
+        
+        EXPECT_NEAR(sd(theta_std), s, s);
+    }
+}
+
 /// Check that the random rotations are unique, and are normalized.
 TEST(Rotation, Chance) {
     EXPECT_NE(Rotation::chance(), Rotation::chance());
