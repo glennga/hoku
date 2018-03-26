@@ -61,7 +61,7 @@ namespace Experiment {
             double ss_step = cf.GetReal("query-experiment", "ss-step", 0);
             
             for (int ss_i = 0; ss_i < ss_iter; ss_i++) {
-                double ss = (ss_i == 0) ? 0 : pow(ss_step, ss_i);
+                double ss = (ss_i == 0) ? 0 : 1.0 / pow(ss_step, ss_i - 1);
                 
                 // Repeat each trial n = SAMPLES times.
                 for (int i = 0; i < samples; i++) {
@@ -126,7 +126,7 @@ namespace Experiment {
             // Perform the shift trials, then the extra stars trial.
             auto trial_specific_error = [&] (const bool is_shift, const int iter, const double step, const double min) {
                 for (int s_i = 0; s_i < iter; s_i++) {
-                    double s = is_shift ? ((s_i == 0) ? 0 : pow(step, s_i)) : (min + static_cast<double>(s_i) * step);
+                    double s = is_shift ? ((s_i == 0) ? 0 : 1.0 / pow(step, s_i - 1)) : (min + static_cast<double>(s_i) * step);
                     
                     // Repeat each trial n = SAMPLES times.
                     for (int i = 0; i < samples; i++) {
@@ -188,7 +188,7 @@ namespace Experiment {
             // Perform the shift trials, then the extra stars trial.
             auto trial_specific_error = [&] (const bool is_shift, const int iter, const double step, const double min) {
                 for (int s_i = 0; s_i < iter; s_i++) {
-                    double s = is_shift ? ((s_i == 0) ? 0 : pow(step, s_i)) : (min + static_cast<double>(s_i) * step);
+                    double s = is_shift ? ((s_i == 0) ? 0 : 1.0 / pow(step, s_i - 1)) : (min + static_cast<double>(s_i) * step);
                     
                     // Repeat each trial n = SAMPLES times.
                     for (int i = 0; i < samples; i++) {
@@ -251,7 +251,7 @@ namespace Experiment {
             // Perform the shift trials, then the extra stars trial.
             auto trial_specific_error = [&] (const bool is_shift, const int iter, const double step, const double min) {
                 for (int s_i = 0; s_i < iter; s_i++) {
-                    double s = is_shift ? ((s_i == 0) ? 0 : pow(step, s_i)) : (min + static_cast<double>(s_i) * step);
+                    double s = is_shift ? ((s_i == 0) ? 0 : 1.0 / pow(step, s_i - 1)) : (min + static_cast<double>(s_i) * step);
                     
                     // Repeat each trial n = SAMPLES times.
                     for (int i = 0; i < samples; i++) {
