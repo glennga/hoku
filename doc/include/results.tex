@@ -138,13 +138,32 @@ The linear search exhausts every overlay deviation selection:
 
 The set of plots in~\autoref{figure:sigmaOverlayHyperparameterPlots} depict the effect on different $\sigma$ terms
 against the F score.
-The period of stability for Gaussian noise under $\sigma = 10^{-9}$ and for all false star introductions occurs when:
+The period of accurate stability for Gaussian noise under $\sigma = 10^{-5}$ and for all false star introductions occurs
+when:
 \begin{equation}
     \label{eq:sigmaOverlayStableRegion}
     \sigma_4 \ \in (10^{-6}, 10^{-3})
 \end{equation}
 
-It is important to note that under all
+% TODO: How to interpret stable region of F = 0.57?
+Looking at the both plots it is interesting to note that under no noise (Gaussian or false stars), a $\sigma_4 \ \in
+(10^{-17}, 10^{-6})$ gives an $F$ score $~0.57 \pm 1.8 \times 10^{-2}$.
+In this region, it appears that the \ldots
+On the other end of the stability period for $\sigma_4 > 10^0$, accuracy drops straight to 0 regardless of the noise
+presented.
+At this period, stars are labeled with more weight to the order of the stars in the imaage rather than actually falling
+within the specified deviation.
+
+Focusing on the left plot of varying Gaussian noise, the accuracy dips to zero once the deviation of Gaussian noise
+exceeds the selected deviation.
+Past the $10^{-4}$ mark, the largest accuracy a deviation choice can achieve is no longer equal to one.
+If noise is known, then the appropriate deviation for the \Call{DMT}{} method can be selected.
+The right plot shows that the accuracy is not affected under different amounts of false stars.
+Given varying amounts of false stars, virtually none of these stars were identified as an actual star.
+The \Call{DMT}{} method is seen as highly specific, yielding no false positives.
+
+The value of $\sigma_4 = 10^{-4}$ was selected for use in the \Call{DMT}{} method.
+This is the largest deviation that lies in the accurate stable region.
 
 \subsection{Query Selectivity}\label{subsec:querySelectivityResults}
 Using the optimal hyperparameters described in the previous section, each query step was analyzed in terms of its
