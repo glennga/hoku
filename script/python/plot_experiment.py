@@ -38,14 +38,14 @@ def overlay_plots(cur_i):
 
     plt.figure()
     plt.subplot(121)  # Sigma4 vs. F1 w/ ShiftDeviation visualization.
-    for i in ['0.0', '1.0e-15', '1.0e-13', '1.0e-11', '1.0e-9', '1.0e-7', '1.0e-5']:
+    for i in ['0.0', '1.0e-6', '1.0e-5', '1.0e-4', '1.0e-3', '1.0e-2']:
         e_plot(cur_i, {'table_name': 'OVERLAY', 'x_attribute': 'Sigma4',
                        'y_attribute': '(2 * TruePositive) / (2 * TruePositive + FalsePositive + FalseNegative)',
                        # 'y_attribute': '(TruePositive + TrueNegative) / N ',
                        'constrain_that': 'ABS(ShiftDeviation - {}) < 1.0e-17 '.format(i) +
                                          'AND FalseStars = 0 ',
                        'params_section': 'overlay-plot', 'params_prefix': 's4as', 'plot_type': 'LINE'})
-    a = plt.legend(['0', r'$10^{-15}$', r'$10^{-13}$', r'$10^{-11}$', r'$10^{-9}$', r'$10^{-7}$', r'$10^{-5}$'])
+    a = plt.legend(['0', r'$10^{-6}$', r'$10^{-5}$', r'$10^{-4}$', r'$10^{-3}$', r'$10^{-2}$'])
     a.draggable(True)
 
     plt.subplot(122)  # Sigma4 vs. F1 w/ FalseStars visualization.

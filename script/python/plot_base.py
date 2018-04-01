@@ -58,29 +58,29 @@ def attach_plot_info(att):
         :return: None.
         """
         try:
-            h(f(None))
+            h(f())
         except KeyError:
             pass
 
     # Set Y limits.
-    attempt(lambda _: ax.set_ylim(params[sec][pre + '-yll']))
+    attempt(lambda : ax.set_ylim(params[sec][pre + '-yll']))
 
     # If desired, set the X axis as logarithmic.
-    attempt(lambda _: ax.set_xscale('log') if params[sec][pre + '-lxa'] == 1 else None)
+    attempt(lambda : ax.set_xscale('log') if params[sec][pre + '-lxa'] == 1 else None)
 
     # If desired, set the Y axis as logarithmic.
-    attempt(lambda _: ax.set_yscale('log') if params[sec][pre + '-lya'] == 1 else None)
+    attempt(lambda : ax.set_yscale('log') if params[sec][pre + '-lya'] == 1 else None)
 
     # Add the legend.
-    attempt(lambda _: plt.legend(params[sec]['ll'], fontsize=18)
+    attempt(lambda : plt.legend(params[sec]['ll'], fontsize=18)
     if not pre + '-nll' in params[sec] or params[sec][pre + '-nll'] == 0 else None,
             lambda a: a.draggable(True) if a is not None else None)
 
     # Add the chart X axis tick labels.
-    attempt(lambda _: plt.xticks(np.arange(len(params[sec][pre + '-xtl'])), params[sec][pre + '-xtl']))
+    attempt(lambda : plt.xticks(np.arange(len(params[sec][pre + '-xtl'])), params[sec][pre + '-xtl']))
 
     # Add the chart X and Y labels.
-    attempt(lambda _: plt.xlabel(params[sec][pre + '-xal']) and plt.ylabel(params[sec][pre + '-yal']))
+    attempt(lambda : plt.xlabel(params[sec][pre + '-xal']) and plt.ylabel(params[sec][pre + '-yal']))
 
 
 def d_plot(cur_j, att):
