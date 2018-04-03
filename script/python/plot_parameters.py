@@ -86,16 +86,28 @@ params = {
 
         # Shift Deviation vs. CandidateSetSize plot parameters.
         'sdcss-yll': [0, 15],  # Y-axis limits.
-        'sdcss-xtl': [r'$0$', r'$10^{-4}$', r'$10^{-3}$', r'$10^{-2}$',
-                      r'$10^{-1}$'],  # X-axis tick labels.
+        'sdcss-xtl': [r'$0$', r'$10^{-4}$', r'$10^{-3}$', r'$10^{-2}$', r'$10^{-1}$'],  # X-axis tick labels.
         'sdcss-xal': 'Deviation of Noise (degrees)',  # X-axis label.
         'sdcss-yal': r'$|$Candidate Set$|$',  # Y-axis label.
         'sdcss-nll': 1,  # Do not plot the legend.
     },
 
     'reduction-plot': {
-        'll': ['Angle', 'Dot', 'Sphere', 'Plane', 'Pyramid', 'Composite'],  # Legend list.
+        # 'll': ['Angle', 'Dot', 'Sphere', 'Plane', 'Pyramid', 'Composite'],  # Legend list.
+        'll': ['Angle', 'Dot', 'Pyramid', 'Composite'],  # Legend list.
 
+        # Shift Deviation vs. PercentageCorrect plot parameters.
+        'sdpc-yll' : [0, 1.05], # Y-axis limits
+        'sdpc-xtl': [r'$0$', r'$10^{-3}$', r'$10^{-2}$', r'$10^{-1}$', r'$10^1$'],  # X-axis tick labels.
+        'sdpc-xal': 'Deviation of Noise (degrees)',  # X-axis label.
+        'sdpc-yal': 'Percentage of Correctly Reduced Stars',  # Y-axis label.
+        'sdpc-nll': 1,  # Do not plot the legend.
+
+        # Shift Deviation vs. ComparisonCount plot parameters.
+        'sdcc-xtl': [r'$0$', r'$10^{-3}$', r'$10^{-2}$', r'$10^{-1}$', r'$10^1$'],  # X-axis tick labels.
+        'sdcc-xal': 'Deviation of Noise (degrees)',  # X-axis label.
+        'sdcc-yal': 'Number of Query Sets Selected', # Y-axis label.
+        'sdcc-nll': 1, # Do not plot the legend.
     },
 
     'identification-plot': {

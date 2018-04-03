@@ -231,11 +231,6 @@ Star::trio Pyramid::find_catalog_stars (const Star::trio &b) {
         r = {ch.query_hip(r_ell[0][0]), ch.query_hip(r_ell[0][1]), ch.query_hip(r_ell[0][2])};
     }
     
-    // Otherwise, attempt to verify the triangle. No reduction flag is applied here as well.
-    if (!verification(r, b) && !parameters.no_reduction) {
-        return NO_CONFIDENT_R_FOUND;
-    }
-    
     return r;
 }
 
@@ -323,7 +318,7 @@ Star::list Pyramid::reduce () {
         for (unsigned int dk = 1; dk < big_i.size() - dj - 1; dk++) {
             for (unsigned int di = 0; di < big_i.size() - dj - dk - 1; di++) {
                 int i = di, j = di + dj, k = j + dk;
-                Star::list r = identify_as_list({big_i[i], big_i[j], big_i[k]});
+                Star::list b = identify_as_list({big_i[i], big_i[j], big_i[k]});
                 (*parameters.nu)++;
     
                 // Practical limit: exit early if we have iterated through too many comparisons without match.
@@ -331,11 +326,11 @@ Star::list Pyramid::reduce () {
                     return NO_CONFIDENT_R;
                 }
                 
-                // The reduction step: |R| = 1.
-                if (std::equal(r.begin(), r.end(), NO_CONFIDENT_A.begin())) {
+                // The reduction step: |R| = 1 (in terms of B here).
+                if (std::equal(b.begin(), b.end(), NO_CONFIDENT_A.begin())) {
                     continue;
                 }
-                return {r[0], r[1], r[2]};
+                return {ch.query_hip(b[0].get_label()), ch.query_hip(b[1].get_label()), ch.query_hip(b[2].get_label())};
             }
         }
     }
@@ -380,8 +375,14 @@ Star::list Pyramid::identify () {
                 }
                 
                 // Given three stars in our catalog, find their catalog IDs in the catalog.
-                Star::trio r = find_catalog_stars(Star::trio {big_i[i], big_i[j], big_i[k]});
+                Star::trio b = {big_i[i], big_i[j], big_i[k]};
+                Star::trio r = find_catalog_stars(b);
                 if (std::equal(r.begin(), r.end(), NO_CONFIDENT_R_FOUND.begin())) {
+                    continue;
+                }
+
+                // Run this through the verification step.
+                if (!verification(r, b) && !parameters.no_reduction) {
                     continue;
                 }
                 
