@@ -28,6 +28,39 @@ from plot_parameters import params
 from plot_base import attach_plot_info, attach_figure_legend, e_plot, d_plot
 
 
+def overlay_plots(cur_i):
+    """ Display the plots associated with the overlay experiment.
+
+    :param cur_i: Cursor to database containing result data.
+    :return: None.
+    """
+    plt.rc('text', usetex=True), plt.rc('font', family='serif', size=20)
+
+    plt.figure()
+    plt.subplot(121)  # Sigma4 vs. F1 w/ ShiftDeviation visualization.
+    for i in ['0.0', '1.0e-6', '1.0e-5', '1.0e-4', '1.0e-3', '1.0e-2']:
+        e_plot(cur_i, {'table_name': 'OVERLAY', 'x_attribute': 'Sigma4',
+                       'y_attribute': '(2 * TruePositive) / (2 * TruePositive + FalsePositive + FalseNegative)',
+                       # 'y_attribute': '(TruePositive + TrueNegative) / N ',
+                       'constrain_that': 'ABS(ShiftDeviation - {}) < 1.0e-17 '.format(i) +
+                                         'AND FalseStars = 0 ',
+                       'params_section': 'overlay-plot', 'params_prefix': 's4as', 'plot_type': 'LINE'})
+    a = plt.legend(['0', r'$10^{-6}$', r'$10^{-5}$', r'$10^{-4}$', r'$10^{-3}$', r'$10^{-2}$'])
+    a.draggable(True)
+
+    plt.subplot(122)  # Sigma4 vs. F1 w/ FalseStars visualization.
+    for i in ['0', '3', '6', '9', '12']:
+        e_plot(cur_i, {'table_name': 'OVERLAY', 'x_attribute': 'Sigma4',
+                       'y_attribute': '(2 * TruePositive) / (2 * TruePositive + FalsePositive + FalseNegative)',
+                       # 'y_attribute': '(TruePositive + TrueNegative) / N ',
+                       'constrain_that': 'ABS(ShiftDeviation - 0.0) < 1.0e-17 '
+                                         'AND FalseStars = {} '.format(i),
+                       'params_section': 'overlay-plot', 'params_prefix': 's4af', 'plot_type': 'LINE'})
+    a = plt.legend(['0', '3', '6', '9', '12'])
+    a.draggable(True)
+    plt.show()
+
+
 def nibble_plots(cur_j):
     """ Display the plots associated with the nibble database.
 
@@ -117,16 +150,17 @@ def reduction_plots(cur_i):
     """
     plt.rc('text', usetex=True), plt.rc('font', family='serif', size=12)
 
-    plt.figure()
+    fig = plt.figure()
     plt.subplot(121)
-    e_plot(cur_i, {'table_name': 'REDUCTION', 'x_attribute': 'ShiftDeviation', 'y_attribute': 'ResultMatchesInput',
-                   'constrain_that': 'CameraSensitivity = 6.0', 'params_section': 'reduction-plot',
-                   'params_prefix': 'sdrmi'})
+    e_plot(cur_i, {'table_name': 'REDUCTION', 'x_attribute': 'ShiftDeviation', 'y_attribute': 'PercentageCorrect',
+                   'constrain_that': 'FalseStars = 0', 'params_section': 'reduction-plot',
+                   'params_prefix': 'sdpc', 'plot_type': 'BAR'})
 
     plt.subplot(122)
-    e_plot(cur_i, {'table_name': 'REDUCTION', 'x_attribute': 'CameraSensitivity', 'y_attribute': 'ResultMatchesInput',
-                   'constrain_that': 'ShiftDeviation = 1.0e-3', 'params_section': 'reduction-plot',
-                   'params_prefix': 'csrmi'})
+    p = e_plot(cur_i, {'table_name': 'REDUCTION', 'x_attribute': 'ShiftDeviation', 'y_attribute': 'ComparisonCount',
+                   'constrain_that': 'FalseStars = 0', 'params_section': 'reduction-plot',
+                   'params_prefix': 'sdcc', 'plot_type': 'BAR'})
+    attach_figure_legend({'params_section': 'reduction-plot'}, fig, p)
     plt.show()
 
 
@@ -141,8 +175,8 @@ def identification_plots(cur_i):
 
 if __name__ == '__main__':
     # Ensure that there exists between one and three arguments, and that it is in the appropriate space.
-    if len(sys.argv) < 1 or len(sys.argv) > 4 or sys.argv[1] not in ['nibble', 'query-sigma', 'query', 'reduction',
-                                                                     'identification']:
+    arg_space = ['nibble', 'query-sigma', 'query', 'reduction', 'identification', 'overlay']
+    if len(sys.argv) < 1 or len(sys.argv) > 4 or sys.argv[1] not in arg_space:
         print('Usage: python3 plot_experiment.py [experiment-to-visualize] [location-of-database]'), exit(1)
 
     # Experiment data in lumberjack.db, or is specified by the user (second argument).
@@ -158,13 +192,5 @@ if __name__ == '__main__':
         print('SQL Error: ' + str(e)), exit(2)
     cur = conn.cursor()
 
-    if sys.argv[1] == 'nibble':
-        nibble_plots(cur)
-    elif sys.argv[1] == 'query-sigma':
-        query_sigma_plots(cur)
-    elif sys.argv[1] == 'query':
-        query_plots(cur)
-    elif sys.argv[1] == 'reduction':
-        reduction_plots(cur)
-    else:
-        identification_plots(cur)
+    plots = [nibble_plots, query_sigma_plots, query_plots, reduction_plots, identification_plots, overlay_plots]
+    plots[arg_space.index(sys.argv[1])](cur)

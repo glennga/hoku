@@ -4,7 +4,7 @@ how the plots are visually represented.
 """""
 
 params = {
-    'split-n': 5,  # Number of splits to perform for each member in X space.
+    'split-n': 4,  # Number of splits to perform for each member in X space.
     'nibble-plot': {
         'image-bits': 64,  # Number of pixels for heatmap.
 
@@ -41,6 +41,22 @@ params = {
         'nstai-xhl': ['0.01', '0.02', '0.03', '0.04', '0.05'],  # X-axis histogram tick labels.
         'nstai-yhl': ['0.001', '0.002', '0.003', '0.004', '0.005'],  # Y-axis histogram tick labels.
     },
+    'overlay-plot': {
+        'll': ['Angle'],  # Legend list.
+
+        # Sigma4 vs. F1 w/ ShiftDeviation plot parameters.
+        's4as-yll': [0, 1.05],  # Y-axis limits.
+        's4as-xal': r'$\sigma_4$',  # X axis label.
+        's4as-yal': r'$F_1$ score',  # Y axis label.
+        's4as-lxa': 1,  # Set the X axis as logarithmic.
+        's4as-nll': 1,  # Do not plot the legend.
+
+        # Sigma4 vs. F1 w/ FalseStars plot parameters.
+        's4af-yll': [0, 1.05],  # Y-axis limits.
+        's4af-xal': r'$\sigma_4$',  # X axis label.
+        's4af-lxa': 1,  # Set the X axis as logarithmic.
+        's4af-nll': 1,  # Do not plot the legend.
+    },
     'query-sigma-plot': {
         'll': ['Angle', 'Dot', 'Sphere', 'Plane', 'Pyramid'],  # Legend list.
 
@@ -70,16 +86,28 @@ params = {
 
         # Shift Deviation vs. CandidateSetSize plot parameters.
         'sdcss-yll': [0, 15],  # Y-axis limits.
-        'sdcss-xtl': [r'$0$', r'$10^{-4}$', r'$10^{-3}$', r'$10^{-2}$',
-                      r'$10^{-1}$'],  # X-axis tick labels.
+        'sdcss-xtl': [r'$0$', r'$10^{-4}$', r'$10^{-3}$', r'$10^{-2}$', r'$10^{-1}$'],  # X-axis tick labels.
         'sdcss-xal': 'Deviation of Noise (degrees)',  # X-axis label.
         'sdcss-yal': r'$|$Candidate Set$|$',  # Y-axis label.
         'sdcss-nll': 1,  # Do not plot the legend.
     },
 
     'reduction-plot': {
-        'll': ['Angle', 'Dot', 'Sphere', 'Plane', 'Pyramid', 'Composite'],  # Legend list.
+        # 'll': ['Angle', 'Dot', 'Sphere', 'Plane', 'Pyramid', 'Composite'],  # Legend list.
+        'll': ['Angle', 'Dot', 'Pyramid', 'Composite'],  # Legend list.
 
+        # Shift Deviation vs. PercentageCorrect plot parameters.
+        'sdpc-yll' : [0, 1.05], # Y-axis limits
+        'sdpc-xtl': [r'$0$', r'$10^{-3}$', r'$10^{-2}$', r'$10^{-1}$', r'$10^1$'],  # X-axis tick labels.
+        'sdpc-xal': 'Deviation of Noise (degrees)',  # X-axis label.
+        'sdpc-yal': 'Percentage of Correctly Reduced Stars',  # Y-axis label.
+        'sdpc-nll': 1,  # Do not plot the legend.
+
+        # Shift Deviation vs. ComparisonCount plot parameters.
+        'sdcc-xtl': [r'$0$', r'$10^{-3}$', r'$10^{-2}$', r'$10^{-1}$', r'$10^1$'],  # X-axis tick labels.
+        'sdcc-xal': 'Deviation of Noise (degrees)',  # X-axis label.
+        'sdcc-yal': 'Number of Query Sets Selected', # Y-axis label.
+        'sdcc-nll': 1, # Do not plot the legend.
     },
 
     'identification-plot': {
