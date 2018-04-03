@@ -103,7 +103,7 @@ void perform_trial (Lumberjack &lu, const std::string &identifier_in, const std:
 //    Chomp ch(cf.Get("table-names", identifier_in, ""), cf.Get("table-focus", identifier_in, ""));
     Chomp ch;
     
-    switch ((EHA::identifier_to_hash(identifier_in) * 3) + EHA::experiment_to_hash(experiment_in)) {
+    switch ((EHA::identifier_to_hash(identifier_in) * 4) + EHA::experiment_to_hash(experiment_in)) {
         case 0: return Experiment::Query::trial<Angle>(ch, lu, cf, identifier_in);
         case 1: return Experiment::Reduction::trial<Angle>(ch, lu, cf, identifier_in);
         case 2: return Experiment::Map::trial<Angle>(ch, lu, cf, identifier_in);

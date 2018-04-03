@@ -65,13 +65,13 @@ const std::string ALL_INI = "[hardware]                  ; Description of hardwa
 /// Contents of the configuration file for query trials.
 const std::string QUERY_INI = "[query-experiment]          ; Testing parameters for the query experiment.\n"
     "lu = QUERY                  ; Name of the Lumberjack table to log results to.\n"
-    "ss-step = 0.000000001       ; Shift sigma multiplier for each variation.\n"
+    "ss-step = 10.0              ; Shift sigma multiplier for each variation.\n"
     "ss-iter = 5                 ; Number of shift sigma variations.\n";
 
 /// Contents of the configuration file for reduction trials.
 const std::string REDUCTION_INI = "[reduction-experiment]      ; Testing parameters for the reduction experiment.\n"
     "lu = REDUCTION              ; Name of the Lumberjack table to log results to.\n"
-    "ss-step = 0.000000001       ; Shift sigma multiplier for each variation.\n"
+    "ss-step = 10.0              ; Shift sigma multiplier for each variation.\n"
     "ss-iter = 5                 ; Number of shift sigma variations.\n"
     "es-min = 0                  ; Starting number of false stars to add to image.\n"
     "es-step = 3                 ; Step to increment false star count with.\n"
@@ -80,7 +80,7 @@ const std::string REDUCTION_INI = "[reduction-experiment]      ; Testing paramet
 /// Contents of the configuration file for identification trials.
 const std::string IDENTIFICATION_INI = "[identification-experiment] ; Some comment...\n"
     "lu = IDENTIFICATION         ; Name of the Lumberjack table to log results to.\n"
-    "ss-step = 0.000000001       ; Shift sigma multiplier for each variation.\n"
+    "ss-step = 10.0              ; Shift sigma multiplier for each variation.\n"
     "ss-iter = 5                 ; Number of shift sigma variations.\n"
     "es-min = 0                  ; Starting number of false stars to add to image.\n"
     "es-step = 3                 ; Step to increment false star count with.\n"
@@ -89,7 +89,7 @@ const std::string IDENTIFICATION_INI = "[identification-experiment] ; Some comme
 /// Contents of the configuration file for overlay trials.
 const std::string OVERLAY_INI = "[overlay-experiment] ; Some comment...\n"
     "lu = OVERLAY                ; Name of the Lumberjack table to log results to.\n"
-    "ss-step = 0.000000001       ; Shift sigma multiplier for each variation.\n"
+    "ss-step = 10.0              ; Shift sigma multiplier for each variation.\n"
     "ss-iter = 5                 ; Number of shift sigma variations.\n"
     "es-min = 0                  ; Starting number of false stars to add to image.\n"
     "es-step = 3                 ; Step to increment false star count with.\n"
@@ -233,7 +233,7 @@ TEST(Experiment, QueryTrialAngle) {
         EXPECT_EQ(b_d[0], (*cf).GetReal("query-sigma", "angle-1", 0));
         EXPECT_EQ(b_d[1], (*cf).GetReal("query-sigma", "angle-2", 0));
         EXPECT_EQ(b_d[2], (*cf).GetReal("query-sigma", "angle-3", 0));
-        EXPECT_THAT(b_d[3], IsBetweenExperiment(0, pow((*cf).GetReal("query-experiment", "ss-step", 0), 1)));
+        EXPECT_THAT(b_d[3], IsBetweenExperiment(0, 1.0 / pow((*cf).GetReal("query-experiment", "ss-step", 0), 0)));
         EXPECT_THAT(b_d[4], IsBetweenExperiment(0, 1));
     }
     
@@ -280,7 +280,7 @@ TEST(Experiment, ReductionTrialAngle) {
         EXPECT_EQ(b_d[0], (*cf).GetReal("query-sigma", "angle-1", 0));
         EXPECT_EQ(b_d[1], (*cf).GetReal("query-sigma", "angle-2", 0));
         EXPECT_EQ(b_d[2], (*cf).GetReal("query-sigma", "angle-3", 0));
-        EXPECT_THAT(b_d[3], IsBetweenExperiment(0, pow((*cf).GetReal("reduction-experiment", "ss-step", 0), 1)));
+        EXPECT_THAT(b_d[3], IsBetweenExperiment(0, 1.0 / pow((*cf).GetReal("reduction-experiment", "ss-step", 0), 0)));
         EXPECT_THAT(b_d[4], IsBetweenExperiment((*cf).GetReal("reduction-experiment", "es-min", 0),
                                                 (*cf).GetReal("reduction-experiment", "es-min", 0)
                                                 + (*cf).GetReal("reduction-experiment", "es-step", 0)
@@ -295,7 +295,7 @@ TEST(Experiment, ReductionTrialAngle) {
     transaction.commit();
 }
 
-TEST(Experiment, IdentificaitonPercentageCorrect) {
+TEST(Experiment, IdentificationPercentageCorrect) {
     Chomp ch;
     Star::list a = {ch.query_hip(26220), ch.query_hip(26221), ch.query_hip(26235), ch.query_hip(26224),
         ch.query_hip(26427)};
@@ -336,7 +336,7 @@ TEST(Experiment, IdentificationTrialAngle) {
         EXPECT_EQ(b_d[1], (*cf).GetReal("query-sigma", "angle-2", 0));
         EXPECT_EQ(b_d[2], (*cf).GetReal("query-sigma", "angle-3", 0));
         EXPECT_EQ(b_d[3], (*cf).GetReal("id-parameters", "so", 0));
-        EXPECT_THAT(b_d[4], IsBetweenExperiment(0, pow((*cf).GetReal("identification-experiment", "ss-step", 0), 1)));
+        EXPECT_THAT(b_d[4], IsBetweenExperiment(0, 1.0 / pow((*cf).GetReal("identification-experiment", "ss-step", 0), 0)));
         EXPECT_THAT(b_d[5], IsBetweenExperiment((*cf).GetReal("identification-experiment", "es-min", 0),
                                                 (*cf).GetReal("identification-experiment", "es-min", 0)
                                                 + (*cf).GetReal("identification-experiment", "es-step", 0)
@@ -366,14 +366,15 @@ TEST(Experiment, OverlayTrial) {
     Experiment::Overlay::trial<Angle>((*ch), (*lu), (*cf), "angle");
     (*lu).flush_buffer();
     
-    Nibble::tuples_d b = (*lu).search_table("Sigma4, ShiftDeviation, FalseStars, PercentageCorrect",
+    Nibble::tuples_d b = (*lu).search_table("Sigma4, ShiftDeviation, FalseStars, TruePositive, FalsePositive, "
+                                                "TrueNegative, FalseNegative, N",
                                             "IdentificationMethod = 'Angle' AND Timestamp = '" + (*lu).timestamp + "'",
                                             10);
     ASSERT_EQ(b.size(), count_b + 5 + 5);
     
     for (const Nibble::tuple_d b_d : b) {
         EXPECT_EQ(b_d[0], (*cf).GetReal("id-parameters", "so", 0));
-        EXPECT_THAT(b_d[1], IsBetweenExperiment(0, pow((*cf).GetReal("overlay-experiment", "ss-step", 0), 1)));
+        EXPECT_THAT(b_d[1], IsBetweenExperiment(0, 1.0 / pow((*cf).GetReal("overlay-experiment", "ss-step", 0), 0)));
         EXPECT_THAT(b_d[2], IsBetweenExperiment((*cf).GetReal("overlay-experiment", "es-min", 0),
                                                 (*cf).GetReal("overlay-experiment", "es-min", 0)
                                                 + (*cf).GetReal("overlay-experiment", "es-step", 0)

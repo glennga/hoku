@@ -139,15 +139,26 @@ double Experiment::Map::percentage_correct (const Star::list &big_i, const Star:
 /// @param big_i All image stars. Check for all stars in P that exist in I.
 /// @param big_i_i Index list of all stars in I that have been changed. Assumes that I', I is not shuffled.
 /// @param es Number of extra stars added to I before presentation to FPO.
-/// @return Number of correctly predicted catalog labels matches the ground truth labels as a fraction.
-double Experiment::Overlay::percentage_correct (const Star::list &big_i_prime, const Star::list &big_i,
-                                                const std::vector<int> &big_i_i, const double es) {
-    int count = 0, false_positive = static_cast<int> (es);
+/// @return The TP, FP, TN, FN, N of the resulting I' set as an array.
+std::array<double, 5> Experiment::Overlay::confusion_matrix (const Star::list &big_i_prime, const Star::list &big_i,
+                                            const std::vector<int> &big_i_i, const double es) {
+    double tp = 0, fp = 0, tn = 0, fn = 0;
     
     for (unsigned int i = 0; i < big_i_i.size(); i++) {
-        count += (i < big_i.size() && big_i_prime[i].get_label() == big_i[big_i_i[i]].get_label()) ? 1 : 0;
-        false_positive -= (i >= big_i.size()) ? 1 : 0;
+        // True Positive: in I', in I.
+        tp += (i < big_i.size() && big_i_prime[i].get_label() == big_i[big_i_i[i]].get_label()) ? 1 : 0;
+        
+        // False Positive: in I', not in I.
+        fp += (i >= big_i.size()) ? 1 : 0;
     }
     
-    return (count + false_positive) / (big_i.size() + es);
+    // False Negative: in I, not in I'.
+    for (unsigned int j = 0; j < big_i.size(); j++) {
+        fn += (std::find(big_i_i.begin(), big_i_i.end(), j) == big_i_i.end()) ? 1 : 0;
+    }
+    
+    // True Negative: the complement.
+    tn = (big_i.size() + es) - (tp + fp + fn);
+    
+    return std::array<double, 5> {tp, fp, tn, fn, (tp + fp + tn + fn)};
 }

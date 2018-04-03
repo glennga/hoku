@@ -273,26 +273,18 @@ void Benchmark::remove_light (const unsigned int n, const double psi, const bool
 void Benchmark::shift_light (const unsigned int n, const double sigma, bool shuffle) {
     ErrorModel shifted_light = {"Shifted Light", "g", {Star::wrap(Vector3::Zero())}};
     unsigned int current_n = 0;
-    
-    // Loop through entire list again if n not met through past run.
-    while (current_n < n || this->b.size() == current_n + 1) {
-        bool n_condition = true;
-        
-        // Check inside if n is met early, break if met.
-        for (unsigned int i = 0; i < this->b.size() && n_condition; i++) {
-            Star candidate = Rotation::shake(this->b[i], sigma);
-            
-            // If shifted star is near center, add the shifted star and remove the old.
-            if (Star::within_angle(candidate, this->center, this->fov / 2.0)) {
-                this->b.push_back(candidate);
-                this->b.erase(this->b.begin() + i);
-                shifted_light.affected.emplace_back(candidate);
-                current_n++;
-            }
-            
-            // If the n-condition is met early, we break.
-            n_condition = (current_n < n || this->b.size() == current_n + 1);
-        }
+
+    for (unsigned int i = 0; i < this->b.size() && current_n < n; i++) {
+        Star candidate;
+
+        // Ensure that the shifted star does not veer out of focus.
+        do {
+            candidate = Rotation::shake(this->b.at(i), sigma);            
+        } while (!Star::within_angle(candidate, this->center, this->fov / 2.0));
+
+        // Modify our star set.
+        this->b.at(i) = candidate, current_n++;
+        shifted_light.affected.emplace_back(candidate);
     }
     
     // Shuffle to maintain randomness (if desired).
