@@ -150,16 +150,17 @@ def reduction_plots(cur_i):
     """
     plt.rc('text', usetex=True), plt.rc('font', family='serif', size=12)
 
-    plt.figure()
+    fig = plt.figure()
     plt.subplot(121)
-    e_plot(cur_i, {'table_name': 'REDUCTION', 'x_attribute': 'ShiftDeviation', 'y_attribute': 'ResultMatchesInput',
-                   'constrain_that': 'CameraSensitivity = 6.0', 'params_section': 'reduction-plot',
-                   'params_prefix': 'sdrmi'})
+    e_plot(cur_i, {'table_name': 'REDUCTION', 'x_attribute': 'ShiftDeviation', 'y_attribute': 'PercentageCorrect',
+                   'constrain_that': 'FalseStars = 0', 'params_section': 'reduction-plot',
+                   'params_prefix': 'sdpc', 'plot_type': 'BAR'})
 
     plt.subplot(122)
-    e_plot(cur_i, {'table_name': 'REDUCTION', 'x_attribute': 'CameraSensitivity', 'y_attribute': 'ResultMatchesInput',
-                   'constrain_that': 'ShiftDeviation = 1.0e-3', 'params_section': 'reduction-plot',
-                   'params_prefix': 'csrmi'})
+    p = e_plot(cur_i, {'table_name': 'REDUCTION', 'x_attribute': 'ShiftDeviation', 'y_attribute': 'ComparisonCount',
+                   'constrain_that': 'FalseStars = 0', 'params_section': 'reduction-plot',
+                   'params_prefix': 'sdcc', 'plot_type': 'BAR'})
+    attach_figure_legend({'params_section': 'reduction-plot'}, fig, p)
     plt.show()
 
 

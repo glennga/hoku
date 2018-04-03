@@ -226,11 +226,11 @@ TEST(Angle, TrialCleanIdentify) {
 TEST(Angle, TrialExceededNu) {
     Chomp ch;
     Benchmark input(ch, 15);
-    input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
+    input.shift_light(static_cast<unsigned int> (input.b.size()), 0.1);
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0), p.nu_max = 10;
-    p.sigma_1 = 1.0e-19;
-    p.sigma_4 = 1.0e-19;
+    p.sigma_1 = 1.0e-21;
+    p.sigma_4 = 1.0e-21;
     Angle a(input, p);
     
     EXPECT_EQ(a.identify()[0], Angle::EXCEEDED_NU_MAX[0]);
@@ -240,12 +240,12 @@ TEST(Angle, TrialExceededNu) {
 /// Check that the correct result is returned when no map is found.
 TEST(Angle, TrialNoMapFound) {
     Chomp ch;
-    Benchmark input(ch, 7);
-    input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
+    Benchmark input(ch, 5);
+    input.shift_light(static_cast<unsigned int> (input.b.size()), 0.1);
     Angle::Parameters p = Angle::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0), p.nu_max = std::numeric_limits<unsigned int>::max();
-    p.sigma_1 = 1.0e-19;
-    p.sigma_4 = 1.0e-19;
+    p.sigma_1 = 1.0e-21;
+    p.sigma_4 = 1.0e-21;
     Angle a(input, p);
     
     EXPECT_EQ(a.identify()[0], Angle::NO_CONFIDENT_A[0]);
