@@ -4,7 +4,7 @@ how the plots are visually represented.
 """""
 
 params = {
-    'split-n': 5,  # Number of splits to perform for each member in X space.
+    'split-n': 4,  # Number of splits to perform for each member in X space.
     'nibble-plot': {
         'image-bits': 64,  # Number of pixels for heatmap.
 
@@ -40,6 +40,22 @@ params = {
         'nstai-yal': r'$\imath$',  # Y-axis label.
         'nstai-xhl': ['0.01', '0.02', '0.03', '0.04', '0.05'],  # X-axis histogram tick labels.
         'nstai-yhl': ['0.001', '0.002', '0.003', '0.004', '0.005'],  # Y-axis histogram tick labels.
+    },
+    'overlay-plot': {
+        'll': ['Angle'],  # Legend list.
+
+        # Sigma4 vs. F1 w/ ShiftDeviation plot parameters.
+        's4as-yll': [0, 1.05],  # Y-axis limits.
+        's4as-xal': r'$\sigma_4$',  # X axis label.
+        's4as-yal': r'$F_1$ score',  # Y axis label.
+        's4as-lxa': 1,  # Set the X axis as logarithmic.
+        's4as-nll': 1,  # Do not plot the legend.
+
+        # Sigma4 vs. F1 w/ FalseStars plot parameters.
+        's4af-yll': [0, 1.05],  # Y-axis limits.
+        's4af-xal': r'$\sigma_4$',  # X axis label.
+        's4af-lxa': 1,  # Set the X axis as logarithmic.
+        's4af-nll': 1,  # Do not plot the legend.
     },
     'query-sigma-plot': {
         'll': ['Angle', 'Dot', 'Sphere', 'Plane', 'Pyramid'],  # Legend list.
