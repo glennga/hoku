@@ -104,20 +104,16 @@ Star::list Identification::find_positive_overlay(const Star::list &big_p, const 
     double epsilon = 3.0 * this->parameters.sigma_4;
     Star::list big_p_c = big_p;
     Star::list m;
-    
+
     // Clear our index vector.
     i.clear();
     i.reserve(this->big_i.size()), m.reserve(big_i.size());
 
-    // TODO: Incoorperate shuffling into search?
     std::shuffle(big_p_c.begin(), big_p_c.end(), RandomDraw::mersenne_twister);
-    
-    std::for_each(big_p_c.begin(), big_p_c.end(), [&] (const Star &p_i) -> void {
+    std::for_each(big_p_c.begin(), big_p_c.end(), [&](const Star &p_i) -> void {
         Star r_prime = Rotation::rotate(p_i, q);
-    
+
         for (unsigned int j = 0; j < big_i.size(); j++) {
-//            // Avoid stars that have been added.
-//            if (std::find(i.begin(), i.end(), j) == i.end() && Star::within_angle(r_prime, big_i[j], epsilon)) {
             if (Star::within_angle(r_prime, big_i[j], epsilon)) {
                 // Add this match to the list by noting the candidate star's catalog ID.
                 m.emplace_back(Star(big_i[j][0], big_i[j][1], big_i[j][2], p_i.get_label())), i.emplace_back(j);
@@ -137,24 +133,23 @@ Star::list Identification::find_positive_overlay(const Star::list &big_p, const 
 /// @return Set of matching stars found in candidates and the body sets.
 Star::list Identification::find_positive_overlay (const Star::list &big_p, const Rotation &q) {
     double epsilon = 3.0 * this->parameters.sigma_4;
-    Star::list m, big_i_c = this->big_i;
-    m.reserve(big_i.size());
-    
-    for (const Star &p_i : big_p) {
-        Star r_prime = Rotation::rotate(p_i, q);
-        
-        for (unsigned int i = 0; i < big_i_c.size(); i++) {
-            if (Star::within_angle(r_prime, big_i_c[i], epsilon)) {
-                // Add this match to the list by noting the candidate star's catalog ID.
-                m.emplace_back(Star(big_i_c[i][0], big_i_c[i][1], big_i_c[i][2], p_i.get_label()));
-                
-                // Remove the current star from the searching set. End the search for this star.
-                big_i_c.erase(big_i_c.begin() + i);
-                break;
-            }
-        }
-    }
-    
+    Star::list big_p_c = big_p;
+    Star::list m;
+
+    std::shuffle(big_p_c.begin(), big_p_c.end(), RandomDraw::mersenne_twister);
+    std::for_each(big_p_c.begin(), big_p_c.end(), [&] (const Star &p_i) -> void {
+       Star r_prime = Rotation::rotate(p_i, q);
+
+       for (const Star &i_i : big_i) {
+           if (Star::within_angle(r_prime, i_i, epsilon)) {
+               m.emplace_back(Star(i_i[0], i_i[1], i_i[2], r_prime.get_label()));
+
+               // Break early, we have found our match.
+               break;
+           }
+       }
+    });
+
     return m;
 }
 
