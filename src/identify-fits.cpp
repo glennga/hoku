@@ -62,7 +62,8 @@ std::shared_ptr<FILE> parse_fits (const std::string &image) {
 /// @return Empty list if there exist less than four total stars. Otherwise, the list of stars. The first is the focus,
 /// and the following are the stars in the image.
 Star::list parse_centroids (const std::shared_ptr<FILE> &centroids_pipe) {
-    double hf = cf.GetReal("hardware", "mp", 0) / 2, dpp = cf.GetReal("hardware", "dpp", 0);
+    double hc = cf.GetReal("hardware", "hmp", 0) / 2.0, vc = cf.GetReal("hardware", "vmp", 0) / 2.0;
+    double dpp = cf.GetReal("hardware", "dpp", 0);
     std::array<char, 128> buffer;
     Star::list s_i;
     
@@ -78,8 +79,8 @@ Star::list parse_centroids (const std::shared_ptr<FILE> &centroids_pipe) {
                 s_c[0] = std::stof(s_c_0, nullptr), s_c[1] = std::stof(s_c_1, nullptr);
                 
                 // Translate points to fit (0, 0) center.
-                double x = s_c[0] - hf, y = s_c[1] - hf;
-                
+                double x = s_c[0] - hc, y = s_c[1] - vc;
+
                 // Project the star to 3D, and save it.
                 s_i.emplace_back(Star::wrap(Mercator::transform_point(x, y, dpp)));
             }
@@ -112,7 +113,7 @@ int identify_fits (const std::string &id_method, const Star::list &s_i) {
     // Construct the image into a Benchmark given the arguments.
     const double fov = cf.GetReal("hardware", "fov", 0);
     const unsigned int i = identifier_hash(id_method);
-    Benchmark input(Star::list(s_i.begin() + 1, s_i.end()), s_i[0], fov);
+    Benchmark input(Star::list(s_i.begin(), s_i.end()), s_i[0], fov);
     
     // Attach hyperparameters.
     Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
