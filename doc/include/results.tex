@@ -16,10 +16,10 @@ The grid search exhausts every permutation $P_n^{\sigma_n}$, where:
     \caption{
     The left plot depicts the effect of varying $\sigma$ on the probability that the correct star set exists in the
     resulting candidates after the query.
-    The right plot depicts the effect of varying $\sigma$ on the size of the candidate set after the query, bounded
+    The right plot depicts the effect of varying $\sigma$ on the average size of the candidate set after the query, bounded
     by 30 candidates at maximum.
     The field-of-view is bounded by $f = 20^\circ$ and the apparent magnitude is bounded by $m = 6.0$.
-    Each point represents the average of 500 query steps without noise introduced.
+    Each point represents the average of 1000 query steps without noise introduced.
     For brevity, all deviations associated with methods of more than one feature term (i.e.\ Dot Angle, Spherical
     Triangle, \ldots) had all corresponding $\sigma$ terms set equal to each other.
     } \label{figure:sigmaHyperparameterPlots}
@@ -27,20 +27,20 @@ The grid search exhausts every permutation $P_n^{\sigma_n}$, where:
 \end{figure*}
 
 The set of plots in~\autoref{figure:sigmaHyperparameterPlots} depict the effect on different $\sigma$ terms against the
-size of the candidate set $R$ (on the left) and the probability that the correct stars exist in this candidate set (on
-the right).
+average size of the candidate set $S$ (on the left) and the probability that the correct stars exist in this candidate
+set $Q$ (on the right).
 If the deviation is too small, then the selectivity of each query becomes too restrictive and no results are returned.
 On the other hand when the selectivity is too high, the candidate set size upper bound of 30 candidates is
 hit and the chance that the correct candidate exists in the query declines.
 
-The period of stability for all methods identifying images restricted by $f < 20 \land m < 6.0$ occurs when:
+The ideal period for all methods identifying images restricted by $f < 20 \land m < 6.0$ occurs when:
 \begin{equation}
-    \label{eq:stabilityRegionAcrossFeatures}
+    \label{eq:idealRegionAcrossFeatures}
     \sigma_n \ \in (10^{-12}, 10^{-8})
 \end{equation}
 Regardless of the feature, a deviation choice between these bounds should be acceptable for distinguishing stars.
 
-% Not including this, don't feel it is relevant to stability analysis.
+% Not including this, don't feel it is relevant to ideal analysis.
 %It is important to note that each feature exists in different bounds.
 %The values below represent the observed bounds of each feature:
 %\begin{alignat*}{2}
@@ -56,17 +56,18 @@ Regardless of the feature, a deviation choice between these bounds should be acc
 %    \imath^{ijk} &\in (4.9 \times 10^{-16} &&, 5.3 \times 10^{-4})
 %\end{alignat*}
 
+% TODO: Replace these values with the ones using the most recent dataset.
 \begin{table}
     \centering {
     \caption{
-    Query hyperparameter determination stability and sensitivity results of each method.
-    The stability length $\ell$ represents the number of deviations where~\autoref{eq:stabilityQuery} is held.
-    Each method's critical points $\sigma_{c1}$ and $\sigma_{c2}$ a is the upper bound on the $Q$ and $\lvert R \rvert$
-    stability region.
-    } \label{tab:sensitivityStabilityResults}
+    Ideal query hyperparameter determination and sensitivity results of each method.
+    The ideal region length $\ell$ represents the number of deviations where~\autoref{eq:idealQuery} is held.
+    Each method's critical points $\sigma_{c1}$ and $\sigma_{c2}$ a is the upper bound on the $Q$ and $S$
+    ideal region.
+    } \label{tab:sensitivityIdealResults}
     \begin{tabular}{m{0.27\columnwidth}|m{0.13\columnwidth}|m{0.2\columnwidth}|m{0.2\columnwidth}}
         \textbf{Method} & $\ell$ & $\frac{\partial Q}{\partial\sigma} \text{ at } \sigma_{c1}$ &
-        $\frac{\partial \lvert R \rvert}{\partial \sigma} \text{ at } \sigma_{c2}$ \\
+        $\frac{\partial S}{\partial \sigma} \text{ at } \sigma_{c2}$ \\
         \hline \hline
         \textbf{Angle} & 3 & -0.375 & 0.001 \\ \hline
         \textbf{Dot Angle} & 9 & -0.453 & 0.183 \\ \hline
@@ -77,7 +78,7 @@ Regardless of the feature, a deviation choice between these bounds should be acc
     }
 \end{table}
 
-Referencing~\autoref{tab:sensitivityStabilityResults}, there appears to some correlation between the number of
+Referencing~\autoref{tab:sensitivityIdealResults}, there appears to some correlation between the number of
 \textit{distinct} features and length of the stability region here.
 The Dot Angle method uses three total features, two of which are distinct from each other ($\theta$ vs. $\phi$) for
 it's query.
@@ -102,7 +103,7 @@ If noise is not known, the most forgiving feature set in terms of both responses
 
 The $\sigma$ parameters for the following experiments were chosen using the results of the grid search, and selecting
 the largest $\sigma_1, \sigma_2, \sigma_3$ (ordered as such) that maintained all the
-conditions in~\autoref{eq:stabilityQuery}.
+conditions in~\autoref{eq:idealQuery}.
 \begin{alignat*}{2}
     \text{Angle}&: \sigma_\theta &&= 1.0 \times 10^{-4}\\
     \text{Pyramid}&: \sigma_\theta &&= 1.0 \times 10^{-4}\\
@@ -125,9 +126,9 @@ The linear search exhausts every overlay deviation selection:
 
 \begin{figure*}
     \centering{
-    \includegraphics[scale=0.45]{images/sigma4-f1.png}
+    \includegraphics[scale=0.45]{images/sigma4-recall.png}
     \caption{
-    Both plots depict the effect of varying $\sigma$ on the F-score.
+    Both plots depict the effect of varying $\sigma$ on the recall.
     The left plot depicts this relationship for different variations in noise, while the right plot depicts the same
     relationship for different numbers of false stars.
     The field-of-view is bounded by $f = 20^\circ$ and the apparent magnitude is bounded by $m = 6.0$.
@@ -137,7 +138,7 @@ The linear search exhausts every overlay deviation selection:
 \end{figure*}
 
 The set of plots in~\autoref{figure:sigmaOverlayHyperparameterPlots} depict the effect on different $\sigma$ terms
-against the F score.
+against the recall.
 The period of accurate stability for Gaussian noise under $\sigma = 10^{-5}$ and for all false star introductions occurs
 when:
 \begin{equation}
@@ -151,7 +152,7 @@ Looking at the both plots it is interesting to note that under no noise (Gaussia
 In this region, it appears that the \ldots
 On the other end of the stability period for $\sigma_4 > 10^0$, accuracy drops straight to 0 regardless of the noise
 presented.
-At this period, stars are labeled with more weight to the order of the stars in the imaage rather than actually falling
+At this period, stars are labeled with more weight to the order of the stars in the image rather than actually falling
 within the specified deviation.
 
 Focusing on the left plot of varying Gaussian noise, the accuracy dips to zero once the deviation of Gaussian noise
@@ -167,7 +168,7 @@ This is the largest deviation that lies in the accurate stable region.
 
 \subsection{Query Selectivity}\label{subsec:querySelectivityResults}
 Using the optimal hyperparameters described in the previous section, each query step was analyzed in terms of its
-response to an introduction of Gaussian noise.
+$Q$ and $S$ response to an introduction of Gaussian noise.
 
 %\begin{figure*}
 %    \centering{
@@ -188,14 +189,14 @@ response to an introduction of Gaussian noise.
 \begin{table}
     \centering {
     \caption{
-    Each method's probability that the correct star set exists after querying ($Q$) and candidate set size under the
-    precense of Gaussian noise.
+    Each method's probability that the correct star set exists after querying ($Q$) and average candidate set size ($S$)
+    under the presence of Gaussian noise.
     Every star in the image presented to each identification method's querying process was shifted toward some
     random direction, whose magnitude was normally distributed by $\sigma=0.1^\circ, \mu = 0^\circ$.
-    Each point represents the average of five 1000 query steps.
+    Each point represents the average of 5000 query steps.
     } \label{tab:queryExperimentResults}
     \begin{tabular}{m{0.18\columnwidth}|m{0.34\columnwidth}|m{0.34\columnwidth}}
-        \textbf{Method} & $Q$ & $\lvert R \rvert$ \\
+        \textbf{Method} & $Q$ & $S$ \\
         \hline \hline
         \textbf{Angle} & $1.000 \pm 0.00 $ & $10.90 \pm 1.96 \times 10^{-1}$ \\ \hline
         \textbf{Dot Angle} & $1.000 \pm 0.00 $ & $04.52 \pm 1.08 \times 10^{-1}$ \\ \hline
@@ -206,25 +207,120 @@ response to an introduction of Gaussian noise.
     }
 \end{table}
 
-In~\autoref{tab:queryExperimentResults}, each method's $Q$ and $\lvert R \rvert$ is displayed under the presence of
-noise.
+In~\autoref{tab:queryExperimentResults}, each method's $Q$ and $S$ is displayed under the presence of noise.
+It is important to note that the data for the same experiment without the introduction of noise is very similar to that
+with noise, suggesting that Gaussian noise does not affect the outcome of the query step.
+Any inaccuracies with the overall identification process are most likely a result of future steps.
+
 All methods are able to produce no false negatives after the query step except for the Pyramid method, whose accuracy
 dips very slightly.
-On the other hand, the Pyramid method consistently produces the smallest candidate set size.
-By sacrificing $Q$, the Pyramid method ensures a smaller candidate set size.
+On the other hand, the Pyramid method consistently produces the smallest average candidate set size.
+By sacrificing $Q$, the Pyramid method ensures a smaller average candidate set size.
 This tradeoff can only be made when there exists other stars to choose from, as star trackers with a small number of
 stars to choose from will be left without other combinations to identify stars from.
 
-The next smallest candidate set size can be seen with the Dot Angle method, followed by the Angle method, and the
-triangle methods last.
+The next smallest average candidate set size can be seen with the Dot Angle method (5 candidates), followed by the
+Angle method (11 candidates), and the triangle methods (13 for Spherical, 12 for Planar) last.
 Feature sets involving angular separation are more selective than those using triangular features.
-
 
 The most selective feature set that does not sacrifice accuracy is the Dot Angle.
 
 \subsection{Candidate Reduction}\label{subsec:candidateReductionResults}
+Using the same optimal hyperparameters described in~\autoref{subsec:sigmaHyperparameterSelectionResults}, each query +
+reduction step was analyzed in terms of the average accuracy and efficiency response to an introduction of Gaussian
+noise and false stars.
 
+\begin{figure*}
+    \centering{
+    \includegraphics[scale=0.45]{images/reduction-shift-exp.png}
+    \caption{
+    Both plots depict the effect of varying the deviation of noise on the average accuracy (left) and
+    average number of query steps to get an answer (right) for different identification methods.
+    The field-of-view is bounded by $f = 20^\circ$ and the apparent magnitude is bounded by $m = 6.0$.
+    Each point represents the average of 100 query + reduction steps.
+    } \label{figure:reductionShift}
+    }
+\end{figure*}
+
+Without noise in both~\autoref{figure:reductionShift} and~\autoref{figure:reductionFalse}, only the triangle methods
+had 100\% accuracy in reduction.
+The process of pivoting is also fairly inexpensive without noise, using no more than 2 steps on average
+(or, 1 pivot step) to obtain a reduction set.
+On the other end the Composite Pyramid is the least accurate and least efficient on average, using 60 steps to
+obtain an accuracy of 69\%.
+Both of these methods use the triangular features, but the triangular pivoting process is vital in using catalog
+candidate sets with both true and false positives catalog sets.
+The Composite Pyramid method instead restricts it's catalog candidate sets to the set $\{R \mid 1 = |R| \}$, which
+wastes query steps to find a unique result.
+
+The second worst, which barely beats the Composite Pyramid in both accuracy (70\%) and efficiency (57 query steps) is
+the Angle method.
+3rd in accuracy (99\%), but 4th in efficiency (13 query steps) is the Dot Angle method.
+The trade-off in catalog candidate size for accuracy from the Pyramid method's query step can be seen in effect here as
+the method ranks 1st in efficiency (1 query step), but 4th in accuracy (95\%).
+
+In~\autoref{figure:reductionShift}, the deviation of Gaussian noise against the average accuracy and efficiency is
+displayed for different identification methods.
+When Gaussian noise of $10^{-3}$ degrees is introduced, all methods take an 80\% accuracy hit on average.
+The accuracy of all methods using triangular features drop near to zero, suggesting that this may be a result of the
+features themselves being not distinctive enough.
+Referencing~\autoref{tab:queryExperimentResults} the triangular features did yield the highest number of candidates,
+meaning that the catalog candidate set size restriction reduction ($|R| = 1$) would create more false negatives than
+the other methods.
+
+The other three methods (Angle, Dot Angle, Pyramid) drop to a mean accuracy of 16\% accuracy.
+While this is better than the previous three methods, accuracy is still fairly low.
+In practice, most star trackers get around this through extensive hyperparameter tuning to their specific hardware, a
+smaller catalog, and incorporating some use of each star's observed brightness.
+
+Looking at the query step count response on the right, we observed a mean decrease of 28 steps for both the Angle and
+Composite Pyramid.
+The noise appears to favor these methods here, as opposed to the mean increase of 49 steps for the Planar and Spherical
+Triangle methods.
+The other two methods do not appear to have a query step count response to Gaussian noise.
+
+\begin{figure*}
+    \centering{
+    \includegraphics[scale=0.45]{images/reduction-false-exp.png}
+    \caption{
+    Both plots depict the effect of varying the number of false stars on the average accuracy (left) and
+    average number of query steps to get an answer (right) for different identification methods.
+    The field-of-view is bounded by $f = 20^\circ$ and the apparent magnitude is bounded by $m = 6.0$.
+    Each point represents the average of 100 query + reduction steps.
+    } \label{figure:reductionFalse}
+    }
+\end{figure*}
+
+In~\autoref{figure:reductionFalse}, the number of false stars against the average accuracy and efficiency is displayed
+for different identification methods.
+It is easier to observe a trend in the noise here.
+The number of false stars is generally proportional to the number of query steps, and inversely proportional
+to the accuracy.
+On the left graph, the Pyramid method has the best accuracy (50\%) under the most noise.
+The Pyramid method specifies a false star persistence avoidance method for choosing query star sets from the image, and
+the effectiveness of this can be seen.
+The Composite Pyramid uses the same false star persistence avoidance method, but the difference in features render this
+technique less effective than all other identification methods.
+While completely accurate under no noise, the Spherical and Planar Triangle methods drop to 34\% accuracy given
+12 false stars.
+
+On the right graph, the Pyramid method uses the least number of query steps to get a catalog set (2 steps at most).
+This again, is most likely a result of the false star persistence avoidance method and the low number of candidates
+found at query time.
+The Dot Angle method ranks 2nd in average efficiency here (19 query steps at most), followed by the triangle methods
+(mean of 40 query steps at most).
+The Angle and Composite Pyramid rank last in efficiency.
+
+The triangular reduction process works best for images with little to no noise, suggesting that the candidate set
+size restriction reduction works better under noise.
+The accuracy of the pivot process might be a result of the triangular features.
+Utilizing this process with other features (such as the Dot Angle method) may yield better results.
+
+Under both types of noise, the best average accuracy to efficiency ratio belongs to the Pyramid method.
 
 \subsection{Alignment Determination}\label{subsec:alignmentDeterminationResults}
+Using all optimal hyperparameters described in~\autoref{subsec:sigmaHyperparameterSelectionResults}, each identification
+was ran end-to-end and analyzed in terms of its response to an introduction of Gaussian noise and false stars.
 
+In
 
