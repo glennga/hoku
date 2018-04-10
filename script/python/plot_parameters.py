@@ -4,7 +4,7 @@ how the plots are visually represented.
 """""
 
 params = {
-    'split-n': 4,  # Number of splits to perform for each member in X space.
+    'split-n': 5,  # Number of splits to perform for each member in X space.
     'nibble-plot': {
         'image-bits': 64,  # Number of pixels for heatmap.
 
@@ -47,7 +47,7 @@ params = {
         # Sigma4 vs. F1 w/ ShiftDeviation plot parameters.
         's4as-yll': [0, 1.05],  # Y-axis limits.
         's4as-xal': r'$\sigma_4$',  # X axis label.
-        's4as-yal': r'$F_1$ score',  # Y axis label.
+        's4as-yal': r'$\mathit{TPR}$ (Recall)',  # Y axis label.
         's4as-lxa': 1,  # Set the X axis as logarithmic.
         's4as-nll': 1,  # Do not plot the legend.
 
@@ -63,14 +63,14 @@ params = {
         # Sigma1 vs. SExistence plot parameters.
         's1se-yll': [0, 1.05],  # Y-axis limits.
         's1se-xal': r'$\sigma_1 = \sigma_2 = \ldots = \sigma_n$',  # X axis label.
-        's1se-yal': 'P(Correct Stars in Candidate Set)',  # Y axis label.
+        's1se-yal': r'$Q$',  # Y axis label.
         's1se-lxa': 1,  # Set the X axis as logarithmic.
         's1se-nll': 1,  # Do not plot the legend.
 
         # Sigma1 vs. CandidateSetSize plot parameters.
         's1css-yll': [0, 35],  # Y-axis limits.
         's1css-xal': r'$\sigma_1 = \sigma_2 = \ldots = \sigma_n$',  # X axis label.
-        's1css-yal': r'$|$Candidate Set$|$',  # Y axis label.
+        's1css-yal': r'$S$',  # Y axis label.
         's1css-lya': 1,  # Set the Y axis as logarithmic.
         's1css-lxa': 1,  # Set the X axis as logarithmic.
     },
@@ -81,37 +81,83 @@ params = {
         'sdse-yll': [0, 1.05],  # Y-axis limits.
         'sdse-xtl': [r'$0$', r'$10^{-4}$', r'$10^{-3}$', r'$10^{-2}$', r'$10^{-1}$'],  # X-axis tick labels.
         'sdse-xal': 'Deviation of Noise (degrees)',  # X-axis label.
-        'sdse-yal': 'P(Correct Stars in Candidate Set)',  # Y-axis label.
+        'sdse-yal': r'$Q$',  # Y-axis label.
         'sdse-nll': 1,  # Do not plot the legend.
 
         # Shift Deviation vs. CandidateSetSize plot parameters.
         'sdcss-yll': [0, 15],  # Y-axis limits.
         'sdcss-xtl': [r'$0$', r'$10^{-4}$', r'$10^{-3}$', r'$10^{-2}$', r'$10^{-1}$'],  # X-axis tick labels.
         'sdcss-xal': 'Deviation of Noise (degrees)',  # X-axis label.
-        'sdcss-yal': r'$|$Candidate Set$|$',  # Y-axis label.
+        'sdcss-yal': r'$S$',  # Y-axis label.
         'sdcss-nll': 1,  # Do not plot the legend.
     },
 
     'reduction-plot': {
-        # 'll': ['Angle', 'Dot', 'Sphere', 'Plane', 'Pyramid', 'Composite'],  # Legend list.
-        'll': ['Angle', 'Dot', 'Pyramid', 'Composite'],  # Legend list.
+        'll': ['Angle', 'Dot', 'Sphere', 'Plane', 'Pyramid', 'Composite'],  # Legend list.
 
         # Shift Deviation vs. PercentageCorrect plot parameters.
-        'sdpc-yll' : [0, 1.05], # Y-axis limits
+        'sdpc-yll': [0, 1.05],  # Y-axis limits
         'sdpc-xtl': [r'$0$', r'$10^{-3}$', r'$10^{-2}$', r'$10^{-1}$', r'$10^1$'],  # X-axis tick labels.
+        # 'sdpc-xll': [0, 10],  # X-axis limits.
         'sdpc-xal': 'Deviation of Noise (degrees)',  # X-axis label.
-        'sdpc-yal': 'Percentage of Correctly Reduced Stars',  # Y-axis label.
-        'sdpc-nll': 1,  # Do not plot the legend.
+        'sdpc-yal': r"Average $y''$",  # Y-axis label.
+        # 'sdpc-slxa': 1,  # Set the X axis as (symmetric) logarithmic.
+        # 'sdpc-nll': 1,  # Do not plot the legend.
 
         # Shift Deviation vs. ComparisonCount plot parameters.
         'sdcc-xtl': [r'$0$', r'$10^{-3}$', r'$10^{-2}$', r'$10^{-1}$', r'$10^1$'],  # X-axis tick labels.
+        # 'sdcc-xll': [0, 10],  # X-axis limits.
         'sdcc-xal': 'Deviation of Noise (degrees)',  # X-axis label.
-        'sdcc-yal': 'Number of Query Sets Selected', # Y-axis label.
-        'sdcc-nll': 1, # Do not plot the legend.
+        'sdcc-yal': r'Average $\tau$',  # Y-axis label.
+        # 'sdcc-slxa': 1,  # Set the X axis as logarithmic.
+        'sdcc-nll': 1,  # Do not plot the legend.
+
+        # False Stars vs. PercentageCorrect plot parameters.
+        'fspc-yll': [0, 1.05],  # Y-axis limits.
+        'fspc-xtl': ['0', '3', '6', '9', '12'],  # X-axis tick labels.
+        'fspc-xal': 'False Star Count',  # X-axis label.
+        'fspc-yal': r"Average $y''$",  # Y-axis label.
+        'fspc-nll': 1,  # Do not plot the legend.
+
+        # False Stars vs. ComparisonCount plot parameters.
+        'fscc-xtl': ['0', '3', '6', '9', '12'],  # X-axis tick labels.
+        'fscc-xal': 'False Star Count',  # X-axis label.
+        'fscc-yal': r'Average $\tau$',  # Y-axis label.
+        'fscc-nll': 1,  # Do not plot the legend.
     },
 
     'identification-plot': {
-        'll': ['Angle', 'Dot', 'Sphere', 'Plane', 'Pyramid', 'Composite'],  # Legend list.
+        # 'll': ['Angle', 'Dot', 'Sphere', 'Plane', 'Pyramid', 'Composite'],  # Legend list.
+        'll': ['Angle', 'Dot', 'Pyramid'],  # Legend list.
 
+        # Shift Deviation vs. PercentageCorrect plot parameters.
+        'sdpc-yll': [0, 1.05],  # Y-axis limits
+        # 'sdpc-xtl': [r'$0$', r'$10^{-3}$', r'$10^{-2}$', r'$10^{-1}$', r'$10^1$'],  # X-axis tick labels.
+        # 'sdpc-xll': [0, 10],  # X-axis limits.
+        'sdpc-xal': 'Deviation of Noise (degrees)',  # X-axis label.
+        'sdpc-yal': r'$y\'\'\'$',  # Y-axis label.
+        'sdpc-slxa': 1,  # Set the X axis as (symmetric) logarithmic.
+        'sdpc-nll': 1,  # Do not plot the legend.
+
+        # Shift Deviation vs. ComparisonCount plot parameters.
+        # 'sdcc-xtl': [r'$0$', r'$10^{-3}$', r'$10^{-2}$', r'$10^{-1}$', r'$10^1$'],  # X-axis tick labels.
+        # 'sdcc-xll': [0, 10],  # X-axis limits.
+        'sdcc-xal': 'Deviation of Noise (degrees)',  # X-axis label.
+        'sdcc-yal': r'$\tau$',  # Y-axis label.
+        'sdcc-slxa': 1,  # Set the X axis as logarithmic.
+        'sdcc-nll': 1,  # Do not plot the legend.
+
+        # False Stars vs. PercentageCorrect plot parameters.
+        'fspc-yll': [0, 1.05],  # Y-axis limits.
+        # 'fspc-xtl': ['0', '3', '6', '9', '12'],  # X-axis tick labels.
+        'fspc-xal': 'Number of False Stars',  # X-axis label.
+        'fspc-yal': r'$y\'\'\'$',  # Y-axis label.
+        'fspc-nll': 1,  # Do not plot the legend.
+
+        # False Stars vs. ComparisonCount plot parameters.
+        # 'fscc-xtl': ['0', '3', '6', '9', '12'],  # X-axis tick labels.
+        'fscc-xal': 'Number oPercentagef False Stars',  # X-axis label.
+        'fscc-yal': r'$\tau$',  # Y-axis label.
+        'fscc-nll': 1,  # Do not plot the legend.
     }
 }

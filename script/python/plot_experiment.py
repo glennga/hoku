@@ -40,8 +40,7 @@ def overlay_plots(cur_i):
     plt.subplot(121)  # Sigma4 vs. F1 w/ ShiftDeviation visualization.
     for i in ['0.0', '1.0e-6', '1.0e-5', '1.0e-4', '1.0e-3', '1.0e-2']:
         e_plot(cur_i, {'table_name': 'OVERLAY', 'x_attribute': 'Sigma4',
-                       'y_attribute': '(2 * TruePositive) / (2 * TruePositive + FalsePositive + FalseNegative)',
-                       # 'y_attribute': '(TruePositive + TrueNegative) / N ',
+                       'y_attribute': '(TruePositive / (TruePositive + FalseNegative))',
                        'constrain_that': 'ABS(ShiftDeviation - {}) < 1.0e-17 '.format(i) +
                                          'AND FalseStars = 0 ',
                        'params_section': 'overlay-plot', 'params_prefix': 's4as', 'plot_type': 'LINE'})
@@ -51,14 +50,13 @@ def overlay_plots(cur_i):
     plt.subplot(122)  # Sigma4 vs. F1 w/ FalseStars visualization.
     for i in ['0', '3', '6', '9', '12']:
         e_plot(cur_i, {'table_name': 'OVERLAY', 'x_attribute': 'Sigma4',
-                       'y_attribute': '(2 * TruePositive) / (2 * TruePositive + FalsePositive + FalseNegative)',
-                       # 'y_attribute': '(TruePositive + TrueNegative) / N ',
+                       'y_attribute': '(TruePositive / (TruePositive + FalseNegative))',
                        'constrain_that': 'ABS(ShiftDeviation - 0.0) < 1.0e-17 '
                                          'AND FalseStars = {} '.format(i),
                        'params_section': 'overlay-plot', 'params_prefix': 's4af', 'plot_type': 'LINE'})
     a = plt.legend(['0', '3', '6', '9', '12'])
     a.draggable(True)
-    plt.show()
+    plt.subplots_adjust(wspace=0.3, left=0.08, right=0.92, bottom=0.15, top=0.94), plt.show()
 
 
 def nibble_plots(cur_j):
@@ -95,7 +93,7 @@ def nibble_plots(cur_j):
     plt.figure()
     d_plot(cur_j, {'table_name': 'SPHERE_20', 'attributes': ['a', 'i'], 'params_section': 'nibble-plot',
                    'params_prefix': 'nstai'})
-    plt.show()
+    plt.subplots_adjust(wspace=0.3, left=0.08, right=0.92, bottom=0.15, top=0.94), plt.show()
 
 
 def query_sigma_plots(cur_i):
@@ -120,6 +118,7 @@ def query_sigma_plots(cur_i):
                                      'AND (Sigma3 = Sigma1 OR Sigma3 = 0) '
                                      'AND ShiftDeviation=0 ',
                    'params_section': 'query-sigma-plot', 'params_prefix': 's1css', 'plot_type': 'LINE'})
+    plt.subplots_adjust(wspace=0.3, left=0.08, right=0.92, bottom=0.15, top=0.94), plt.show()
 
 
 def query_plots(cur_i):
@@ -139,7 +138,7 @@ def query_plots(cur_i):
     p = e_plot(cur_i, {'table_name': 'QUERY', 'x_attribute': 'ShiftDeviation', 'y_attribute': 'CandidateSetSize',
                        'params_section': 'query-plot', 'params_prefix': 'sdcss', 'plot_type': 'BAR'})
     attach_figure_legend({'params_section': 'query-plot'}, fig, p)
-    plt.show()
+    plt.subplots_adjust(wspace=0.3, left=0.08, right=0.92, bottom=0.15, top=0.94), plt.show()
 
 
 def reduction_plots(cur_i):
@@ -148,20 +147,39 @@ def reduction_plots(cur_i):
     :param cur_i: Cursor to database containing result data.
     :return: None.
     """
-    plt.rc('text', usetex=True), plt.rc('font', family='serif', size=12)
+    plt.rc('text', usetex=True), plt.rc('font', family='serif', size=20)
 
-    fig = plt.figure()
+    # Plot an empty bar chart for the legend.
+    p = e_plot(cur_i, {'table_name': 'REDUCTION', 'x_attribute': 'ShiftDeviation', 'y_attribute': 'PercentageCorrect',
+                       'constrain_that': 'FalseStars = 0', 'params_section': 'reduction-plot',
+                       'params_prefix': 'sdpc', 'plot_type': 'BAR'})
+    plt.clf(), plt.cla(), plt.close()
+
+    plt.figure()
     plt.subplot(121)
     e_plot(cur_i, {'table_name': 'REDUCTION', 'x_attribute': 'ShiftDeviation', 'y_attribute': 'PercentageCorrect',
                    'constrain_that': 'FalseStars = 0', 'params_section': 'reduction-plot',
                    'params_prefix': 'sdpc', 'plot_type': 'BAR'})
 
     plt.subplot(122)
-    p = e_plot(cur_i, {'table_name': 'REDUCTION', 'x_attribute': 'ShiftDeviation', 'y_attribute': 'ComparisonCount',
+    e_plot(cur_i, {'table_name': 'REDUCTION', 'x_attribute': 'ShiftDeviation', 'y_attribute': 'ComparisonCount',
                    'constrain_that': 'FalseStars = 0', 'params_section': 'reduction-plot',
                    'params_prefix': 'sdcc', 'plot_type': 'BAR'})
+    # attach_figure_legend({'params_section': 'reduction-plot'}, fig, p)
+    plt.subplots_adjust(wspace=0.3, left=0.08, right=0.92, bottom=0.15, top=0.9), plt.show()
+
+    fig = plt.figure()
+    plt.subplot(121)
+    e_plot(cur_i, {'table_name': 'REDUCTION', 'x_attribute': 'FalseStars', 'y_attribute': 'PercentageCorrect',
+                   'constrain_that': 'ABS(ShiftDeviation - 0.0) < 1.0e-17 ',
+                   'params_section': 'reduction-plot', 'params_prefix': 'fspc', 'plot_type': 'BAR'})
+
+    plt.subplot(122)
+    e_plot(cur_i, {'table_name': 'REDUCTION', 'x_attribute': 'FalseStars', 'y_attribute': 'ComparisonCount',
+                   'constrain_that': 'ABS(ShiftDeviation - 0.0) < 1.0e-17 ',
+                   'params_section': 'reduction-plot', 'params_prefix': 'fscc', 'plot_type': 'BAR'})
     attach_figure_legend({'params_section': 'reduction-plot'}, fig, p)
-    plt.show()
+    plt.subplots_adjust(wspace=0.3, left=0.08, right=0.92, bottom=0.15, top=0.9), plt.show()
 
 
 def identification_plots(cur_i):
@@ -170,7 +188,37 @@ def identification_plots(cur_i):
     :param cur_i: Cursor to database containing result data.
     :return: None.
     """
-    plt.rc('text', usetex=True), plt.rc('font', family='serif', size=12)
+    plt.rc('text', usetex=True), plt.rc('font', family='serif', size=20)
+
+    # Plot an empty bar chart for the legend.
+    p = e_plot(cur_i, {'table_name': 'IDENTIFICATION', 'x_attribute': 'ShiftDeviation',
+                       'y_attribute': 'PercentageCorrect', 'constrain_that': 'FalseStars = 0',
+                       'params_section': 'reduction-plot', 'params_prefix': 'sdpc', 'plot_type': 'BAR'})
+    plt.clf(), plt.cla(), plt.close()
+
+    fig = plt.figure()
+    plt.subplot(221)
+    e_plot(cur_i, {'table_name': 'IDENTIFICATION', 'x_attribute': 'ShiftDeviation',
+                   'y_attribute': 'PercentageCorrect', 'constrain_that': 'FalseStars = 0',
+                   'params_section': 'reduction-plot', 'params_prefix': 'sdpc', 'plot_type': 'BAR'})
+
+    plt.subplot(222)
+    e_plot(cur_i, {'table_name': 'IDENTIFICATION', 'x_attribute': 'ShiftDeviation',
+                   'y_attribute': 'ComparisonCount', 'constrain_that': 'FalseStars = 0',
+                   'params_section': 'reduction-plot', 'params_prefix': 'sdcc', 'plot_type': 'BAR'})
+
+    plt.subplot(223)
+    e_plot(cur_i, {'table_name': 'IDENTIFICATION', 'x_attribute': 'FalseStars',
+                   'y_attribute': 'PercentageCorrect', 'constrain_that': 'ABS(ShiftDeviation - 0.0) < 1.0e-17 ',
+                   'params_section': 'reduction-plot', 'params_prefix': 'fspc', 'plot_type': 'BAR'})
+
+    plt.subplot(224)
+    e_plot(cur_i, {'table_name': 'IDENTIFICATION', 'x_attribute': 'FalseStars',
+                   'y_attribute': 'ComparisonCount', 'constrain_that': 'ABS(ShiftDeviation - 0.0) < 1.0e-17 ',
+                   'params_section': 'reduction-plot', 'params_prefix': 'fscc', 'plot_type': 'BAR'})
+
+    attach_figure_legend({'params_section': 'reduction-plot'}, fig, p)
+    plt.subplots_adjust(wspace=0.3, left=0.08, right=0.92, bottom=0.15, top=0.94), plt.show()
 
 
 if __name__ == '__main__':
