@@ -277,7 +277,7 @@ Star::list Dot::identify () {
                 // Otherwise, attach the labels to the body and return this set.
                 Star::define_label(big_i[c], r[2].get_label());
                 Star::define_label(big_i[(is_swapped) ? j : i], r[0].get_label());
-                Star::define_label(big_i[(is_swapped) ? i : j], r[0].get_label());
+                Star::define_label(big_i[(is_swapped) ? i : j], r[1].get_label());
                 return {big_i[i], big_i[j], big_i[c]};
             }
         }
