@@ -263,7 +263,7 @@ TEST(DotAngle, TrialCleanIdentify) {
     Star b = ch.query_hip(102531), c = ch.query_hip(109240), d = ch.query_hip(102532);
     Star e = Rotation::rotate(b, q), f = Rotation::rotate(c, q), g = Rotation::rotate(d, q);
     
-    Dot a(Benchmark({e, f, g}, e, 20), p);
+    Dot a(Benchmark({g, f, e}, e, 20), p);
     Star::list h = a.identify();
     EXPECT_THAT(h, Contains(Star::define_label(e, 102531)));
     EXPECT_THAT(h, Contains(Star::define_label(f, 109240)));

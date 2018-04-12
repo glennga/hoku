@@ -108,7 +108,8 @@ double Experiment::Reduction::percentage_correct (const Star::list &big_c, const
     // Count the number of correct stars in r.
     std::for_each(r.begin(), r.end(), [&result, &big_c] (const Star &r_i) -> void {
         result += (std::find_if(big_c.begin(), big_c.end(), [&r_i] (const Star &c) -> bool {
-            return c == r_i && c.get_label() == r_i.get_label();
+            return Star::within_angle(c, r_i, std::numeric_limits<double>::epsilon()) &&
+                   c.get_label() == r_i.get_label();
         }) != big_c.end()) ? 1.0 : 0;
     });
     
@@ -121,16 +122,17 @@ double Experiment::Reduction::percentage_correct (const Star::list &big_c, const
 /// @param b Subset of our body, but with predicted catalog labels.
 /// @return Number of correctly predicted catalog labels matches the ground truth labels as a fraction.
 double Experiment::Map::percentage_correct (const Star::list &big_i, const Star::list &b) {
-    unsigned int count = 0;
+    double count = 0;
     
     // Stars must match according to their contents and labels.
     std::for_each(big_i.begin(), big_i.end(), [&count, &b] (const Star &s) -> void {
         count += (std::find_if(b.begin(), b.end(), [&s] (const Star &b_j) -> bool {
-            return b_j == s && b_j.get_label() == s.get_label();
-        }) != b.end()) ? 1 : 0;
+            return Star::within_angle(b_j, s, std::numeric_limits<double>::epsilon()) &&
+                   b_j.get_label() == s.get_label();
+        }) != b.end()) ? 1.0 : 0;
     });
     
-    return count / static_cast<double>(b.size());
+    return count / b.size();
 }
 
 /// Determine the percentage of correctly labeled stars from the FPO method.
