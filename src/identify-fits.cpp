@@ -77,7 +77,8 @@ Star::list parse_centroids (const std::shared_ptr<FILE> &centroids_pipe) {
                 // Separate our line by commas, and convert our results into floats.
                 std::getline(entry_stream, s_c_0, ','), std::getline(entry_stream, s_c_1);
                 s_c[0] = std::stof(s_c_0, nullptr), s_c[1] = std::stof(s_c_1, nullptr);
-                
+                std::cout << "Image (FITS Coordinates): (" << s_c[0] << ", " << s_c[1] << ")" << std::endl;
+
                 // Translate points to fit (0, 0) center.
                 double x = s_c[0] - hc, y = s_c[1] - vc;
 
@@ -113,7 +114,7 @@ int identify_fits (const std::string &id_method, const Star::list &s_i) {
     // Construct the image into a Benchmark given the arguments.
     const double fov = cf.GetReal("hardware", "fov", 0);
     const unsigned int i = identifier_hash(id_method);
-    Benchmark input(Star::list(s_i.begin(), s_i.end()), s_i[0], fov);
+    Benchmark input(Star::list(s_i.begin() + 1, s_i.end()), s_i[0], fov);
     
     // Attach hyperparameters.
     Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
@@ -122,19 +123,26 @@ int identify_fits (const std::string &id_method, const Star::list &s_i) {
     Identification::collect_parameters(p, cf, id_method);
     
     // Identify using the given ID method, and display the results through Python.
-    auto identify = [&] (const Star::list &result) -> int {
-        Benchmark output(result, s_i[0], fov);
+    auto plot = [&] (const Star::list &result) -> int {
+        for (const Star &s: result) {
+            std::cout << "Star: " << s << std::endl;
+        }
+        Chomp ch;
+        Star r_f = ch.query_hip(result[0].get_label());
+
+        // Search for all stars near our focus. This is what will be plotted.
+        Benchmark output(ch.nearby_bright_stars(r_f, fov / 2.0, 100), r_f, fov);
         output.display_plot();
         return 0;
     };
     
     switch (i) {
-        case 0: return identify(Angle(input, p).identify_all());
-        case 1: return identify(Dot(input, p).identify_all());
-        case 2: return identify(Sphere(input, p).identify_all());
-        case 3: return identify(Plane(input, p).identify_all());
-        case 4: return identify(Pyramid(input, p).identify_all());
-        case 5: return identify(Composite(input, p).identify_all());
+        case 0: return plot(Angle(input, p).identify());
+        case 1: return plot(Dot(input, p).identify());
+        case 2: return plot(Sphere(input, p).identify());
+        case 3: return plot(Plane(input, p).identify());
+        case 4: return plot(Pyramid(input, p).identify());
+        case 5: return plot(Composite(input, p).identify());
         default: throw std::runtime_error(std::string("ID method not in appropriate space."));
     }
 }

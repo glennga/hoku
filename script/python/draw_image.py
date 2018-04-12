@@ -5,7 +5,6 @@ endpoints projected onto it.
 
 The following parameters are specified. ** Indicates that this parameter is required.
 **fov**
-**norm**
 fontsize
 quiver
 err
@@ -48,9 +47,6 @@ err_flag = True
 # Field of view of the image. Must be defined through arguments.
 fov = 0
 
-# Norm of each star passed. Must be defined through arguments.
-norm = 0
-
 
 def parse_args(arg):
     """ Set the appropriate global variables given the argument. If an argument
@@ -59,7 +55,7 @@ def parse_args(arg):
     :return: True if the argument passed was valid. False otherwise.
     """
     toggle_k = [['on', '1', 'enable'], ['off', '0', 'disable']]
-    global font_size, quiver_flag, err_flag, fov, norm
+    global font_size, quiver_flag, err_flag, fov
 
     try:
         k, v = arg.split('=')[0].strip(), arg.split('=')[1].strip()
@@ -72,8 +68,6 @@ def parse_args(arg):
             font_size = int(v)
         elif k == 'fov':
             fov = float(v)
-        elif k == 'norm':
-            norm = float(v)
 
         elif k == 'quiver' or k == 'q':
             quiver_flag = True if v in toggle_k[0] else (False if v in toggle_k[1] else None)
@@ -130,7 +124,7 @@ def parse_files():
                 errors.append([error])
 
     # Return all items as a dictionary.
-    return {'fov': fov, 'norm': norm, 'focus': focus, 'stars': stars, 'errors': errors}
+    return {'fov': fov, 'focus': focus, 'stars': stars, 'errors': errors}
 
 
 def draw_points(stars, errors, ax):
@@ -185,13 +179,13 @@ def plot():
     p = parse_files()
 
     # Determine the sphere cap boundaries using focus vector.
-    delta = np.arccos(p['focus'][2] / norm)
+    delta = np.arccos(p['focus'][2])
     alpha = np.arctan2(p['focus'][1], p['focus'][0])
-    fov_limit = np.deg2rad(fov) / 2.0
+    fov_limit = 0.5
 
     # Plot sphere cap.
     u = np.linspace(alpha - fov_limit, alpha + fov_limit, 100)
-    v = np.linspace(delta - fov_limit, delta + fov_limit, 10)
+    v = np.linspace(delta - fov_limit, delta + fov_limit, 100)
     sphere_x = np.outer(np.cos(u), np.sin(v))
     sphere_y = np.outer(np.sin(u), np.sin(v))
     sphere_z = np.outer(np.ones(np.size(u)), np.cos(v))
