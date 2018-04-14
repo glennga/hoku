@@ -37,6 +37,7 @@ def attach_figure_legend(att, fig, p):
     """
     sec = att['params_section']
     leg = fig.legend(p, params[sec]['ll'], ncol=len(params[sec]['ll']), mode='expand')
+    leg.get_frame().set_linewidth(0.0)
     leg.draggable(True)
 
 

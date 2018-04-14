@@ -72,11 +72,11 @@ In the event no map can be determined, an error is raised and an empty map is re
 
 % Citation: https://digitalcommons.usu.edu/cgi/viewcontent.cgi?article=2723&context=etd AND Gottlieb.
 \subsection{Gottlieb's Angle Method}\label{subsec:gottlieb'sAngleMethod}
-In 1978, Gottlieb (citation here) developed the Polygon Angular Matching method.
+In 1978, Gottlieb developed the Polygon Angular Matching method~\cite{Angle,AnalysisUncompensated}.
 Starting with an image, two stars $b = (b_i, b_j)$ are selected arbitrarily.
 The corresponding angular separation between each of these stars from a defined observer is computed:
 $\theta (b_i, b_j) = \theta^{ij}$.
-All possible pairs $(r_m, r_n)$ in the catalog are then selected such that ~\autoref{eq:angleRequirement} holds.
+All possible pairs $(r_m, r_n)$ in the catalog are then selected such that~\autoref{eq:angleRequirement} holds.
 The set that holds these pairs is denoted as $R$.
 
 \begin{equation}
@@ -114,14 +114,14 @@ To determine a mapping, a \textit{direct match test} (DMT) is performed.
 \end{algorithm}
 
 \begin{subequations}
-    Tappe (citation here) specifies this DMT method, which extracts an attitude after running this candidate finding step.
+    Tappe specifies this DMT method, which extracts an attitude after running this candidate finding step~\cite{Tappe}.
     Given an image star pair $(b_i, b_j)$ and a catalog star pair $(r_m, r_n)$, a map is proposed:
     \begin{equation}
         a_1 = (b_i \rightarrow r_m, b_j \rightarrow r_n)
     \end{equation}
 
-    Wahba's problem (extracting an attitude given vector observations in two coordinate systems) is then solved using the
-    TRIAD method.
+    Wahba's problem (extracting an attitude given vector observations in two coordinate systems) is then solved using
+    the TRIAD method.
     This gives a rotation $q_1$ between the image and catalog frames.
     This process is repeated for the other possible map to obtain a second rotation $q_2$:
     \begin{equation}
@@ -165,7 +165,7 @@ $\sigma_o$ can also be thought of as an assumption of the noise associated with 
 \end{algorithm}
 
 \subsection{Liebe's Dot Angle Method}\label{subsec:liebe'sDotAngleMethod}
-In 1995, Liebe (citation here) developed the Liebe Star ID method.
+In 1995, Liebe developed the Liebe Star ID method~\cite{Survey,AnalysisUncompensated}.
 Starting with an image $I$, a central star $b_c$ is selected arbitrarily.
 The two closest stars in the image to the central star are selected next, denoted as $b_i$ and $b_j$.
 Three features are then computed: the angular separation between the first closest star and the central star $\theta
@@ -199,12 +199,14 @@ and dot angular separations respectively.
 The star trios in the catalog star candidates represent potential catalog maps for the image star trio $(b_i, b_j,
 b_c)$.
 Liebe's original method states that this process should be repeated for all stars in the image, meaning that all
-stars will be the central star at one point.
+stars will be the central star at one point
 By the end, each star in the image will have accrued a set of possible catalog matches $Y$.
-The complete $I \rightarrow R$ map is found by picking the most frequent catalog star appearing in each $Y$ set.
+The complete $I \rightarrow R$ map is found by picking the most frequent catalog star appearing in each $Y$
+set~\cite{DotAngle,AnalysisUncompensated}.
 
-To more closely follow the generic star identification flow, we modified the Dot Angle method to not store $Y$ and
-require that only one central star choice is needed to acquire a total match.
+To more closely follow the generic star identification flow, we modified the Dot Angle method to not store $Y$,
+require that only one central star choice is needed to acquire a total match, and removed the "closest stars"
+constraints for $r_n$ and $r_m$.
 If a confident match is not found by the first central star, then the search process will be repeated until such a
 match is found.
 This entire method is described in~\autoref{algorithm:dotAngleIdentification}.
@@ -236,7 +238,7 @@ This entire method is described in~\autoref{algorithm:dotAngleIdentification}.
 \subsection{Cole and Crassidus's Spherical Triangle Method}\label{subsec:coleAndCrassidus'sSphericalTriangleMethod}
 \begin{subequations}
     \label{eq:triangleRequirement}
-    In 2004, Cole and Crassidus (citation here) developed the Spherical Triangle method.
+    In 2004, Cole and Crassidus developed the Spherical Triangle method~\cite{Spherical}.
     Starting with an image $I$, three stars $b = (b_i, b_j, b_k)$ are selected arbitrarily.
     Treating the trio as a spherical triangle, the spherical area and moment are computed.
     This is denoted as $a^{ijk}$ and $\imath^{ijk}$ respectively.
@@ -339,7 +341,7 @@ match) are removed from the initial search candidate star set.
 For all six attitudes, the map yielding the most correctly predicted stars is returned as the resulting attitude.
 
 \subsection{Cole and Crassidus's Planar Triangle Method}\label{subsec:coleAndCrassidus'sPlanarTriangleMethod}
-In 2006, Cole and Crassidus (citation here) developed the Planar Triangle method.
+In 2006, Cole and Crassidus developed the Planar Triangle method~\cite{Planar}.
 This is identical to their Spherical Triangle method, with the exception that each image trio is represented as a
 planar triangle instead of a spherical one.
 
@@ -351,7 +353,7 @@ recursive step.
 % Mortari introduced the use of \textit{search-less} catalog access using the $k$-vector approach, but this will not be
 % discussed in this paper.
 \subsection{Mortari's Pyramid Star Identification Method}\label{subsec:mortari'sPyramidStarIdentificationMethod}
-In 2004, Mortari (citation here) developed the Pyramid method.
+In 2004, Mortari developed the Pyramid method~\cite{Pyramid}.
 Starting with an image $I$, three stars $b = (b_i, b_j, b_k)$ are selected in a manner to avoid the persistence of
 false stars.
 This is specified in lines 19 to 23 in~\autoref{algorithm:pyramidIdentification}.
@@ -466,9 +468,9 @@ Otherwise, the test fails.
 \end{algorithm}
 
 \subsection{Toloei's Composite Pyramid Method}\label{subsec:toloei'sCompositePyramidMethod}
-In 2014, Toloei (citation here) developed the Novel Stars ID method, which retains all of the key aspects of Motari's
+In 2014, Toloei developed the Novel Stars ID method, which retains all of the key aspects of Motari's
 Pyramid method but uses the features from Cole and Crassidus's Planar Triangle method for the query and reference steps
-instead of angles.
+instead of angles~\cite{Composite}.
 Starting with an image $I$, three stars $b = (b_i, b_j, b_k)$ are selected in the same false star persistence avoidance
 manner as the Pyramid method.
 Treating the trio as a planar triangle, the planar area and moment are computed.

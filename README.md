@@ -20,31 +20,18 @@ detection, etc...) to focus more on how each method matches stars in an image to
 
 ## Getting Started
 This repository requires the following:
-1. `python3` (with `numpy` and `matplotlib`). Used for the data analysis and visualization.
-    1. Install Python 3: [https://www.python.org/downloads/](https://www.python.org/downloads/)
-    2. Install Anaconda (`numpy` and `matplotlib`): [https://conda.io/docs/user-guide/install/index.html](https://conda.io/docs/user-guide/install/index.html)
-    3. Install OpenCV for Python: Enter `conda install -c conda-forge opencv`
+1. `python3` (with `numpy, matplotlib, opencv`). Used for the data analysis and visualization.
 2. `CMake (2.8.10)` or above. Used to manage and build the C++ code here.
-    1. Install CMake: [https://cmake.org/install/](https://cmake.org/install/)
-    2. CMake tutorial with CLion IDE: [https://www.jetbrains.com/help/clion/quick-cmake-tutorial.html](https://www.jetbrains.com/help/clion/quick-cmake-tutorial.html)
 3. `git` or some Git client. Used to clone this repository, and to grab GoogleTest for testing.
-    1. Install Git: [https://git-scm.com/book/en/v2/Getting-Started-Installing-Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-    2. Install GitKraken (optional): [https://www.gitkraken.com/](https://www.gitkraken.com/)
 4. C++ build tools (`make 4.1`, `gcc 5.4`, `g++ 5.4`).
-    1. Use `sudo apt-get install build-essential` on Linux.
-    2. Download 64-Bit MinGW on Windows: [https://sourceforge.net/projects/mingw-w64/](https://sourceforge
-    .net/projects/mingw-w64/)
-    3. Download CLion IDE (optional): [https://www.jetbrains.com/clion/download](https://www.jetbrains
-    .com/clion/download)
 
 To get started, clone this repository:
 ```cmd
 git clone https://github.com/glennga/hoku.git
 ```
 
-Build the necessary directories and create the `HOKU_PROJECT_PATH` variable by running the first build script. Windows
-users have to execute `first-build.bat`, and Linux users execute `first-build.sh`. _Note that you may have to restart 
-your shell (exit, reopen) for the results to take place._
+Build the necessary directories and create the `HOKU_PROJECT_PATH` variable by running the first build script. Execute
+the `first-build.sh` script. 
 ```cmd
 cd hoku 
 chmod +x script/first-build.sh
@@ -79,6 +66,9 @@ possible option and consuming time, set this appropriately.
 6. `wbs` = Wabha's problem solver. Select the choices: `TRIAD`, `SVD`, or `Q`. These are different methods of 
 determining a rotation given vector observations in both frame. For every instance where Wahba's problem occurs, this
 method will be applied.
+
+The **query-sigma** section is also important to modify, as this controls how many results should be returned from 
+the initial query.
 
 The `nibble.db` database holds all the data each identification method will reference (the catalog). The link 
 [here](https://drive.google.com/file/d/14ZOKBnu3MJV_Fiw9LmygzdUokeYpNVVz/view?usp=sharing) provides this database 
@@ -233,4 +223,27 @@ cd hoku/bin
 
 # Run only the Benchmark tests.
 ./PerformT --gtest_filter=Benchmark*
+```
+
+## LaTeX Generation
+To build any presentation or paper that resides in the `doc` folder, use the build script. There currently exist three
+targets:
+```cmd
+cd hoku/script
+chmod +x build-doc.sh
+
+# Build the paper and presentations.
+./build-doc.sh paper
+./build-doc.sh present
+,.build-doc.sh present-wahba
+```
+
+The PDFs reside in the `doc` folder.
+```cmd
+cd hoku/doc
+
+# Open the PDFs from the console.
+xdg-open paper.pdf
+xdg-open present.pdf
+xdg-open present-wahba.pdf
 ```

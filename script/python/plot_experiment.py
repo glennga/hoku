@@ -17,14 +17,7 @@ database involved with the operation.
 Usage: plot_experiment [experiment-to-visualize] [location-of-database]
 """""
 
-import sqlite3
-import json
-import sys
-import os
-
-import numpy as np
 from matplotlib import pyplot as plt
-from plot_parameters import params
 from plot_base import attach_plot_info, attach_figure_legend, e_plot, d_plot
 
 
@@ -158,15 +151,15 @@ def reduction_plots(cur_i):
     plt.figure()
     plt.subplot(121)
     e_plot(cur_i, {'table_name': 'REDUCTION', 'x_attribute': 'ShiftDeviation', 'y_attribute': 'PercentageCorrect',
-                   'constrain_that': 'FalseStars = 0', 'params_section': 'reduction-plot',
+                   'constrain_that': 'FalseStars = 0 AND ShiftDeviation < 1.0e-1', 'params_section': 'reduction-plot',
                    'params_prefix': 'sdpc', 'plot_type': 'BAR'})
 
     plt.subplot(122)
     e_plot(cur_i, {'table_name': 'REDUCTION', 'x_attribute': 'ShiftDeviation', 'y_attribute': 'ComparisonCount',
-                   'constrain_that': 'FalseStars = 0', 'params_section': 'reduction-plot',
+                   'constrain_that': 'FalseStars = 0 AND ShiftDeviation < 1.0e-1', 'params_section': 'reduction-plot',
                    'params_prefix': 'sdcc', 'plot_type': 'BAR'})
     # attach_figure_legend({'params_section': 'reduction-plot'}, fig, p)
-    plt.subplots_adjust(wspace=0.3, left=0.08, right=0.92, bottom=0.15, top=0.9), plt.show()
+    plt.subplots_adjust(wspace=0.3, left=0.08, right=0.92, bottom=0.15, top=0.9)
 
     fig = plt.figure()
     plt.subplot(121)
@@ -178,7 +171,7 @@ def reduction_plots(cur_i):
     e_plot(cur_i, {'table_name': 'REDUCTION', 'x_attribute': 'FalseStars', 'y_attribute': 'ComparisonCount',
                    'constrain_that': 'ABS(ShiftDeviation - 0.0) < 1.0e-17 ',
                    'params_section': 'reduction-plot', 'params_prefix': 'fscc', 'plot_type': 'BAR'})
-    attach_figure_legend({'params_section': 'reduction-plot'}, fig, p)
+    # attach_figure_legend({'params_section': 'reduction-plot'}, fig, p)
     plt.subplots_adjust(wspace=0.3, left=0.08, right=0.92, bottom=0.15, top=0.9), plt.show()
 
 
@@ -189,56 +182,65 @@ def identification_plots(cur_i):
     :return: None.
     """
     plt.rc('text', usetex=True), plt.rc('font', family='serif', size=20)
+    p = [0, 0]
 
     # Plot an empty bar chart for the legend.
-    p = e_plot(cur_i, {'table_name': 'IDENTIFICATION', 'x_attribute': 'ShiftDeviation',
-                       'y_attribute': 'PercentageCorrect', 'constrain_that': 'FalseStars = 0',
-                       'params_section': 'reduction-plot', 'params_prefix': 'sdpc', 'plot_type': 'BAR'})
-    plt.clf(), plt.cla(), plt.close()
+    for i in range(2):
+        p[i] = e_plot(cur_i, {'table_name': 'IDENTIFICATION', 'x_attribute': 'ShiftDeviation',
+                           'y_attribute': 'PercentageCorrect', 'constrain_that': 'FalseStars = 0',
+                           'params_section': 'identification-plot', 'params_prefix': 'sdpc', 'plot_type': 'BAR'})
+        plt.close()
 
     fig = plt.figure()
-    plt.subplot(221)
+    plt.subplot(121)
     e_plot(cur_i, {'table_name': 'IDENTIFICATION', 'x_attribute': 'ShiftDeviation',
-                   'y_attribute': 'PercentageCorrect', 'constrain_that': 'FalseStars = 0',
-                   'params_section': 'reduction-plot', 'params_prefix': 'sdpc', 'plot_type': 'BAR'})
+                   'y_attribute': 'PercentageCorrect', 'constrain_that': 'FalseStars = 0 AND ShiftDeviation < 1.0e-1',
+                   'params_section': 'identification-plot', 'params_prefix': 'sdpc', 'plot_type': 'BAR'})
 
-    plt.subplot(222)
+    plt.subplot(122)
     e_plot(cur_i, {'table_name': 'IDENTIFICATION', 'x_attribute': 'ShiftDeviation',
-                   'y_attribute': 'ComparisonCount', 'constrain_that': 'FalseStars = 0',
-                   'params_section': 'reduction-plot', 'params_prefix': 'sdcc', 'plot_type': 'BAR'})
+                   'y_attribute': 'ComparisonCount', 'constrain_that': 'FalseStars = 0 AND ShiftDeviation < 1.0e-1',
+                   'params_section': 'identification-plot', 'params_prefix': 'sdcc', 'plot_type': 'BAR'})
+    attach_figure_legend({'params_section': 'identification-plot'}, fig, p[0])
+    plt.subplots_adjust(wspace=0.3, left=0.06, right=0.98, bottom=0.15, top=0.85)
 
-    plt.subplot(223)
+    plt.figure()
+    plt.subplot(121)
     e_plot(cur_i, {'table_name': 'IDENTIFICATION', 'x_attribute': 'FalseStars',
                    'y_attribute': 'PercentageCorrect', 'constrain_that': 'ABS(ShiftDeviation - 0.0) < 1.0e-17 ',
-                   'params_section': 'reduction-plot', 'params_prefix': 'fspc', 'plot_type': 'BAR'})
+                   'params_section': 'identification-plot', 'params_prefix': 'fspc', 'plot_type': 'BAR'})
 
-    plt.subplot(224)
+    plt.subplot(122)
     e_plot(cur_i, {'table_name': 'IDENTIFICATION', 'x_attribute': 'FalseStars',
                    'y_attribute': 'ComparisonCount', 'constrain_that': 'ABS(ShiftDeviation - 0.0) < 1.0e-17 ',
-                   'params_section': 'reduction-plot', 'params_prefix': 'fscc', 'plot_type': 'BAR'})
+                   'params_section': 'identification-plot', 'params_prefix': 'fscc', 'plot_type': 'BAR'})
 
-    attach_figure_legend({'params_section': 'reduction-plot'}, fig, p)
-    plt.subplots_adjust(wspace=0.3, left=0.08, right=0.92, bottom=0.15, top=0.94), plt.show()
+    attach_figure_legend({'params_section': 'identification-plot'}, fig, p[1])
+    plt.subplots_adjust(wspace=0.3, left=0.06, right=0.98, bottom=0.15, top=0.85), plt.show()
 
 
 if __name__ == '__main__':
+    from sqlite3 import connect, Error as SQLError
+    from os import path, getcwd, environ
+    from sys import argv
+
     # Ensure that there exists between one and three arguments, and that it is in the appropriate space.
     arg_space = ['nibble', 'query-sigma', 'query', 'reduction', 'identification', 'overlay']
-    if len(sys.argv) < 1 or len(sys.argv) > 4 or sys.argv[1] not in arg_space:
+    if len(argv) < 1 or len(argv) > 4 or argv[1] not in arg_space:
         print('Usage: python3 plot_experiment.py [experiment-to-visualize] [location-of-database]'), exit(1)
 
     # Experiment data in lumberjack.db, or is specified by the user (second argument).
     conn = ''
     try:
-        if len(sys.argv) == 3 and not os.path.isabs(sys.argv[2]):
-            conn = sqlite3.connect(os.getcwd() + '/' + sys.argv[2])
-        elif len(sys.argv) == 3:
-            conn = sqlite3.connect(sys.argv[2])
+        if len(argv) == 3 and not path.isabs(argv[2]):
+            conn = connect(getcwd() + '/' + argv[2])
+        elif len(argv) == 3:
+            conn = connect(argv[2])
         else:
-            conn = sqlite3.connect(os.environ['HOKU_PROJECT_PATH'] + '/data/lumberjack.db')
-    except sqlite3.Error as e:
+            conn = connect(environ['HOKU_PROJECT_PATH'] + '/data/lumberjack.db')
+    except SQLError as e:
         print('SQL Error: ' + str(e)), exit(2)
     cur = conn.cursor()
 
     plots = [nibble_plots, query_sigma_plots, query_plots, reduction_plots, identification_plots, overlay_plots]
-    plots[arg_space.index(sys.argv[1])](cur)
+    plots[arg_space.index(argv[1])](cur)

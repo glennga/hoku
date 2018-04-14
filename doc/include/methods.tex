@@ -1,7 +1,7 @@
 \newcommand{\itmref}[2]{\hyperref[#2]{#1 Variable~\ref*{#2}}}
 
 \section{Methodology}\label{sec:methodology}
-The goal of this research was to empirically analyze each identificaton method, and determine which method most
+The goal of this research was to empirically analyze each identification method, and determine which method most
 accurately maps a subset of stars from the catalog to image under the presence of noise.
 The general flow of experiments is listed below:
 \begin{enumerate}
@@ -18,7 +18,7 @@ Before a raw image can be used in a star identification algorithm it must first 
 extraneous light.
 From here, centroid coordinates of an image (i.e.\ stars) are determined in 2D using a center-of-mass approach.
 The coordinates are then projected from 2D to the 3D image frame, and then run through the star identification
-algorithm.
+algorithm~\cite{Survey}.
 
 There are a number of places where error can be introduced here.
 What if the filtering removes a star?
@@ -62,7 +62,7 @@ Benchmark images were generated with the process below:
     2018) from MJD 48319 (March 1991).
     Depicted below is the conversion to ($x, y, z$) points, with $\alpha$ \& $\delta$ in radians,
     $\mu_\alpha$ \& $\mu_\delta$ in radians per year, and $t$ \& $\tau$ (MJD 58119 and time of catalog = MJD 48316
-    respectively) in years.
+    respectively) in years~\cite{ProperMotion}.
     \begin{align}
         \alpha_t &= \alpha_\tau + \mu_\alpha (\tau - t) \\
         \delta_t &= \delta_\tau + \mu_\delta (\tau - t) \\
@@ -165,8 +165,8 @@ $\sigma_1$ corresponds to $\theta_{ic}$ in the query, $\sigma_2$ corresponds to 
 % Local Method: https://en.wikipedia.org/wiki/Sensitivity_analysis
 \begin{subequations}
     \label{eq:sensitivityQuery}
-    For the same outputs in~\autoref{eq:querySelectivityMeasures}, the sensitivity of some critical point $\sigma_c$
-    can be represented as:
+    For the same outputs in~\autoref{eq:querySelectivityMeasures}, the sensitivity~\cite{SensitivityAnalysis}
+    of some critical point $\sigma_c$ can be represented as:
     \begin{align}
         \left\lvert\frac{\partial Q}{\partial \sigma}\right\rvert_{\sigma_{c1}} &= \text{response of } Q \text{ to }
         \sigma \text{ at } \sigma_{c1} \\
@@ -314,7 +314,6 @@ An accurate map will reduce an attitude determination problem to Wahba's problem
         y''' = \frac{\text{number of correct mappings } b \rightarrow r}{\lvert b \lvert}
     \end{equation}
 \end{subequations}
-
 
 Referencing~\autoref{figure:genericIdentificationMethodFlowchart} again, this experiment runs the identification
 method end to end.
