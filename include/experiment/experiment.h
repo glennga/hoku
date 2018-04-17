@@ -160,7 +160,7 @@ namespace Experiment {
                                    "Sigma3 FLOAT, Sigma4 FLOAT, ShiftDeviation FLOAT, FalseStars INT, ComparisonCount INT, "
                                    "PercentageCorrect FLOAT";
 
-        double percentage_correct (const Star::list &big_i, const Star::list &b);
+        double percentage_correct (const Star::list &big_i, const Star::list &b, double fov);
 
         /// Generic experiment function for the identification trials. Performs a identification trial and records the
         /// experiment in the lumberjack. The provided Nibble connection is used for generating the input image.
@@ -207,7 +207,7 @@ namespace Experiment {
                         // Log the results of our trial.
                         lu.log_trial(
                                 {p.sigma_1, p.sigma_2, p.sigma_3, p.sigma_4, is_shift ? s : 0, !is_shift ? s : es_min,
-                                 static_cast<double>(*nu), percentage_correct(big_i, w)});
+                                 static_cast<double>(*nu), percentage_correct(big_i, w, fov)});
                     }
                 }
             };

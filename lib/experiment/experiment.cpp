@@ -120,14 +120,15 @@ double Experiment::Reduction::percentage_correct (const Star::list &big_c, const
 ///
 /// @param big_i All body stars. Check if b_ell correctly matches stars in this set.
 /// @param b Subset of our body, but with predicted catalog labels.
+/// @param fov The field-of-view to restrict our view from.
 /// @return Number of correctly predicted catalog labels matches the ground truth labels as a fraction.
-double Experiment::Map::percentage_correct (const Star::list &big_i, const Star::list &b) {
+double Experiment::Map::percentage_correct (const Star::list &big_i, const Star::list &b, const double fov) {
     double count = 0;
     
     // Stars must match according to their contents and labels.
-    std::for_each(big_i.begin(), big_i.end(), [&count, &b] (const Star &s) -> void {
-        count += (std::find_if(b.begin(), b.end(), [&s] (const Star &b_j) -> bool {
-            return Star::within_angle(b_j, s, std::numeric_limits<double>::epsilon()) &&
+    std::for_each(big_i.begin(), big_i.end(), [&count, &b, &fov] (const Star &s) -> void {
+        count += (std::find_if(b.begin(), b.end(), [&s, &fov] (const Star &b_j) -> bool {
+            return Star::within_angle(b_j, s, fov) &&
                    b_j.get_label() == s.get_label();
         }) != b.end()) ? 1.0 : 0;
     });
