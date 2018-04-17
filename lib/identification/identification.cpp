@@ -159,11 +159,11 @@ Star::list Identification::find_positive_overlay (const Star::list &big_p, const
 /// @param big_r_ell Reference to a list of lists of catalog labels to sort.
 void Identification::sort_brightness (std::vector<labels_list> &big_r_ell) {
     auto sum_m = [this] (const labels_list &k) -> double {
-        return std::accumulate(k.begin(), k.end(), 0.0, [this] (const double &m_prev, const int &r_ell) -> double {
+        return std::accumulate(k.begin(), k.end(), 0.0f, [this] (const double &m_prev, const int &r_ell) -> double {
             return m_prev + this->ch.query_hip(r_ell).get_magnitude();
         });
     };
-    
+
     std::sort(big_r_ell.begin(), big_r_ell.end(), [&sum_m] (const labels_list &r_ell_i, const labels_list &r_ell_j) {
         return sum_m(r_ell_i) / r_ell_i.size() < sum_m(r_ell_j) / r_ell_j.size();
     });
