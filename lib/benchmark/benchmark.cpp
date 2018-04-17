@@ -135,8 +135,7 @@ void Benchmark::present_image (Star::list &image_s, double &image_fov) const {
     image_s = clean_stars();
 }
 
-/// Write the current data in the star set to two files. This includes the fov, norm, focus, star set, and the
-/// error set.
+/// Write the current data in the star set to two files. This includes the fov, focus, star set, and the error set.
 void Benchmark::record_current_plot () {
     std::ofstream current(CURRENT_TMP), error(ERROR_TMP);
     std::ostringstream current_record, error_record;
@@ -174,9 +173,9 @@ void Benchmark::record_current_plot () {
 /// Write the current data in the star set to a file, and let a separate Python script generate the plot. I am most
 /// familiar with Python's MatPlotLib, so this seemed like the most straight-forward approach.
 void Benchmark::display_plot () {
-    // Field-of-view and norm are parameters to the plot script.
+    // Field-of-view is a parameter to the plot script.
     std::string params =
-        " q=on fov=" + std::to_string(this->fov) + " norm=" + std::to_string(Vector3::Magnitude(this->center));
+        " q=on fov=" + std::to_string(this->fov);
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
     std::string cmd = std::string("python -E ") + PLOT_SCRIPT + params;
