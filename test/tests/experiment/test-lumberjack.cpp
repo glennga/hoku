@@ -35,13 +35,13 @@ TEST(Lumberjack, TablesExistenceStructure) {
     EXPECT_EQ(schema, Experiment::Reduction::SCHEMA);
     EXPECT_EQ(fields,
               "IdentificationMethod, Timestamp, Sigma1, Sigma2, Sigma3, ShiftDeviation, FalseStars, ComparisonCount, "
-                  "PercentageCorrect");
+                  "TimeToResult, PercentageCorrect");
     
     EXPECT_NO_THROW(nb.select_table(cf.Get("identification-experiment", "lu", "")););
     nb.find_attributes(schema, fields);
     EXPECT_EQ(schema, Experiment::Map::SCHEMA);
     EXPECT_EQ(fields, "IdentificationMethod, Timestamp, Sigma1, Sigma2, Sigma3, Sigma4, ShiftDeviation, FalseStars, "
-        "ComparisonCount, PercentageCorrect");
+        "ComparisonCount, TimeToResult, PercentageCorrect");
     
     EXPECT_NO_THROW(nb.select_table(cf.Get("overlay-experiment", "lu", "")););
     nb.find_attributes(schema, fields);
