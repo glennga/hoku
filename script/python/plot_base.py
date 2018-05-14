@@ -77,6 +77,9 @@ def attach_plot_info(att):
     # If desired, set the Y axis as logarithmic.
     attempt(lambda : ax.set_yscale('log') if params[sec][pre + '-lya'] == 1 else None)
 
+    # If desired, set the X axis as symmetric logarithmic.
+    attempt(lambda : ax.set_yscale('symlog', linthreshx=1.0e-3) if params[sec][pre + '-slya'] == 1 else None)
+
     # Add the legend.
     attempt(lambda : plt.legend(params[sec]['ll'], fontsize=18)
     if not pre + '-nll' in params[sec] or params[sec][pre + '-nll'] == 0 else None,
@@ -181,7 +184,10 @@ def e_plot(cur_i, att):
 
         # Construct the appropriate plot and attach plot info.
         if att['plot_type'] == 'BAR':
-            plots.append(plt.bar(np.arange(len(x_space)) + 0.15 * k - 0.3, y_avg, 0.15, yerr=y_std))
+            plots.append(plt.bar(np.arange(len(x_space)) + 0.1 * k - 0.2, y_avg, 0.1, yerr=y_std))
+            attach_plot_info(att)
+        elif att['plot_type'] == 'BAR_NOERR':
+            plots.append(plt.bar(np.arange(len(x_space)) + 0.1 * k - 0.2, y_avg, 0.1))
             attach_plot_info(att)
         elif att['plot_type'] in ['LINE', 'LINE_NOERR']:
             plots.append(plt.plot(x_space, y_avg))
