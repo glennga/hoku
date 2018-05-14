@@ -217,7 +217,7 @@ namespace Experiment {
                         lu.log_trial(
                                 {p.sigma_1, p.sigma_2, p.sigma_3, p.sigma_4, is_shift ? s : 0, !is_shift ? s : es_min,
                                  static_cast<double>(*nu), static_cast<double>(t.count()),
-                                 percentage_correct(big_i, w, fov)});
+                                 percentage_correct(big_i, w, fov)}), t.reset();
                     }
                 }
             };
