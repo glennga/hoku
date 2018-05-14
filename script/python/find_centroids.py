@@ -21,13 +21,15 @@ def locate_stars(img_cv, cf):
     :param cf:
     :return:
     """
+    from math import hypot
+
     # Blur the image with a normalized box filter, gives imperfections lower weight.
     img_cv = cv2.blur(img_cv, (int(cf['centroid-find']['bkb-sz']), int(cf['centroid-find']['bkb-sz'])))
 
     # Find the edges in the image. Uses Canny Edge Detection.
     img_edges = cv2.Canny(img_cv, int(cf['centroid-find']['min-ced']), int(cf['centroid-find']['max-ced']))
 
-    # Find the contours in the image, after producing a binary image (step above).
+    # Find the contours in thhypote image, after producing a binary image (step above).
     img_contours, contours, hierarchy = cv2.findContours(img_edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
     # Find the moments in the image. Do not accept zeroed entries.
@@ -39,10 +41,16 @@ def locate_stars(img_cv, cf):
     img_centroids = list(filter(lambda c: not np.isnan(c[0]) and not np.isnan(c[1]), img_centroids))
     img_centroids = list(filter(lambda c: 0 < c[1] < img_cv.shape[0] and 0 < c[0] < img_cv.shape[1], img_centroids))
 
+    # Ignore centroids that are close to each other (by... 5 pixels).
+    for i in img_centroids:
+        for j in img_centroids:
+            if i != j and hypot(j[0] - i[0], j[1] - i[1]) < 5:
+                img_centroids.remove(j)
+
     # Sort by brightness. Return iff the pixel intensity is below the given cutoff.
     cutoff = int(cf['centroid-find']['min-cut'])
-    img_centroids.sort(key=lambda c: img_cv[int(c[1]), int(c[0])])
-    return list(filter(lambda c: img_cv[int(c[1]), int(c[0])] > cutoff, img_centroids))
+    c_f = list(filter(lambda c: img_cv[int(c[1]), int(c[0])] > cutoff, img_centroids))
+    return sorted(c_f, key=lambda c: img_cv[int(c[1]), int(c[0])])
 
 
 if __name__ == '__main__':

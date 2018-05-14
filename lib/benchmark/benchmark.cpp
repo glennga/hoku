@@ -135,8 +135,7 @@ void Benchmark::present_image (Star::list &image_s, double &image_fov) const {
     image_s = clean_stars();
 }
 
-/// Write the current data in the star set to two files. This includes the fov, norm, focus, star set, and the
-/// error set.
+/// Write the current data in the star set to two files. This includes the fov, focus, star set, and the error set.
 void Benchmark::record_current_plot () {
     std::ofstream current(CURRENT_TMP), error(ERROR_TMP);
     std::ostringstream current_record, error_record;
@@ -174,9 +173,9 @@ void Benchmark::record_current_plot () {
 /// Write the current data in the star set to a file, and let a separate Python script generate the plot. I am most
 /// familiar with Python's MatPlotLib, so this seemed like the most straight-forward approach.
 void Benchmark::display_plot () {
-    // Field-of-view and norm are parameters to the plot script.
+    // Field-of-view is a parameter to the plot script.
     std::string params =
-        " q=on fov=" + std::to_string(this->fov) + " norm=" + std::to_string(Vector3::Magnitude(this->center));
+        " q=on fov=" + std::to_string(this->fov);
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
     std::string cmd = std::string("python -E ") + PLOT_SCRIPT + params;
@@ -195,8 +194,8 @@ void Benchmark::display_plot () {
 /// randomly wander into the detector.
 ///
 /// @param n Number of extra stars to add.
-/// @param cap_error Flag to move an error star to the front of the star list.
-void Benchmark::add_extra_light (const unsigned int n, bool cap_error) {
+/// @param shuffle Flag to enable reshuffling of the I set.
+void Benchmark::add_extra_light (const unsigned int n, bool shuffle) {
     unsigned int current_n = 0;
     ErrorModel extra_light = {"Extra Light", "r", {Star::wrap(Vector3::Zero())}};
     
@@ -209,10 +208,10 @@ void Benchmark::add_extra_light (const unsigned int n, bool cap_error) {
         }
     }
     
-    // Shuffle to maintain randomness. If desired, an error star remains at the front.
-    std::iter_swap(this->b.begin(), this->b.end() - 1);
-    (!cap_error) ? std::shuffle(this->b.begin() + 1, this->b.end(), std::mt19937(std::random_device()()))
-                 : this->shuffle();
+    // Shuffle to maintain randomness (if desired).
+    if (shuffle) {
+        this->shuffle();
+    }
     
     // Remove the first element. Append to error models.
     extra_light.affected.erase(extra_light.affected.begin());
@@ -224,7 +223,7 @@ void Benchmark::add_extra_light (const unsigned int n, bool cap_error) {
 ///
 /// @param n Number of blobs to generate.
 /// @param psi Dark spot size (degrees). This is the cone size of the dark spot vectors.
-void Benchmark::remove_light (const unsigned int n, const double psi) {
+void Benchmark::remove_light (const unsigned int n, const double psi, const bool shuffle) {
     unsigned int current_n = 0;
     std::vector<Star> blobs;
     ErrorModel removed_light = {"Removed Light", "0.5", {Star::wrap(Vector3::Zero())}};
@@ -254,8 +253,10 @@ void Benchmark::remove_light (const unsigned int n, const double psi) {
         is_affected = !removed_light.affected.empty();
     }
     
-    // Shuffle to maintain randomness.
-    this->shuffle();
+    // Shuffle to maintain randomness (if desired).
+    if (shuffle) {
+        this->shuffle();
+    }
     
     // Remove first element. Append this to the error models.
     removed_light.affected.erase(removed_light.affected.begin());
@@ -267,36 +268,28 @@ void Benchmark::remove_light (const unsigned int n, const double psi) {
 ///
 /// @param n Number of stars to move.
 /// @param sigma Amount to shift stars by, in terms of degrees.
-/// @param cap_error Flag to move an error star to the front of the star list.
-void Benchmark::shift_light (const unsigned int n, const double sigma, bool cap_error) {
+/// @param shuffle Flag to enable reshuffling of the I set.
+void Benchmark::shift_light (const unsigned int n, const double sigma, bool shuffle) {
     ErrorModel shifted_light = {"Shifted Light", "g", {Star::wrap(Vector3::Zero())}};
     unsigned int current_n = 0;
-    
-    // Loop through entire list again if n not met through past run.
-    while (current_n < n || this->b.size() == current_n + 1) {
-        bool n_condition = true;
-        
-        // Check inside if n is met early, break if met.
-        for (unsigned int i = 0; i < this->b.size() && n_condition; i++) {
-            Star candidate = Rotation::shake(this->b[i], sigma);
-            
-            // If shifted star is near center, add the shifted star and remove the old.
-            if (Star::within_angle(candidate, this->center, this->fov / 2.0)) {
-                this->b.push_back(candidate);
-                this->b.erase(this->b.begin() + i);
-                shifted_light.affected.emplace_back(candidate);
-                current_n++;
-            }
-            
-            // If the n-condition is met early, we break.
-            n_condition = (current_n < n || this->b.size() == current_n + 1);
-        }
+
+    for (unsigned int i = 0; i < this->b.size() && current_n < n; i++) {
+        Star candidate;
+
+        // Ensure that the shifted star does not veer out of focus.
+        do {
+            candidate = Rotation::shake(this->b.at(i), sigma);            
+        } while (!Star::within_angle(candidate, this->center, this->fov / 2.0));
+
+        // Modify our star set.
+        this->b.at(i) = candidate, current_n++;
+        shifted_light.affected.emplace_back(candidate);
     }
     
-    // Shuffle to maintain randomness. If desired, an error star remains at the front.
-    std::iter_swap(this->b.begin(), this->b.end() - 1);
-    cap_error ? std::shuffle(this->b.begin() + 1, this->b.end(), std::mt19937(std::random_device()()))
-              : this->shuffle();
+    // Shuffle to maintain randomness (if desired).
+    if (shuffle) {
+        this->shuffle();
+    }
     
     // Remove first element. Append this to the error models.
     shifted_light.affected.erase(shifted_light.affected.begin());

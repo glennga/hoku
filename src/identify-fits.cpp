@@ -62,7 +62,8 @@ std::shared_ptr<FILE> parse_fits (const std::string &image) {
 /// @return Empty list if there exist less than four total stars. Otherwise, the list of stars. The first is the focus,
 /// and the following are the stars in the image.
 Star::list parse_centroids (const std::shared_ptr<FILE> &centroids_pipe) {
-    double hf = cf.GetReal("hardware", "mp", 0) / 2, dpp = cf.GetReal("hardware", "dpp", 0);
+    double hc = cf.GetReal("hardware", "hmp", 0) / 2.0, vc = cf.GetReal("hardware", "vmp", 0) / 2.0;
+    double dpp = cf.GetReal("hardware", "dpp", 0);
     std::array<char, 128> buffer;
     Star::list s_i;
     
@@ -76,10 +77,11 @@ Star::list parse_centroids (const std::shared_ptr<FILE> &centroids_pipe) {
                 // Separate our line by commas, and convert our results into floats.
                 std::getline(entry_stream, s_c_0, ','), std::getline(entry_stream, s_c_1);
                 s_c[0] = std::stof(s_c_0, nullptr), s_c[1] = std::stof(s_c_1, nullptr);
-                
+                std::cout << "Image (FITS Coordinates): (" << s_c[0] << ", " << s_c[1] << ")" << std::endl;
+
                 // Translate points to fit (0, 0) center.
-                double x = s_c[0] - hf, y = s_c[1] - hf;
-                
+                double x = s_c[0] - hc, y = s_c[1] - vc;
+
                 // Project the star to 3D, and save it.
                 s_i.emplace_back(Star::wrap(Mercator::transform_point(x, y, dpp)));
             }
@@ -121,19 +123,26 @@ int identify_fits (const std::string &id_method, const Star::list &s_i) {
     Identification::collect_parameters(p, cf, id_method);
     
     // Identify using the given ID method, and display the results through Python.
-    auto identify = [&] (const Star::list &result) -> int {
-        Benchmark output(result, s_i[0], fov);
+    auto plot = [&] (const Star::list &result) -> int {
+        for (const Star &s: result) {
+            std::cout << "Star: " << s << std::endl;
+        }
+        Chomp ch;
+        Star r_f = ch.query_hip(result[0].get_label());
+
+        // Search for all stars near our focus. This is what will be plotted.
+        Benchmark output(ch.nearby_bright_stars(r_f, fov / 2.0, 100), r_f, fov);
         output.display_plot();
         return 0;
     };
     
     switch (i) {
-        case 0: return identify(Angle(input, p).identify_all());
-        case 1: return identify(Dot(input, p).identify_all());
-        case 2: return identify(Sphere(input, p).identify_all());
-        case 3: return identify(Plane(input, p).identify_all());
-        case 4: return identify(Pyramid(input, p).identify_all());
-        case 5: return identify(Composite(input, p).identify_all());
+        case 0: return plot(Angle(input, p).identify());
+        case 1: return plot(Dot(input, p).identify());
+        case 2: return plot(Sphere(input, p).identify());
+        case 3: return plot(Plane(input, p).identify());
+        case 4: return plot(Pyramid(input, p).identify());
+        case 5: return plot(Composite(input, p).identify());
         default: throw std::runtime_error(std::string("ID method not in appropriate space."));
     }
 }

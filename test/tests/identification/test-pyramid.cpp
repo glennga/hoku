@@ -147,7 +147,7 @@ TEST(Pyramid, FindCatalogStars) {
     Benchmark input(ch, 20);
     Pyramid::Parameters p = Pyramid::DEFAULT_PARAMETERS;
     Rotation q = Rotation::chance();
-    p.sigma_1 = p.sigma_2 = 0.0000000001;
+    p.sigma_1 = p.sigma_2 = 0.000000001;
     
     Star::list b = {ch.query_hip(102531), ch.query_hip(95498), ch.query_hip(102532), ch.query_hip(101958),
         ch.query_hip(101909)};
@@ -193,21 +193,6 @@ TEST(Pyramid, FindSortBrightness) {
     
     EXPECT_LT(k[0].get_magnitude() + k[1].get_magnitude() + k[2].get_magnitude(),
               m[0].get_magnitude() + m[1].get_magnitude() + m[2].get_magnitude());
-}
-
-/// Check that the find method fails when expected.
-TEST(Pyramid, FindExpectedFailure) {
-    Chomp ch;
-    Benchmark input(ch, 20);
-    Pyramid::Parameters p = Pyramid::DEFAULT_PARAMETERS;
-    p.sigma_1 = p.sigma_2 = 0.1;
-    
-    // Unsure how to test passing the |R| = 1 restriction but not the FBR. Only testing former.
-    Star::trio k = Pyramid(input, p).find_catalog_stars(Star::trio {input.b[0], input.b[1], input.b[2]});
-    
-    EXPECT_EQ(k[0], Pyramid::NO_CONFIDENT_R_FOUND[0]);
-    EXPECT_EQ(k[1], Pyramid::NO_CONFIDENT_R_FOUND[1]);
-    EXPECT_EQ(k[2], Pyramid::NO_CONFIDENT_R_FOUND[2]);
 }
 
 /// Check that the identification method returns a non-confident map when appropriate.

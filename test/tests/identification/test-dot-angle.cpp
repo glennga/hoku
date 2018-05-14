@@ -263,7 +263,7 @@ TEST(DotAngle, TrialCleanIdentify) {
     Star b = ch.query_hip(102531), c = ch.query_hip(109240), d = ch.query_hip(102532);
     Star e = Rotation::rotate(b, q), f = Rotation::rotate(c, q), g = Rotation::rotate(d, q);
     
-    Dot a(Benchmark({e, f, g}, e, 20), p);
+    Dot a(Benchmark({g, f, e}, e, 20), p);
     Star::list h = a.identify();
     EXPECT_THAT(h, Contains(Star::define_label(e, 102531)));
     EXPECT_THAT(h, Contains(Star::define_label(f, 109240)));
@@ -288,7 +288,7 @@ TEST(DotAngle, TrialExceededNu) {
 /// Check that the correct result is returned when no map is found.
 TEST(DotAngle, TrialNoMapFound) {
     Chomp ch;
-    Benchmark input(ch, 7);
+    Benchmark input(ch, 8);
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
     Dot::Parameters p = Dot::DEFAULT_PARAMETERS;
     p.nu = std::make_shared<unsigned int>(0), p.nu_max = std::numeric_limits<unsigned int>::max();

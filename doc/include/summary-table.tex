@@ -2,14 +2,19 @@
     & \textbf{Image Features} & \textbf{Reduction} & \textbf{Identification} \\
     \hline \hline
     \textbf{Angle} & $\theta^{ij}$ & Require $\lvert R \rvert=1$ & \Call{DMT}{$b, r, I$} \\ \hline
+    \\[-1em]
     \textbf{Dot Angle} & $\theta^{ic}, \theta^{jc}, \phi$ & Require $\lvert R \rvert = 1$ & Restrict $\theta^{ic},
     \theta^{jc}$ at Query Time \\ \hline
+    \\[-1em]
     \textbf{Spherical Triangle} & Spherical $a^{ijk}, \imath^{ijk}$ & \Call{Pivot}{$b_i, b_j, b_k, R_1$} &
     \Call{DMT}{$b, r, I$} \\ \hline
+    \\[-1em]
     \textbf{Planar Triangle} & Planar $a^{ijk}, \imath^{ijk}$ & \Call{Pivot}{$b_i, b_j, b_k, R_1$} &
     \Call{DMT}{$b, r, I$} \\ \hline
+    \\[-1em]
     \textbf{Pyramid} & $\theta^{ij}, \theta^{ik}, \theta^{jk}$ & Require $\lvert R \rvert = 1$ &
-    \Call{Common}{$R^{ab}, R^{ac}, F$}, \newline \Call{PyramidVerify}{$r, b, I$} \\ \hline
+    \Call{Common}{$R^{ab}, R^{ac}, F$}, \newline \Call{VerifyP}{$r, b, I$} \\ \hline
+    \\[-1em]
     \textbf{Composite Pyramid} & Planar $a^{ijk}, \imath^{ijk}$ & Require $\lvert R \rvert = 1$ & \Call{DMT}{$b, r, I$},
-    \newline \Call{CompositeVerify}{$r, b, a, I$}
+    \newline \Call{VerifyC}{$r, b, a, I$}
 \end{tabular}

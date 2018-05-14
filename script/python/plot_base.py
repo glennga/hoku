@@ -28,16 +28,16 @@ from plot_parameters import params
 
 
 def attach_figure_legend(att, fig, p):
-    """
+    """ Attach a legend to a figure, rather than the current 'plt' object.
 
-    :param att:
-    :param fig:
-    :param p:
-    :return:
+    :param att: Attributes dictionary, containing the key to which axes to label.
+    :param fig: Figure to attach the legend to.
+    :param p: Plot object to attach the legend to (grabs what was just plotted).
+    :return: None.
     """
     sec = att['params_section']
-    leg = fig.legend(p, params[sec]['ll'], fontsize=18,
-                     ncol=len(params[sec]['ll']), mode='expand')
+    leg = fig.legend(p, params[sec]['ll'], ncol=len(params[sec]['ll']), mode='expand')
+    leg.get_frame().set_linewidth(0.0)
     leg.draggable(True)
 
 
@@ -58,29 +58,38 @@ def attach_plot_info(att):
         :return: None.
         """
         try:
-            h(f(None))
+            h(f())
         except KeyError:
             pass
 
     # Set Y limits.
-    attempt(lambda _: ax.set_ylim(params[sec][pre + '-yll']))
+    attempt(lambda : ax.set_ylim(params[sec][pre + '-yll']))
+
+    # Set X limits.
+    attempt(lambda : ax.set_xlim(params[sec][pre + '-xll']))
 
     # If desired, set the X axis as logarithmic.
-    attempt(lambda _: ax.set_xscale('log') if params[sec][pre + '-lxa'] == 1 else None)
+    attempt(lambda : ax.set_xscale('log') if params[sec][pre + '-lxa'] == 1 else None)
+
+    # If desired, set the X axis as symmetric logarithmic.
+    attempt(lambda : ax.set_xscale('symlog', linthreshx=1.0e-3) if params[sec][pre + '-slxa'] == 1 else None)
 
     # If desired, set the Y axis as logarithmic.
-    attempt(lambda _: ax.set_yscale('log') if params[sec][pre + '-lya'] == 1 else None)
+    attempt(lambda : ax.set_yscale('log') if params[sec][pre + '-lya'] == 1 else None)
+
+    # If desired, set the X axis as symmetric logarithmic.
+    attempt(lambda : ax.set_yscale('symlog', linthreshx=1.0e-3) if params[sec][pre + '-slya'] == 1 else None)
 
     # Add the legend.
-    attempt(lambda _: plt.legend(params[sec]['ll'], fontsize=18)
+    attempt(lambda : plt.legend(params[sec]['ll'], fontsize=18)
     if not pre + '-nll' in params[sec] or params[sec][pre + '-nll'] == 0 else None,
             lambda a: a.draggable(True) if a is not None else None)
 
     # Add the chart X axis tick labels.
-    attempt(lambda _: plt.xticks(np.arange(len(params[sec][pre + '-xtl'])), params[sec][pre + '-xtl']))
+    attempt(lambda : plt.xticks(np.arange(len(params[sec][pre + '-xtl'])), params[sec][pre + '-xtl']))
 
     # Add the chart X and Y labels.
-    attempt(lambda _: plt.xlabel(params[sec][pre + '-xal']) and plt.ylabel(params[sec][pre + '-yal']))
+    attempt(lambda : plt.xlabel(params[sec][pre + '-xal']) and plt.ylabel(params[sec][pre + '-yal']))
 
 
 def d_plot(cur_j, att):
@@ -148,12 +157,12 @@ def e_plot(cur_i, att):
                                 'WHERE IdentificationMethod = ? ' +
                                 ('' if 'constrain_that' not in att.keys() else 'AND ' + att['constrain_that']),
                                 (m,)).fetchall()
-        x_space = list(map(lambda x: x[0], x_space))
+        x_space = sorted(list(map(lambda x: x[0], x_space)))
 
         # Construct the points to plot.
         y_avg, y_std = [], []
         for x_p in x_space:
-            y_data = cur_i.execute('SELECT {} '.format(att['y_attribute']) +  # Grab our Y axis data.
+            y_data = cur_i.execute('SELECT COALESCE ({}, 0) '.format(att['y_attribute']) +  # Grab our Y axis data.
                                    'FROM {} '.format(att['table_name']) +
                                    'WHERE IdentificationMethod = ? '
                                    'AND {} = ? '.format(att['x_attribute']) +
@@ -168,13 +177,23 @@ def e_plot(cur_i, att):
             # Collect averages and deviations for each partition of data.
             y_avg.append(np.mean(y_data)), y_std.append(np.std(y_data))
 
+            # Display the results to console (X = ... | ID = ... | mu = ... +/- sigma)
+            f_str = '| {:<20} | {:>12} = {:>5} | ID = {:>12} | mu = {:<7} +/- {:>7} |'
+            print(f_str.format(att['y_attribute'], att['x_attribute'], x_p, m, round(y_avg[-1], 5),
+                               round(y_std[-1], 5)))
+
         # Construct the appropriate plot and attach plot info.
         if att['plot_type'] == 'BAR':
-            plots.append(plt.bar(np.arange(len(x_space)) + 0.15 * k - 0.3, y_avg, 0.15, yerr=y_std))
+            plots.append(plt.bar(np.arange(len(x_space)) + 0.1 * k - 0.2, y_avg, 0.1, yerr=y_std))
             attach_plot_info(att)
-        else:
+        elif att['plot_type'] == 'BAR_NOERR':
+            plots.append(plt.bar(np.arange(len(x_space)) + 0.1 * k - 0.2, y_avg, 0.1))
+            attach_plot_info(att)
+        elif att['plot_type'] in ['LINE', 'LINE_NOERR']:
             plots.append(plt.plot(x_space, y_avg))
             attach_plot_info(att)
-            # plt.errorbar(x_space, y_avg, yerr=y_std)
+        else:
+            plots.append(plt.errorbar(x_space, y_avg, yerr=y_std))
+            attach_plot_info(att)
 
     return plots

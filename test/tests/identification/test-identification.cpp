@@ -14,6 +14,8 @@
 
 #include "identification/angle.h"
 
+using testing::Contains;
+
 /// A dummy non-virtual instance of Identification.
 class IdentificationDummy : public Identification {
   public:
@@ -126,86 +128,78 @@ TEST(BaseIdentification, ParameterCollectErrorInput) {
 /// Check that the rotating match method marks the all stars as matched.
 TEST(BaseIdentification, FindMatchesCorrectInput) {
     Chomp ch;
-    Star a = Star::chance(), b = Star::chance();
+
+    // Find some rotation, and it's inverse.
     Rotation c = Rotation::chance();
-    Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
-    Rotation f = Rotation::triad({a, b}, {d, e});
-    Benchmark input(ch, Star::chance(), c, 8);
-    Star::list rev_input;
+    Rotation c_inv =  Rotation::wrap(Quaternion::Inverse(c));
+    Benchmark input(ch, Star::chance(), c, 10);
+
+    // We apply no changes here other than stripping the identifier.
     Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
     p.sigma_4 = 0.000001;
     IdentificationDummy g(input.clean_stars(), p);
-    
-    // Reverse all input by inverse rotation matrix.
-    rev_input.reserve(input.b.size());
-    for (Star rotated : input.b) {
-        rev_input.push_back(Rotation::rotate(rotated, f));
+
+    // We pass it the *inverse*, the result of b_inv * c = input.b, input.b * c_inv = b_inv.
+    Star::list b_inv;
+    for (const Star &s: input.b) {
+        b_inv.emplace_back(Rotation::rotate(s, c_inv));
     }
-    
-    Star::list h = g.find_positive_overlay(rev_input, c);
+    Star::list h = g.find_positive_overlay(b_inv, c);
+
+    // Apply our checks.
     EXPECT_EQ(h.size(), input.b.size());
-    for (unsigned int q = 0; q < h.size(); q++) {
-        EXPECT_EQ(h[q].get_label(), input.b[q].get_label());
+    for (const Star &s: h) {
+        bool is_near = false;
+
+        // Check for stars near s.
+        for (const Star &s_1 : input.b) {
+            double theta = (180.0 / M_PI) * Vector3::Angle(s_1, s);
+            if (theta < 0.1 && s_1.get_label() == s.get_label()) {
+                is_near = true;
+                break;
+            }
+        }
+        EXPECT_TRUE(is_near);
     }
 }
 
 /// Check that the rotating match method marks only the correct stars as matched.
 TEST(BaseIdentification, FindMatchesErrorInput) {
     Chomp ch;
-    Star a = Star::chance(), b = Star::chance();
-    Rotation c = Rotation::chance();
-    Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
-    Rotation f = Rotation::triad({a, b}, {d, e});
-    Benchmark input(ch, Star::chance(), c, 8);
-    Star::list rev_input;
-    Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
-    p.sigma_4 = 0.000001;
-    IdentificationDummy g(input.clean_stars(), p);
-    
-    // Reverse all input by inverse rotation matrix.
-    rev_input.reserve(input.b.size());
-    for (Star rotated : input.b) {
-        rev_input.push_back(Rotation::rotate(rotated, f));
-    }
-    
-    // Append center as error.
-    rev_input.push_back(Star::wrap(input.center));
-    Star::list h = g.find_positive_overlay(rev_input, c);
-    EXPECT_EQ(h.size(), input.b.size());
-    
-    for (unsigned int q = 0; q < h.size(); q++) {
-        EXPECT_EQ(h[q].get_label(), input.b[q].get_label());
-    }
-}
 
-/// Check that the rotating match method marks only the correct stars as matched, not the duplicate as well.
-TEST(BaseIdentification, FindMatchesRotatingDuplicateInput) {
-    Chomp ch;
-    Star a = Star::chance(), b = Star::chance();
+    // Find some rotation, and it's inverse.
     Rotation c = Rotation::chance();
-    Star d = Rotation::rotate(a, c), e = Rotation::rotate(b, c);
-    Rotation f = Rotation::triad({a, b}, {d, e});
-    Benchmark input(ch, Star::chance(), c, 8);
-    Star::list rev_input;
+    Rotation c_inv =  Rotation::wrap(Quaternion::Inverse(c));
+    Benchmark input(ch, Star::chance(), c, 10);
+    Star::list err_input = input.b;
+
+    // Append center as error.
     Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
     p.sigma_4 = 0.000001;
-    IdentificationDummy g(input.clean_stars(), p);
-    
-    // Reverse all input by inverse rotation matrix.
-    rev_input.reserve(input.b.size());
-    for (Star rotated : input.b) {
-        rev_input.push_back(Rotation::rotate(rotated, f));
+    err_input.push_back(Star::wrap(input.center));
+    IdentificationDummy g(err_input, p);
+
+    // We pass it the *inverse*, the result of b_inv * c = input.b, input.b * c_inv = b_inv.
+    Star::list b_inv;
+    for (const Star &s: input.b) {
+        b_inv.emplace_back(Rotation::rotate(s, c_inv));
     }
-    
-    // Append first star as error.
-    rev_input.push_back(rev_input[0]);
-    rev_input.push_back(rev_input[0]);
-    rev_input.push_back(rev_input[0]);
-    Star::list h = g.find_positive_overlay(rev_input, c);
+    Star::list h = g.find_positive_overlay(b_inv, c);
+
+    // Apply our checks.
     EXPECT_EQ(h.size(), input.b.size());
-    
-    for (unsigned int q = 0; q < h.size(); q++) {
-        EXPECT_EQ(h[q].get_label(), input.b[q].get_label());
+    for (const Star &s: h) {
+        bool is_near = false;
+
+        // Check for stars near s.
+        for (const Star &s_1 : input.b) {
+            double theta = (180.0 / M_PI) * Vector3::Angle(s_1, s);
+            if (theta < 0.1 && s_1.get_label() == s.get_label()) {
+                is_near = true;
+                break;
+            }
+        }
+        EXPECT_TRUE(is_near);
     }
 }
 
@@ -256,9 +250,21 @@ TEST(BaseIdentification, CompleteIdentificationCleanInput) {
     Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
     p.sigma_4 = 0.000001;
     IdentificationDummy g(input.b, p);
-    
-    Star::list s_l = g.identify_all();
-    for (unsigned int i = 0; i < s_l.size(); i++) {
-        EXPECT_EQ(s_l[i], input.b[i]);
+    Star::list h = g.identify_all();
+
+    // Apply our checks.
+    EXPECT_EQ(h.size(), input.b.size());
+    for (const Star &s: h) {
+        bool is_near = false;
+
+        // Check for stars near s.
+        for (const Star &s_1 : input.b) {
+            double theta = (180.0 / M_PI) * Vector3::Angle(s_1, s);
+            if (theta < 0.1 && s_1.get_label() == s.get_label()) {
+                is_near = true;
+                break;
+            }
+        }
+        EXPECT_TRUE(is_near);
     }
 }

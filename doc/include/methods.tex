@@ -1,7 +1,7 @@
 \newcommand{\itmref}[2]{\hyperref[#2]{#1 Variable~\ref*{#2}}}
 
 \section{Methodology}\label{sec:methodology}
-The goal of this research was to empirically analyze each identificaton method, and determine which method most
+The goal of this research was to empirically analyze each identification method, and determine which method most
 accurately maps a subset of stars from the catalog to image under the presence of noise.
 The general flow of experiments is listed below:
 \begin{enumerate}
@@ -13,19 +13,18 @@ The general flow of experiments is listed below:
     \item Repeat for another image.
 \end{enumerate}
 
-The research goal is directed toward star tracker development, who's input is often very noisy.
+Our research goal is directed toward star tracker development, where our input is often very noisy.
 Before a raw image can be used in a star identification algorithm it must first go through some process to filter out
 extraneous light.
-From here, centroid coordinates of an image (i.e.\ stars) are determined in 2D using a \textit{center-of-mass} approach.
+From here, centroid coordinates of an image (i.e.\ stars) are determined in 2D using a center-of-mass approach.
 The coordinates are then projected from 2D to the 3D image frame, and then run through the star identification
-algorithm.
+algorithm~\cite{Survey}.
 
 There are a number of places where error can be introduced here.
 What if the filtering removes a star?
 What if centroid coordinates are inaccurately determined?
 What if the 2D to 3D transformation is inaccurate as well?
-
-In order to precisely quantity star identification error, a process must be created to produce an accurate
+In order to quantity star identification error solely, a process must be created to produce an accurate
 representation of the 3D image frame.
 The exact stars in the image must be known, the date of the image, the field-of-view of the camera, what type of
 error exists in the image, \ldots.
@@ -35,8 +34,7 @@ Unfortunately, obtaining actual images with characterized error is incredibly di
 project.
 The solution presented here is to remove the reliance on the camera to capture images, and instead
 \textit{generate} the images from the catalog used to build the features from.
-This allows for controllable hardware (field-of-view, camera direction are now just parameters) and for controllable
-error, as the entire image to 3D image frame are cut out.
+This parametrizes our hardware (field-of-view, camera direction) and error (Gaussian noise, false stars).
 
 These images are generated using the Hipparcos Input Catalogue v2, an astronomical catalog of recorded stars and their
 position relative to Earth.
@@ -64,7 +62,7 @@ Benchmark images were generated with the process below:
     2018) from MJD 48319 (March 1991).
     Depicted below is the conversion to ($x, y, z$) points, with $\alpha$ \& $\delta$ in radians,
     $\mu_\alpha$ \& $\mu_\delta$ in radians per year, and $t$ \& $\tau$ (MJD 58119 and time of catalog = MJD 48316
-    respectively) in years.
+    respectively) in years~\cite{ProperMotion}.
     \begin{align}
         \alpha_t &= \alpha_\tau + \mu_\alpha (\tau - t) \\
         \delta_t &= \delta_\tau + \mu_\delta (\tau - t) \\
@@ -117,8 +115,8 @@ This experiment helps determine the optimal hyperparameters (i.e.\ query $\sigma
 identification method.
 Referencing~\autoref{figure:genericIdentificationMethodFlowchart}, different values for this deviation in the
 \textit{Search Catalog} step, or "query" step may lead to exclusion of the correct candidates in $R$.
-Similarly, differing values for this deviation in the \textit{Identify} step may lead to the wrong map $a$ being
-produced.
+Similarly, differing values for the overlay deviation in the \textit{Identify} step for methods using the
+\Call{FPO} call may lead to the wrong map $a$ being selected.
 
 The heuristic used to determine the optimal hyperparameters here was a grid search, iteratively exhausting every
 permutation of some set of deviations and measuring the outcome of each trial.
@@ -130,64 +128,77 @@ To determine the deviation for the query step, a permutation $P_n^{\sigma_n}$ is
 where:
 \begin{equation}
     \label{eq:gridSearchQuery}
-    \sigma_n \ \in \ \{ 1.0e^{M_1}, 1.0e^{M_2}, \ldots 1.0e^{M_N} \}
+    \sigma_n \ \in \ \{ 10^{M_1}, 10^{M_2}, \ldots 10^{M_N} \}
 \end{equation}
 Each deviation above corresponds to some feature used to query the catalog.
 For example, $n = 3$ for the Dot Angle method.
-$\sigma_1$ corresponds to the query associated with $\theta_{ic}$, $\sigma_2$ corresponds to the query associated
-with $\theta_{jc}$, and $\sigma_3$ corresponds to the query associated with $\phi$.
+$\sigma_1$ corresponds to $\theta_{ic}$ in the query, $\sigma_2$ corresponds to $\theta_{jc}$, and $\sigma_3$
+corresponds to $\phi$.
 
 \begin{subequations}
-    \label{eq:stabilityQuery}
-    For each output in~\autoref{eq:querySelectivityMeasures}, a value is considered stable if all queries hit and have a
-    sole element in the candidate set.
+    \label{eq:defineIdealQuery}
+    For each output in~\autoref{eq:querySelectivityMeasures}, a deviation is considered ideal if all queries hit ($I_Q$)
+    and have a sole element in the candidate set ($I_S$).
     \begin{align}
-        \text{Length of stable } Q \text{ region } &= \sum_{i = 0}^N \left[ \frac{Q_{i}}{N} = 1 \right] \\
-        \text{Length of stable } \lvert R \rvert \text{ region } &= \sum_{i = 0}^N \left[ \frac{\lvert R \rvert_{i}}{N}
-        = 1\right]
+        I_Q(i) &=
+        \begin{cases}
+            1 & \text{if } \frac{Q_i}{N} = 1 \\
+            0 & \text{otherwise}
+        \end{cases} \\
+        I_S(i) &=
+        \begin{cases}
+            1 & \text{if } \frac{S_i}{N} = 1\\
+            0 & \text{otherwise}
+        \end{cases}
     \end{align}
 \end{subequations}
-where $Q = $ probability that the correct star set exists in $R$ (query hit probability).
+
+\begin{subequations}
+    \label{eq:idealQuery}
+    An ideal region length is the number of indicator variables ($I_Q, I_S$) for some
+    consecutive deviation sequence.
+    \begin{align}
+        \text{Length of ideal } Q \text{ region } &= \sum_{i = 0}^N I_Q(i) \\
+        \text{Length of ideal } S \text{ region } &= \sum_{i = 0}^N I_S(i)
+    \end{align}
+\end{subequations}
 
 % Local Method: https://en.wikipedia.org/wiki/Sensitivity_analysis
 \begin{subequations}
     \label{eq:sensitivityQuery}
-    For the same outputs in~\autoref{eq:querySelectivityMeasures}, the sensitivity of some critical point $\sigma_c$
-    can be represented as:
-    % TODO: Is response the right word here?
+    For the same outputs in~\autoref{eq:querySelectivityMeasures}, the sensitivity~\cite{SensitivityAnalysis}
+    of some critical point $\sigma_c$ can be represented as:
     \begin{align}
         \left\lvert\frac{\partial Q}{\partial \sigma}\right\rvert_{\sigma_{c1}} &= \text{response of } Q \text{ to }
         \sigma \text{ at } \sigma_{c1} \\
-        \left\lvert\frac{\partial \lvert R \rvert}{\partial \sigma}\right\rvert_{\sigma_{c2}} &=
-        \text{response of } |R| \text{ to } \sigma \text{ at } \sigma_{c2}
+        \left\lvert\frac{\partial S}{\partial \sigma}\right\rvert_{\sigma_{c2}} &=
+        \text{response of } S \text{ to } \sigma \text{ at } \sigma_{c2}
     \end{align}
 \end{subequations}
 
-% TODO: Incoorperate derivatives above, a larger change indicates more large sensitivity at that point.
-The length of the stability region indicates
-
+The more gradual the response is to the candidate set size or probability, the less penalizing an incorrect deviation
+choice will be.
 The longer that the responses above remain at zero, the less sensitive the hyperparameter selection is for that
 specific feature.
-This suggests that the method may be less susceptible to noise, as there will be less dependence on $\sigma$ itself.
+The ideal feature set is one that has a long ideal period, and one with low responses to a deviation change.
 
 To determine $\sigma$ for the identification step, the grid search devolves into a linear search.
 $\sigma_o$ (overlay) is defined as~\autoref{eq:gridSearchQuery}, for some different set of $M$.
 
-$\sigma_o$ is used by the \Call{DMT}{} call, a function used by the Angle, Spherical Triangle, Planar Triangle, and
-Composite Pyramid methods.
+This deviation is used by the \Call{FPO}{} call, a function used by the Angle, Spherical Triangle,
+Planar Triangle, and Composite Pyramid methods.
 Given that this function operates the same for all identification methods above, this function was tested separately
 as a binary classifier.
-The sensitivity of this hyperparameter selection was characterized in terms of the resulting accuracy of the
+The sensitivity of this hyperparameter selection was characterized in terms of the resulting recall of the
 classification:
 \begin{equation}
     \label{eq:sensitivityIdentification}
-    \left\lvert\frac{\partial A}{\partial \sigma}\right\rvert_{\sigma_o} = \text{response of } A \text{ at }
-    \sigma_o \\
+    \left\lvert\frac{\partial \mathit{TPR}}{\partial \sigma}\right\rvert_{\sigma_o} = \text{response of } \mathit{TPR}
+    \text{ at } \sigma_o \\
 \end{equation}
-where $A = $ accuracy of the resulting classification.
 
 Similarly, the longer the response above remains at zero the less sensitive the hyperparameter selection will be for
-the \Call{DMT}{} call.
+the \Call{FPO}{} call.
 
 \subsection{Which set of features best distinguish a set of stars?}\label{subsec:querySelectivityMethods}
 This experiment helps determine which identification method has the best querying process for catalog candidates $R$.
@@ -231,26 +242,31 @@ Crassidus's Planar Triangles method.
     \label{eq:querySelectivityMeasures}
     To quantify the selectivity and accuracy of each feature, we looked at:
     \begin{align}
-        \text{Query hit probability} &= \frac{1}{N} \sum_{i = 0}^N y(i) \\
-        \text{Query selectivity} &= \frac{1}{N} \sum_{i = 0}^{N} \lvert R(i)) \rvert
+        \text{Query hit probability } (Q) &= \frac{1}{N} \sum_{i = 0}^N y'(i) \\
+        \text{Query selectivity } (S) &= \frac{1}{N} \sum_{i = 0}^{N} \lvert R(i) \rvert
     \end{align}
 
-    Where $N$ is defined as the number of samples and $p$ defined as:
-    \[ y =
-    \begin{cases}
-        1 & \text{if correct star set } \in R \\
-        0 & \text{otherwise}
-    \end{cases}
-    \]
+    Where $N$ is defined as the number of samples and $y'$ is defined as:
+    \begin{equation}
+        y' =
+        \begin{cases}
+            1 & \text{if correct star set } \in R \\
+            0 & \text{otherwise}
+        \end{cases}
+    \end{equation}
 \end{subequations}
 
-Referencing~\autoref{figure:genericIdentificationMethodFlowchart}, this consists of performing the \textit{Get Camera
-Image} step and executing the identification method past the \textit{Search Catalog} step to the first decision
-block.
 The resulting candidate sets represents one element inside the \textit{set} of $R$ sets.
 Repeating this $N$ times would give us the measures in~\autoref{eq:querySelectivityMeasures}.
 
-An ideal querying processes consists of a query hit probability = 1 and a selectivity of 1 candidate set.
+The running time of each query step $t$ will also be recorded.
+This represents the time to retrieve each $R$ set, and will be used to determine the efficiency.
+\begin{equation}\label{eq:queryEfficiency}
+    \text{Query efficiency } = \frac{1}{|R| \times t}
+\end{equation}
+
+An ideal querying processes consists of a query hit probability = 1, a selectivity of 1 candidate set, and a high
+efficiency.
 The latter is desired as this reduces the amount of work required by the reduction process.
 
 \subsection{What is the best process for reducing catalog candidates?}\label{subsec:candidateReductionMethods}
@@ -266,20 +282,16 @@ method's query steps.
 
 \begin{subequations}
     \label{eq:reductionAccuracyMeasures}
-    To quantify the accuracy and efficiency of each query + reduction process, we looked at:
+    To quantify the efficiency of each query + reduction process, we looked at:
     \begin{align}
-        \text{Reduction hit probability} &= \sum_{i = 0}^N y(i) \\
-        \text{Average reduction efficiency} &= \sum_{i = 0}^N \tau(i)
+        \text{Average reduction accuracy} &= \frac{1}{N} \sum_{i = 0}^N y''(i) \\
+        \text{Average reduction running time} &= \frac{1}{N} \sum_{i = 0}^N t(i)
     \end{align}
 
-    Where $\tau$ is defined as the number of iterations to obtain a result and $y$ is defined as:
-    \[
-        y =
-        \begin{cases}
-            1 & \text{if }r \in \text{original, non-rotated image set} \\
-            0 & \text{otherwise}
-        \end{cases}
-    \]
+    Where $t$ is defined as the running time to return one $r$ set and $y''$ is defined as:
+    \begin{equation}
+        y'' = \frac{| r \in \text{original, non-rotated image set}|}{|r|}
+    \end{equation}
 \end{subequations}
 
 Referencing~\autoref{figure:genericIdentificationMethodFlowchart}, the experiment starts at the \textit{Get Camera
@@ -288,27 +300,33 @@ single match from the catalog candidate set for some image star subset.
 The resulting candidate set represent one element inside the set of $r$ sets.
 Repeating this $N$ times would give us the measures in~\autoref{eq:reductionAccuracyMeasures}.
 
-An ideal reduction processes consists of a reduction hit probability = 1 and an average reduction effiency = 1.
+An ideal reduction processes consists of a reduction hit probability = 1 and a short running time compared to the other
+reduction processes.
+We define the most efficient method as having the highest accuracy to running time ratio.
 
 \subsection{Which method most accurately determines a map?}\label{subsec:identificationMethods}
 This experiment helps determine which identification method produces the most accurate catalog to image maps.
 An accurate map will reduce an attitude determination problem to Wahba's problem, which can be solved.
 
+\begin{subequations}
+    \label{eq:identificationAccuracyMeasures}
+    To quantify the efficiency of each identification process (end-to-end), we looked at:
+    \begin{align}
+        \text{Average identification accuracy} &= \frac{1}{N} \sum_{i = 0}^N y'''(i) \\
+        \text{Average identification running time} &= \frac{1}{N} \sum_{i = 0}^N t(i)
+    \end{align}
+
+    Where $t$ is defined as the running time to return a complete map and $y'''$ is defined as:
+    \begin{equation}
+        y''' = \frac{\text{number of correct mappings } b \rightarrow r}{\lvert b \lvert}
+    \end{equation}
+\end{subequations}
 
 Referencing~\autoref{figure:genericIdentificationMethodFlowchart} again, this experiment runs the identification
 method end to end.
 Partial accuracy was recorded by counting the number of correct stars against the total amount of stars in a given
 map.
 
-The end to end trials were analyzed using two variables:
-\begin{enumerate}
-    \item \label{itm:correctReducedCandidates} Number of correctly reduced candidate sets $R \rightarrow r$.
-    \item Accuracy of maps in~\itmref{Map Experiment}{itm:correctReducedCandidates}.
-\end{enumerate}
-
-To start, complete images were generated containing $S_b$, $c_b$, and $f$.
-Each identification method was run from start to finish, producing a map $a$ (or not one at all).
-If the map references the correct stars in $S_b$ (i.e.\ the reduction experiment), this is recorded as a
-\textit{reduction hit}.
-
-A larger map accuracy to reduction hit ratio suggests a more optimal map determination process.
+An ideal identification method consists of an average identification accuracy = 1 and a short running time compared
+to the other identification methods.
+We define the most efficient method as having the highest accuracy to running time ratio.

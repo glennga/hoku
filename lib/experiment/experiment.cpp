@@ -108,7 +108,8 @@ double Experiment::Reduction::percentage_correct (const Star::list &big_c, const
     // Count the number of correct stars in r.
     std::for_each(r.begin(), r.end(), [&result, &big_c] (const Star &r_i) -> void {
         result += (std::find_if(big_c.begin(), big_c.end(), [&r_i] (const Star &c) -> bool {
-            return c == r_i && c.get_label() == r_i.get_label();
+            return Star::within_angle(c, r_i, std::numeric_limits<double>::epsilon()) &&
+                   c.get_label() == r_i.get_label();
         }) != big_c.end()) ? 1.0 : 0;
     });
     
@@ -119,54 +120,47 @@ double Experiment::Reduction::percentage_correct (const Star::list &big_c, const
 ///
 /// @param big_i All body stars. Check if b_ell correctly matches stars in this set.
 /// @param b Subset of our body, but with predicted catalog labels.
-/// @return True if the predicted catalog labels matches the ground truth labels (body set).
+/// @return Number of correctly predicted catalog labels matches the ground truth labels as a fraction.
 double Experiment::Map::percentage_correct (const Star::list &big_i, const Star::list &b) {
-    unsigned int count = 0;
+    double count = 0;
     
     // Stars must match according to their contents and labels.
     std::for_each(big_i.begin(), big_i.end(), [&count, &b] (const Star &s) -> void {
         count += (std::find_if(b.begin(), b.end(), [&s] (const Star &b_j) -> bool {
-            return b_j == s && b_j.get_label() == s.get_label();
-        }) != b.end()) ? 1 : 0;
+            return Star::within_angle(b_j, s, std::numeric_limits<double>::epsilon()) &&
+                   b_j.get_label() == s.get_label();
+        }) != b.end()) ? 1.0 : 0;
     });
     
-    return count / static_cast<double>(b.size());
+    return count / b.size();
 }
 
-/// Determine the performance of the overlay classifier by determining it's confusion matrix entries.
+/// Determine the percentage of correctly labeled stars from the FPO method.
 ///
 /// @param big_i_prime Stars in image with attached catalog labels (result from FPO method).
 /// @param big_i All image stars. Check for all stars in P that exist in I.
-/// @param es Number of extra stars that exist in input presented to FPO.
-/// @param tn Reference to the location to hold all true negatives.
-/// @param fp Reference to the location to hold all false positives.
-/// @param fn Reference to the location to hold all false negatives.
-/// @param tp Reference to the location to hold all true positives.
-void Experiment::Overlay::count_correct (const Star::list &big_i_prime, const Star::list &big_i, const int es,
-                                         double &tn, double &fp, double &fn, double &tp) {
-    tn = fp = fn = tp = 0;
-
-    // Determine the true positives (in I', in I).
-    std::for_each(big_i.begin(), big_i.end(), [&big_i_prime, &tp] (const Star &s_i) -> void {
-        tp += (std::find_if(big_i_prime.begin(), big_i_prime.end(), [&s_i] (const Star &s_prime_i) {
-            return s_i.get_label() == s_prime_i.get_label();
-        }) != big_i_prime.end()) ? 1 : 0;
-    });
+/// @param big_i_i Index list of all stars in I that have been changed. Assumes that I', I is not shuffled.
+/// @param es Number of extra stars added to I before presentation to FPO.
+/// @return The TP, FP, TN, FN, N of the resulting I' set as an array.
+std::array<double, 5> Experiment::Overlay::confusion_matrix (const Star::list &big_i_prime, const Star::list &big_i,
+                                            const std::vector<int> &big_i_i, const double es) {
+    double tp = 0, fp = 0, tn = 0, fn = 0;
     
-    // Determine the false positives (in I', not in I).
-    std::for_each(big_i_prime.begin(), big_i_prime.end(), [&big_i, &fp] (const Star &s_prime_i) -> void {
-        fp += (std::find_if(big_i.begin(), big_i.end(), [&s_prime_i] (const Star &s_i) {
-            return s_i.get_label() == s_prime_i.get_label();
-        }) == big_i.end()) ? 1 : 0;
-    });
+    for (unsigned int i = 0; i < big_i_i.size(); i++) {
+        // True Positive: in I', in I.
+        tp += (i < big_i.size() && big_i_prime[i].get_label() == big_i[big_i_i[i]].get_label()) ? 1 : 0;
+        
+        // False Positive: in I', not in I.
+        fp += (i >= big_i.size()) ? 1 : 0;
+    }
     
-    // Determine the false negatives (not in I', in I).
-    std::for_each(big_i.begin(), big_i.end(), [&big_i_prime, &fn] (const Star &s_i) -> void {
-        fn += (std::find_if(big_i_prime.begin(), big_i_prime.end(), [&s_i] (const Star &s_prime_i) {
-            return s_i.get_label() == s_prime_i.get_label();
-        }) == big_i_prime.end()) ? 1 : 0;
-    });
+    // False Negative: in I, not in I'.
+    for (unsigned int j = 0; j < big_i.size(); j++) {
+        fn += (std::find(big_i_i.begin(), big_i_i.end(), j) == big_i_i.end()) ? 1 : 0;
+    }
     
-    // Determine the true negatives (not in I', not in I).
+    // True Negative: the complement.
     tn = (big_i.size() + es) - (tp + fp + fn);
+    
+    return std::array<double, 5> {tp, fp, tn, fn, (tp + fp + tn + fn)};
 }

@@ -189,7 +189,7 @@ TEST(Benchmark, ErrorRemovedLightRemoved) {
     EXPECT_LT(input.b.size(), a);
 }
 
-// Check that stars have been shifted in light shift method.
+/// Check that stars have been shifted in light shift method.
 TEST(Benchmark, ErrorShiftedLightMoved) {
     Chomp ch;
     Benchmark input(ch, 15);
@@ -249,20 +249,11 @@ TEST(Benchmark, ErrorBarreledLightMoved) {
 //    EXPECT_GT(sum_c, sum_modified_c);
 }
 
-
-/// Check that an error star exists at the front of the stars vector when cap_error is raised.
-TEST(Benchmark, ErrorCapError) {
+/// Check that the error remains at the end when the star vector flag is lowered.
+TEST(Benchmark, NoShuffleError) {
     Chomp ch;
     Benchmark input(ch, 15);
-    std::vector<Star> a = input.b;
-    input.shift_light(1, 0.1, true);
-    bool error_star_at_front = true;
-    
-    for (const Star &original : a) {
-        if (input.b[0] == original) {
-            error_star_at_front = false;
-            break;
-        }
-    }
-    EXPECT_TRUE(error_star_at_front);
+    Star::list a = input.b;
+    input.add_extra_light(1, false);
+    EXPECT_LT(input.b.back().get_label(), 0);
 }

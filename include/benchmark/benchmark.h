@@ -60,9 +60,9 @@ class Benchmark {
     void record_current_plot ();
     void display_plot ();
     
-    void add_extra_light (unsigned int n, bool cap_error = false);
-    void shift_light (unsigned int n, double sigma, bool cap_error = false);
-    void remove_light (unsigned int n, double psi);
+    void add_extra_light (unsigned int n, bool shuffle = true);
+    void shift_light (unsigned int n, double sigma, bool shuffle = true);
+    void remove_light (unsigned int n, double psi, bool shuffle = true);
     void barrel_light (double alpha);
 
 #if !defined ENABLE_TESTING_ACCESS

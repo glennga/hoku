@@ -58,17 +58,23 @@ Star Rotation::slerp (const Star &s, const Vector3 &f, const double t) {
     return Star::wrap(Vector3::SlerpUnclamped(s, f, t), s.get_label(), s.get_magnitude());
 }
 
+// TODO: This function returns the same star for noise below 1.0e-5. Not sure why.
 /// Rotate the given star s in a random direction, by a random theta who's distribution is varied by the given sigma.
 ///
 /// @param s Star to rotate randomly.
 /// @param sigma Standard deviation of the angle to rotate by, in degrees.
 /// @return The star S "shaken".
 Star Rotation::shake (const Star &s, const double sigma) {
-    Star s_end = Star::chance();
+    Star s_end;
+    
+    // Require reasonably close vectors to ensure t does not tip below the machine epsilon.
+    do {
+        s_end = Star::chance();
+    } while ((180.0 / M_PI) * Vector3::Angle(s_end, s) > 5);
     
     // Push our star in some random direction. Scale our theta to fit [0, 1] in the opposite direction.
-    double t = (Vector3::Angle(s, s_end) == 0) ? 0 : (180.0 / M_PI)
-                                                     * (RandomDraw::draw_normal(0, sigma) / Vector3::Angle(s, s_end));
+    double t = (Vector3::Angle(s, s_end) == 0) ? 0 : ((M_PI / 180.0) * (RandomDraw::draw_normal(0, sigma))
+                                                      / Vector3::Angle(s, s_end));
     return slerp(s, s_end, t);
 }
 
@@ -150,33 +156,33 @@ Rotation Rotation::q_method (const Star::list &v, const Star::list &w) {
     // TODO: Determine what is wrong with this q-method implementation.
     return triad(v, w);
     
-//    // Construct the B matrix by summing the outer products (b_i (X) r_i^T). Each observation is of equal weight.
-//    Matrix3x3 big_b = Matrix3x3::Zero(), big_s_sigma;
-//    for (unsigned int i = 0; i < v.size(); i++) {
-//        big_b += Matrix3x3(v[i].X * w[i], v[i].Y * w[i], v[i].Z * w[i]);
-//    }
-//
-//    // Construct the Z vector, the trace of B, and the S matrix.
-//    Vector3 big_z(big_b.D12 - big_b.D21, big_b.D20 - big_b.D02, big_b.D01 - big_b.D10);
-//    double sigma = big_b.D00 + big_b.D11 + big_b.D22;
-//    big_s_sigma = (big_b + Matrix3x3::Transpose(big_b)) - (sigma * Matrix3x3::Identity());
-//
-//    // Construct the K matrix.
-//    Eigen::Matrix<double, 4, 4> big_k_e;
-//    big_k_e.row(0) << big_s_sigma.D00, big_s_sigma.D01, big_s_sigma.D02, big_z.X;
-//    big_k_e.row(1) << big_s_sigma.D10, big_s_sigma.D11, big_s_sigma.D12, big_z.Y;
-//    big_k_e.row(2) << big_s_sigma.D20, big_s_sigma.D21, big_s_sigma.D22, big_z.Z;
-//    big_k_e.row(3) << big_z.X, big_z.Y, big_z.Z, sigma;
-//
-//    // The eigenvector associated with the largest vector represents the optimal quaternion (maximizing gain function).
-//    Eigen::EigenSolver<Eigen::Matrix<double, 4, 4>> es(big_k_e);
-//    auto lambda_j_e = es.eigenvalues();
-//    auto q_bar_j = es.eigenvectors();
-//
-//    // Determine the index of the largest eigenvalue. Return the eigenvector associated with it.
-//    std::vector<double> lambda_j = {lambda_j_e(0).real(), lambda_j_e(1).real(), lambda_j_e(2).real(),
-//        lambda_j_e(3).real()};
-//    auto i = std::distance(lambda_j.begin(), std::max_element(lambda_j.begin(), lambda_j.end()));
-//
-//    return Rotation(q_bar_j(i, 1).real(), q_bar_j(i, 2).real(), q_bar_j(i, 3).real(), q_bar_j(i, 0).real());
+    //    // Construct the B matrix by summing the outer products (b_i (X) r_i^T). Each observation is of equal weight.
+    //    Matrix3x3 big_b = Matrix3x3::Zero(), big_s_sigma;
+    //    for (unsigned int i = 0; i < v.size(); i++) {
+    //        big_b += Matrix3x3(v[i].X * w[i], v[i].Y * w[i], v[i].Z * w[i]);
+    //    }
+    //
+    //    // Construct the Z vector, the trace of B, and the S matrix.
+    //    Vector3 big_z(big_b.D12 - big_b.D21, big_b.D20 - big_b.D02, big_b.D01 - big_b.D10);
+    //    double sigma = big_b.D00 + big_b.D11 + big_b.D22;
+    //    big_s_sigma = (big_b + Matrix3x3::Transpose(big_b)) - (sigma * Matrix3x3::Identity());
+    //
+    //    // Construct the K matrix.
+    //    Eigen::Matrix<double, 4, 4> big_k_e;
+    //    big_k_e.row(0) << big_s_sigma.D00, big_s_sigma.D01, big_s_sigma.D02, big_z.X;
+    //    big_k_e.row(1) << big_s_sigma.D10, big_s_sigma.D11, big_s_sigma.D12, big_z.Y;
+    //    big_k_e.row(2) << big_s_sigma.D20, big_s_sigma.D21, big_s_sigma.D22, big_z.Z;
+    //    big_k_e.row(3) << big_z.X, big_z.Y, big_z.Z, sigma;
+    //
+    //    // The eigenvector associated with the largest vector represents the optimal quaternion (maximizing gain function).
+    //    Eigen::EigenSolver<Eigen::Matrix<double, 4, 4>> es(big_k_e);
+    //    auto lambda_j_e = es.eigenvalues();
+    //    auto q_bar_j = es.eigenvectors();
+    //
+    //    // Determine the index of the largest eigenvalue. Return the eigenvector associated with it.
+    //    std::vector<double> lambda_j = {lambda_j_e(0).real(), lambda_j_e(1).real(), lambda_j_e(2).real(),
+    //        lambda_j_e(3).real()};
+    //    auto i = std::distance(lambda_j.begin(), std::max_element(lambda_j.begin(), lambda_j.end()));
+    //
+    //    return Rotation(q_bar_j(i, 1).real(), q_bar_j(i, 2).real(), q_bar_j(i, 3).real(), q_bar_j(i, 0).real());
 }
