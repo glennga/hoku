@@ -40,11 +40,10 @@ int Composite::generate_table(INIReader &cf) {
 ///
 /// @param a Planar area to search with.
 /// @param i_t Planar polar moment to search with.
-/// @return NO_CANDIDATE_TRIOS_FOUND if there exists no queried trios. Otherwise, the list of star lists (of size = 3)
-/// that fall within a and i of the given epsilon.
+/// @return The list of star lists (of size = 3) that fall within a and i of the given epsilon.
 Composite::labels_list_list Composite::query_for_trios(const double a, const double i) {
     double epsilon_1 = 3.0 * this->parameters.sigma_1, epsilon_2 = 3.0 * this->parameters.sigma_2;
-    std::vector<labels_list> big_r_ell = BaseTriangle::NO_CANDIDATE_TRIOS_FOUND;
+    std::vector<labels_list> big_r_ell;
     Nibble::tuples_d matches;
 
     // Query for candidates using all fields.
@@ -57,13 +56,8 @@ Composite::labels_list_list Composite::query_for_trios(const double a, const dou
         big_r_ell.emplace_back(labels_list{static_cast<int> (t[0]), static_cast<int> (t[1]), static_cast<int>(t[2])});
     });
 
-    // If results are found, remove the initialized value of NO_CANDIDATE_TRIOS_FOUND.
-    if (big_r_ell.size() > 1) {
-        big_r_ell.erase(big_r_ell.begin());
-    }
-
     // Favor bright stars if specified. Applied with the FAVOR_BRIGHT_STARS flag.
-    if (this->parameters.favor_bright_stars) {
+    if (this->parameters.favor_bright_stars && !big_r_ell.empty()) {
         sort_brightness(big_r_ell);
     }
     return big_r_ell;
@@ -111,8 +105,7 @@ Star::trio Composite::find_catalog_stars(const Star::trio &b_f) {
                                                        Trio::planar_moment(b_f[0], b_f[1], b_f[2]));
 
     // |R| = 1 restriction and reduction restriction.
-    if (std::equal(big_r_ell.begin(), big_r_ell.end(), BaseTriangle::NO_CANDIDATE_TRIOS_FOUND.begin())
-        || ((big_r_ell.size() != 1) && !this->parameters.no_reduction)) {
+    if (big_r_ell.empty() || (big_r_ell.size() != 1 && !this->parameters.no_reduction)) {
         return NO_CONFIDENT_R_FOUND;
     }
 
@@ -211,8 +204,7 @@ Star::list Composite::reduce() {
                                                                    Trio::planar_moment(big_i[i], big_i[j], big_i[k]));
 
                 // |R| = 1 restriction, reduction step.
-                if (std::equal(big_r_ell.begin(), big_r_ell.end(), BaseTriangle::NO_CANDIDATE_TRIOS_FOUND.begin()) ||
-                    big_r_ell.size() != 1) {
+                if (big_r_ell.size() != 1) {
                     continue;
                 }
 

@@ -64,10 +64,7 @@ TEST(BaseTriangle, QueryNoCandidates) {
     Plane d(input, p);
     std::vector<BaseTriangle::labels_list> e = d.query_for_trio(a, i);
     
-    EXPECT_EQ(e.size(), 1);
-    EXPECT_THAT(e[0], Contains(BaseTriangle::NO_CANDIDATE_TRIOS_FOUND[0][0]));
-    EXPECT_THAT(e[0], Contains(BaseTriangle::NO_CANDIDATE_TRIOS_FOUND[0][1]));
-    EXPECT_THAT(e[0], Contains(BaseTriangle::NO_CANDIDATE_TRIOS_FOUND[0][2]));
+    EXPECT_EQ(e.size(), 0);
 }
 
 /// Check that stars are sorted by brightness.

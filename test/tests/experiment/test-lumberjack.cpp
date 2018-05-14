@@ -28,20 +28,21 @@ TEST(Lumberjack, TablesExistenceStructure) {
     nb.find_attributes(schema, fields);
     EXPECT_EQ(schema, Experiment::Query::SCHEMA);
     EXPECT_EQ(fields,
-              "IdentificationMethod, Timestamp, Sigma1, Sigma2, Sigma3, ShiftDeviation, CandidateSetSize, SExistence");
+              "IdentificationMethod, Timestamp, Sigma1, Sigma2, Sigma3, ShiftDeviation, CandidateSetSize, RunningTime, "
+              "SExistence");
     
     EXPECT_NO_THROW(nb.select_table(cf.Get("reduction-experiment", "lu", "")););
     nb.find_attributes(schema, fields);
     EXPECT_EQ(schema, Experiment::Reduction::SCHEMA);
     EXPECT_EQ(fields,
               "IdentificationMethod, Timestamp, Sigma1, Sigma2, Sigma3, ShiftDeviation, FalseStars, ComparisonCount, "
-                  "PercentageCorrect");
+                  "TimeToResult, PercentageCorrect");
     
     EXPECT_NO_THROW(nb.select_table(cf.Get("identification-experiment", "lu", "")););
     nb.find_attributes(schema, fields);
     EXPECT_EQ(schema, Experiment::Map::SCHEMA);
     EXPECT_EQ(fields, "IdentificationMethod, Timestamp, Sigma1, Sigma2, Sigma3, Sigma4, ShiftDeviation, FalseStars, "
-        "ComparisonCount, PercentageCorrect");
+        "ComparisonCount, TimeToResult, PercentageCorrect");
     
     EXPECT_NO_THROW(nb.select_table(cf.Get("overlay-experiment", "lu", "")););
     nb.find_attributes(schema, fields);
@@ -75,7 +76,7 @@ TEST(Lumberjack, ConstructionDestructor) {
     // Lu gets destroyed when exiting.
     std::unique_ptr<Lumberjack> lu_p = std::make_unique<Lumberjack>(cf.Get("query-experiment", "lu", ""), "Angle",
                                                                     l.str());
-    (*lu_p).log_trial(Nibble::tuple_d {-1, -1, -1, -1, -1, -1});
+    (*lu_p).log_trial(Nibble::tuple_d {-1, -1, -1, -1, -1, -1, -1});
     lu_p.reset(nullptr);
     
     Lumberjack lu2(cf.Get("query-experiment", "lu", ""), "Angle", l.str());
@@ -95,7 +96,7 @@ TEST(Lumberjack, LogFunction) {
     INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
     
     Lumberjack lu(cf.Get("query-experiment", "lu", ""), "Angle", l.str());
-    lu.log_trial(Nibble::tuple_d{-1, -1, -1, -1, -1, -1});
+    lu.log_trial(Nibble::tuple_d{-1, -1, -1, -1, -1, -1, -1});
     Nibble::tuples_d a = lu.search_table("Sigma1", "Sigma1 = -1", 1, 10);
     EXPECT_EQ(a.size(), 0);
     
@@ -119,18 +120,18 @@ TEST(Lumberjack, LogFunctionFlush) {
     INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
     
     Lumberjack lu(cf.Get("query-experiment", "lu", ""), "Angle", l.str());
-    lu.log_trial(Nibble::tuple_d{-1, -1, -1, -1, -1, -1});
+    lu.log_trial(Nibble::tuple_d{-1, -1, -1, -1, -1, -1, -1});
     Nibble::tuples_d a = lu.search_table("Sigma1", "Sigma1 = -1", 1, 10);
     EXPECT_EQ(a.size(), 0);
     
     for (int i = 0; i < Lumberjack::MAXIMUM_BUFFER_SIZE - 2; i++) {
-        lu.log_trial(Nibble::tuple_d{-1, -1, -1, -1, -1, -1});
+        lu.log_trial(Nibble::tuple_d{-1, -1, -1, -1, -1, -1, -1});
     }
     EXPECT_EQ(lu.result_buffer.size(), Lumberjack::MAXIMUM_BUFFER_SIZE - 1);
-    lu.log_trial(Nibble::tuple_d{-1, -1, -1, -1, -1, -1});
+    lu.log_trial(Nibble::tuple_d{-1, -1, -1, -1, -1, -1, -1});
     EXPECT_EQ(lu.result_buffer.size(), 0);
     
-    lu.log_trial(Nibble::tuple_d{-1, -1, -1, -1, -1, -1});
+    lu.log_trial(Nibble::tuple_d{-1, -1, -1, -1, -1, -1, -1});
     EXPECT_EQ(lu.result_buffer.size(), 1);
     Nibble::tuples_d b = lu.search_table("Sigma1", "Sigma1 = -1", Lumberjack::MAXIMUM_BUFFER_SIZE,
                                          Lumberjack::MAXIMUM_BUFFER_SIZE + 1);
