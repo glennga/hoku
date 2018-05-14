@@ -10,9 +10,6 @@
 
 #include "identification/base-triangle.h"
 
-/// Returned when a query does not return any results.
-const std::vector<BaseTriangle::labels_list> BaseTriangle::NO_CANDIDATE_TRIOS_FOUND = {{-1, -1, -1}};
-
 /// Returned when no candidates can be found from a match step.
 const std::vector<Star::trio> BaseTriangle::NO_CANDIDATE_STARS_FOUND = {
     {Star::wrap(Vector3::Zero()), Star::wrap(Vector3::Zero()), Star::wrap(Vector3::Zero())}};
@@ -88,10 +85,10 @@ int BaseTriangle::generate_triangle_table (INIReader &cf, const std::string &tri
 ///
 /// @param a Area (planar or spherical) to search with.
 /// @param i_t Polar moment (planar or spherical) to search with.
-/// @return NO_CANDIDATE_TRIOS_FOUND if no candidates found. Otherwise, all elements that met the criteria.
+/// @return All elements that meet the given criteria.
 std::vector<BaseTriangle::labels_list> BaseTriangle::query_for_trio (const double a, const double i) {
     double epsilon_1 = 3.0 * this->parameters.sigma_1, epsilon_2 = 3.0 * this->parameters.sigma_2;
-    std::vector<labels_list> big_r_ell = NO_CANDIDATE_TRIOS_FOUND;
+    std::vector<labels_list> big_r_ell;
     Nibble::tuples_d matches;
     
     // Query for candidates using all fields.
@@ -104,13 +101,8 @@ std::vector<BaseTriangle::labels_list> BaseTriangle::query_for_trio (const doubl
         big_r_ell.emplace_back(labels_list {static_cast<int> (t[0]), static_cast<int> (t[1]), static_cast<int>(t[2])});
     });
     
-    // If results are found, remove the initialized value of NO_CANDIDATE_TRIOS_FOUND.
-    if (big_r_ell.size() > 1) {
-        big_r_ell.erase(big_r_ell.begin());
-    }
-    
     // Favor bright stars if specified. Applied with the FAVOR_BRIGHT_STARS flag.
-    if (this->parameters.favor_bright_stars) {
+    if (this->parameters.favor_bright_stars && !big_r_ell.empty()) {
         sort_brightness(big_r_ell);
     }
     return big_r_ell;
@@ -137,7 +129,7 @@ std::vector<Star::trio> BaseTriangle::base_query_for_trios (const index_trio &c,
     
     // Search for the current trio. If this is empty, then break early.
     big_r_ell = this->query_for_trio(compute_area(b[0], b[1], b[2]), compute_moment(b[0], b[1], b[2]));
-    if (std::equal(big_r_ell.begin(), big_r_ell.end(), NO_CANDIDATE_TRIOS_FOUND.begin())) {
+    if (big_r_ell.empty()) {
         return NO_CANDIDATE_STARS_FOUND;
     }
     
@@ -252,8 +244,7 @@ Star::list BaseTriangle::direct_match_test (const Star::list &big_p, const Star:
 /// @param i_t Polar moment (planar or spherical) to search with.
 /// @return All candidates that meet the criteria.
 std::vector<BaseTriangle::labels_list> BaseTriangle::e_query (double a, double i) {
-    std::vector<labels_list> big_r_ell = query_for_trio(a, i);
-    return (big_r_ell[0] == NO_CANDIDATE_TRIOS_FOUND[0]) ? std::vector<labels_list> {labels_list {}} : big_r_ell;
+    return query_for_trio(a, i);
 }
 
 /// Find the **best** matching pair to the first three stars in our benchmark using the appropriate triangle table.
