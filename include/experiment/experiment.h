@@ -34,7 +34,8 @@ namespace Experiment {
     namespace Query {
         /// Schema comma separated string that corresponds to the creation of the query table.
         const char *const SCHEMA = "IdentificationMethod TEXT, Timestamp TEXT, Sigma1 FLOAT, Sigma2 FLOAT, "
-                                   "Sigma3 FLOAT, ShiftDeviation FLOAT, CandidateSetSize FLOAT, SExistence INT";
+                                   "Sigma3 FLOAT, ShiftDeviation FLOAT, CandidateSetSize FLOAT, RunningTime FLOAT, "
+                                   "SExistence INT";
 
         Star::list generate_n_stars (Chomp &ch, unsigned int n, Star &center, double fov);
 
@@ -54,6 +55,7 @@ namespace Experiment {
         void trial (Chomp &ch, Lumberjack &lu, INIReader &cf, const std::string &identifier) {
             Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
             double fov = cf.GetReal("hardware", "fov", 0);
+            cxxtimer::Timer t(false);
             Star focus;
 
             // Define our hyperparameters and testing parameters.
@@ -72,7 +74,9 @@ namespace Experiment {
                     beta.shift_light(T::QUERY_STAR_SET_SIZE, ss);
 
                     // Perform a single trial.
+                    t.start();
                     std::vector<Identification::labels_list> r = T(beta, p).query(s);
+                    t.stop();
 
                     // Create the list to compare to.
                     Identification::labels_list w;
@@ -83,7 +87,7 @@ namespace Experiment {
 
                     // Log the results of the trial.
                     lu.log_trial({p.sigma_1, p.sigma_2, p.sigma_3, ss, static_cast<double> (r.size()),
-                                  (set_existence(r, w) ? 1.0 : 0)});
+                                  static_cast<double>(t.count()), (set_existence(r, w) ? 1.0 : 0)}), t.reset();
                 }
             }
         }
