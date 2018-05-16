@@ -8,6 +8,17 @@
 \section{Star Identification Methods}\label{sec:starIdentificationMethods}
 
 \subsection{Generic Identification Method}\label{subsec:genericIdentificationMethod}
+\begin{figure}
+    \centering{
+    \input{include/generic-identification}
+    \caption{
+    Flowchart depicting a general star identification process.
+    Given an image $I$, this processes returns a map $a$ pairing some subset of the input $b$ to a subset of
+    the catalog $r$.
+    } \label{figure:genericIdentificationMethodFlowchart}
+    }
+\end{figure}
+
 Each identification method is presented with an image $I$ of all the stars in the image reference frame.
 The goal of each method is to find some 1:1 mapping between the \textit{subset} of the image stars $b$ and a subset
 of the catalog stars $r$.
@@ -33,22 +44,11 @@ in~\autoref{eq:catalogCandidateExample}:
 \end{equation}
 
 Through some filter process, a single set $r$ from the catalog star candidates is then selected.
-If all of these steps are successful, then an one-to-one map $a$ between the catalog subset and image subset is
-determined and returned.
+If all of these steps are successful, then a map $a$ between the catalog subset and image subset is determined and
+returned.
 Otherwise, a new combination $c$ is selected and the entire process is repeated.
-In the event no map can be determined, an error is raised and an empty map is returned (not depicted in the flowchart).
 This process is detailed in~\autoref{figure:genericIdentificationMethodFlowchart}.
-
-\begin{figure}
-    \centering{
-    \input{include/generic-identification}
-    \caption{
-    Flowchart depicting a general star identification process.
-    Given an image $I$, this processes returns an map $a$ pairing some subset of the input $b$ to a subset of
-    the catalog $r$.
-    } \label{figure:genericIdentificationMethodFlowchart}
-    }
-\end{figure}
+In the event no map can be determined, an error is raised and an empty map is returned (not depicted in the flowchart).
 
 % Leaving this out for now. The flowchart should explain the process better.
 %\begin{algorithm} \setstretch{1.0}[H]
@@ -72,16 +72,16 @@ This process is detailed in~\autoref{figure:genericIdentificationMethodFlowchart
 
 % Citation: https://digitalcommons.usu.edu/cgi/viewcontent.cgi?article=2723&context=etd AND Gottlieb.
 \subsection{Gottlieb's Angle Method}\label{subsec:gottlieb'sAngleMethod}
-In 1978, Gottlieb (citation here) developed the Polygon Angular Matching method.
+In 1978, Gottlieb developed the Polygon Angular Matching method~\cite{Angle,AnalysisUncompensated}.
 Starting with an image, two stars $b = (b_i, b_j)$ are selected arbitrarily.
 The corresponding angular separation between each of these stars from a defined observer is computed:
-$\angle (b_i, b_j) = \theta^{ij}$.
-All possible pairs $(r_m, r_n)$ in the catalog are then selected such that ~\autoref{eq:angleRequirement} holds.
+$\theta (b_i, b_j) = \theta^{ij}$.
+All possible pairs $(r_m, r_n)$ in the catalog are then selected such that~\autoref{eq:angleRequirement} holds.
 The set that holds these pairs is denoted as $R$.
 
 \begin{equation}
     \label{eq:angleRequirement}
-    | \theta(r_m, r_n) - \theta^{ij} | < 3 \sigma
+    \left\lvert  \theta(r_m, r_n) - \theta^{ij} \right\rvert < 3 \sigma
 \end{equation}
 $\sigma$ represents the deviation of the uncertainty between the star sensor measurements and the points defined in the
 catalog.
@@ -89,7 +89,7 @@ Assuming the noise follows a Gaussian distribution, it follows that 99.7\% of al
 
 If there exists more than one catalog pair after this reduction, then this process is repeated for
 different combinations of the complete image set until a unique pair is found or all combinations are exhausted.
-To determine an mapping, a \textit{direct match test} (DMT) is performed.
+To determine a mapping, a \textit{direct match test} (DMT) is performed.
 
 \begin{algorithm}
     \setstretch{1.0}
@@ -113,22 +113,25 @@ To determine an mapping, a \textit{direct match test} (DMT) is performed.
     \end{algorithmic}
 \end{algorithm}
 
-Tappe (citation here) specifies this DMT method, which extracts an attitude after running this candidate finding step.
-Given an image star pair $(b_i, b_j)$ and a catalog star pair $(r_m, r_n)$, an map is proposed:
-\begin{equation}
-    a_1 = (b_i \rightarrow r_m, b_j \rightarrow r_n)
-\end{equation}
+\begin{subequations}
+    Needleman specifies this DMT method, which extracts an attitude after running this candidate finding
+    step~\cite{Tappe,DMT}.
+    Given an image star pair $(b_i, b_j)$ and a catalog star pair $(r_m, r_n)$, a map is proposed:
+    \begin{equation}
+        a_1 = (b_i \rightarrow r_m, b_j \rightarrow r_n)
+    \end{equation}
 
-Wahba's problem (extracting an attitude given vector observations in two coordinate systems) is then solved using the
-TRIAD method.
-This gives a rotation $q_1$ between the image and catalog frames.
-This process is repeated for the other possible map to obtain a second rotation $q_2$:
-\begin{equation}
-    a_2 = (b_i \rightarrow r_n, b_j \rightarrow r_m)
-\end{equation}
+    Wahba's problem (extracting an attitude given vector observations in two coordinate systems) is then solved using
+    the TRIAD method.
+    This gives a rotation $q_1$ between the image and catalog frames.
+    This process is repeated for the other possible map to obtain a second rotation $q_2$:
+    \begin{equation}
+        a_2 = (b_i \rightarrow r_n, b_j \rightarrow r_m)
+    \end{equation}
+\end{subequations}
 
-The most likely attitude is determined by predicting which entries in the catalog represent stars in the image using
-$q_1$ and $q_2$.
+The most likely attitude is determined by predicting which entries in the catalog represent stars in the image
+(the "find positive overlay", or \Call{FPO}{} method) using $q_1$ and $q_2$.
 The mapping with the most correctly predicted stars is then returned as the resulting attitude.
 The general form for this function (accepting star sets of arbitrary size) is described
 in~\autoref{algorithm:angleHelper}.
@@ -143,9 +146,9 @@ $\sigma_o$ can also be thought of as an assumption of the noise associated with 
     \setstretch{1.0}
     \caption{Functions for Angle Method}\label{algorithm:angleHelper}
     \begin{algorithmic}[1]
-        \Function{FindPositiveOverlay}{$P$, $I$, $q$}
+        \Function{FPO}{$P$, $I$, $q$}
         \State $I' \gets$ stars in $I$ rotated by $q$
-        \State $\bar{P} \gets $ \{$p \in P \ | \ \exists \ i \ (i \in I' \land \angle (i, p) < 3\sigma_o)$\}
+        \State $\bar{P} \gets $ \{$p \in P \ | \ \exists \ i \ (i \in I' \land \theta (i, p) < 3\sigma_o)$\}
         \State \textbf{return} $\bar{P}$ \Comment stars in $P$ that \textit{overlay} with $I'$
         \EndFunction
         \\
@@ -155,25 +158,35 @@ $\sigma_o$ can also be thought of as an assumption of the noise associated with 
         \\
         \For {$a \in A$}
         \State $q \gets $ \Call{TRIAD}{$a$}
-        \State $M_a \gets $ \Call{FindPositiveOverlay}{$P, I, q$}
+        \State $M_a \gets $ \Call{FPO}{$P, I, q$}
         \EndFor
         \State \textbf{return} map $a$ associated with \Call{Max}{$M$}
         \EndFunction
     \end{algorithmic}
 \end{algorithm}
 
+Accessing the catalog is the most expensive operation for all of the identification methods.
+Consequently, the running time of this algorithm $T_{angle}$ can be described in terms of the number of queries
+(depicted below in ~\autoref{eq:complexityAngle}).
+Each combination in the given image $I$ requires a single disk access, which gives the first term.
+Once a unique pair is found, the \Call{DMT}{} procedure requires two additional catalog queries for nearby stars.
+\begin{equation}\label{eq:complexityAngle}
+    T_{angle} = \left( O\left( \frac{|I|!}{2\left( |I| - 2 \right)!} \right) + 2 \right) T_{query}
+\end{equation}
+
 \subsection{Liebe's Dot Angle Method}\label{subsec:liebe'sDotAngleMethod}
-In 1995, Liebe (citation here) developed the Liebe Star ID method.
+In 1995, Liebe developed the Liebe Star ID method~\cite{Survey,AnalysisUncompensated}.
 Starting with an image $I$, a central star $b_c$ is selected arbitrarily.
 The two closest stars in the image to the central star are selected next, denoted as $b_i$ and $b_j$.
-Three features are then computed: the angular separation between the first closest star and the central star $\angle
-(b_i, b_c) = \theta^{ic}$, the angular separation between the second closest star and the central star $\angle (b_j,
+Three features are then computed: the angular separation between the first closest star and the central star $\theta
+(b_i, b_c) = \theta^{ic}$, the angular separation between the second closest star and the central star $\theta (b_j,
 b_c) = \theta^{jc}$, and the angle between the two closest stars with the central star as the vertex $\phi$.
 
 The additional constraint that $\theta^{ic} < \theta^{jc}$ is imposed before proceeding.
 If this is not true, then stars $b_i$ and $b_j$ are swapped and this process is repeated.
-By adding this restriction to the catalog search, a star mapping procedure (e.g.\ Tappe's direct match test) is no
+By adding this restriction to the catalog search, a star mapping procedure (e.g.\ Needleman's direct match test) is no
 longer required.
+This does increase the storage required for the catalog, but in favor of efficiency.
 
 \begin{subequations}
     \label{eq:dotAngleRequirement}
@@ -183,9 +196,9 @@ longer required.
     In the equations below $r_o$ corresponds to a central star in the catalog, $r_m$ corresponds to the closest star
     in the catalog to the catalog central star, and $r_n$ corresponds to the next closest star:
     \begin{align}
-        |\theta(r_m, r_o) - \theta^{ic}| &< 3 \sigma_{\theta_{ic}} \\
-        |\theta(r_n, r_o) - \theta^{jc}| &< 3 \sigma_{\theta_{jc}} \\
-        |\phi(r_m, r_n, r_o) - \phi| &< 3 \sigma_{\phi} \\
+        \left\lvert \theta(r_m, r_o) - \theta^{ic}\right\rvert &< 3 \sigma_{\theta_{ic}} \\
+        \left\lvert\theta(r_n, r_o) - \theta^{jc}\right\rvert &< 3 \sigma_{\theta_{jc}} \\
+        \left\lvert\phi(r_m, r_n, r_o) - \phi\right\rvert &< 3 \sigma_{\phi} \\
         \theta(r_m, r_o) &< \theta(r_n, r_o)
     \end{align}
 \end{subequations}
@@ -197,12 +210,14 @@ and dot angular separations respectively.
 The star trios in the catalog star candidates represent potential catalog maps for the image star trio $(b_i, b_j,
 b_c)$.
 Liebe's original method states that this process should be repeated for all stars in the image, meaning that all
-stars will be the central star at one point.
+stars will be the central star at one point
 By the end, each star in the image will have accrued a set of possible catalog matches $Y$.
-The complete $I \rightarrow R$ map is found by picking the most frequent catalog star appearing in $Y$.
+The complete $I \rightarrow R$ map is found by picking the most frequent catalog star appearing in each $Y$
+set~\cite{DotAngle,AnalysisUncompensated}.
 
-To more closely follow the generic star identification flow, we modified the Dot Angle method to not store $Y$ and
-require that only one central star choice is needed to acquire a total match.
+To more closely follow the generic star identification flow, we modified the Dot Angle method to not store $Y$,
+require that only one central star choice is needed to acquire a total match, and removed the "closest stars"
+constraints for $r_n$ and $r_m$.
 If a confident match is not found by the first central star, then the search process will be repeated until such a
 match is found.
 This entire method is described in~\autoref{algorithm:dotAngleIdentification}.
@@ -231,26 +246,34 @@ This entire method is described in~\autoref{algorithm:dotAngleIdentification}.
     \end{algorithmic}
 \end{algorithm}
 
+The running time of this algorithm $T_{dot}$ is depicted below, again described in terms of the number of catalog
+queries.
+This is solely dependent on the combinations of trios in the given image.
+Note that the $T_{query}$ here will be different from $T_{query}$ in~\autoref{eq:complexityAngle}.
+\begin{equation}\label{eq:dotComplexity}
+    T_{dot} = O\left( \frac{|I|!}{6\left( |I| - 3\right)!}  \right) T_{query}
+\end{equation}
+
 \subsection{Cole and Crassidus's Spherical Triangle Method}\label{subsec:coleAndCrassidus'sSphericalTriangleMethod}
 \begin{subequations}
     \label{eq:triangleRequirement}
-    In 2004, Cole and Crassidus (citation here) developed the Spherical Triangle method.
-    Starting with an image $I$, three stars $b = b_i, b_j, b_k)$ are selected arbitrarily.
+    In 2004, Cole and Crassidus developed the Spherical Triangle method~\cite{Spherical}.
+    Starting with an image $I$, three stars $b = (b_i, b_j, b_k)$ are selected arbitrarily.
     Treating the trio as a spherical triangle, the spherical area and moment are computed.
     This is denoted as $a^{ijk}$ and $\imath^{ijk}$ respectively.
     Similar to Gottlieb's method, star \textit{trios} $R$ are selected from the catalog such that the all
     of~\autoref{eq:triangleRequirement} hold:
     \begin{align}
-        | a(r_m, r_n, r_o) - a^{ijk} | &< 3 \sigma_a \\
-        | \imath(r_m, r_n, r_o) - \imath^{ijk} | &< 3\sigma_{\imath}
+        \left\lvert a(r_m, r_n, r_o) - a^{ijk} \right\rvert &< 3 \sigma_a \\
+        \left\lvert  \imath(r_m, r_n, r_o) - \imath^{ijk} \right\rvert &< 3\sigma_{\imath}
     \end{align}
 \end{subequations}
 $\sigma_a$ and $\sigma_{\imath}$ represent the deviation of measurement-catalog uncertainty of spherical areas and
 moments respectively.
 
 If there exists more than one catalog trio, then a \textit{pivot} is performed.
-The pivoting process is repeated until a unique match in $R_{t=1}$ is found, or all possible iterations of the third
-image star are exhausted.
+The pivoting process is repeated until a unique match in the original catalog star candidate set $R_{t=1}$ is found,
+or all possible pivots are performed.
 The entire catalog search procedure is repeated until a unique catalog trio is found, or all trios in the image have
 been used.
 This procedure is described in~\autoref{algorithm:triangleIdentification}.
@@ -264,9 +287,13 @@ This procedure is described in~\autoref{algorithm:triangleIdentification}.
         \For{$i \gets 1 \text{\textbf{ to }} |I|$}  \Comment Iterate through $C^{|I|}_3$
         \For{$j \gets i + 1 \text{\textbf{ to }} |I| - 1$}
         \For{$k \gets j + 1\text{\textbf{ to }} |I| - 2$}
+        \State $b \gets (b_i, b_j, b_k)$
         \State $R \gets$ \Call{Pivot}{$b_i, b_j, b_k, \emptyset$}
-        \If{$R \neq \emptyset$}
-        \State \textbf{return} $R$
+        \\
+        \If{$R \neq \emptyset$}Note
+        \State $r \gets $ singular pair inside $R$
+        \State $a \gets $ \Call{DMT}{$b, r, I$}
+        \State \textbf{return} $a$
         \EndIf
         \EndFor
         \EndFor
@@ -278,21 +305,15 @@ This procedure is described in~\autoref{algorithm:triangleIdentification}.
 The pivot procedure starts by setting $R$ to $R_{t=1}$, beginning the pivot with the trio set that was just queried
 for.
 A second set of trios $R_{t=2}$ is retrieved for a different image star set $\bar{b} = (b_i, b_j, \hat{b_k})$.
-For the second star set, the first two stars are held constant but the third star is swapped with another in the image.
+For the second star set, the first two stars are held constant and the third star is swapped with another in the image.
 All star trios in the initial search that do not match a trio in the second search by \textit{two stars} (a partial
 match) are removed from the initial search candidate star set.
-Note that the \Call{Pivot}{$b_i, b_j, b_k, R_1$} call inside~\autoref{algorithm:triangleIdentification}
-defines $R_1 = \emptyset$, which requires a "check" on lines 2 and 3 of~\autoref{algorithm:triangleHelper}.
 
 \begin{algorithm}
     \setstretch{1.0}
     \caption{Functions for Triangle Identification} \label{algorithm:triangleHelper}
     \begin{algorithmic}[1]
         \Function{PartialMatch}{$R_1, R_t$}
-        \If {$R_t = \emptyset$} \Comment $t = 1$, no previous set.
-        \State \textbf{return} $R_1$
-        \EndIf
-        \\
         \ForAll {$v \in R_t$}
         \LineComment $v$ and $u$ share two stars
         \If {$\exists \ u \ | \ (u \in R_1 \land |u \cap v| > 2)$}
@@ -319,20 +340,19 @@ defines $R_1 = \emptyset$, which requires a "check" on lines 2 and 3 of~\autoref
     \end{algorithmic}
 \end{algorithm}
 
-Cole and Crassidus do not specify identification steps, so Tappe's DMT process is used to complete the star
-identification process.
-Given an image star trio and a catalog star trio, an map is proposed:
-\begin{equation}
-    a_1 = (s_i \rightarrow r_m, b_j \rightarrow r_n, b_k \rightarrow r_o)
-\end{equation}
-
 \begin{subequations}
+    Cole and Crassidus do not specify identification steps, so Needleman's DMT process is used to complete the star
+    identification process.
+    Given an image star trio and a catalog star trio, an map is proposed:
+    \begin{equation}
+        a_1 = (s_i \rightarrow r_m, b_j \rightarrow r_n, b_k \rightarrow r_o)
+    \end{equation}
+
     \label{eq:trianglePossibleMaps}
     The TRIAD method only uses two vector observations from each frame, meaning that the $b_k \rightarrow r_k$ map is
     disregarded as the first rotation $q_1$ is computed.
     This process is repeated for all 5 other possible mappings to get $q_2, q_3, \dots, q_6$.
     \begin{align}
-        a_1 &= (s_i \rightarrow r_m, b_j \rightarrow r_n, b_k \rightarrow r_o) \\
         a_2 &= (s_i \rightarrow r_m, b_j \rightarrow r_o, b_k \rightarrow r_n) \\
         a_3 &= (s_i \rightarrow r_n, b_j \rightarrow r_m, b_k \rightarrow r_o) \\
         a_4 &= (s_i \rightarrow r_n, b_j \rightarrow r_o, b_k \rightarrow r_m) \\
@@ -343,8 +363,18 @@ Given an image star trio and a catalog star trio, an map is proposed:
 
 For all six attitudes, the map yielding the most correctly predicted stars is returned as the resulting attitude.
 
+The running time of this algorithm $T_{sphere}$ is depicted below.
+The number of disk accesses is dependent on the combinations of trios in the given image, each of which uses the
+\Call{Pivot}{} procedure.
+This requires $|I|$ additional queries at worst for each combination, giving the numerator in $O$ term.
+The last term in $T_{sphere}$ comes from the \Call{DMT}{} call, which requires 6 additional catalog queries for
+nearby stars.
+\begin{equation}\label{eq:sphereComplexity}
+    T_{sphere} = \left(O \left( \frac{|I|! \times |I|}{6 \left( |I| - 3\right)!} \right) + 6 \right) T_{query}
+\end{equation}
+
 \subsection{Cole and Crassidus's Planar Triangle Method}\label{subsec:coleAndCrassidus'sPlanarTriangleMethod}
-In 2006, Cole and Crassidus (citation here) developed the Planar Triangle method.
+In 2006, Cole and Crassidus developed the Planar Triangle method~\cite{Planar}.
 This is identical to their Spherical Triangle method, with the exception that each image trio is represented as a
 planar triangle instead of a spherical one.
 
@@ -356,11 +386,12 @@ recursive step.
 % Mortari introduced the use of \textit{search-less} catalog access using the $k$-vector approach, but this will not be
 % discussed in this paper.
 \subsection{Mortari's Pyramid Star Identification Method}\label{subsec:mortari'sPyramidStarIdentificationMethod}
-In 2004, Mortari (citation here) developed the Pyramid method.
-Starting with an image $I$, three stars $b = (b_i, b_j, b_k)$ are selected to avoid the persistence of false stars.
+In 2004, Mortari developed the Pyramid method~\cite{Pyramid}.
+Starting with an image $I$, three stars $b = (b_i, b_j, b_k)$ are selected in a manner to avoid the persistence of
+false stars.
 This is specified in lines 19 to 23 in~\autoref{algorithm:pyramidIdentification}.
-The corresponding angular separation between each distinct permutation of the three is computed, yielding $\angle
-(b_i, b_j) = \theta^{ij}, \angle(b_i, b_k) = \theta^{ik}, \angle(b_j, b_k) = \theta^{jk}$.
+The corresponding angular separation between each distinct combination of the three is computed, yielding $\theta
+(b_i, b_j) = \theta^{ij}, \theta(b_i, b_k) = \theta^{ik}, \theta(b_j, b_k) = \theta^{jk}$.
 
 All possible \textit{pair sets} $R^{mn}, R^{mo}, R^{no}$ are selected from the catalog such
 that~\autoref{eq:angleRequirement} holds for each respective angular separation.
@@ -368,7 +399,7 @@ The common stars between each of these pairs inside candidate star sets are then
 $T^o$.
 If there exists a sole element inside each common star set, then a secondary verification involving guessing a nearby
 star is performed.
-Once this verification step is past, a map is then returned.
+If this verification step passes, a map is then returned.
 This entire process is described in~\autoref{algorithm:pyramidIdentification}.
 
 \begin{algorithm}
@@ -386,7 +417,7 @@ This entire process is described in~\autoref{algorithm:pyramidIdentification}.
         \\
         \If{$|T^m| = 1 \land |T^j| = 1 \land |T^k| = 1$}
         \State $r \gets $ singular stars in $T_i, T_j, T_k$
-        \If{\Call{PyramidVerify}{$r, b, I$} is \textbf{true}}
+        \If{\Call{VerifyP}{$r, b, I$} is \textbf{true}}
         \State \textbf{return} $r$
         \EndIf
         \EndIf
@@ -431,9 +462,9 @@ $T^a = \{2, 3\}$.
 %Once a common star is found $T^i$, it follows that the next common star to be found $T^j$ should not include this
 % previously found star.
 
-The second verification step is denoted as \Call{PyramidVerify}{$r, b, I$} in~\autoref{algorithm:pyramidHelpers}.
+The second verification step is denoted as \Call{VerifyP}{$r, b, I$} in~\autoref{algorithm:pyramidHelpers}.
 This function starts by selecting a nearby star to image star set $b_e$.
-The angular separation between each star in the current image star set to this new star is computed, generating
+The angular separation between each star in the current image star set to this new star is computed, producing
 $\theta^{ie}, \theta^{je}, \theta^{ke}$.
 Each of these angular separations can be thought of as the edges to the pyramid head $b_e$, with the base of the pyramid
 being the original triangle $b_i, b_j, b_k$.
@@ -451,7 +482,7 @@ Otherwise, the test fails.
         \State \textbf{return} all stars that meet~\algeqref{eq:commonStarsPyramid} with $R^{ab}, R^{ac}$
         \EndFunction
         \\
-        \Function{PyramidVerify}{$r, b, I$}
+        \Function{VerifyP}{$r, b, I$}
         \State $b_e \gets $ star in image $I$ not in $b$
         \State $R^{mu} \gets$ catalog pairs that meet~\algeqref{eq:angleRequirement} with $(b_i, b_e)$
         \State $R^{nu} \gets$ catalog pairs that meet~\algeqref{eq:angleRequirement} with $(b_j, b_e)$
@@ -460,7 +491,7 @@ Otherwise, the test fails.
         \State $T^u \gets $ \Call{Common}{$R^{mu},$ \Call{Common}{$R^{nu}, R^{ou}$}}
         \If{$|T^u| = 1$}
         \State $r_u \gets $ singular star in $T^u$
-        \If{$\forall \ \hat{r} \ | \ (\hat{r} \in r \land \angle(\hat{r}, r_u) < f)$}
+        \If{$\forall \ \hat{r} \ | \ (\hat{r} \in r \land \theta(\hat{r}, r_u) < f)$}
         \State \textbf{return true} \Comment Require that $r_u$ is near $r$
         \EndIf
         \EndIf
@@ -469,12 +500,21 @@ Otherwise, the test fails.
     \end{algorithmic}
 \end{algorithm}
 
+The running time of this algorithm $T_{pyramid}$ is depicted below.
+The number of disk accesses is dependent on the combinations of trios in the given image, each of which requires
+three queries to find the pyramid base.
+Once this is found, an additional three queries are used for the \Call{VerifyP}{} procedure to determine the
+pyramid head.
+\begin{equation}\label{eq:pyramidComplexity}
+    T_{pyramid} = O\left( \frac{6|I|!}{6 \left( |I| - 3\right)!} \right) T_{query}
+\end{equation}
+
 \subsection{Toloei's Composite Pyramid Method}\label{subsec:toloei'sCompositePyramidMethod}
-In 2014, Toloei (citation here) developed the Novel Stars ID method, which retains all of the key aspects of Motari's
+In 2014, Toloei developed the Novel Stars ID method, which retains all of the key aspects of Motari's
 Pyramid method but uses the features from Cole and Crassidus's Planar Triangle method for the query and reference steps
-instead of angles.
-Starting with an image $I$, three stars $b = (b_i, b_j, b_k)$ are selected in the same "smart" manner as the Pyramid
-method.
+instead of angles~\cite{Composite}.
+Starting with an image $I$, three stars $b = (b_i, b_j, b_k)$ are selected in the same false star persistence avoidance
+manner as the Pyramid method.
 Treating the trio as a planar triangle, the planar area and moment are computed.
 This is denoted as $a^{ijk}$ and $\imath^{ijk}$ respectively.
 Similar to the Planar Triangle method, star \textit{trios} $R$ are selected from the catalog such
@@ -484,7 +524,7 @@ Unlike the triangle methods, no pivot is performed.
 This searching process is repeated until a unique candidate set is found.
 Toloei does not specify an attitude determination method, and a map cannot be determined using common
 stars like the Pyramid method.
-To bridge this gap, Tappe's DMT process is used in the same manner as the Triangle methods.
+To bridge this gap, Needleman's DMT process is used in the same manner as the Triangle methods.
 With a map determined, the secondary verification step involving guessing a nearby star is performed.
 If this verification step passes, then the mapping is returned.
 This entire process is described in~\autoref{algorithm:compositePyramidIdentification}.
@@ -499,7 +539,7 @@ This entire process is described in~\autoref{algorithm:compositePyramidIdentific
         \If{$\lvert R \rvert = 1$}
         \State $r \gets $ singular trio inside $R$
         \State $a \gets $ \Call{DMT}{$b, r, I$}
-        \If{\Call{CompositeVerify}{$a, I$} is \textbf{true}}
+        \If{\Call{VerifyC}{$a, I$} is \textbf{true}}
         \State \textbf{return} $a$
         \EndIf
         \EndIf
@@ -528,11 +568,14 @@ This entire process is described in~\autoref{algorithm:compositePyramidIdentific
     \end{algorithmic}
 \end{algorithm}
 
-The second verification step is denoted as \Call{CompositeVerify}{$b, r, a, I$}
+The second verification step is denoted as \Call{VerifyC}{$b, r, a, I$}
 in~\autoref{algorithm:compositePyramidHelpers}.
-$b$ and $r$ are given an arbitrary order.
+$b$ and $r$ are given to this method in an arbitrary order.
 The actual map is determined by $a$ from the \Call{DMT}{} call, yielding $b^{\star}$ and $r^{\star}$ whose stars $i, j,
 k$ pair with each other.
+\begin{equation}
+    (b^\star_i \rightarrow r^\star_i, b^\star_j \rightarrow r^\star_j, b^\star_k \rightarrow r^\star_k )
+\end{equation}
 
 Like the Pyramid verification function, this verification starts by selecting a nearby star to $b$ in the image $b_e$.
 The planar area and moment are computed for the trios $(b_e, b_i, b_j)$, $(b_e, b_i, b_k)$, and $(b_e, b_j, b_k)$.
@@ -541,13 +584,13 @@ trio $b$.
 In the original Pyramid method, the angular separations could be thought of as pyramid edges.
 Here, each triangle can be thought of as a face of the pyramid.
 
-From here, the catalog trio sets $R^{umn}, R^{umo}$, and $R^{uno}$ are retrieved.
+The catalog trio sets $R^{umn}, R^{umo}$, and $R^{uno}$ are then retrieved.
 The same function \Call{Common}{$R^{ab}, R^{ac}$} from the Pyramid method is used to determine what $b_e$ is.
 \begin{algorithm}
     \setstretch{1.0}
     \caption{Functions for Composite Pyramid Identification} \label{algorithm:compositePyramidHelpers}
     \begin{algorithmic}[1]
-        \Function{CompositeVerify}{$b, r, a, I$}
+        \Function{VerifyC}{$b, r, a, I$}
         \State $b_e \gets $ star in image $I$ not in $b$
         \State $b^{\star} \gets $ stars in $b$ mapped using $a$
         \State $r^{\star} \gets $ stars in $r$ mapped using $a$
@@ -562,7 +605,7 @@ The same function \Call{Common}{$R^{ab}, R^{ac}$} from the Pyramid method is use
         \\
         \If{$|T^u| = 1$}
         \State $r_u \gets $ singular star in $T^u$
-        \If{$\forall \ \hat{r} \ | \ (\hat{r} \in r \land \angle(\hat{r}, r_u) < f)$}
+        \If{$\forall \ \hat{r} \ | \ (\hat{r} \in r \land \theta(\hat{r}, r_u) < f)$}
         \State \textbf{return true} \Comment Require that $r_u$ is near $r$
         \EndIf
         \EndIf
@@ -570,6 +613,16 @@ The same function \Call{Common}{$R^{ab}, R^{ac}$} from the Pyramid method is use
         \EndFunction
     \end{algorithmic}
 \end{algorithm}
+
+The running time of this algorithm $T_{composite}$ is depicted below.
+The number of disk accesses is dependent on the combinations of trios in the given image, requiring just one query to
+find the pyramid base instead of three in the Pyramid method.
+Once this is found, an additional nine queries are used for the \Call{DMT}{} (six queries) and
+\Call{VerifyC}{} (three queries) procedures to determine the alignment and the pyramid head.
+The \Call{DMT}{} call is used prior to verification, and may be repeated for all combinations.
+\begin{equation}\label{eq:compositeComplexity}
+T_{composite} = O\left( \frac{9|I|!}{6 \left( |I| -3 \right)!} \right) T_{query}
+\end{equation}
 
 \begin{table*}[ht]
     \centering{

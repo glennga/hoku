@@ -1,6 +1,6 @@
 \section{Introduction}\label{sec:introduction}
-Ancient mariners could look up the night sky, point out what stars they were looking at, and navigate across the globe
-with precision.
+Ancient mariners could look up the night sky, point out which stars they were looking at, and navigate across the globe
+without the use of maps.
 \textit{Star identification algorithm} refers to a computational approach to pointing out which stars
 are in the sky.
 Given an image of the sky, star identification is matching the bright spots in an image, to stars in an astronomical
@@ -14,7 +14,7 @@ In order for a craft to point a payload, direct thrusters, or orient it's solar 
 \textit{attitude} (another term for orientation) must be known.
 There are a few known landmarks in space where some attitude can be extracted (the Earth, the Sun), but this
 requires constant direction towards just these objects.
-Star trackers do not limit themselves to a single object, rather they use the entire sky of stars to determine it's
+Star trackers do not limit themselves to a single object, instead they use the entire sky of stars to determine it's
 orientation.
 
 There exist roughly 4500 stars in the sky visible to the human eye.
@@ -34,7 +34,10 @@ characterized under the introduction of various noise.
 The process of identifying blobs in an image, constructing the image coordinate system, and efficiently querying
 static databases is not addressed here.
 
-There has been an increasing number of approaches toward stellar attitude determination, but little comparison between
-each of these methods in a more controlled manner.
+This research is motivated by a growing difference in the number of stellar attitude determination methods and the
+comparison between each of these methods in a more controlled manner for star tracker development.
 Interchangeable factors are abstracted away (camera hardware, blob detection, etc\ldots) to focus more on how each
 method matches stars in an image to a catalog.
+
+This paper aims to contribute a general flow for most star identification methods, a process for comparing each
+method, and characterization of several existing methods.
