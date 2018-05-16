@@ -165,11 +165,13 @@ $\sigma_o$ can also be thought of as an assumption of the noise associated with 
     \end{algorithmic}
 \end{algorithm}
 
-The time complexity of this algorithm $T_{angle}$ is depicted below.
-This is dependent on the combinations of pairs in the given image (the first term) and the \Call{DMT}{} procedure.
-Note that the time to query our catalog is defined as constant here.
+Accessing the catalog is the most expensive operation for all of the identification methods.
+Consequently, the running time of this algorithm $T_{angle}$ can be described in terms of the number of queries
+(depicted below in ~\autoref{eq:complexityAngle}).
+Each combination in the given image $I$ requires a single disk access, which gives the first term.
+Once a unique pair is found, the \Call{DMT}{} procedure requires two additional catalog queries for nearby stars.
 \begin{equation}\label{eq:complexityAngle}
-    T_{angle} = O\left( C^{|I|}_2 \right) + \Theta \left( |I| \times |P| \right)
+    T_{angle} = \left( O\left( \frac{|I|!}{2\left( |I| - 2 \right)!} \right) + 2 \right) T_{query}
 \end{equation}
 
 \subsection{Liebe's Dot Angle Method}\label{subsec:liebe'sDotAngleMethod}
@@ -244,11 +246,12 @@ This entire method is described in~\autoref{algorithm:dotAngleIdentification}.
     \end{algorithmic}
 \end{algorithm}
 
-The time complexity of this algorithm $T_{dot}$ is depicted below.
-This is dependent on the combinations of trios in the given image.
-Again, note that the time to query our catalog is defined as constant here.
+The running time of this algorithm $T_{dot}$ is depicted below, again described in terms of the number of catalog
+queries.
+This is solely dependent on the combinations of trios in the given image.
+Note that the $T_{query}$ here will be different from $T_{query}$ in~\autoref{eq:complexityAngle}.
 \begin{equation}\label{eq:dotComplexity}
-    T_{dot} = O \left( C^{|I|}_3 \right)
+    T_{dot} = O\left( \frac{|I|!}{6\left( |I| - 3\right)!}  \right) T_{query}
 \end{equation}
 
 \subsection{Cole and Crassidus's Spherical Triangle Method}\label{subsec:coleAndCrassidus'sSphericalTriangleMethod}
@@ -360,21 +363,15 @@ match) are removed from the initial search candidate star set.
 
 For all six attitudes, the map yielding the most correctly predicted stars is returned as the resulting attitude.
 
-\begin{subequations}
-    The time complexity of this algorithm $T_{sphere}$ is depicted below.
-    This is dependent on the combinations of trios in the image, and the complexity of the \Call{Pivot}{} procedure.
-    \begin{align}\label{eq:sphereComplexity}
-        T_{sphere} &= O \left( C^{|I|}_3 \right) \times T_{pivot} \\
-        T_{pivot} &= \Theta\left(n_1 n_t |I| + |I| \right) + \Theta \left( |I| \times |P| \right)
-    \end{align}
-    where $n_1$ and $n_t$ is the size of $R_1$ and $R_t$ at time $t$ respectively.
-\end{subequations}
-
-The $n_1 n_t$ terms come from the \Call{PartialMatch}{} procedure, which may be performed for all stars in the image.
-The extra additional of the $|I|$ term comes from the process of finding an unused star in a given pivot.
-At best, this requires the cost of determining which stars find $\hat{b_k}$ for a pivot at $t=1$.
-This requires looping through the entire list.
-The last term comes from the \Call{DMT}{} call.
+The running time of this algorithm $T_{sphere}$ is depicted below.
+The number of disk accesses is dependent on the combinations of trios in the given image, each of which uses the
+\Call{Pivot}{} procedure.
+This requires $|I|$ additional queries at worst for each combination, giving the numerator in $O$ term.
+The last term in $T_{sphere}$ comes from the \Call{DMT}{} call, which requires 6 additional catalog queries for
+nearby stars.
+\begin{equation}\label{eq:sphereComplexity}
+    T_{sphere} = \left(O \left( \frac{|I|! \times |I|}{6 \left( |I| - 3\right)!} \right) + 6 \right) T_{query}
+\end{equation}
 
 \subsection{Cole and Crassidus's Planar Triangle Method}\label{subsec:coleAndCrassidus'sPlanarTriangleMethod}
 In 2006, Cole and Crassidus developed the Planar Triangle method~\cite{Planar}.
@@ -503,19 +500,14 @@ Otherwise, the test fails.
     \end{algorithmic}
 \end{algorithm}
 
-\begin{subequations}
-    \label{eq:pyramidComplexity}
-    The time complexity of this algorithm $T_{pyramid}$ is depicted below.
-    This is dependent on the combinations of trios in the given image and the size of each catalog candidate set used
-    in the \Call{Common}{} procedure.
-    \begin{align}
-        T_{pyramid} &= O\left( C^{|I|}_3 \right) \times T_{common} \\
-        T_{common} &= \Theta\left( n_1 n_2 + n_2 n_3 + n_1 n_3 + n_4 n_5 n_6 \right)
-    \end{align}
-\end{subequations}
-where $n_1, n_2, n_3$ represent the size of $R^{mn}, R^{mo}, R^{no}$ respectively for a given \Call{FindCatalogStars}{}
-call and $n_4, n_5, n_6$ represent the size of $R^{mu}, R^{nu}, R^{ou}$ respectively for a given \Call{VerifyP}{}
-call.
+The running time of this algorithm $T_{pyramid}$ is depicted below.
+The number of disk accesses is dependent on the combinations of trios in the given image, each of which requires
+three queries to find the pyramid base.
+Once this is found, an additional three queries are used for the \Call{VerifyP}{} procedure to determine the
+pyramid head.
+\begin{equation}\label{eq:pyramidComplexity}
+    T_{pyramid} = O\left( \frac{6|I|!}{6 \left( |I| - 3\right)!} \right) T_{query}
+\end{equation}
 
 \subsection{Toloei's Composite Pyramid Method}\label{subsec:toloei'sCompositePyramidMethod}
 In 2014, Toloei developed the Novel Stars ID method, which retains all of the key aspects of Motari's
@@ -622,12 +614,15 @@ The same function \Call{Common}{$R^{ab}, R^{ac}$} from the Pyramid method is use
     \end{algorithmic}
 \end{algorithm}
 
-The time complexity of this algorithm $T_{composite}$ is depicted below.
-This is dependent on the combinations of trios in the image, and the \Call{Common}{} and \Call{DMT}{} calls.
-\begin{equation}
-    T_{composite} = O\left( C^{|I|}_3 \right) + \Theta\left( |I| \times |P| + n_1 n_2 n_3 \right)
+The running time of this algorithm $T_{composite}$ is depicted below.
+The number of disk accesses is dependent on the combinations of trios in the given image, requiring just one query to
+find the pyramid base instead of three in the Pyramid method.
+Once this is found, an additional nine queries are used for the \Call{DMT}{} (six queries) and
+\Call{VerifyC}{} (three queries) procedures to determine the alignment and the pyramid head.
+The \Call{DMT}{} call is used prior to verification, and may be repeated for all combinations.
+\begin{equation}\label{eq:compositeComplexity}
+T_{composite} = O\left( \frac{9|I|!}{6 \left( |I| -3 \right)!} \right) T_{query}
 \end{equation}
-where $n_1, n_2, n_3$ represent $R^{umn}, R^{umo}, R^{uno}$ from the \Call{VerifyC}{} call.
 
 \begin{table*}[ht]
     \centering{

@@ -42,7 +42,7 @@ Once the images were generated, three experiments were performed: one for featur
 effectiveness, and one for identification performance and accuracy.
 
 All trials were performed on an Intel i7-7700 CPU, 3.60GHz with 16 GB RAM\@.
-Each algorithm was implemented in C++14, and compiled without optimization (at \texttt{-O0}).
+Each algorithm was implemented in C++14, and compiled with optimization (at \texttt{-O3}).
 The exact implementation is available at the following link: \newline
 \url{https://github.com/glennga/hoku}.
 
@@ -84,7 +84,10 @@ To generate clean benchmark images, three items must be specified:
     \item True attitude to take stars in the catalog frame to the image frame $q_{rb}$.
 \end{itemize}
 
-Note that the goal of attitude determination is to find this true attitude $q_{rb}$.
+$f$ was chosen to be $20^\circ$ here, but there does exist multiple star trackers with $f < 5^\circ$.
+These trackers are often used in conjunction with other sensors (Sun sensors, other star trackers) or recursively
+(i.e.\ prior attitude information) to the true attitude $q_{rb}$.
+It is assumed here that the only input comes from a single image, and consequently requires a larger $f$.
 
 \begin{figure}
     \centering{

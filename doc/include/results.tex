@@ -100,15 +100,15 @@ Unlike the candidate set size response, there appears to be no obvious correlati
 star set existence and the number of features used.
 If noise is not known, the most forgiving feature set in terms of both responses is the Pyramid method.
 
-The $\sigma$ parameters for the following experiments were chosen using the results of the grid search, and selecting
-the largest $\sigma_1, \sigma_2, \sigma_3$ (ordered as such) that maintained all the
-conditions in~\autoref{eq:idealQuery}.
+The $\sigma$ parameters for the following experiments were chosen using the results of the grid search.
+The largest $\sigma_1, \sigma_2, \sigma_3$ (ordered as such) that maintained all the conditions in~\autoref{eq:idealQuery} and whose
+parameters did not exceed the ideal region are described below.
 \begin{alignat*}{2}
     \text{Angle}&: \sigma_\theta &&= 10^{-4}\\
     \text{Pyramid}&: \sigma_\theta &&= 1.0 \times 10^{-4}\\
-    \text{Dot Angle}&: \sigma_{\theta_{ic}} &&= 10^{-1}, \sigma_{\theta_{jc}} = 10^{-1}, \phi = 10^{-3} \\
-    \text{Spherical Triangle}&: \sigma_a &&= 10^{-1}, \sigma_\imath = 10^{-11} \\
-    \text{Planar Triangle}&: \sigma_a &&= 10^{-1}, \sigma_\imath = 10^{-11}
+    \text{Dot Angle}&: \sigma_{\theta_{ic}} &&= 10^{-2}, \sigma_{\theta_{jc}} = 10^{-2}, \phi = 10^{-2} \\
+    \text{Spherical Triangle}&: \sigma_a &&= 10^{-9}, \sigma_\imath = 10^{-9} \\
+    \text{Planar Triangle}&: \sigma_a &&= 10^{-9}, \sigma_\imath = 10^{-9}
 \end{alignat*}
 
 In addition to the $\sigma_n$ parameters used in the previous experiments, a parameter $\sigma_o$ must be defined
@@ -141,7 +141,6 @@ when:
     \sigma_4 \ \in (10^{-6}, 10^{-3})
 \end{equation}
 
-% TODO: Fix this here.
 Looking at the both plots it is interesting to note that under no noise (Gaussian or false stars), a $\sigma_4 \ \in
 (10^{-17}, 10^{-6})$ gives a recall of $~0.57 \pm 1.8 \times 10^{-2}$.
 In this region, it appears that the \ldots
@@ -193,8 +192,8 @@ $Q$ and $S$ response to an introduction of Gaussian noise.
         \hline \hline
         \textbf{Angle} & 1.00 & 10.63 & 00.25457 \\ \hline
         \textbf{Dot Angle} & 1.00 & 03.83 & 02.20369 \\ \hline
-        \textbf{Spherical \newline Triangle} & 1.00 & 12.40 & 13.11543 \\ \hline
-        \textbf{Planar \newline Triangle} & 1.00 & 12.44 & 12.34324 \\ \hline
+        \textbf{Spherical \newline Triangle} & 1.00 & 12.40 & 07.18916 \\ \hline
+        \textbf{Planar \newline Triangle} & 1.00 & 12.44 & 06.47424 \\ \hline
         \textbf{Pyramid} & 0.98 & 01.72 & 00.35674
     \end{tabular}
     }
@@ -219,10 +218,10 @@ Feature sets involving angular separation are more selective than those using tr
 
 Recall that the Pyramid and Angle method use the same catalog, which is 35 times as small as the triangle method's
 catalog.
-This catalog size increases the query time for triangle methods by a factor of 100, meaning that roughly 100 Angle or
+This catalog size increases the query time for triangle methods by a factor of 25, meaning that roughly 25 Angle or
 Pyramid queries cost the same as a single Spherical or Planar Triangle query.
-It is interesting to note that the Dot Angle method has three times as many catalog entries for it's catalog, but is a
-factor of 10 ms faster than the triangle methods.
+It is interesting to note that the Dot Angle method has three times as many catalog entries for it's catalog, but is
+three times faster than the triangle methods.
 
 Using the measure for efficiency in~\autoref{eq:queryEfficiency}, each method ranks as follows:
 \begin{multicols}{2}
