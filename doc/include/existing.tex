@@ -171,7 +171,7 @@ Consequently, the running time of this algorithm $T_{angle}$ can be described in
 Each combination in the given image $I$ requires a single disk access, which gives the first term.
 Once a unique pair is found, the \Call{DMT}{} procedure requires two additional catalog queries for nearby stars.
 \begin{equation}\label{eq:complexityAngle}
-    T_{angle} = \left( O\left( \frac{|I|!}{2\left( |I| - 2 \right)!} \right) + 2 \right) T_{query}
+    T_{angle} \propto \left( O\left( \frac{|I|!}{2\left( |I| - 2 \right)!} \right) + 2 \right) T_{query}
 \end{equation}
 
 \subsection{Liebe's Dot Angle Method}\label{subsec:liebe'sDotAngleMethod}
@@ -251,7 +251,7 @@ queries.
 This is solely dependent on the combinations of trios in the given image.
 Note that the $T_{query}$ here will be different from $T_{query}$ in~\autoref{eq:complexityAngle}.
 \begin{equation}\label{eq:dotComplexity}
-    T_{dot} = O\left( \frac{|I|!}{6\left( |I| - 3\right)!}  \right) T_{query}
+    T_{dot} \propto O\left( \frac{|I|!}{6\left( |I| - 3\right)!}  \right) T_{query}
 \end{equation}
 
 \subsection{Cole and Crassidus's Spherical Triangle Method}\label{subsec:coleAndCrassidus'sSphericalTriangleMethod}
@@ -370,7 +370,7 @@ This requires $|I|$ additional queries at worst for each combination, giving the
 The last term in $T_{sphere}$ comes from the \Call{DMT}{} call, which requires 6 additional catalog queries for
 nearby stars.
 \begin{equation}\label{eq:sphereComplexity}
-    T_{sphere} = \left(O \left( \frac{|I|! \times |I|}{6 \left( |I| - 3\right)!} \right) + 6 \right) T_{query}
+    T_{sphere} \propto \left(O \left( \frac{|I|! \times |I|}{6 \left( |I| - 3\right)!} \right) + 6 \right) T_{query}
 \end{equation}
 
 \subsection{Cole and Crassidus's Planar Triangle Method}\label{subsec:coleAndCrassidus'sPlanarTriangleMethod}
@@ -430,7 +430,7 @@ This entire process is described in~\autoref{algorithm:pyramidIdentification}.
         \LineComment Iterate through $C^{|I|}_3$ using \textit{smart scan technique}
         \For{$dj \gets 1 \text{\textbf{ to }} |I| - 2$}
         \For{$dk \gets 1 \text{\textbf{ to }} |I| - 1 - dj$}
-        \For{$k \gets i \text{\textbf{ to }} |I| - dj - dk$}
+        \For{$i \gets 1 \text{\textbf{ to }} |I| - dj - dk$}
         \State $j \gets i + dj$
         \State $k \gets j + dk$
         \\
@@ -448,13 +448,13 @@ This entire process is described in~\autoref{algorithm:pyramidIdentification}.
 \end{algorithm}
 
 The common stars $T^a$ in two sets of star \textit{pairs} $R^{ab}$ and $R^{ac}$, is found by "flattening" the list of
-pairs and taking the union of the two.
+pairs and taking the intersection of the two.
 \begin{equation}
     \label{eq:commonStarsPyramid}
     T^a = \{ r | r \in R \in R^{ab} \} \cap \{ r | r \in R \in R^{ac} \}
 \end{equation}
 
-If $R^{ab} = \{ (1, 2), (2, 3) \}$ and $R^{ac} = \{ (2, 5), (7, 3) \}$, then the common stars for $a$ is
+If $R^{ab} = \{ (1, 2), (2, 3) \}$ and $R^{ac} = \{ (2, 5), (7, 3) \}$, then the common stars for $a$ are
 $T^a = \{2, 3\}$.
 
 %The function \Call{Common}{$R^{ab}, R^{ac}, E$} in~\autoref{algorithm:pyramidHelpers} also specifies an $E$
@@ -506,7 +506,7 @@ three queries to find the pyramid base.
 Once this is found, an additional three queries are used for the \Call{VerifyP}{} procedure to determine the
 pyramid head.
 \begin{equation}\label{eq:pyramidComplexity}
-    T_{pyramid} = O\left( \frac{6|I|!}{6 \left( |I| - 3\right)!} \right) T_{query}
+    T_{pyramid} \propto O\left( \frac{6|I|!}{6 \left( |I| - 3\right)!} \right) T_{query}
 \end{equation}
 
 \subsection{Toloei's Composite Pyramid Method}\label{subsec:toloei'sCompositePyramidMethod}
@@ -552,7 +552,7 @@ This entire process is described in~\autoref{algorithm:compositePyramidIdentific
         \LineComment Iterate through $C^{|I|}_3$ using \textit{smart scan technique}
         \For{$dj \gets 1 \text{\textbf{ to }} |I| - 2$}
         \For{$dk \gets 1 \text{\textbf{ to }} |I| - 1 - dj$}
-        \For{$k \gets i \text{\textbf{ to }} |I| - dj - dk$}
+        \For{$i \gets 1 \text{\textbf{ to }} |I| - dj - dk$}
         \State $j \gets i + dj$
         \State $k \gets j + dk$
         \\
@@ -621,7 +621,7 @@ Once this is found, an additional nine queries are used for the \Call{DMT}{} (si
 \Call{VerifyC}{} (three queries) procedures to determine the alignment and the pyramid head.
 The \Call{DMT}{} call is used prior to verification, and may be repeated for all combinations.
 \begin{equation}\label{eq:compositeComplexity}
-T_{composite} = O\left( \frac{9|I|!}{6 \left( |I| -3 \right)!} \right) T_{query}
+T_{composite} \propto O\left( \frac{9|I|!}{6 \left( |I| -3 \right)!} \right) T_{query}
 \end{equation}
 
 \begin{table*}[ht]

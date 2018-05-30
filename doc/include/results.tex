@@ -164,78 +164,88 @@ This is the largest deviation that lies in the accurate stable region.
 Using the optimal hyperparameters described in the previous section, each query step was analyzed in terms of its
 $Q$ and $S$ response to an introduction of Gaussian noise.
 
-%\begin{figure*}
-%    \centering{
-%    \includegraphics[scale=0.45]{images/query-exp.png}
-%    \caption{
-%    The left plot depicts the effect of varying the deviation of Gaussian noise on the probability that the correct
-%    star set exists in the resulting candidates after the query.
-%    The right plot depicts the effect of varying this same noise on the size of the candidate set after the query,
-%    bounded by 5000 candidates at maximum.
-%    Field of view limit is $f = 20^\circ$.
-%    Each point represents the average of 5000 query steps.
-%    For the probability measure these 5000 steps were split into 1000 averages, and the mean of these averages are
-%    presented above.
-%    } \label{figure:queryPlots}
-%    }
-%\end{figure*}
-
 \begin{table}
     \centering {
     \caption{
     Each method's probability that the correct star set exists after querying ($Q$), average candidate set size ($S$),
     and query running time $t$ under no noise.
-    Each point represents the average of 100 query steps.
+    Each point represents the average of 10000 query steps.
     } \label{tab:queryExperimentResults}
     \begin{tabular}{m{0.18\columnwidth}|m{0.2\columnwidth}|m{0.2\columnwidth}|m{0.2\columnwidth}}
-        \textbf{Method} & $Q$ & $S$ & $t \ (s)$  \\
+        \textbf{Method} & $Q$ & $S$ & $t \ (ms)$  \\
         \hline \hline
-        \textbf{Angle} & 1.00 & 10.63 & 00.25457 \\ \hline
-        \textbf{Dot Angle} & 1.00 & 03.83 & 02.20369 \\ \hline
-        \textbf{Spherical \newline Triangle} & 1.00 & 12.40 & 07.18916 \\ \hline
-        \textbf{Planar \newline Triangle} & 1.00 & 12.44 & 06.47424 \\ \hline
-        \textbf{Pyramid} & 0.98 & 01.72 & 00.35674
+        \textbf{Angle} & 1.00 & 10.666 & 68.456 \\ \hline
+        \textbf{Dot Angle} & 1.00 & 1.383 & 111.474 \\ \hline
+        \textbf{Spherical \newline Triangle} & 1.00 & 1.010 & 69.127 \\ \hline
+        \textbf{Planar \newline Triangle} & 1.00 & 1.005 & 69.273 \\ \hline
+        \textbf{Pyramid} & 0.99 & 1.325 & 70.080
     \end{tabular}
     }
 \end{table}
 
 In~\autoref{tab:queryExperimentResults}, each method's $Q, S, \text{ and } t$ is displayed without the presence of
 noise.
-It is important to note that the data for the same experiment without the introduction of noise is very similar to that
-with noise, suggesting that Gaussian noise does not affect the outcome of the query step.
-Any inaccuracies with the overall identification process are most likely a result of future steps.
+Given that no noise is included, it is expected that all methods have 100\% accuracy- but the Pyramid method's
+average accuracy is consistently 0.1\% under 100\% ($0.99 \pm 0.00188\%$ for five way split of 10000 points).
+There exist 80 / 10000 runs where the Pyramid method's query step does not return the correct set.
+The most likely source of error here are steps 6, 7, 8 in~\autoref{algorithm:pyramidIdentification} to produce the
+$T$ sets.
+A trade off of space (i.e.\ a larger catalog of precomputed trios) would avoid the common stars routine at runtime,
+which would reduce these steps to one and potentially increase accuracy.
 
-All methods are able to produce no false negatives after the query step except for the Pyramid method, whose accuracy
-dips very slightly.
-On the other hand, the Pyramid method consistently produces the smallest average candidate set size.
-By sacrificing $Q$, the Pyramid method ensures a smaller average candidate set size.
-This tradeoff can only be made when there exists other stars to choose from, as star trackers with a small number of
-stars to choose from will be left without other combinations to identify stars from.
+The Pyramid and Angle method use the same catalog, which is $\sim$35 times as small as the triangle method's catalog.
+The Angle method also involves only one image feature filter ($\theta$) to obtain the desired result, in comparison
+to the two image feature filters ($a, i$) of the triangle methods.
+Querying a small catalog with a single filter allows the Angle method to achieve the fastest query step of 68.456ms.
+Trailing closely by an average of 0.744ms are the Spherical and Planar Triangle methods.
 
-The next smallest average candidate set size can be seen with the Dot Angle method (4 candidates), followed by the
-Angle method (11 candidates), and the triangle methods (12 for Spherical and Planar) last.
-Feature sets involving angular separation are more selective than those using triangular features.
+Even though the Pyramid method uses the same catalog as the Angle method and only requires a single image feature
+filter ($\theta$), it must perform three separate catalog accesses and find the common stars.
+Consequently, in fourth place is the Pyramid method.
+This method runs 0.88ms slower than the triangle average.
+The Dot Angle catalog is 3 times as large as the triangle catalogs, or $\sim$105 times larger than the Angle and Pyramid
+catalogs.
+This query also involves three image feature filters ($\theta_1, \theta_2, \phi$) to obtain the desired result, and
+as a result runs 1.6 times slower than the fastest query step (Angle method).
 
-Recall that the Pyramid and Angle method use the same catalog, which is 35 times as small as the triangle method's
-catalog.
-This catalog size increases the query time for triangle methods by a factor of 25, meaning that roughly 25 Angle or
-Pyramid queries cost the same as a single Spherical or Planar Triangle query.
-It is interesting to note that the Dot Angle method has three times as many catalog entries for it's catalog, but is
-three times faster than the triangle methods.
+In terms of candidate set size, the triangle methods consistently produce the smallest average candidate set
+(combined average of 1.007 sets).
+For all 10000 runs, there were only 40 points for the Planar Triangle method and 63 points for the Spherical Triangle
+method where the candidate set size where~\autoref{eq:nonUniqueCandidateSet} holds.
+If the condition below is not true, then the reduction step can essentially be skipped (leading to faster end-to-end
+runtimes).
+\begin{equation}\label{eq:nonUniqueCandidateSet}
+    |R| \neq 1
+\end{equation}
+For these 40 points of the Planar Triangle method, the average candidate set size is 2.2.
+For these 63 points of the Spherical Triangle method, the average candidate set size is 2.49.
+Given no noise, the planar triangle features are more distinctive than the spherical triangle features.
+
+Third place in candidate set size is the Pyramid method, which had 2395 / 10000 points
+where~\autoref{eq:nonUniqueCandidateSet}.
+The average candidate set size for these 2395 points is 2.356.
+In fourth place is the Dot Angle method, having 2865 points of average candidate set = 2.336 for all points where
+~\autoref{eq:nonUniqueCandidateSet}.
+The Pyramid method yields less sets where the query result is not unique compared to the Dot Angle method, but the
+Dot Angle method produces smaller candidate sets for the points where the candidate set size is not equal to 1.
+
+In last place by a large margin is the Angle method, which is a factor of 10 sets larger than the triangle method.
+For all 10000 points, 9857 of these did not have a candidate set size equal to 1.
+The Angle method has the fastest query time, but the sole image feature $\theta$ is not unique enough to identify one
+star pair.
 
 Using the measure for efficiency in~\autoref{eq:queryEfficiency}, each method ranks as follows:
 \begin{multicols}{2}
     \begin{enumerate}
-        \item Pyramid
-        \item Angle
-        \item Dot Angle
         \item Planar Triangle
         \item Spherical Triangle
+        \item Pyramid
+        \item Dot Angle
+        \item Angle
     \end{enumerate}
 \end{multicols}
 
-The Pyramid method has the most efficient query step.
-The most efficient method that does not sacrifice accuracy is the Angle method.
+Both the Spherical and Planar Triangle methods have the most efficient query step.
 
 \subsection{Candidate Reduction}\label{subsec:candidateReductionResults}
 Using the same optimal hyperparameters described in~\autoref{subsec:sigmaHyperparameterSelectionResults}, each query +
@@ -249,58 +259,113 @@ reduction step was analyzed in terms of the average accuracy and efficiency resp
     average running time to produce an $r$ set (right) for different identification methods.
     The field-of-view is bounded by $f = 20^\circ$ and the apparent magnitude is bounded by $m = 6.0$.
     Each method was capped at 100 query steps before erroring out and producing a false result.
-    Each point represents the average of 100 reduction steps.
+    Each point represents the average and deviation of five 2000 reduction run averages.
     } \label{figure:reductionShift}
     }
 \end{figure*}
 
-Without noise in both~\autoref{figure:reductionShift} and~\autoref{figure:reductionFalse}, only the triangle methods
-had 100\% accuracy in reduction.
-In terms of speed, the Pyramid method ranks first at an average of 210 ms per reduction run.
-In terms of efficiency the Pyramid method ranks first again, with the largest accuracy to time ratio.
-The tradeoff in accuracy for runtime appears to work in favor of the Pyramid method.
+Without noise in both~\autoref{figure:reductionShift} and~\autoref{figure:reductionFalse}, only the Angle method
+(75\%) does not have 100\% accuracy in reduction.
+The slight inaccuracies of the Pyramid method under no noise are resolved at reduction time, instead of query time
+like the other methods.
+In terms of speed, all methods using triangular features run on average 42.77ms faster than those using angular
+features.
 
-On the other end the Composite Pyramid is last in accuracy and last in runtime, using 293s on average to obtain an
-accuracy of 64\%.
-The Planar Triangle method uses the same features as the Composite Pyramid method, but runs 24 times as faster due to
-its reduction step.
-The $\{ R \mid 1 = |R| \}$ reduction step appears to be too aggressive of a filter and spends more time querying than
-a pivoting reduction step.
-The Spherical Triangle method runs twice as fast the Planar Triangle method, at an average time of 6.7s.
-The Dot Angle method ranks below the Spherical Triangle but above the Planar Triangle method in terms of running time,
-(9.2s) producing an average accuracy of 99\%.
+The Angle method has the fastest query step, but is slowed down by its $\{ R \mid 1 = |R|\}$ reduction step.
+In the no noise case the Angle method is shown to have the correct candidates at query time for all runs- but
+the large candidate set size at query time coupled with the single candidate set filter leads to more query-reduction
+looping.
+For all 10000 points in the no noise case, there only exist 143 where a sole candidate result is returned for the
+first query.
+Without exiting in error (> 100 query restriction), the Angle method accessed the catalog 39 times on average.
+This method exited in error $\sim$25\% of the time, which accounts for all of the error observed.
+Relaxing the 100 query step constraint would be beneficial toward the Angle method's accuracy at the cost of
+a longer running reduction step.
+
+The Dot Angle method is the next outlier, which also uses the $\{ R \mid 1 = |R| \}$ reduction step.
+This method has 1 run out of 10000 where the number of query steps exceeds 100.
+For the remaining 9999 runs, 31 of these ran for longer than 500ms (average of 1079ms runtime, 34 query steps).
+The upper bound for running time is the largest of all methods, with the longest recorded running time of $\sim$3000ms.
+Again, the aggressiveness of the single candidate set filter is observed here.
+There exists 3625 / 10000 points where a single candidate set was returned after the first query, meaning the remaining
+6375 had to perform additional queries.
+If an image was encountered where $\theta_1$, $\theta_2$, and $\phi$ were not distinct enough, a large portion of time
+was spent querying.
+99\% of the time though, this process consumed on average 3 catalog queries to meet the single candidate set
+requirement.
+
+The 131ms average query time of the Dot Angle method is still a factor of 1.86 longer than remaining four methods.
+Ranked 4th in running time is the Pyramid method, with an average query step count and running time of 1.33 steps and
+76ms respectively.
+The reduction step is the same as the Dot Angle and Angle method.
+There exists 2432 / 10000 points where~\autoref{eq:nonUniqueCandidateSet} holds, with an average query step count of
+2.4 steps.
+There are slightly more cases where the query step only has to be performed once in comparison to the Dot Angle method,
+but these differences magnify the flaw of the expensive Dot Angle query step.
+
+In 1st, 2nd, and 3rd place are the Planar Triangle method, Composite Pyramid method, and Spherical Triangle method
+respectively.
+All of these methods have an average runtime of $68.6 \pm 0.1$ms, consuming 1 query set on average to obtain a result.
+The Spherical and Planar Triangle methods use the \Call{Pivot}{} reduction step, but the majority of the $R$ reducing
+comes from their efficient query steps.
+For all methods combined (total of 30000 points), there exist only 144 reduction runs
+where~\autoref{eq:nonUniqueCandidateSet} applied.
+Of all of these, at most one additional query was required to reduce the candidate sets to a sole element.
 
 In~\autoref{figure:reductionShift}, the deviation of Gaussian noise against the average accuracy and runtime is
 displayed for different identification methods.
-As soon as Gaussian noise of $10^{-5}$ degrees is introduced, all methods using triangular features drop to an average
-accuracy of 42\%.
-The rest of the methods experience a similar drop in accuracy (average of 18\%) for a Gaussian noise of $10^{-3}$
-degrees.
-The two main reasons for this later noise response are most likely the hyperparameters chosen, and the triangular
-features themselves not being distinctive enough.
+As soon as Gaussian noise of $10^{-5}$ degrees is introduced, all methods using triangular features can no longer
+promise 100\% accuracy (average of 1.5\% decrease).
+The Pyramid and Angle methods experience an average decline in accuracy of 69\% with Gaussian noise of $10^{-3}$
+degrees from $10^{-4}$ degrees.
+The Dot Angle method, with the largest query $\sigma$ parameter experiences a decline of 44\% with noise of $10^{-2}$
+degrees from $10^{-3}$ degrees.
 
-The hyperparameters for all methods were chosen without any noise introduced.
-The upper bound of the ideal region for the angular separation feature was $\sigma_1 = 10^{-4}$.
-It follows that any noise greater than this should lead to a decline in accuracy (average of 69\% decrease with
-$\sigma = 10^{-3}$), which is seen in both the Pyramid and Angle methods.
-The Dot Angle method decreases to 84\% given Gaussian noise of $10^{-4}$ degrees.
-The query deviations for this method are greater than $10^{-4}$ degrees, but still show a similar response to the Angle
-and Pyramid methods.
+Note that the hyperparameters for all methods were chosen without any noise introduced.
+The upper bound of the ideal region for the angular separation feature (Angle and Pyramid) was $\sigma_1 = 10^{-4}$.
+The upper bound of the ideal region for the Dot Angle features was $\sigma_{(1, 2, 3)} = 10^{-2}$.
+It follows that any angular noise greater than this should lead to a decline in accuracy.
 
-The Spherical / Planar Triangle methods have different reduction steps and features than the previous three methods,
-and the response to noise occurs sooner than methods using angular features.
-This may be due to the pivoting process, but a similar decline in the Composite Pyramid method (average of 54\%
-decline with noise) argues that this may be a result of the triangular features themselves.
-Increasing the accuracy here is possible by increasing $\sigma$, although~\autoref{tab:queryExperimentResults} shows
-that triangular features already yield the highest number of candidates.
-Increasing the deviation here would produce even more results, leading to a longer running reduction process.
-What can be said here, is that the triangular features are highly sensitive to Gaussian error at the reduction step.
+For methods using triangular features, the answer is not as easy to determine.
+The Planar Triangle, Spherical Triangle, and Composite Pyramid method's accuracy decreases to an average of
+$73 \pm 4\%$ for noise of $10^{-4}$ degrees.
+At $10^{-3}$, all triangular methods decreases to 14\%.
+Beyond this, accuracy drops very close to zero (1\% at $10^{-2}$ degrees).
+The triangle methods would be less sensitive to noise if the $\sigma$ parameters were increased, but this comes at the
+price of time.
+This can be observed with the Dot Angle method, who is able to promise near-to 100\% accuracy longer than all other
+methods but has the longest query time.
 
-Looking at the running time plot on the right, an introduction of $10^{-5}$ degree noise to the Planar and
-Spherical Triangle methods leads to an average increase of 141s per start to reduction step.
-The Composite Pyramid method has a decline in running time as noise increases with a decrease of 293s at no noise, to
-191s given noise of $10^{-2}$ degrees.
-None of the other methods show a noticeable running time response to an introduction of Gaussian noise.
+Looking at the running time plot on the right, all methods except for the Dot Angle method run are fairly consistent
+as noise is increased.
+Intuitively, larger noise should lead to longer reduction times.
+Each method's reduction step would have to iterate through more stars in the image to find the subset that fits the
+reduction criteria.
+The Angle method though, does not follow this reasoning.
+This method actually decreases in time as $10^{-3}$ degrees of noise is introduced from $10^{-4}$ degrees, running 16ms
+faster and consuming 16 less query steps.
+The fact that the Angle method is taking faster to run and using less catalog accesses under more noise suggests that
+the method arrives at false answers quicker than accurate ones.
+Once noise goes beyond the $\sigma_1$ query parameter, the correct pair found less noisy images no longer meets the
+query criteria.
+
+As $10^{-4}$ degrees of noise is introduced, all methods using triangular features run 2.4ms longer on average.
+The average query step count increase from $10^{-5}$ degrees of noise to $10^{-4}$ degrees is 36 (6.8 steps vs.
+42.9 steps).
+The other large jump in accuracy was observed at $10^{-3}$ degrees of noise.
+From $10^{-4}$ degrees, all methods using triangular features run 1.8ms longer on average.
+The average query step count increases by a factor of 1.84 here, or 36 steps.
+Both the $\{ R \mid 1 = |R| \}$ and pivoting reduction step generally handle this type of noise the same.
+As the noise increases with these methods, so does the number of catalog accesses and the running time.
+
+The Dot Angle method experiences the largest jump in runtime as noise increases from $10^{-3}$ degrees to $10^{-2}$.
+Runtime increases 73.7ms, and the average number of catalog accesses increases by 4.5.
+For noise beyond the $\sigma_{(1, 2, 3)}$ parameters, the aggressiveness of the $\{ R \mid 1 = |R| \}$ reduction step
+is seen as more iterations are required to obtain an accurate result or error out.
+On the other end the Pyramid method has the most consistent running time of all methods here, running an average of
+$71 \pm 1$ms for all of the trials associated with this type of noise.
+From $10^{-4}$ degrees of noise to $10^{-3}$, only 1.8 more query steps are consumed on average.
+From $10^{-3}$ degrees of noise to $10^{-2}$, only 1.5 more steps are consumed.
 
 \begin{figure*}
     \centering{
@@ -310,47 +375,86 @@ None of the other methods show a noticeable running time response to an introduc
     average runtime to produce an $r$ set (right) for different identification methods.
     The field-of-view is bounded by $f = 20^\circ$ and the apparent magnitude is bounded by $m = 6.0$.
     Each method was capped at 100 query steps before erroring out and producing a false result.
-    Each point represents the average of 100 reduction steps.
+    Each point represents the average of 10000 reduction steps.
     } \label{figure:reductionFalse}
     }
 \end{figure*}
 
 In~\autoref{figure:reductionFalse}, the number of false stars against the average accuracy and runtime is displayed
 for different identification methods.
-It is easier to observe a trend in the noise here.
-The number of false stars is generally proportional to the number of query steps, and inversely proportional
-to the accuracy.
-The general rank of the accuracy of all methods as the number of false stars increases is listed below:
+Here, all methods except for the Composite Pyramid method experience a negative accuracy response to this noise.
+The list below orders each method from least responsive to most responsive from 0 to 12 false stars.
 \begin{multicols}{2}
-\begin{enumerate}
-    \item Pyramid
-    \item Planar Triangle
-    \item Spherical Triangle
-    \item Dot Angle
-    \item Angle
-    \item Composite Pyramid
-\end{enumerate}
+    \begin{enumerate}
+        \item Composite Pyramid
+        \item Planar Triangle
+        \item Spherical Triangle
+        \item Pyramid
+        \item Angle
+        \item Dot Angle
+    \end{enumerate}
 \end{multicols}
 
-In 1st place is the Pyramid method, which has the best accuracy (63\%) given an image with 12 false stars.
-The Pyramid method specifies a false star persistence avoidance process for choosing query star sets from the image, and
-the effectiveness of this can be seen.
-The Composite Pyramid uses the same false star persistence avoidance method, but the difference in features render this
-technique less effective than all other identification methods (21\% at 12 false stars).
-The Spherical and Planar Triangle methods show that the pivoting process is fairly effective in handling false stars,
-with an average accuracy of 35\% and 45\% respectively.
+The Angle and Dot Angle methods experience the largest decline from no noise to 12 false stars of 42\% and 53\%
+respectively.
+Both methods specify no protection against this type of noise beyond the features themselves, and it follows that
+both of these rank last in terms of false star tolerance.
+In both~\autoref{algorithm:angleIdentification} and~\autoref{algorithm:dotAngleIdentification}, combinations are chosen
+using nested loops.
+An example sequence of trios (i.e.\ the three nested loop case) is depicted in~\autoref{eq:simple3NestedLoop} for
+$n = 5$ stars.
+\begin{equation}\label{eq:simple3NestedLoop}
+a_{simple} = ( \{1,2,3\}, \{1,2,4\}, \{1,2,5\}, \{1,3,2\}, \ldots )
+\end{equation}
 
-The Dot Angle method and the Angle method rely purely on the $|R| = 1$ reduction filter, which handles false stars less
-effectively than pivoting or choosing query steps differently.
-The Dot Angle and the Angle method have an average accuracy of 39\% and 30\% respectively at 12 false stars.
+If a false star exists in the outermost loop to produce trios, then each following $n^2$ combination will be incorrect
+until the star in the outer loop changes.
+This gives the Dot Angle method $n^2$ more opportunities to choose a wrong trio in this case, and is likely why it is
+the most responsive to false stars.
+The Angle method method only requires two nested loops, which gives only $n$ incorrect combinations if a false star
+exists in the outer loop.
+This higher turnover allows the Angle method to perform only slightly worse than the rest of the methods (besides
+the Composite Pyramid).
 
-The Pyramid method's false star persistence avoidance process works best for handling the false stars, but the
-pivoting process works fairly well too.
-Both of these are perform at different steps in the general identification flow, and it may be interesting to combine
-the two, use different query features, and see if it handles false stars even better.
+The Spherical and Planar Triangle methods use the same method to choose combinations as the Dot Angle method, but differ
+in their use of the \Call{Pivot}{} method and their query features.
+If a false star is chosen in the outer loop for either of the triangle methods, the addition of the \Call{Pivot}{} call
+gives $n^2 \times n = n^3$ more opportunities to choose the wrong trio.
+Even though this is a factor of $n$ worse than the Dot Angle method, the efficiency of the query step for these
+methods appear to mitigate the potential errors.
 
-Under both types of noise with the current approaches listed here, the best average accuracy to efficiency ratio
-belongs to the Pyramid method.
+Both the Composite Pyramid and Pyramid methods specify a false star persistence avoidance process for choosing
+query star sets as opposed to the simple triple nested loops of the other methods.
+An example sequence of this process given an image of $n=5$ stars is depicted below.
+\begin{equation}\label{eq:pyramidNestedLoop}
+a_{pyramid} = ( \{1,2,3\}, \{2,3,4\}, \{3,4,5\}, \{1,2,4\}, \ldots)
+\end{equation}
+If star 1 was a false star in~\autoref{eq:pyramidNestedLoop}, then the next element would not use it.
+This works well in increasing the accuracy of the Composite Pyramid method's reduction step, but not in the Pyramid's
+reduction step.
+The main difference between these two methods are their query steps, suggesting that triangular features themselves
+are more tolerant to this noise than angular features.
+
+% TODO: Finish this shitttttttt
+The running time plot again shows that the Angle method runs faster when more noise is introduced.
+From 0 to 12 false stars, the Angle method runs 6.0ms faster and consumes 10 less query steps on average.
+
+If one false star exists in the selected image subset,
+
+There are more candidate sets with false stars than
+There appears to be more candidate sets with
+
+The running time plot shows that the Dot Angle method and Pyramid method generally takes longer to run when given more
+false stars, while the rest of the methods's running times are inversely proportional to the number of false stars.
+The largest running time response for the Dot Angle method occurs from 3 false stars to 6 false stars, with an increase
+of XXXms.
+From 6 to 12 false stars, the average increase is XXXms per 3 additional false stars.
+The Pyramid method has a more consistent response to running time, taking XXXms longer to run per 3 false stars.
+Here, more catalog accesses are required to find a correct trio.
+
+For the other methods, this does not appear to be the case.
+
+In both of these methods, more catalog accesses are required to find a corrrect trio
 
 \subsection{Identification Determination}\label{subsec:identificationDeterminationResults}
 Using all optimal hyperparameters described in~\autoref{subsec:sigmaHyperparameterSelectionResults}, each identification
@@ -364,141 +468,106 @@ was ran end-to-end and analyzed in terms of its response to an introduction of G
     running time to produce a map $a$ (right) for different identification methods.
     The field-of-view is bounded by $f = 20^\circ$ and the apparent magnitude is bounded by $m = 6.0$.
     Each method was capped at 100 query steps before erroring out and producing a false result.
-    Each point represents the average of 100 identification steps.
+    Each point represents the average of 10000 identification steps.
     } \label{figure:identificationShift}
     }
 \end{figure*}
 
-Without noise in both~\autoref{figure:identificationShift} and~\autoref{figure:identificationFalse}, all methods except
-for the Angle and Composite Pyramid yield 100\% accuracy.
-Out of these 100\% accuracy methods, the Pyramid method had the shortest running time here, running an average of
-214ms to obtain a result.
-The Dot Angle method is 2nd in this group, requiring 8.5s to obtain a result.
-The Spherical and Planar Triangle methods follow here, running an average of 14.2s to obtain a correct result.
-Out of the two methods that are not 100\% accurate under no noise (Angle, Composite Pyramid), the Angle ran the fastest.
-The Composite Pyramid took the longest to run, at 324s to obtain a result.
-
-Comparing the results found in reduction experiment without noise to these results here, the Pyramid and Dot Angle
-methods rely on the~\autoref{figure:genericIdentificationMethodFlowchart} filter after the reduction step to boost
-its accuracy to 100\%.
-The Angle method shows no difference in accuracy here, but the Composite Pyramid method appears to decline from 64\%
-to 44\%.
-Given that all triangle methods use the \Call{DMT}{} call in its identification step, the culprit here appears to be
-from the \Call{VerifyC}{} procedure.
-This may be another strong filter that is hindering the performance of the Composite Pyramid method, similar to its
-reduction step.
-
-In~\autoref{figure:identificationShift}, the deviation of Gaussian noise is displayed against the average accuracy and
-running time.
-When noise of $10^{-5}$ degrees is introduced, the same decline in accuracy as seen in the reduction experiment can be
-seen here.
-All methods using triangular features decline to an average accuracy of 31\%.
-The identification step of all triangular feature methods involve the \Call{DMT}{} procedure.
-Inaccuracies in this procedure can be found by subtracting the accuracies found in the reduction
-experiment by those found here.
-This average difference is 10\%, suggesting that the \Call{DMT}{} call does account for some of the additional
-inaccuracy.
-
-When noise of $10^{-3}$ degrees is introduced, all methods with angular features decline to an average accuracy of
-18\%.
-This is where all angular methods sharply dropped in accuracy for the reduction experiment, and it follows that the
-accuracy in the previous steps should affect the future steps (identification).
-For the Angle method, the \Call{DMT}{} call is another limiting factor for accuracy.
-Recall that the $\sigma$ value chosen for the \Call{FPO}{} procedure was $10^{-4}$.
-Any differences beyond the overlay $\sigma$ will not be counted, and the \Call{DMT}{} call will have less
-information to work with.
-
-The Dot Angle method shows no difference between its reduction accuracy and identification accuracy.
-This method determines the $a$ map at query time, and it follows that no additional inaccuracies can occur after
-reduction.
-The Pyramid method has a higher accuracy than its reduction results, showing that the \textit{Confident in $r$?} filter
-is fairly effective.
-This method is the most accurate and quickest under the most noise ($10^{-3}$ degrees), requiring roughly 193ms to
-run from start to finish.
-
-The only methods that appear to have a significant running time response to noise are those with triangular features.
-Given that these methods have the most expensive query (at 12.7s per query), any additional queries will be penalized.
-The average increase in running time for the Spherical and Planar Triangle methods with images of no noise to those with
-$10^{-3}$ degrees of noise is 216s.
-For the Composite Pyramid, there appears to be decrease in running time as the noise increases (decrease of 90s from
-no noise to $10^{-3}$ degrees of Gaussian noise).
-The Angle method is the 2nd fastest identification method (285ms), followed by the Dot Angle method (7.7s).
-
-%When noise of $10^{-6}$ degrees is introduced, all methods decline XXX\% on average in accuracy.
-%Previously in the reduction experiment, accuracy declined near to zero for the Spherical and Planar Triangle methods.
-%Low accuracy there, but accuracy on-par here shows a strong $r$ confidence decision step for these methods.
-%On the other end, the Composite Pyramid always iterates to the $\tau = 100$ limit beyond this, showing that the
-%candidate reduction step for this method is not able to produce a confident result in a reasonable amount of time.
+%Without noise in both~\autoref{figure:identificationShift} and~\autoref{figure:identificationFalse}, all methods except
+%for the Angle and Composite Pyramid yield 100\% accuracy.
+%Out of these 100\% accuracy methods, the Pyramid method had the shortest running time here, running an average of
+%214ms to obtain a result.
+%The Dot Angle method is 2nd in this group, requiring 8.5s to obtain a result.
+%The Spherical and Planar Triangle methods follow here, running an average of 14.2s to obtain a correct result.
+%Out of the two methods that are not 100\% accurate under no noise (Angle, Composite Pyramid), the Angle ran the fastest.
+%The Composite Pyramid took the longest to run, at 324s to obtain a result.
 %
-%When noise of $10^{-5}$ degrees is introduced, all methods decline further to an average of XXX\% accuracy.
-%It is important to mention that although this contrasts the accuracy stability seen with increasing Gaussian noise
-%in the reduction experiment, error could still stem from the reduction stage.
-%The $y''$ measure for the reduction experiment only records whether the returned $r$ set exists in the original,
-%non-rotated image set.
-%This does not mean that this returned catalog set correctly matches with the current query star set.
+%Comparing the results found in reduction experiment without noise to these results here, the Pyramid and Dot Angle
+%methods rely on the~\autoref{figure:genericIdentificationMethodFlowchart} filter after the reduction step to boost
+%its accuracy to 100\%.
+%The Angle method shows no difference in accuracy here, but the Composite Pyramid method appears to decline from 64\%
+%to 44\%.
+%Given that all triangle methods use the \Call{DMT}{} call in its identification step, the culprit here appears to be
+%from the \Call{VerifyC}{} procedure.
+%This may be another strong filter that is hindering the performance of the Composite Pyramid method, similar to its
+%reduction step.
 %
-%This problem does not seem to stem from the \Call{FPO}{} procedure,
-%as~\autoref{figure:sigmaOverlayHyperparameterPlots} shows that the classifier effectiveness declines around
-%$10^{-4}$ for the deviation we are currently using.
-%Instead, the \Call{DMT}{} procedure that uses the overlaying procedure may the source of error.
-%As input to \Call{FPO}{}, we require two sets of stars \textit{and} a rotation.
-%This rotation is heavily dependent on the current location of stars in both the image and the catalog.
-%Because the stars in the image have been shifted, the given rotation is wrong and the returned $M$ sets will most likely
-%yield no matches.
+%In~\autoref{figure:identificationShift}, the deviation of Gaussian noise is displayed against the average accuracy and
+%running time.
+%When noise of $10^{-5}$ degrees is introduced, the same decline in accuracy as seen in the reduction experiment can be
+%seen here.
+%All methods using triangular features decline to an average accuracy of 31\%.
+%The identification step of all triangular feature methods involve the \Call{DMT}{} procedure.
+%Inaccuracies in this procedure can be found by subtracting the accuracies found in the reduction
+%experiment by those found here.
+%This average difference is 10\%, suggesting that the \Call{DMT}{} call does account for some of the additional
+%inaccuracy.
 %
-%As \Call{DMT}{} exists now, a map will arbitrarily chosen if all $M$ sets are empty.
-%An extra verification step might be useful in \Call{DMT}{}, to prevent choosing a map at chance.
-%If noise is known in advance, then increasing the overlay $\sigma$ would also prevent this from negatively impacting
-%accuracy.
+%When noise of $10^{-3}$ degrees is introduced, all methods with angular features decline to an average accuracy of
+%18\%.
+%This is where all angular methods sharply dropped in accuracy for the reduction experiment, and it follows that the
+%accuracy in the previous steps should affect the future steps (identification).
+%For the Angle method, the \Call{DMT}{} call is another limiting factor for accuracy.
+%Recall that the $\sigma$ value chosen for the \Call{FPO}{} procedure was $10^{-4}$.
+%Any differences beyond the overlay $\sigma$ will not be counted, and the \Call{DMT}{} call will have less
+%information to work with.
+%
+%The Dot Angle method shows no difference between its reduction accuracy and identification accuracy.
+%This method determines the $a$ map at query time, and it follows that no additional inaccuracies can occur after
+%reduction.
+%The Pyramid method has a higher accuracy than its reduction results, showing that the \textit{Confident in $r$?} filter
+%is fairly effective.
+%This method is the most accurate and quickest under the most noise ($10^{-3}$ degrees), requiring roughly 193ms to
+%run from start to finish.
+%
+%The only methods that appear to have a significant running time response to noise are those with triangular features.
+%Given that these methods have the most expensive query (at 12.7s per query), any additional queries will be penalized.
+%The average increase in running time for the Spherical and Planar Triangle methods with images of no noise to those with
+%$10^{-3}$ degrees of noise is 216s.
+%For the Composite Pyramid, there appears to be decrease in running time as the noise increases (decrease of 90s from
+%no noise to $10^{-3}$ degrees of Gaussian noise).
+%The Angle method is the 2nd fastest identification method (285ms), followed by the Dot Angle method (7.7s).
 
-%Additional inaccuracies may also stem from the \Call{VerifyP}{} and \Call{VerifyC}{} steps in the Pyramid
-%and Composite Pyramid methods.
-%These are additional verification steps required before returning a map.
-%These procedures may be too exclusive, skipping potential true positives
-%Recall that the Pyramid and Composite Pyramid methods include a verification step before returning the map.
-%The \Call{VerifyP}{} and \Call{VerifyC}{} may be too exclusive, skipping potential true positives.
-%Removing this step may yield better accuracy for both methods.
-
-In~\autoref{figure:identificationFalse}, the number of false stars against the average accuracy and runtime is
-displayed for different identification methods.
-In 1st place again, with close to 100\% accuracy given any number of false stars is the Pyramid method.
-The effectiveness of the false star persistence avoidance process combined with the \textit{Confident in $r$?} filter
-shines here.
-This same false star persistence avoidance process might also attribute to the Composite Pyramid not declining in
-accuracy as much as the other methods (but it still does decline).
-
-All other methods (Spherical / Planar Triangle, Angle, Dot Angle) appear to decline to the same accuracy at 35\%
-given 12 false stars, indicating that choosing query steps is vital in properly handling false stars.
-For all of these methods a false star is for the outer loop means iterating through every combination of stars with
-this false star.
-Any result that is returned from here to the next iteration of the outer loop will be false, and it is important to
-cycle through as many unique image star sets as possible to avoid this problem.
-
-As the number of false stars increases, the running time increases for the Spherical and Planar triangle methods.
-For each three false star increment, there is an average of 40s increase in running time.
-
-For the other methods, there does not appear to be a response to running time here as the number of false stars
-increases.
-In order of shortest running time, each method ranks as follows:
-\begin{multicols}{2}
-    \begin{enumerate}
-        \item Pyramid
-        \item Angle
-        \item Dot Angle
-        \item Planar Triangle
-        \item Spherical Triangle
-        \item Composite Pyramid
-    \end{enumerate}
-\end{multicols}
-
-The Pyramid method is ~1500 as fast as the Composite Pyramid method, requiring an average of 211ms to present a result
-given an image of 12 false stars.
-The Angle method is a close 2nd place, with an average running time of 240ms.
-Distant from 2nd place and 4th is the Dot Angle method, with an average running time of 6.7s.
-The Spherical and Planar Triangle methods require an average of 107s to produce a result.
-
-The Pyramid method is the best identification method for handling images with both types of noise, and is also the
-most efficient.
+%In~\autoref{figure:identificationFalse}, the number of false stars against the average accuracy and runtime is
+%displayed for different identification methods.
+%In 1st place again, with close to 100\% accuracy given any number of false stars is the Pyramid method.
+%The effectiveness of the false star persistence avoidance process combined with the \textit{Confident in $r$?} filter
+%shines here.
+%This same false star persistence avoidance process might also attribute to the Composite Pyramid not declining in
+%accuracy as much as the other methods (but it still does decline).
+%
+%All other methods (Spherical / Planar Triangle, Angle, Dot Angle) appear to decline to the same accuracy at 35\%
+%given 12 false stars, indicating that choosing query steps is vital in properly handling false stars.
+%For all of these methods a false star is for the outer loop means iterating through every combination of stars with
+%this false star.
+%Any result that is returned from here to the next iteration of the outer loop will be false, and it is important to
+%cycle through as many unique image star sets as possible to avoid this problem.
+%
+%As the number of false stars increases, the running time increases for the Spherical and Planar triangle methods.
+%For each three false star increment, there is an average of 40s increase in running time.
+%
+%For the other methods, there does not appear to be a response to running time here as the number of false stars
+%increases.
+%In order of shortest running time, each method ranks as follows:
+%\begin{multicols}{2}
+%    \begin{enumerate}
+%        \item Pyramid
+%        \item Angle
+%        \item Dot Angle
+%        \item Planar Triangle
+%        \item Spherical Triangle
+%        \item Composite Pyramid
+%    \end{enumerate}
+%\end{multicols}
+%
+%The Pyramid method is ~1500 as fast as the Composite Pyramid method, requiring an average of 211ms to present a result
+%given an image of 12 false stars.
+%The Angle method is a close 2nd place, with an average running time of 240ms.
+%Distant from 2nd place and 4th is the Dot Angle method, with an average running time of 6.7s.
+%The Spherical and Planar Triangle methods require an average of 107s to produce a result.
+%
+%The Pyramid method is the best identification method for handling images with both types of noise, and is also the
+%most efficient.
 
 \begin{figure*}
     \centering{
@@ -508,7 +577,7 @@ most efficient.
     time to produce a map $a$ (right) for different identification methods.
     The field-of-view is bounded by $f = 20^\circ$ and the apparent magnitude is bounded by $m = 6.0$.
     Each method was capped at 100 query steps before erroring out and producing a false result.
-    Each point represents the average of 100 identification steps.
+    Each point represents the average of 10000 identification steps.
     } \label{figure:identificationFalse}
     }
 \end{figure*}

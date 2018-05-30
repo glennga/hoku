@@ -159,39 +159,41 @@ def reduction_plots(cur_i):
 
     # Plot an empty bar chart for the legend.
     p = e_plot(cur_i, {'table_name': 'REDUCTION', 'x_attribute': 'ShiftDeviation', 'y_attribute': 'PercentageCorrect',
-                       'constrain_that': 'FalseStars = 0', 'params_section': 'reduction-plot',
+                       'constrain_that': 'FalseStars = 0',
+                       'params_section': 'reduction-plot',
                        'params_prefix': 'sdpc', 'plot_type': 'BAR'})
     plt.clf(), plt.cla(), plt.close()
 
     fig = plt.figure()
     plt.subplot(121)
     e_plot(cur_i, {'table_name': 'REDUCTION', 'x_attribute': 'ShiftDeviation', 'y_attribute': 'PercentageCorrect',
-                   'constrain_that': 'FalseStars = 0 AND ShiftDeviation < 1.0e-1', 'params_section': 'reduction-plot',
-                   'params_prefix': 'sdpc', 'plot_type': 'BAR_NOERR'})
+                   'constrain_that': 'FalseStars = 0 AND ShiftDeviation < 1.0e-1',
+                   'params_section': 'reduction-plot', 'params_prefix': 'sdpc', 'plot_type': 'BAR'})
 
     plt.subplot(122)
     e_plot(cur_i, {'table_name': 'REDUCTION', 'x_attribute': 'ShiftDeviation', 'y_attribute': 'TimeToResult',
-                   'constrain_that': 'FalseStars = 0 AND ShiftDeviation < 1.0e-1', 'params_section': 'reduction-plot',
-                   'params_prefix': 'sdttr', 'plot_type': 'BAR_NOERR'})
+                   'constrain_that': 'FalseStars = 0 AND ShiftDeviation < 1.0e-1',
+                   'params_section': 'reduction-plot', 'params_prefix': 'sdttr', 'plot_type': 'BAR'})
     attach_figure_legend({'params_section': 'reduction-plot'}, fig, p)
     plt.subplots_adjust(wspace=0.3, left=0.06, right=0.98, bottom=0.15, top=0.85), plt.show()
 
     # Plot an empty bar chart for the legend.
     p = e_plot(cur_i, {'table_name': 'REDUCTION', 'x_attribute': 'ShiftDeviation', 'y_attribute': 'PercentageCorrect',
-                       'constrain_that': 'FalseStars = 0', 'params_section': 'reduction-plot',
+                       'constrain_that': 'FalseStars = 0',
+                       'params_section': 'reduction-plot',
                        'params_prefix': 'sdpc', 'plot_type': 'BAR'})
     plt.clf(), plt.cla(), plt.close()
 
     fig = plt.figure()
     plt.subplot(121)
     e_plot(cur_i, {'table_name': 'REDUCTION', 'x_attribute': 'FalseStars', 'y_attribute': 'PercentageCorrect',
-                   'constrain_that': 'ABS(ShiftDeviation - 0.0) < 1.0e-17 ',
-                   'params_section': 'reduction-plot', 'params_prefix': 'fspc', 'plot_type': 'BAR_NOERR'})
+                   'constrain_that': 'ABS(ShiftDeviation - 0.0) < 1.0e-17',
+                   'params_section': 'reduction-plot', 'params_prefix': 'fspc', 'plot_type': 'BAR'})
 
     plt.subplot(122)
     e_plot(cur_i, {'table_name': 'REDUCTION', 'x_attribute': 'FalseStars', 'y_attribute': 'TimeToResult',
-                   'constrain_that': 'ABS(ShiftDeviation - 0.0) < 1.0e-17 ',
-                   'params_section': 'reduction-plot', 'params_prefix': 'fsttr', 'plot_type': 'BAR_NOERR'})
+                   'constrain_that': 'ABS(ShiftDeviation - 0.0) < 1.0e-17',
+                   'params_section': 'reduction-plot', 'params_prefix': 'fsttr', 'plot_type': 'BAR'})
     attach_figure_legend({'params_section': 'reduction-plot'}, fig, p)
     plt.subplots_adjust(wspace=0.3, left=0.06, right=0.98, bottom=0.15, top=0.85), plt.show()
 
@@ -214,13 +216,15 @@ def identification_plots(cur_i):
     fig = plt.figure()
     plt.subplot(121)
     e_plot(cur_i, {'table_name': 'IDENTIFICATION', 'x_attribute': 'ShiftDeviation',
-                   'y_attribute': 'PercentageCorrect', 'constrain_that': 'FalseStars = 0 AND ShiftDeviation < 1.0e-2',
-                   'params_section': 'identification-plot', 'params_prefix': 'sdpc', 'plot_type': 'BAR_NOERR'})
+                   'y_attribute': 'PercentageCorrect',
+                   'constrain_that': 'FalseStars = 0 AND ShiftDeviation < 1.0e-1',
+                   'params_section': 'identification-plot', 'params_prefix': 'sdpc', 'plot_type': 'BAR'})
 
     plt.subplot(122)
     e_plot(cur_i, {'table_name': 'IDENTIFICATION', 'x_attribute': 'ShiftDeviation',
-                   'y_attribute': 'TimeToResult', 'constrain_that': 'FalseStars = 0 AND ShiftDeviation < 1.0e-2',
-                   'params_section': 'identification-plot', 'params_prefix': 'sdttr', 'plot_type': 'BAR_NOERR'})
+                   'y_attribute': 'TimeToResult',
+                   'constrain_that': 'FalseStars = 0 AND ShiftDeviation < 1.0e-1',
+                   'params_section': 'identification-plot', 'params_prefix': 'sdttr', 'plot_type': 'BAR'})
     attach_figure_legend({'params_section': 'identification-plot'}, fig, p)
     plt.subplots_adjust(wspace=0.3, left=0.06, right=0.98, bottom=0.15, top=0.85), plt.show()
 
@@ -234,13 +238,15 @@ def identification_plots(cur_i):
     fig = plt.figure()
     plt.subplot(121)
     e_plot(cur_i, {'table_name': 'IDENTIFICATION', 'x_attribute': 'FalseStars',
-                   'y_attribute': 'PercentageCorrect', 'constrain_that': 'ABS(ShiftDeviation - 0.0) < 1.0e-17 ',
-                   'params_section': 'identification-plot', 'params_prefix': 'fspc', 'plot_type': 'BAR_NOERR'})
+                   'y_attribute': 'PercentageCorrect',
+                   'constrain_that': 'ABS(ShiftDeviation - 0.0) < 1.0e-17',
+                   'params_section': 'identification-plot', 'params_prefix': 'fspc', 'plot_type': 'BAR'})
 
     plt.subplot(122)
     e_plot(cur_i, {'table_name': 'IDENTIFICATION', 'x_attribute': 'FalseStars',
-                   'y_attribute': 'TimeToResult', 'constrain_that': 'ABS(ShiftDeviation - 0.0) < 1.0e-17 ',
-                   'params_section': 'identification-plot', 'params_prefix': 'fsttr', 'plot_type': 'BAR_NOERR'})
+                   'y_attribute': 'TimeToResult',
+                   'constrain_that': 'ABS(ShiftDeviation - 0.0) < 1.0e-17',
+                   'params_section': 'identification-plot', 'params_prefix': 'fsttr', 'plot_type': 'BAR'})
 
     attach_figure_legend({'params_section': 'identification-plot'}, fig, p)
     plt.subplots_adjust(wspace=0.3, left=0.06, right=0.98, bottom=0.15, top=0.85), plt.show()
