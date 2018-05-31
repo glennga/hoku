@@ -297,18 +297,18 @@ Star::list BaseTriangle::e_identify () {
     for (int i = 0; i < static_cast<signed> (big_i.size() - 2); i++) {
         for (int j = i + 1; j < static_cast<signed> (big_i.size() - 1); j++) {
             for (int k = j + 1; k < static_cast<signed> (big_i.size()); k++) {
-                (*parameters.nu)++;
-                
-                // Practical limit: exit early if we have iterated through too many comparisons without match.
-                if (*parameters.nu > parameters.nu_max) {
-                    return EXCEEDED_NU_MAX;
-                }
-                
                 // Find matches of current body trio to catalog. Pivot if necessary.
                 initialize_pivot({i, j, k});
                 Star::trio r = pivot({i, j, k});
+
+                // Require that the pivot produces a meaningful result.
                 if (std::equal(r.begin(), r.end(), NO_CANDIDATE_STAR_SET_FOUND.begin())) {
                     continue;
+                }
+
+                // Practical limit: exit early if we have iterated through too many comparisons without match.
+                if (*parameters.nu > parameters.nu_max) {
+                    return EXCEEDED_NU_MAX;
                 }
                 
                 // Find candidate stars around the candidate trio.
