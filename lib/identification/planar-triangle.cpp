@@ -25,7 +25,7 @@ PlanarTriangle::PlanarTriangle (const Benchmark &input, const Parameters &parame
     input.present_image(this->big_i, this->fov);
     this->parameters = parameters;
 
-    this->parameters.nu = std::make_shared<unsigned int>(0);
+    this->parameters.nu = (parameters.nu == nullptr) ? std::make_shared<unsigned int>(0) : parameters.nu;
     ch.select_table(this->parameters.table_name);
 }
 

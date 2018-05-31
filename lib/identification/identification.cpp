@@ -24,10 +24,10 @@ const bool Identification::DEFAULT_FAVOR_BRIGHT_STARS = false;
 /// Default sigma overlay (for matching) for all identification methods.
 const double Identification::DEFAULT_SIGMA_4 = std::numeric_limits<double>::epsilon() * 10000;
 
-/// Default nu max (comparison counts) for all identification methods.
+/// Default nu max (maximum number of queries) for all identification methods.
 const unsigned int Identification::DEFAULT_NU_MAX = 50000;
 
-/// Default pointer to nu (comparison count) for all identification methods.
+/// Default pointer to nu (query count) for all identification methods.
 const std::shared_ptr<unsigned int> Identification::DEFAULT_NU = nullptr;
 
 /// Default solution to Wahba's problem for all identification methods.
@@ -42,7 +42,7 @@ const Star::list Identification::NO_CONFIDENT_R = {Star::wrap(Vector3::Zero(), -
 /// Returned when there exists no confident identity from an identification trial.
 const Star::list Identification::NO_CONFIDENT_A = {Star::wrap(Vector3::Zero(), -1)};
 
-/// Returned when we count past our defined max nu from a crown or identification trial.
+/// Returned when we count past our defined max nu from an identification trial.
 const Star::list Identification::EXCEEDED_NU_MAX = {Star::wrap(Vector3::Zero())};
 
 /// Indicates that a table already exists upon a table creation attempt.
@@ -56,7 +56,6 @@ const Identification::Parameters Identification::DEFAULT_PARAMETERS = {DEFAULT_S
 /// Constructor. We set our field-of-view to the default here.
 Identification::Identification () {
     this->parameters = DEFAULT_PARAMETERS;
-    this->parameters.nu = std::make_shared<unsigned int>(0);
     this->fov = Benchmark::NO_FOV;
 }
 

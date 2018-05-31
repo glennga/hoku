@@ -32,7 +32,7 @@ DotAngle::DotAngle (const Benchmark &input, const Parameters &p) : Identificatio
     input.present_image(this->big_i, this->fov);
     this->parameters = p;
 
-    this->parameters.nu = std::make_shared<unsigned int>(0);
+    this->parameters.nu = (p.nu == nullptr) ? std::make_shared<unsigned int>(0) : p.nu;
     this->ch.select_table(parameters.table_name);
 }
 
