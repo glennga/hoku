@@ -56,6 +56,7 @@ const Identification::Parameters Identification::DEFAULT_PARAMETERS = {DEFAULT_S
 /// Constructor. We set our field-of-view to the default here.
 Identification::Identification () {
     this->parameters = DEFAULT_PARAMETERS;
+    this->parameters.nu = std::make_shared<unsigned int>(0);
     this->fov = Benchmark::NO_FOV;
 }
 

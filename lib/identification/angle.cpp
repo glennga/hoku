@@ -29,7 +29,8 @@ const Star::pair Angle::NO_CANDIDATE_PAIR_FOUND = {Star::wrap(Vector3::Zero()), 
 Angle::Angle (const Benchmark &input, const Parameters &p) : Identification() {
     input.present_image(this->big_i, this->fov);
     this->parameters = p;
-    
+
+    this->parameters.nu = std::make_shared<unsigned int>(0);
     this->ch.select_table(parameters.table_name);
 }
 
@@ -86,7 +87,8 @@ Identification::labels_list Angle::query_for_pair (const double theta) {
     // Query using theta with epsilon bounds. Return NO_CONFIDENT_R if nothing is found.
     big_r_ell_tuples = ch.simple_bound_query({"theta"}, "label_a, label_b", {theta - epsilon}, {theta + epsilon},
                                              this->parameters.sql_limit);
-    
+    (*parameters.nu)++;
+
     // |R| = 1 restriction. Applied with the PASS_R_SET_CARDINALITY flag.
     if (big_r_ell_tuples.empty() || (!this->parameters.no_reduction && big_r_ell_tuples.size() > 1)) {
         return NO_CANDIDATES_FOUND;
@@ -206,7 +208,6 @@ Star::list Angle::reduce () {
     
     for (unsigned int i = 0; i < big_i.size() - 1; i++) {
         for (unsigned int j = i + 1; j < big_i.size(); j++) {
-            (*parameters.nu)++;
             Star::pair r = find_candidate_pair(big_i[i], big_i[j]);
     
             // Practical limit: exit early if we have iterated through too many comparisons without match.
@@ -248,8 +249,6 @@ Star::list Angle::identify () {
     // There exists |big_i| choose 2 possibilities.
     for (unsigned int i = 0; i < big_i.size() - 1; i++) {
         for (unsigned int j = i + 1; j < big_i.size(); j++) {
-            (*parameters.nu)++;
-            
             // Practical limit: exit early if we have iterated through too many comparisons without match.
             if (*parameters.nu > parameters.nu_max) {
                 return EXCEEDED_NU_MAX;
@@ -263,7 +262,8 @@ Star::list Angle::identify () {
             
             // Find candidate stars around the candidate pair.
             Star::list big_p = ch.nearby_hip_stars(r[0], fov, static_cast<unsigned int>(3 * big_i.size()));
-            
+            (*parameters.nu)++;
+
             // Find the most likely pair combination given the two pairs.
             return direct_match_test(big_p, {r[0], r[1]}, {big_i[i], big_i[j]});
         }

@@ -32,6 +32,7 @@ DotAngle::DotAngle (const Benchmark &input, const Parameters &p) : Identificatio
     input.present_image(this->big_i, this->fov);
     this->parameters = p;
 
+    this->parameters.nu = std::make_shared<unsigned int>(0);
     this->ch.select_table(parameters.table_name);
 }
 
@@ -102,6 +103,7 @@ Identification::labels_list Dot::query_for_trio (double theta_1, double theta_2,
                                     {theta_1 - epsilon_1, theta_2 - epsilon_2, phi - epsilon_3},
                                     {theta_1 + epsilon_1, theta_2 + epsilon_2, phi + epsilon_3},
                                     this->parameters.sql_limit);
+    (*parameters.nu)++;
 
     // Transform each tuple into a candidate list of labels.
     big_r_ell.reserve(matches.size());
@@ -214,7 +216,6 @@ Star::list Dot::reduce () {
         for (unsigned int j = i + 1; j < big_i.size() - 1; j++) {
             for (unsigned int c = j + 1; c < big_i.size(); c++) {
                 Star::trio big_r = find_candidate_trio(big_i[i], big_i[j], big_i[c]);
-                (*parameters.nu)++;
 
                 // Practical limit: exit early if we have iterated through too many comparisons without match.
                 if (*parameters.nu > parameters.nu_max) {

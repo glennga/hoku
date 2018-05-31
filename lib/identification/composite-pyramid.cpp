@@ -49,6 +49,7 @@ Composite::labels_list_list Composite::query_for_trios(const double a, const dou
     // Query for candidates using all fields.
     matches = ch.simple_bound_query({"a", "i"}, "label_a, label_b, label_c, i", {a - epsilon_1, i - epsilon_2},
                                     {a + epsilon_1, i + epsilon_2}, this->parameters.sql_limit);
+    (*parameters.nu)++;
 
     // Next, search this trio for stars matching the moment condition.
     big_r_ell.reserve(matches.size());
@@ -111,6 +112,9 @@ Star::trio Composite::find_catalog_stars(const Star::trio &b_f) {
 
     // Otherwise, perform the identification (DMT performed below).
     std::array<Star::list, 6> big_m = {}, big_a = {};
+    Star::list big_p = ch.nearby_bright_stars(ch.query_hip(big_r_ell[0][0]), fov,
+                                              static_cast<unsigned int>(3 * big_i.size()));
+    (*parameters.nu)++;
 
     // Generate all permutations of <0, 1, 2>.
     std::array<BaseTriangle::index_trio, 6> big_a_c = {BaseTriangle::STARTING_INDEX_TRIO, BaseTriangle::index_trio
@@ -124,9 +128,7 @@ Star::trio Composite::find_catalog_stars(const Star::trio &b_f) {
         Rotation q = parameters.f({b_f[0], b_f[1], b_f[2]},
                                   {ch.query_hip(j[0]), ch.query_hip(j[1]), ch.query_hip(j[2])});
 
-        big_m[i] = find_positive_overlay(
-                ch.nearby_bright_stars(ch.query_hip(big_r_ell[0][0]), fov, static_cast<unsigned int>(3 * big_i.size())),
-                q);
+        big_m[i] = find_positive_overlay(big_p, q);
         big_a[i] = {ch.query_hip(j[0]), ch.query_hip(j[1]), ch.query_hip(j[2])};
     }
 
@@ -193,7 +195,6 @@ Star::list Composite::reduce() {
         for (unsigned int dk = 1; dk < big_i.size() - dj - 1; dk++) {
             for (unsigned int di = 0; di < big_i.size() - dj - dk - 1; di++) {
                 int i = di, j = di + dj, k = j + dk;
-                (*parameters.nu)++;
 
                 // Practical limit: exit early if we have iterated through too many comparisons without match.
                 if (*parameters.nu > parameters.nu_max) {

@@ -8,7 +8,7 @@ Query:          IdentificationMethod TEXT, Timestamp TEXT, Sigma1 FLOAT, Sigma2 
 Reduction:      IdentificationMethod TEXT, Timestamp TEXT, Sigma1 FLOAT, Sigma2 FLOAT, Sigma3 FLOAT, Sigma4 FLOAT, 
                     ShiftDeviation FLOAT, CameraSensitivity FLOAT, ResultMatchesInput INT
 Identification: IdentificationMethod TEXT, Timestamp TEXT, Sigma1 FLOAT, Sigma2 FLOAT, Sigma3 FLOAT, Sigma4 FLOAT, 
-                    ShiftDeviation FLOAT, CameraSensitivity FLOAT, FalseStars INT, ComparisonCount INT, 
+                    ShiftDeviation FLOAT, CameraSensitivity FLOAT, FalseStars INT, QueryCount INT, 
                     PercentageCorrect FLOAT        
 
 There exists two possible arguments passed to this file: the experiment to plot and a secondary location to the

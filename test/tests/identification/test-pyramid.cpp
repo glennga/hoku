@@ -32,7 +32,6 @@ TEST(Pyramid, Constructor) {
     EXPECT_EQ(a.parameters.no_reduction, p.no_reduction);
     EXPECT_EQ(a.parameters.favor_bright_stars, p.favor_bright_stars);
     EXPECT_EQ(a.parameters.nu_max, p.nu_max);
-    EXPECT_EQ(a.parameters.nu, p.nu);
     EXPECT_EQ(a.parameters.f, p.f);
     EXPECT_EQ(a.parameters.table_name, p.table_name);
 }
@@ -284,13 +283,12 @@ TEST(Pyramid, TrialExceededNu) {
     Benchmark input(ch, 15);
     input.shift_light(static_cast<unsigned int> (input.b.size()), 0.001);
     Pyramid::Parameters p = Pyramid::DEFAULT_PARAMETERS;
-    p.nu = std::make_shared<unsigned int>(0), p.nu_max = 10;
-    p.sigma_1 = p.sigma_2 = 1.0e-19;
+    p.nu_max = 10, p.sigma_1 = p.sigma_2 = 1.0e-19;
     p.sigma_4 = 1.0e-19;
     Pyramid a(input, p);
     
     EXPECT_EQ(a.identify()[0], Pyramid::EXCEEDED_NU_MAX[0]);
-    EXPECT_EQ(*p.nu, p.nu_max + 1);
+    EXPECT_GE(*(a.parameters.nu), p.nu_max + 1);
 }
 
 /// Check that the correct result is returned when no map is found.

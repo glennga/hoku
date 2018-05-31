@@ -99,7 +99,7 @@ namespace Experiment {
     namespace Reduction {
         /// Schema header that corresponds to the log file for all reduction trials.
         const char *const SCHEMA = "IdentificationMethod TEXT, Timestamp TEXT, Sigma1 FLOAT, Sigma2 FLOAT, "
-                                   "Sigma3 FLOAT, ShiftDeviation FLOAT, FalseStars INT, ComparisonCount INT, "
+                                   "Sigma3 FLOAT, ShiftDeviation FLOAT, FalseStars INT, QueryCount INT, "
                                    "TimeToResult FLOAT, PercentageCorrect FLOAT";
 
         double percentage_correct (const Star::list &big_i, const Star::list &r);
@@ -115,7 +115,6 @@ namespace Experiment {
         /// pyramid, composite].
         template<class T>
         void trial (Chomp &ch, Lumberjack &lu, INIReader &cf, const std::string &identifier) {
-            std::shared_ptr<unsigned int> nu = std::make_shared<unsigned int>(0);
             Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
             double fov = cf.GetReal("hardware", "fov", 0);
             cxxtimer::Timer t(false);
@@ -123,7 +122,7 @@ namespace Experiment {
             Star focus;
 
             // Define our hyperparameters and testing parameters.
-            Identification::collect_parameters(p, cf, identifier), p.nu = nu;
+            Identification::collect_parameters(p, cf, identifier);
             int samples = static_cast<int>(cf.GetInteger("general-experiment", "samples", 0));
             int ss_iter = static_cast<int>(cf.GetInteger("reduction-experiment", "ss-iter", 0));
             int es_iter = static_cast<int>(cf.GetInteger("reduction-experiment", "es-iter", 0));
@@ -147,12 +146,13 @@ namespace Experiment {
 
                         // Perform a single trial. Record it's duration.
                         t.start();
-                        Star::list w = T(input, p).reduce();
+                        T z(input, p);
+                        Star::list w = z.reduce();
                         t.stop();
 
                         // Log the results of our trial, and reset our timer.
                         lu.log_trial({p.sigma_1, p.sigma_2, p.sigma_3, is_shift ? s : 0, !is_shift ? s : es_min,
-                                      static_cast<double>(*nu),
+                                      static_cast<double>(*z.parameters.nu),
                                       static_cast<double>(t.count()), percentage_correct(big_c, w)}), t.reset();
                     }
                 }
@@ -168,7 +168,7 @@ namespace Experiment {
         /// Schema header that corresponds to the log file for all identification trials.
         const char *const SCHEMA = "IdentificationMethod TEXT, Timestamp TEXT, Sigma1 FLOAT, Sigma2 FLOAT, "
                                    "Sigma3 FLOAT, Sigma4 FLOAT, ShiftDeviation FLOAT, FalseStars INT, "
-                                   "ComparisonCount INT, TimeToResult FLOAT, PercentageCorrect FLOAT";
+                                   "QueryCount INT, TimeToResult FLOAT, PercentageCorrect FLOAT";
 
         double percentage_correct (const Star::list &big_i, const Star::list &b, double fov);
 
@@ -183,7 +183,6 @@ namespace Experiment {
         /// pyramid, composite].
         template<class T>
         void trial (Chomp &ch, Lumberjack &lu, INIReader &cf, const std::string &identifier) {
-            std::shared_ptr<unsigned int> nu = std::make_shared<unsigned int>(0);
             Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
             double fov = cf.GetReal("hardware", "fov", 0);
             cxxtimer::Timer t(false);
@@ -191,7 +190,7 @@ namespace Experiment {
             Star focus;
 
             // Define our hyperparameters and testing parameters.
-            Identification::collect_parameters(p, cf, identifier), p.nu = nu;
+            Identification::collect_parameters(p, cf, identifier);
             int samples = static_cast<int>(cf.GetInteger("general-experiment", "samples", 0));
             int ss_iter = static_cast<int>(cf.GetInteger("identification-experiment", "ss-iter", 0));
             int es_iter = static_cast<int>(cf.GetInteger("identification-experiment", "es-iter", 0));
@@ -214,13 +213,14 @@ namespace Experiment {
 
                         // Perform a single trial. Record it's duration.
                         t.start();
-                        Star::list w = T(input, p).identify();
+                        T z(input, p);
+                        Star::list w = z.identify();
                         t.stop();
 
                         // Log the results of our trial.
                         lu.log_trial(
                                 {p.sigma_1, p.sigma_2, p.sigma_3, p.sigma_4, is_shift ? s : 0, !is_shift ? s : es_min,
-                                 static_cast<double>(*nu), static_cast<double>(t.count()),
+                                 static_cast<double>(*z.parameters.nu), static_cast<double>(t.count()),
                                  percentage_correct(big_i, w, fov)}), t.reset();
                     }
                 }

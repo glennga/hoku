@@ -32,7 +32,8 @@ const Star::trio Pyramid::NO_CONFIDENT_R_FOUND = {Star::wrap(Vector3::Zero()), S
 Pyramid::Pyramid (const Benchmark &input, const Parameters &p) : Identification() {
     input.present_image(this->big_i, this->fov);
     this->parameters = p;
-    
+
+    this->parameters.nu = std::make_shared<unsigned int>(0);
     ch.select_table(this->parameters.table_name);
 }
 
@@ -58,7 +59,8 @@ Pyramid::labels_list_list Pyramid::query_for_pairs (const double theta) {
     ch.select_table(parameters.table_name);
     big_r_mn_tuples = ch.simple_bound_query({"theta"}, "label_a, label_b, theta", {theta - epsilon}, {theta + epsilon},
                                             3 * this->parameters.sql_limit);
-    
+    (*parameters.nu)++;
+
     // Append the results to our candidate list.
     big_r_mn_ell.reserve(big_r_mn_tuples.size());
     for (const Nibble::tuple_d &result: big_r_mn_tuples) {
@@ -319,8 +321,7 @@ Star::list Pyramid::reduce () {
             for (unsigned int di = 0; di < big_i.size() - dj - dk - 1; di++) {
                 int i = di, j = di + dj, k = j + dk;
                 Star::list b = identify_as_list({big_i[i], big_i[j], big_i[k]});
-                (*parameters.nu)++;
-    
+
                 // Practical limit: exit early if we have iterated through too many comparisons without match.
                 if (*parameters.nu > parameters.nu_max) {
                     return NO_CONFIDENT_R;
@@ -367,8 +368,6 @@ Star::list Pyramid::identify () {
         for (unsigned int dk = 1; dk < big_i.size() - dj - 1; dk++) {
             for (unsigned int di = 0; di < big_i.size() - dj - dk - 1; di++) {
                 int i = di, j = di + dj, k = j + dk;
-                (*parameters.nu)++;
-                
                 // Practical limit: exit early if we have iterated through too many comparisons without match.
                 if (*parameters.nu > parameters.nu_max) {
                     return EXCEEDED_NU_MAX;

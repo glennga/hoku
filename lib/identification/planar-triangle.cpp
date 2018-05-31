@@ -24,7 +24,8 @@ const Identification::Parameters Plane::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUER
 PlanarTriangle::PlanarTriangle (const Benchmark &input, const Parameters &parameters) : BaseTriangle() {
     input.present_image(this->big_i, this->fov);
     this->parameters = parameters;
-    
+
+    this->parameters.nu = std::make_shared<unsigned int>(0);
     ch.select_table(this->parameters.table_name);
 }
 

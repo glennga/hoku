@@ -127,8 +127,11 @@ std::vector<Star::trio> BaseTriangle::base_query_for_trios (const index_trio &c,
         return NO_CANDIDATE_STARS_FOUND;
     }
     
-    // Search for the current trio. If this is empty, then break early.
+    // Search for the current trio.
     big_r_ell = this->query_for_trio(compute_area(b[0], b[1], b[2]), compute_moment(b[0], b[1], b[2]));
+    (*parameters.nu)++;
+
+    // If this is empty, then break early.
     if (big_r_ell.empty()) {
         return NO_CANDIDATE_STARS_FOUND;
     }
@@ -165,8 +168,6 @@ void BaseTriangle::initialize_pivot (const index_trio &c) {
 /// @return NO_CANDIDATE_STAR_SET_FOUND if pivoting is unsuccessful. Otherwise, a trio of stars that match the given B
 /// stars to R stars.
 Star::trio BaseTriangle::pivot (const index_trio &c) {
-    (*parameters.nu)++;
-    
     // Practical limit: exit early if we have iterated through too many comparisons without match.
     if (*parameters.nu > parameters.nu_max) {
         return NO_CANDIDATE_STAR_SET_FOUND;
@@ -313,6 +314,7 @@ Star::list BaseTriangle::e_identify () {
                 
                 // Find candidate stars around the candidate trio.
                 Star::list big_p = ch.nearby_hip_stars(r[0], fov, static_cast<unsigned int> (3.0 * big_i.size()));
+                (*parameters.nu)++;
                 
                 // Find the most likely map given the two pairs.
                 return direct_match_test(big_p, r, {big_i[i], big_i[j], big_i[k]});

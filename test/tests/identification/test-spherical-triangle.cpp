@@ -33,7 +33,6 @@ TEST(SphericalTriangle, Constructor) {
     EXPECT_EQ(a.parameters.no_reduction, p.no_reduction);
     EXPECT_EQ(a.parameters.favor_bright_stars, p.favor_bright_stars);
     EXPECT_EQ(a.parameters.nu_max, p.nu_max);
-    EXPECT_EQ(a.parameters.nu, p.nu);
     EXPECT_EQ(a.parameters.f, p.f);
     EXPECT_EQ(a.parameters.table_name, p.table_name);
 }
@@ -156,7 +155,7 @@ TEST(SphericalTriangle, TrialExceededNu) {
     Sphere a(input, p);
     
     EXPECT_EQ(a.identify()[0], Sphere::EXCEEDED_NU_MAX[0]);
-    EXPECT_EQ(*p.nu, p.nu_max + 1);
+    EXPECT_GE(*(a.parameters.nu), p.nu_max + 1);
 }
 
 /// Check that the correct result is returned when no map is found.

@@ -277,7 +277,7 @@ TEST(Experiment, ReductionTrialAngle) {
     Experiment::Reduction::trial<Angle>((*ch), (*lu), (*cf), "angle");
     (*lu).flush_buffer();
 
-    Nibble::tuples_d b = (*lu).search_table("Sigma1, Sigma2, Sigma3, ShiftDeviation, FalseStars, ComparisonCount, "
+    Nibble::tuples_d b = (*lu).search_table("Sigma1, Sigma2, Sigma3, ShiftDeviation, FalseStars, QueryCount, "
                                             "TimeToResult, PercentageCorrect",
                                             "IdentificationMethod = 'Angle' AND Timestamp = '" + (*lu).timestamp + "'",
                                             10);
@@ -333,7 +333,7 @@ TEST(Experiment, IdentificationTrialAngle) {
     (*lu).flush_buffer();
 
     Nibble::tuples_d b = (*lu).search_table("Sigma1, Sigma2, Sigma3, Sigma4, ShiftDeviation, FalseStars, "
-                                            "ComparisonCount, TimeToResult, PercentageCorrect",
+                                            "QueryCount, TimeToResult, PercentageCorrect",
                                             "IdentificationMethod = 'Angle' AND Timestamp = '" + (*lu).timestamp + "'",
                                             10);
     ASSERT_EQ(b.size(), count_b + 5 + 5);
