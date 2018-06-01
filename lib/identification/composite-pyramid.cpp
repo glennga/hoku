@@ -100,7 +100,7 @@ bool Composite::verification(const Star::trio &r, const Star::trio &b) {
 /// error trio is returned.
 ///
 /// @param b_f Trio of stars in our body frame.
-/// @return NO_CANDIDATE_TRIANGLE_FOUND if no triangle can be found. Otherwise, the inertial stars.
+/// @return NO_CONFIDENT_R_FOUND if no triangle can be found. Otherwise, the inertial stars.
 Star::trio Composite::find_catalog_stars(const Star::trio &b_f) {
     labels_list_list big_r_ell = this->query_for_trios(Trio::planar_area(b_f[0], b_f[1], b_f[2]),
                                                        Trio::planar_moment(b_f[0], b_f[1], b_f[2]));
@@ -133,11 +133,17 @@ Star::trio Composite::find_catalog_stars(const Star::trio &b_f) {
     }
 
     // Return map set corresponding to the largest match (messy lambda and iterator stuff below D:).
-    Star::list max_a = big_a[
-            std::max_element(big_m.begin(), big_m.end(), [](const Star::list &lhs, const Star::list &rhs) {
-                return lhs.size() < rhs.size();
-            }) - big_m.begin()];
-    return Star::trio{max_a[0], max_a[1], max_a[2]};
+    if (big_a[0].size() == big_a[1].size() == big_a[2].size() == big_a[3].size() == big_a[4].size()
+        == big_a[5].size()) {
+        return NO_CONFIDENT_R_FOUND;
+    }
+    else {
+        Star::list max_a = big_a[
+                std::max_element(big_m.begin(), big_m.end(), [](const Star::list &lhs, const Star::list &rhs) {
+                    return lhs.size() < rhs.size();
+                }) - big_m.begin()];
+        return Star::trio{max_a[0], max_a[1], max_a[2]};
+    }
 }
 
 /// Reproduction of the Composite Pyramid method's database querying. Input image is not used. We require the

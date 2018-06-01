@@ -233,9 +233,15 @@ Star::list BaseTriangle::direct_match_test (const Star::list &big_p, const Star:
     }
     
     // Return map set corresponding to the largest match (messy lambda and iterator stuff below D:).
-    return big_a[std::max_element(big_m.begin(), big_m.end(), [] (const Star::list &lhs, const Star::list &rhs) {
-        return lhs.size() < rhs.size();
-    }) - big_m.begin()];
+    if (big_a[0].size() == big_a[1].size() == big_a[2].size() == big_a[3].size() == big_a[4].size()
+        == big_a[5].size()) {
+        return NO_CONFIDENT_A;
+    }
+    else {
+        return big_a[std::max_element(big_m.begin(), big_m.end(), [] (const Star::list &lhs, const Star::list &rhs) {
+            return lhs.size() < rhs.size();
+        }) - big_m.begin()];
+    }
 }
 
 /// Find the matching pairs using the appropriate triangle table and by comparing areas and polar moments. This is
@@ -315,9 +321,12 @@ Star::list BaseTriangle::e_identify () {
                 // Find candidate stars around the candidate trio.
                 Star::list big_p = ch.nearby_hip_stars(r[0], fov, static_cast<unsigned int> (3.0 * big_i.size()));
                 (*parameters.nu)++;
-                
+
                 // Find the most likely map given the two pairs.
-                return direct_match_test(big_p, r, {big_i[i], big_i[j], big_i[k]});
+                Star::list a = direct_match_test(big_p, r, {big_i[i], big_i[j], big_i[k]});
+                if (!std::equal(a.begin(), a.end(), NO_CONFIDENT_A.begin())) {
+                    return a;
+                }
             }
         }
     }

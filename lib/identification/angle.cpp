@@ -22,6 +22,8 @@ const Identification::Parameters Angle::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUER
 /// Returned when no candidate pair is found from a query.
 const Star::pair Angle::NO_CANDIDATE_PAIR_FOUND = {Star::wrap(Vector3::Zero()), Star::wrap(Vector3::Zero())};
 
+//
+
 /// Constructor. Sets the benchmark data, fov, parameters, and current working table.
 ///
 /// @param input Working Benchmark instance. We are **only** copying the star set and the fov.
@@ -139,7 +141,8 @@ Star::pair Angle::find_candidate_pair (const Star &b_i, const Star &b_j) {
 /// @param big_p All stars found near the inertial pair.
 /// @param r Inertial (catalog frame) pair of stars that match body pair. This must be length = 2.
 /// @param b Body (body frame) pair of stars that match inertial pair. This must be length = 2.
-/// @return Body stars b with the attached labels of the inertial pair r.
+/// @return NO_CONFIDENT_A if an confident alignment could not be found. Otherwise, body stars b with the attached
+/// labels of the inertial pair r.
 Star::list Angle::direct_match_test (const Star::list &big_p, const Star::list &r, const Star::list &b) {
     if (r.size() != 2 || b.size() != 2) {
         throw std::runtime_error(std::string("Input lists does not have exactly two b."));
@@ -156,7 +159,12 @@ Star::list Angle::direct_match_test (const Star::list &big_p, const Star::list &
     }
     
     // Return the body pair with the appropriate labels.
-    return (big_m[0].size() > big_m[1].size()) ? big_a[0] : big_a[1];
+    if (big_m[0].size() != big_m[1].size()) {
+        return (big_m[0].size() > big_m[1].size()) ? big_a[0] : big_a[1];
+    }
+    else{
+        return NO_CONFIDENT_A;
+    }
 }
 
 /// Reproduction of the Angle method's database querying. Input image is not used. We require the following be defined:
@@ -265,7 +273,10 @@ Star::list Angle::identify () {
             (*parameters.nu)++;
 
             // Find the most likely pair combination given the two pairs.
-            return direct_match_test(big_p, {r[0], r[1]}, {big_i[i], big_i[j]});
+            Star::list a = direct_match_test(big_p, {r[0], r[1]}, {big_i[i], big_i[j]});
+            if (!std::equal(a.begin(), a.end(), NO_CONFIDENT_A.begin())) {
+                return a;
+            }
         }
     }
     
