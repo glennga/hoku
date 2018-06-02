@@ -212,10 +212,10 @@ TEST(Angle, TrialCleanIdentify) {
     p.sigma_4 = 0.000001;
     
     Rotation q = Rotation::chance();
-    Star b = ch.query_hip(22667), c = ch.query_hip(27913);
-    Star d = Rotation::rotate(b, q), e = Rotation::rotate(c, q);
+    Star b = ch.query_hip(22667), c = ch.query_hip(27913), c2 = ch.query_hip(27965);
+    Star d = Rotation::rotate(b, q), e = Rotation::rotate(c, q), e2 = Rotation::rotate(c2, q);
     
-    Angle a(Benchmark({d, e}, d, 20), p);
+    Angle a(Benchmark({d, e, e2}, d, 20), p);
     Star::list f = a.identify();
     EXPECT_THAT(f, Contains(Star::define_label(d, 22667)));
     EXPECT_THAT(f, Contains(Star::define_label(e, 27913)));

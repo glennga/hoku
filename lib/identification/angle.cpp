@@ -162,7 +162,7 @@ Star::list Angle::direct_match_test (const Star::list &big_p, const Star::list &
     if (big_m[0].size() != big_m[1].size()) {
         return (big_m[0].size() > big_m[1].size()) ? big_a[0] : big_a[1];
     }
-    else{
+    else {
         return NO_CONFIDENT_A;
     }
 }
