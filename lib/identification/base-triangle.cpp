@@ -221,15 +221,14 @@ Star::list BaseTriangle::direct_match_test (const Star::list &big_p, const Star:
     // Generate unique permutations using previously generated trio.
     std::array<index_trio, 6> big_a_c = {STARTING_INDEX_TRIO, index_trio {0, 2, 1}, index_trio {1, 0, 2}, index_trio
         {1, 2, 0}, index_trio {2, 0, 1}, index_trio {2, 1, 0}};
-    auto attach_ell = [&r, &b, &big_a_c] (const int i, const int j) -> Star {
-        return Star::define_label(b[j], r[big_a_c[i][j]].get_label());
-    };
-    
+
     // Determine the rotation to take frame R to B.
     for (unsigned int i = 0; i < 6; i++) {
         Rotation q = parameters.f({b[0], b[1], b[2]}, {r[big_a_c[i][0]], r[big_a_c[i][1]], r[big_a_c[i][2]]});
         big_m[i] = find_positive_overlay(big_p, q);
-        big_a[i] = {attach_ell(i, 0), attach_ell(i, 1), attach_ell(i, 2)};
+        big_a[i] = {Star::define_label(b[0], r[big_a_c[i][0]].get_label()),
+                    Star::define_label(b[1], r[big_a_c[i][1]].get_label()),
+                    Star::define_label(b[2], r[big_a_c[i][2]].get_label())};
     }
     
     // Return map set corresponding to the largest match (messy lambda and iterator stuff below D:).
