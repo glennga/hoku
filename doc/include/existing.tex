@@ -44,8 +44,9 @@ in~\autoref{eq:catalogCandidateExample}:
 \end{equation}
 
 Through some filter process, a single set $r$ from the catalog star candidates is then selected.
-If all of these steps are successful, then a map $a$ between the catalog subset and image subset is determined and
-returned.
+If all of these steps are successful, then a map $a$ between the catalog subset and image subset is determined.
+A third verification step is defined here, based on the confidence of $a$.
+If we are confident in $a$, then we return the map.
 Otherwise, a new combination $c$ is selected and the entire process is repeated.
 This process is detailed in~\autoref{figure:genericIdentificationMethodFlowchart}.
 In the event no map can be determined, an error is raised and an empty map is returned (not depicted in the flowchart).
@@ -105,7 +106,9 @@ To determine a mapping, a \textit{direct match test} (DMT) is performed.
         \If{$\lvert R \rvert = 1$}
         \State $r \gets $ singular pair inside $R$
         \State $a \gets $ \Call{DMT}{$b, r, I$}
+        \If{$a \neq \emptyset$}
         \State \textbf{return} $a$
+        \EndIf
         \EndIf
         \EndFor
         \EndFor
@@ -133,6 +136,8 @@ To determine a mapping, a \textit{direct match test} (DMT) is performed.
 The most likely attitude is determined by predicting which entries in the catalog represent stars in the image
 (the "find positive overlay", or \Call{FPO}{} method) using $q_1$ and $q_2$.
 The mapping with the most correctly predicted stars is then returned as the resulting attitude.
+If all mappings return sets with the same size, then we are not confident in any of our choices and
+return the empty set.
 The general form for this function (accepting star sets of arbitrary size) is described
 in~\autoref{algorithm:angleHelper}.
 
@@ -160,7 +165,11 @@ $\sigma_o$ can also be thought of as an assumption of the noise associated with 
         \State $q \gets $ \Call{TRIAD}{$a$}
         \State $M_a \gets $ \Call{FPO}{$P, I, q$}
         \EndFor
-        \State \textbf{return} map $a$ associated with \Call{Max}{$M$}
+        \If{$|M_0| = |M_1| = \ldots = |M_N|$}
+        \State \textbf{return} $\emptyset$
+        \Else
+        \State \textbf{return} map $a$ associated with largest set in $M$
+        \EndIf
         \EndFunction
     \end{algorithmic}
 \end{algorithm}
@@ -169,9 +178,19 @@ Accessing the catalog is the most expensive operation for all of the identificat
 Consequently, the running time of this algorithm $T_{angle}$ can be described in terms of the number of queries
 (depicted below in ~\autoref{eq:complexityAngle}).
 Each combination in the given image $I$ requires a single disk access, which gives the first term.
-Once a unique pair is found, the \Call{DMT}{} procedure requires two additional catalog queries for nearby stars.
+Once a unique pair is found, the \Call{DMT}{} procedure requires $|I|$ additional catalog queries at most for nearby
+stars.
+\begin{equation}\label{eq:complexityAnglePart1}
+    T_{angle} \propto \left( O\left( |I| \ C^{|I|}_2 \right)  \right) T_{query}
+\end{equation}
+We expand the combination term to get:
+\begin{equation}
+    C^{|I|}_2 = \left(\frac{|I|\left( |I| - 1 \right)}{2}\right) = \left(\frac{|I|^2}{4}\right)-
+    \left(\frac{|I|}{4}\right)
+\end{equation}
+~\autoref{eq:complexityAnglePart1} then simplifies to~\autoref{eq:complexityAngle}:
 \begin{equation}\label{eq:complexityAngle}
-    T_{angle} \propto \left( O\left( \frac{|I|!}{2\left( |I| - 2 \right)!} \right) + 2 \right) T_{query}
+    T_{angle} \propto O\left( |I|^3 \right) T_{query}
 \end{equation}
 
 \subsection{Liebe's Dot Angle Method}\label{subsec:liebe'sDotAngleMethod}
@@ -250,8 +269,12 @@ The running time of this algorithm $T_{dot}$ is depicted below, again described 
 queries.
 This is solely dependent on the combinations of trios in the given image.
 Note that the $T_{query}$ here will be different from $T_{query}$ in~\autoref{eq:complexityAngle}.
+\begin{equation}\label{eq:dotComplexityPart1}
+    T_{dot} \propto O\left( C^{|I|}_3 \right) T_{query}
+\end{equation}
+Using similar reasoning found to get~\autoref{eq:complexityAngle}, this simplifies to:
 \begin{equation}\label{eq:dotComplexity}
-    T_{dot} \propto O\left( \frac{|I|!}{6\left( |I| - 3\right)!}  \right) T_{query}
+    T_{dot} \propto O\left( |I|^3 \right) T_{query}
 \end{equation}
 
 \subsection{Cole and Crassidus's Spherical Triangle Method}\label{subsec:coleAndCrassidus'sSphericalTriangleMethod}
@@ -290,10 +313,12 @@ This procedure is described in~\autoref{algorithm:triangleIdentification}.
         \State $b \gets (b_i, b_j, b_k)$
         \State $R \gets$ \Call{Pivot}{$b_i, b_j, b_k, \emptyset$}
         \\
-        \If{$R \neq \emptyset$}Note
+        \If{$R \neq \emptyset$}
         \State $r \gets $ singular pair inside $R$
         \State $a \gets $ \Call{DMT}{$b, r, I$}
+        \If{$a \neq \emptyset$}
         \State \textbf{return} $a$
+        \EndIf
         \EndIf
         \EndFor
         \EndFor
@@ -367,10 +392,14 @@ The running time of this algorithm $T_{sphere}$ is depicted below.
 The number of disk accesses is dependent on the combinations of trios in the given image, each of which uses the
 \Call{Pivot}{} procedure.
 This requires $|I|$ additional queries at worst for each combination, giving the numerator in $O$ term.
-The last term in $T_{sphere}$ comes from the \Call{DMT}{} call, which requires 6 additional catalog queries for
-nearby stars.
+The last term in $T_{sphere}$ comes from the \Call{DMT}{} call, which requires another $|I|$ addtional catalog
+queries for nearby stars.
+\begin{equation}\label{eq:sphereComplexityPart1}
+    T_{sphere} \propto O\left( |I|^2 \ C^{|I|}_3 \right) T_{query}
+\end{equation}
+This simplifies to~\autoref{eq:sphereComplexity}.
 \begin{equation}\label{eq:sphereComplexity}
-    T_{sphere} \propto \left(O \left( \frac{|I|! \times |I|}{6 \left( |I| - 3\right)!} \right) + 6 \right) T_{query}
+    T_{sphere} \propto O\left( |I|^5\right) T_{query}
 \end{equation}
 
 \subsection{Cole and Crassidus's Planar Triangle Method}\label{subsec:coleAndCrassidus'sPlanarTriangleMethod}
@@ -505,8 +534,12 @@ The number of disk accesses is dependent on the combinations of trios in the giv
 three queries to find the pyramid base.
 Once this is found, an additional three queries are used for the \Call{VerifyP}{} procedure to determine the
 pyramid head.
+\begin{equation}\label{eq:pyramidComplexityPart1}
+    T_{pyramid} \propto O\left( 6 C^{|I|}_{3} \right) T_{query}
+\end{equation}
+This simplifies to~\autoref{eq:pyramidComplexity}:
 \begin{equation}\label{eq:pyramidComplexity}
-    T_{pyramid} \propto O\left( \frac{6|I|!}{6 \left( |I| - 3\right)!} \right) T_{query}
+    T_{pyramid} \propto O\left( |I|^3 \right) T_{query}
 \end{equation}
 
 \subsection{Toloei's Composite Pyramid Method}\label{subsec:toloei'sCompositePyramidMethod}
@@ -617,11 +650,15 @@ The same function \Call{Common}{$R^{ab}, R^{ac}$} from the Pyramid method is use
 The running time of this algorithm $T_{composite}$ is depicted below.
 The number of disk accesses is dependent on the combinations of trios in the given image, requiring just one query to
 find the pyramid base instead of three in the Pyramid method.
-Once this is found, an additional nine queries are used for the \Call{DMT}{} (six queries) and
+Once this is found, an additional four queries are used for the \Call{DMT}{} (one query) and
 \Call{VerifyC}{} (three queries) procedures to determine the alignment and the pyramid head.
 The \Call{DMT}{} call is used prior to verification, and may be repeated for all combinations.
+\begin{equation}\label{eq:compositeComplexityPart1}
+    T_{composite} \propto O\left( 5C^{|I|}_3 \right) T_{query}
+\end{equation}
+This simplifies to~\autoref{eq:compositeComplexity}:
 \begin{equation}\label{eq:compositeComplexity}
-T_{composite} \propto O\left( \frac{9|I|!}{6 \left( |I| -3 \right)!} \right) T_{query}
+    T_{composite} \propto O\left( |I|^3 \right) T_{query}
 \end{equation}
 
 \begin{table*}[ht]
