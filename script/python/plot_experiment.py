@@ -218,13 +218,13 @@ def identification_plots(cur_i):
     e_plot(cur_i, {'table_name': 'IDENTIFICATION', 'x_attribute': 'ShiftDeviation',
                    'y_attribute': 'PercentageCorrect',
                    'constrain_that': 'FalseStars = 0 AND ShiftDeviation < 1.0e-1 LIMIT 10000',
-                   'params_section': 'identification-plot', 'params_prefix': 'sdpc', 'plot_type': 'BAR'})
+                   'params_section': 'identification-plot', 'params_prefix': 'sdpc', 'plot_type': 'BAR_NOERR'})
 
     plt.subplot(122)
     e_plot(cur_i, {'table_name': 'IDENTIFICATION', 'x_attribute': 'ShiftDeviation',
                    'y_attribute': 'TimeToResult',
                    'constrain_that': 'FalseStars = 0 AND ShiftDeviation < 1.0e-1 LIMIT 10000',
-                   'params_section': 'identification-plot', 'params_prefix': 'sdttr', 'plot_type': 'BAR'})
+                   'params_section': 'identification-plot', 'params_prefix': 'sdttr', 'plot_type': 'BAR_NOERR'})
     attach_figure_legend({'params_section': 'identification-plot'}, fig, p)
     plt.subplots_adjust(wspace=0.3, left=0.06, right=0.98, bottom=0.15, top=0.85), plt.show()
 
@@ -240,13 +240,13 @@ def identification_plots(cur_i):
     e_plot(cur_i, {'table_name': 'IDENTIFICATION', 'x_attribute': 'FalseStars',
                    'y_attribute': 'PercentageCorrect',
                    'constrain_that': 'ABS(ShiftDeviation - 0.0) < 1.0e-17 LIMIT 10000',
-                   'params_section': 'identification-plot', 'params_prefix': 'fspc', 'plot_type': 'BAR'})
+                   'params_section': 'identification-plot', 'params_prefix': 'fspc', 'plot_type': 'BAR_NOERR'})
 
     plt.subplot(122)
     e_plot(cur_i, {'table_name': 'IDENTIFICATION', 'x_attribute': 'FalseStars',
                    'y_attribute': 'TimeToResult',
                    'constrain_that': 'ABS(ShiftDeviation - 0.0) < 1.0e-17 LIMIT 10000',
-                   'params_section': 'identification-plot', 'params_prefix': 'fsttr', 'plot_type': 'BAR'})
+                   'params_section': 'identification-plot', 'params_prefix': 'fsttr', 'plot_type': 'BAR_NOERR'})
 
     attach_figure_legend({'params_section': 'identification-plot'}, fig, p)
     plt.subplots_adjust(wspace=0.3, left=0.06, right=0.98, bottom=0.15, top=0.85), plt.show()
