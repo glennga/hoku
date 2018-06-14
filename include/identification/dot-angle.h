@@ -49,6 +49,7 @@ class DotAngle : public Identification {
 #if !defined ENABLE_TESTING_ACCESS
     private:
 #endif
+    Star::trio find_closest (const Star &b_i);
     labels_list query_for_trio (double theta_1, double theta_2, double phi);
     Star::trio find_candidate_trio (const Star &b_i, const Star &b_j, const Star &b_c);
 };

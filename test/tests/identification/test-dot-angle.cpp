@@ -280,7 +280,7 @@ TEST(DotAngle, TrialExceededNu) {
     Dot a(input, p);
     
     EXPECT_EQ(a.identify()[0], Dot::EXCEEDED_NU_MAX[0]);
-    EXPECT_EQ(*(a.parameters.nu), p.nu_max + 1);
+    EXPECT_GT(*(a.parameters.nu), p.nu_max + 1);
 }
 
 /// Check that the correct result is returned when no map is found.

@@ -151,6 +151,33 @@ Star::trio Dot::find_candidate_trio (const Star &b_i, const Star &b_j, const Sta
     return {ch.query_hip(big_r_ell[0]), ch.query_hip(big_r_ell[1]), ch.query_hip(big_r_ell[2])};
 }
 
+/// Find the 2 nearest neighbors to the given b_i star. This is a KNN approach, with K = 2 and
+/// d = theta(b_i, other star). We return the b set we are going to move forward with.
+///
+/// @param b_i Star to find nearest neighbors for (central star).
+/// @return Trio consisting of b_i and its 2 nearest neighbors.
+Star::trio Dot::find_closest (const Star &b_i) {
+    std::vector<std::array<double, 2>> theta_big_i;
+
+    // Find all possible distances between the central star and all of stars in the image.
+    theta_big_i.reserve(this->big_i.size());
+    for (unsigned int i = 0; i < this->big_i.size(); i++) {
+        if (this->big_i[i] != b_i) {
+            theta_big_i.emplace_back(std::array<double, 2> {Star::Angle(b_i, this->big_i[i]),
+                                                            static_cast<double>(i)});
+        }
+    }
+
+    // Sort based on the distance.
+    std::sort(theta_big_i.begin(), theta_big_i.end(), [] (const std::array<double, 2> &s_1,
+                                                          const std::array<double, 2> &s_2) -> bool {
+        return s_1[0] < s_2[0];
+    });
+
+    // Return the two smallest.
+    return {this->big_i[theta_big_i[0][1]], this->big_i[theta_big_i[1][1]], b_i};
+}
+
 /// Reproduction of the Angle method's database querying. Input image is not used. We require the following be defined:
 ///
 /// @code{.cpp}
@@ -212,24 +239,21 @@ Star::list Dot::reduce () {
     ch.select_table(parameters.table_name);
     *parameters.nu = 0;
 
-    for (unsigned int i = 0; i < big_i.size() - 2; i++) {
-        for (unsigned int j = i + 1; j < big_i.size() - 1; j++) {
-            for (unsigned int c = j + 1; c < big_i.size(); c++) {
-                Star::trio big_r = find_candidate_trio(big_i[i], big_i[j], big_i[c]);
+    for (const Star &c : big_i) {
+        Star::trio b = find_closest(c);
+        Star::trio big_r = find_candidate_trio(b[0], b[1], b[2]);
 
-                // Practical limit: exit early if we have iterated through too many comparisons without match.
-                if (*parameters.nu > parameters.nu_max) {
-                    return NO_CONFIDENT_R;
-                }
-
-                // The reduction step: |R| = 1.
-                if (std::equal(big_r.begin(), big_r.end(), NO_CANDIDATE_TRIO_FOUND.begin())) {
-                    continue;
-                }
-
-                return {big_r[0], big_r[1], big_r[2]};
-            }
+        // Practical limit: exit early if we have iterated through too many comparisons without match.
+        if (*parameters.nu > parameters.nu_max) {
+            return NO_CONFIDENT_R;
         }
+
+        // The reduction step: |R| = 1.
+        if (std::equal(big_r.begin(), big_r.end(), NO_CANDIDATE_TRIO_FOUND.begin())) {
+            continue;
+        }
+
+        return {big_r[0], big_r[1], big_r[2]};
     }
     return NO_CONFIDENT_R;
 }
@@ -254,35 +278,30 @@ Star::list Dot::reduce () {
 Star::list Dot::identify () {
     *parameters.nu = 0;
 
-    // There exists |big_i| choose 3 possibilities.
-    for (unsigned int i = 0; i < big_i.size() - 2; i++) {
-        for (unsigned int j = i + 1; j < big_i.size() - 1; j++) {
-            for (unsigned int c = j + 1; c < big_i.size(); c++) {
-                bool is_swapped = false;
+    for (const Star &c : big_i) {
+        Star::trio b = find_closest(c);
+        bool is_swapped = false;
 
-                // Practical limit: exit early if we have iterated through too many comparisons without match.
-                (*parameters.nu)++;
-                if (*parameters.nu > parameters.nu_max) {
-                    return EXCEEDED_NU_MAX;
-                }
-
-                // Determine which stars map to the current 'b'. If this fails, swap b_i and b_j.
-                Star::trio r = find_candidate_trio(big_i[i], big_i[j], big_i[c]);
-                if (std::equal(r.begin(), r.end(), NO_CANDIDATE_TRIO_FOUND.begin())) {
-                    r = find_candidate_trio(big_i[j], big_i[i], big_i[c]), is_swapped = true;
-                }
-
-                // If there exist no matches at this point, then repeat for another pair.
-                if (std::equal(r.begin(), r.end(), NO_CANDIDATE_TRIO_FOUND.begin())) {
-                    continue;
-                }
-
-                // Otherwise, attach the labels to the body and return this set.
-                return {Star::define_label(big_i[c], r[2].get_label()),
-                        Star::define_label(big_i[(is_swapped) ? j : i], r[0].get_label()),
-                        Star::define_label(big_i[(is_swapped) ? i : j], r[1].get_label())};
-            }
+        // Practical limit: exit early if we have iterated through too many comparisons without match.
+        if (*parameters.nu > parameters.nu_max) {
+            return EXCEEDED_NU_MAX;
         }
+
+        // Determine which stars map to the current 'b'. If this fails, swap b_i and b_j.
+        Star::trio r = find_candidate_trio(b[0], b[1], b[2]);
+        if (std::equal(r.begin(), r.end(), NO_CANDIDATE_TRIO_FOUND.begin())) {
+            r = find_candidate_trio(b[0], b[1], b[2]), is_swapped = true;
+        }
+
+        // If there exist no matches at this point, then repeat for another pair.
+        if (std::equal(r.begin(), r.end(), NO_CANDIDATE_TRIO_FOUND.begin())) {
+            continue;
+        }
+
+        // Otherwise, attach the labels to the body and return this set.
+        return {Star::define_label(b[2], r[2].get_label()),
+                Star::define_label(b[(is_swapped) ? 1 : 0], r[0].get_label()),
+                Star::define_label(b[(is_swapped) ? 0 : 1], r[1].get_label())};
     }
 
     return NO_CONFIDENT_A;
