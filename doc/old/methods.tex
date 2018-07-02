@@ -41,7 +41,7 @@ position relative to Earth.
 Once the images were generated, three experiments were performed: one for feature uniqueness, one for reduction
 effectiveness, and one for identification performance and accuracy.
 
-All trials were performed on an Intel i7-7700 CPU, 3.60GHz with 16 GB RAM\@.
+All trials were performed on an Intel i7-7700 CPU, 3.60GHz with 8 GB RAM\@.
 Each algorithm was implemented in C++14, and compiled without optimization (at \texttt{-O0}).
 The exact implementation is available at the following link: \newline
 \url{https://github.com/glennga/hoku}.
@@ -229,7 +229,7 @@ A general SQL statement to search each image star subset becomes:
     n =& \text{ number of features used to query the catalog.} \\
     \sigma_n =& \text{ deviation of Gaussian noise.} \\
     C =& \text{ the catalog.}
-\end{align*}
+\end{align*}\subsubsection{How effective is the DMT method?}
 
 There are five features tested, given that Toloei's Composite Pyramid uses the same features as the Cole and
 Crassidus's Planar Triangles method.

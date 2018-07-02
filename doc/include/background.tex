@@ -13,30 +13,22 @@ In order for a craft to point a payload, direct thrusters, or orient it's solar 
 \textit{attitude} (another term for orientation) must be known.
 There are a few known landmarks in space where some attitude can be extracted (the Earth, the Sun), but this
 requires constant direction towards just these objects.
-Star trackers do not limit themselves to a single object, instead they use the entire sky of stars to determine it's
+Star trackers do not limit themselves to a single object, instead they use the entire sky of stars to determine its
 orientation.
 
 There exist roughly 4500 stars in the sky visible to the human eye.
-It is computationally expensive to iterate through each combination of stars in the sky, so star identification methods
-are used instead.
-This paper analyzes six existing methods, all of which involve the following process:
-\begin{enumerate}
-    \item Given an image of stars.
-    \item Identify a select few stars in the image.
-    \item Guess how we are oriented.
-    \item Identify the rest of the stars in the image.
-    \item Finalize and determine our orientation.
-\end{enumerate}
-
-Each method's feature uniqueness, permutation order, candidate reduction, and identification process will be
-characterized under the introduction of various noise.
-The process of identifying blobs in an image, constructing the image coordinate system, and efficiently querying
-static databases is not addressed here.
+For an image of $n$ stars, the naive approach would be collect $C(4500, n)$ combinations from this collection and
+compare each to the the image.
+For $n = 6$, this requires over $10^{19}$ comparisons.
+As an alternative, we sacrifice precision for speed by only searching for a subset of the image.
+When this subset is identified, we determine and return the orientation of the image relative to collection of 4500
+stars.
 
 This research is motivated by a growing difference in the number of stellar attitude determination methods and the
-comparison between each of these methods in a more controlled manner for star tracker development.
+comparison between each of these methods in a more controlled manner for star development.
 Interchangeable factors are abstracted away (camera hardware, blob detection, etc\ldots) to focus more on how each
 method matches stars in an image to a catalog.
-
-This paper aims to contribute a general flow for most star identification methods, a process for comparing each
-method, and characterization of several existing methods.
+This paper aims to contribute this hardware independent comparison process, an algorithmic description of several
+existing methods, as well as runtime and catalog access analysis of these methods under various noise.
+The process of identifying blobs in an image, constructing the image coordinate system, and efficiently querying
+static databases are not addressed here.

@@ -9,29 +9,91 @@ if __name__ == '__main__':
                                              else {ell: cur.execute(r).fetchone()})
     attach_std = lambda ell, r: results.update({ell: (std(cur.execute(r).fetchall()),)})
 
-    conn = connect(environ['HOKU_PROJECT_PATH'] + '/data/lumberjack-all-O0.db')
+    conn = connect(environ['HOKU_PROJECT_PATH'] + '/data/lumberjack-all-triad.db')
     cur = conn.cursor()
 
     # Say goodbye to maintainability!!
 
+    attach_std(
+        "Plane Query STD T",
+        """
+            SELECT RunningTime
+            FROM QUERY
+            WHERE IdentificationMethod LIKE 'Plane'
+        """
+    )
+
+    attach_std(
+        "Sphere Query STD T",
+        """
+            SELECT RunningTime
+            FROM QUERY
+            WHERE IdentificationMethod LIKE 'Sphere'
+        """
+    )
+
+    attach_std(
+        "Composite Query STD T",
+        """
+            SELECT RunningTime
+            FROM QUERY
+            WHERE IdentificationMethod LIKE 'Composite'
+        """
+    )
+
+    attach_std(
+        "Pyramid Query STD T",
+        """
+            SELECT RunningTime
+            FROM QUERY
+            WHERE IdentificationMethod LIKE 'Pyramid'
+        """
+    )
+
+    attach_std(
+        "Dot Query STD T",
+        """
+            SELECT RunningTime
+            FROM QUERY
+            WHERE IdentificationMethod LIKE 'Dot'
+        """
+    )
+
+    attach_std(
+        "Angle Query STD T",
+        """
+            SELECT RunningTime
+            FROM QUERY
+            WHERE IdentificationMethod LIKE 'Angle'
+        """
+    )
+
     attach_r(
-        ["Angle AVG Query CSS", "Dot AVG Query CSS", "Plane AVG Query CSS",
+        ["Angle AVG Query CSS", "Composite AVG Query CSS", "Dot AVG Query CSS", "Plane AVG Query CSS",
          "Pyramid AVG Query CSS", "Sphere AVG Query CSS"],
         """
             SELECT AVG(CandidateSetSize)
             FROM QUERY
-            WHERE IdentificationMethod NOT LIKE 'Composite'
             GROUP BY IdentificationMethod
         """
     )
 
     attach_r(
-        ["Angle AVG Query T", "Dot AVG Query T", "Plane AVG Query T", "Pyramid AVG Query T",
+        "Pyramid Query COUNT ACC NOT 1",
+        """
+            SELECT COUNT(*)
+            FROM QUERY
+            WHERE IdentificationMethod LIKE 'Pyramid'
+            AND SExistence <> 1
+        """
+    )
+
+    attach_r(
+        ["Angle AVG Query T", "Composite AVG Query T", "Dot AVG Query T", "Plane AVG Query T", "Pyramid AVG Query T",
          "Sphere AVG Query T"],
         """
             SELECT AVG(RunningTime)
             FROM QUERY
-            WHERE IdentificationMethod NOT LIKE 'Composite'
             GROUP BY IdentificationMethod
         """
     )
@@ -215,16 +277,12 @@ if __name__ == '__main__':
     )
 
     attach_r(
-        ["Pyramid ACC Reduction NN", "Angle ACC Reduction NN"],
+        "Composite Query COUNT CSS > 1",
         """
-            SELECT AVG(PercentageCorrect)
-            FROM REDUCTION
-            WHERE (IdentificationMethod LIKE 'Pyramid'
-            OR IdentificationMethod LIKE 'Angle')
-            AND ShiftDeviation < 1.0e-6
-            AND FalseStars = 0
-            GROUP BY IdentificationMethod
-            ORDER BY IdentificationMethod
+            SELECT COUNT(*)
+            FROM QUERY
+            WHERE IdentificationMethod LIKE 'Composite'
+            AND CandidateSetSize <> 1
         """
     )
 
@@ -268,6 +326,36 @@ if __name__ == '__main__':
         """
     )
 
+    attach_std(
+        "Composite Reduction STD QC QC != 1 10^-4 Shift",
+        """
+        SELECT QueryCount
+        FROM REDUCTION
+        WHERE rowid IN (
+            SELECT rowid
+            FROM REDUCTION
+            WHERE IdentificationMethod LIKE 'Composite'
+            AND ShiftDeviation < 1.0e-3 AND ShiftDeviation > 1.0e-5 AND FalseStars = 0
+            AND QueryCount > 1
+        )
+        """
+    )
+
+    attach_std(
+        "Plane Reduction STD QC QC != 1 10^-4 Shift",
+        """
+        SELECT QueryCount
+        FROM REDUCTION
+        WHERE rowid IN (
+            SELECT rowid
+            FROM REDUCTION
+            WHERE IdentificationMethod LIKE 'Plane'
+            AND ShiftDeviation < 1.0e-3 AND ShiftDeviation > 1.0e-5 AND FalseStars = 0
+            AND QueryCount > 1
+        )
+        """
+    )
+
     attach_r(
         ["Angle MAX Reduction T NN", "Composite MAX Reduction T NN", "Dot MAX Reduction T NN",
          "Plane MAX Reduction T NN", "Pyramid MAX Reduction T NN"],
@@ -303,6 +391,18 @@ if __name__ == '__main__':
                 FROM REDUCTION 
                 WHERE ShiftDeviation < 1.0e-6 AND FalseStars = 0
                 AND IdentificationMethod LIKE 'Pyramid')
+        """
+    )
+
+    attach_r(
+        ["Angle Reduction AVG ACC NN", "Composite Reduction AVG ACC NN", "Dot Reduction AVG ACC NN",
+         "Plane Reduction AVG ACC NN", "Pyramid Reduction AVG ACC NN", "Sphere Reduction AVG ACC NN"],
+        """
+            SELECT AVG(PercentageCorrect), IdentificationMethod
+            FROM REDUCTION
+            WHERE ShiftDeviation < 1.0e-6 AND FalseStars = 0
+            GROUP BY IdentificationMethod
+            ORDER BY IdentificationMethod
         """
     )
 
@@ -447,7 +547,7 @@ if __name__ == '__main__':
     )
 
     attach_r(
-        "(Composite, Triangle) AVG Reduction T",
+        "(Composite, Triangle) Reduction AVG T NN",
         """
             SELECT AVG(TimeToResult)
             FROM REDUCTION
@@ -459,14 +559,388 @@ if __name__ == '__main__':
     )
 
     attach_std(
-        "(Composite, Triangle) STD Reduction T",
+        "(Composite, Triangle) Reduction STD T NN",
         """
-            SELECT TimeToResult
+            SELECT AVG(TimeToResult)
             FROM REDUCTION
             WHERE ShiftDeviation < 1.0e-6 AND FalseStars = 0
             AND (IdentificationMethod LIKE 'Composite' OR
                  IdentificationMethod LIKE 'Plane' OR
                  IdentificationMethod LIKE 'Sphere')
+            GROUP BY IdentificationMethod
+        """
+    )
+
+    attach_r(
+        "(Composite, Triangle) Reduction ACC 0 to 10^-5 Shift",
+        """
+            SELECT 1.0 - AVG(PercentageCorrect)
+            FROM REDUCTION
+            WHERE ShiftDeviation > 1.0e-6 AND ShiftDeviation < 1.0e-4
+            AND (IdentificationMethod LIKE 'Composite' OR
+                 IdentificationMethod LIKE 'Plane' OR
+                 IdentificationMethod LIKE 'Sphere')
+        """
+    )
+
+    attach_r(
+        "(Pyramid, Angle) Reduction ACC 10^-4 to 10^-3 Shift",
+        """
+            SELECT A1 - A2
+            FROM 
+                (SELECT AVG(PercentageCorrect) AS A1
+                FROM REDUCTION
+                WHERE ShiftDeviation > 1.0e-5 AND ShiftDeviation < 1.0e-3
+                AND (IdentificationMethod LIKE 'Angle' OR
+                     IdentificationMethod LIKE 'Pyramid')),
+                (SELECT AVG(PercentageCorrect) AS A2
+                FROM REDUCTION
+                WHERE ShiftDeviation > 1.0e-4 AND ShiftDeviation < 1.0e-2
+                AND (IdentificationMethod LIKE 'Angle' OR
+                     IdentificationMethod LIKE 'Pyramid'))
+        """
+    )
+
+    attach_r(
+        "Dot Reduction ACC 10^-3 to 10^-2 Shift",
+        """
+            SELECT A1 - A2
+            FROM
+                (SELECT AVG(PercentageCorrect) AS A1
+                FROM REDUCTION
+                WHERE ShiftDeviation > 1.0e-4 AND ShiftDeviation < 1.0e-2
+                AND IdentificationMethod LIKE 'Dot'),
+                (SELECT AVG(PercentageCorrect) AS A2
+                FROM REDUCTION
+                WHERE ShiftDeviation > 1.0e-3 AND ShiftDeviation < 1.0e-1
+                AND IdentificationMethod LIKE 'Dot')
+        """
+    )
+
+    attach_r(
+        "(Composite, Triangle) Reduction AVG ACC 10^-4 Shift",
+        """
+            SELECT AVG(PercentageCorrect)
+            FROM REDUCTION
+            WHERE ShiftDeviation > 1.0e-5 AND ShiftDeviation < 1.0e-3
+            AND (IdentificationMethod LIKE 'Composite' OR
+                 IdentificationMethod LIKE 'Plane' OR
+                 IdentificationMethod LIKE 'Sphere')
+        """
+    )
+
+    attach_std(
+        "(Composite, Triangle) Reduction STD ACC 10^-4 Shift",
+        """
+            SELECT AVG(PercentageCorrect)
+            FROM REDUCTION
+            WHERE ShiftDeviation > 1.0e-5 AND ShiftDeviation < 1.0e-3
+            AND (IdentificationMethod LIKE 'Composite' OR
+                 IdentificationMethod LIKE 'Plane' OR
+                 IdentificationMethod LIKE 'Sphere')
+            GROUP BY IdentificationMethod
+        """
+    )
+
+    attach_r(
+        "(Composite, Triangle) Reduction AVG ACC 10^-3 Shift",
+        """
+            SELECT AVG(PercentageCorrect)
+            FROM REDUCTION
+            WHERE ShiftDeviation > 1.0e-4 AND ShiftDeviation < 1.0e-2
+            AND (IdentificationMethod LIKE 'Composite' OR
+                 IdentificationMethod LIKE 'Plane' OR
+                 IdentificationMethod LIKE 'Sphere')
+        """
+    )
+
+    attach_r(
+        "(Composite, Triangle) Reduction AVG ACC 10^-2 Shift",
+        """
+            SELECT AVG(PercentageCorrect)
+            FROM REDUCTION
+            WHERE ShiftDeviation > 1.0e-3 AND ShiftDeviation < 1.0e-1
+            AND (IdentificationMethod LIKE 'Composite' OR
+                 IdentificationMethod LIKE 'Plane' OR
+                 IdentificationMethod LIKE 'Sphere')
+        """
+    )
+
+    attach_r(
+        "Angle Reduction T 10^-4 to 10^-3 Shift",
+        """
+            SELECT R1 - R2
+            FROM
+                (SELECT AVG(TimeToResult) AS R1
+                FROM REDUCTION
+                WHERE ShiftDeviation > 1.0e-5 AND ShiftDeviation < 1.0e-3
+                AND IdentificationMethod LIKE 'Angle'),
+                (SELECT AVG(TimeToResult) AS R2
+                FROM REDUCTION
+                WHERE ShiftDeviation > 1.0e-4 AND ShiftDeviation < 1.0e-2
+                AND IdentificationMethod LIKE 'Angle')
+        """
+    )
+
+    attach_r(
+        "Angle Reduction QC 10^-4 to 10^-3 Shift",
+        """
+            SELECT R1 - R2
+            FROM
+                (SELECT AVG(QueryCount) AS R1
+                FROM REDUCTION
+                WHERE ShiftDeviation > 1.0e-5 AND ShiftDeviation < 1.0e-3
+                AND IdentificationMethod LIKE 'Angle'),
+                (SELECT AVG(QueryCount) AS R2
+                FROM REDUCTION
+                WHERE ShiftDeviation > 1.0e-4 AND ShiftDeviation < 1.0e-2
+                AND IdentificationMethod LIKE 'Angle')
+        """
+    )
+
+    attach_r(
+        "(Composite, Triangle) Reduction T 10^-5 to 10^-4 Shift",
+        """
+            SELECT R2 - R1
+            FROM 
+                (SELECT AVG(TimeToResult) AS R1
+                FROM REDUCTION
+                WHERE ShiftDeviation > 1.0e-6 AND ShiftDeviation < 1.0e-4
+                AND (IdentificationMethod LIKE 'Composite' OR
+                     IdentificationMethod LIKE 'Plane' OR
+                     IdentificationMethod LIKE 'Sphere')),
+                (SELECT AVG(TimeToResult) AS R2
+                FROM REDUCTION
+                WHERE ShiftDeviation > 1.0e-5 AND ShiftDeviation < 1.0e-3
+                AND (IdentificationMethod LIKE 'Composite' OR
+                     IdentificationMethod LIKE 'Plane' OR
+                     IdentificationMethod LIKE 'Sphere'))
+        """
+    )
+
+    attach_r(
+        "(Composite, Triangle) Reduction QC 10^-5 to 10^-4 Shift",
+        """
+            SELECT R2 - R1
+            FROM 
+                (SELECT AVG(QueryCount) AS R1
+                FROM REDUCTION
+                WHERE ShiftDeviation > 1.0e-6 AND ShiftDeviation < 1.0e-4
+                AND (IdentificationMethod LIKE 'Composite' OR
+                     IdentificationMethod LIKE 'Plane' OR
+                     IdentificationMethod LIKE 'Sphere')),
+                (SELECT AVG(QueryCount) AS R2
+                FROM REDUCTION
+                WHERE ShiftDeviation > 1.0e-5 AND ShiftDeviation < 1.0e-3
+                AND (IdentificationMethod LIKE 'Composite' OR
+                     IdentificationMethod LIKE 'Plane' OR
+                     IdentificationMethod LIKE 'Sphere'))
+        """
+    )
+
+    attach_r(
+        "(Composite, Triangle) Reduction T 10^-4 to 10^-3 Shift",
+        """
+            SELECT R2 - R1
+            FROM 
+                (SELECT AVG(TimeToResult) AS R1
+                FROM REDUCTION
+                WHERE ShiftDeviation > 1.0e-5 AND ShiftDeviation < 1.0e-3
+                AND (IdentificationMethod LIKE 'Composite' OR
+                     IdentificationMethod LIKE 'Plane' OR
+                     IdentificationMethod LIKE 'Sphere')),
+                (SELECT AVG(TimeToResult) AS R2
+                FROM REDUCTION
+                WHERE ShiftDeviation > 1.0e-4 AND ShiftDeviation < 1.0e-2
+                AND (IdentificationMethod LIKE 'Composite' OR
+                     IdentificationMethod LIKE 'Plane' OR
+                     IdentificationMethod LIKE 'Sphere'))
+        """
+    )
+
+    attach_r(
+        "(Composite, Triangle) Reduction QC 10^-4 to 10^-3 Shift",
+        """
+            SELECT R2 - R1
+            FROM 
+                (SELECT AVG(QueryCount) AS R1
+                FROM REDUCTION
+                WHERE ShiftDeviation > 1.0e-5 AND ShiftDeviation < 1.0e-3
+                AND (IdentificationMethod LIKE 'Composite' OR
+                     IdentificationMethod LIKE 'Plane' OR
+                     IdentificationMethod LIKE 'Sphere')),
+                (SELECT AVG(QueryCount) AS R2
+                FROM REDUCTION
+                WHERE ShiftDeviation > 1.0e-4 AND ShiftDeviation < 1.0e-2
+                AND (IdentificationMethod LIKE 'Composite' OR
+                     IdentificationMethod LIKE 'Plane' OR
+                     IdentificationMethod LIKE 'Sphere'))
+        """
+    )
+
+    attach_r(
+        "(Composite, Triangle) Reduction QC 10^-4 / QC 10^-3 Shift",
+        """
+            SELECT R2 / R1
+            FROM 
+                (SELECT AVG(QueryCount) AS R1
+                FROM REDUCTION
+                WHERE ShiftDeviation > 1.0e-5 AND ShiftDeviation < 1.0e-3
+                AND (IdentificationMethod LIKE 'Composite' OR
+                     IdentificationMethod LIKE 'Plane' OR
+                     IdentificationMethod LIKE 'Sphere')),
+                (SELECT AVG(QueryCount) AS R2
+                FROM REDUCTION
+                WHERE ShiftDeviation > 1.0e-4 AND ShiftDeviation < 1.0e-2
+                AND (IdentificationMethod LIKE 'Composite' OR
+                     IdentificationMethod LIKE 'Plane' OR
+                     IdentificationMethod LIKE 'Sphere'))
+        """
+    )
+
+    attach_r(
+        "Dot Reduction T 10^-3 to 10^-2 Shift",
+        """
+            SELECT R2 - R1
+            FROM 
+                (SELECT AVG(TimeToResult) AS R1
+                FROM REDUCTION
+                WHERE ShiftDeviation > 1.0e-4 AND ShiftDeviation < 1.0e-2
+                AND IdentificationMethod LIKE 'Dot'),
+                (SELECT AVG(TimeToResult) AS R2
+                FROM REDUCTION
+                WHERE ShiftDeviation > 1.0e-3 AND ShiftDeviation < 1.0e-1
+                AND IdentificationMethod LIKE 'Dot')
+        """
+    )
+
+    attach_r(
+        "Dot Reduction QC 10^-3 to 10^-2 Shift",
+        """
+            SELECT R2 - R1
+            FROM 
+                (SELECT AVG(QueryCount) AS R1
+                FROM REDUCTION
+                WHERE ShiftDeviation > 1.0e-4 AND ShiftDeviation < 1.0e-2
+                AND IdentificationMethod LIKE 'Dot'),
+                (SELECT AVG(QueryCount) AS R2
+                FROM REDUCTION
+                WHERE ShiftDeviation > 1.0e-3 AND ShiftDeviation < 1.0e-1
+                AND IdentificationMethod LIKE 'Dot')
+        """
+    )
+
+    attach_r(
+        "Pyramid Reduction AVG T Shift",
+        """
+            SELECT AVG(TimeToResult)
+            FROM REDUCTION
+            WHERE IdentificationMethod Like 'Pyramid'
+            AND FalseStars = 0
+        """
+    )
+
+    attach_std(
+        "Pyramid Reduction STD T Shift",
+        """
+            SELECT AVG(TimeToResult)
+            FROM REDUCTION
+            WHERE IdentificationMethod Like 'Pyramid'
+            AND FalseStars = 0
+            GROUP BY ShiftDeviation
+        """
+    )
+
+    attach_r(
+        "Pyramid Reduction QC 10^-4 to 10^-5 Shift",
+        """
+            SELECT A2 - A1
+            FROM 
+                (SELECT AVG(QueryCount) AS A1
+                FROM REDUCTION
+                WHERE IdentificationMethod LIKE 'Pyramid'
+                AND ShiftDeviation > 1.0e-6 AND ShiftDeviation < 1.0e-4),
+                (SELECT AVG(QueryCount) AS A2
+                FROM REDUCTION
+                WHERE IdentificationMethod LIKE 'Pyramid'
+                AND ShiftDeviation > 1.0e-5 AND ShiftDeviation < 1.0e-3)
+        """
+    )
+
+    attach_r(
+        ["Angle Reduction ACC 0 to 12 False", "Composite Reduction ACC 0 to 12 False",
+         "Dot Reduction ACC 0 to 12 False", "Plane Reduction ACC 0 to 12 False", "Pyramid Reduction ACC 0 to 12 False",
+         "Sphere Reduction ACC 0 to 12 False"],
+        """
+            SELECT R1.A1 - R2.A2
+            FROM 
+                -- sigma_{R1.I = R2.I}(R1 x R2), i forgot how joins work ): --
+                (SELECT AVG(PercentageCorrect) AS A1, IdentificationMethod AS I
+                FROM REDUCTION
+                WHERE ShiftDeviation < 1.0e-7 AND FalseStars = 0
+                GROUP BY IdentificationMethod) AS R1,
+                (SELECT AVG(PercentageCorrect) AS A2, IdentificationMethod AS I
+                FROM REDUCTION
+                WHERE FalseStars = 12
+                GROUP BY IdentificationMethod) AS R2
+            WHERE R1.I = R2.I
+            ORDER BY R1.I
+        """
+    )
+
+    attach_r(
+        ["Angle Reduction QC 0 to 12 False", "Composite Reduction QC 0 to 12 False",
+         "Dot Reduction QC 0 to 12 False", "Plane Reduction QC 0 to 12 False", "Pyramid Reduction QC 0 to 12 False",
+         "Sphere Reduction QC 0 to 12 False"],
+        """
+            SELECT R2.A2 - R1.A1
+            FROM 
+                (SELECT AVG(QueryCount) AS A1, IdentificationMethod AS I
+                FROM REDUCTION
+                WHERE ShiftDeviation < 1.0e-7 AND FalseStars = 0
+                GROUP BY IdentificationMethod) AS R1,
+                (SELECT AVG(QueryCount) AS A2, IdentificationMethod AS I
+                FROM REDUCTION
+                WHERE FalseStars = 12
+                GROUP BY IdentificationMethod) AS R2
+            WHERE R1.I = R2.I
+            ORDER BY R1.I
+        """
+    )
+
+    attach_r(
+        ["Angle Reduction T 0 to 12 False", "Composite Reduction T 0 to 12 False",
+         "Dot Reduction T 0 to 12 False", "Plane Reduction T 0 to 12 False", "Pyramid Reduction T 0 to 12 False",
+         "Sphere Reduction T 0 to 12 False"],
+        """
+            SELECT R2.A2 - R1.A1
+            FROM 
+                (SELECT AVG(TimeToResult) AS A1, IdentificationMethod AS I
+                FROM REDUCTION
+                WHERE ShiftDeviation < 1.0e-7 AND FalseStars = 0
+                GROUP BY IdentificationMethod) AS R1,
+                (SELECT AVG(TimeToResult) AS A2, IdentificationMethod AS I
+                FROM REDUCTION
+                WHERE FalseStars = 12
+                GROUP BY IdentificationMethod) AS R2
+            WHERE R1.I = R2.I
+            ORDER BY R1.I
+        """
+    )
+
+    attach_r(
+        "Pyramid Reduction QS 0 to 12 False",
+        """
+            SELECT ( A2 - A1 )/ 3.0
+            FROM 
+                (SELECT AVG(QueryCount) AS A1
+                FROM REDUCTION
+                WHERE ShiftDeviation < 1.0e-7 AND FalseStars = 0
+                AND IdentificationMethod LIKE 'Pyramid'),
+                (SELECT AVG(QueryCount) AS A2
+                FROM REDUCTION
+                WHERE FalseStars = 12
+                AND IdentificationMethod LIKE 'Pyramid')
         """
     )
 
@@ -479,7 +953,7 @@ if __name__ == '__main__':
          'Sphere': {'Query': {}, 'Reduction': {}, 'Identification': {}}}
 
     # Your scientists were so preoccupied with whether or not they could, they didn't stop to think if they should.
-    # (I'm sorry).
+    # (I'm sorry, just know it requires 3 nested loops).
     is_method = lambda i_0, j_0, k_0: ((('Triangle' in k_0 and (j_0 == 'Plane' or j_0 == 'Sphere')) or j_0 in k_0)
                                        and i_0 in k_0)
     list(map(lambda k: list(map(lambda j: list(map(
@@ -487,5 +961,5 @@ if __name__ == '__main__':
                                       results[k][0] if len(results[k]) == 1 else results[k]})
         if is_method(i, j, k) else None, p[j])), p)), results))
 
-    pp = PrettyPrinter(indent=4)
+    pp = PrettyPrinter(indent=1, width=120)
     pp.pprint(p)

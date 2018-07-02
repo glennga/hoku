@@ -133,6 +133,7 @@ params = {
 
     'identification-plot': {
         'll': ['Angle', 'Dot', 'Sphere', 'Plane', 'Pyramid', 'Composite'],  # Legend list.
+        # 'll': ['Dot', 'Pyramid', 'Composite'],  # Legend list.
 
         # Shift Deviation vs. PercentageCorrect plot parameters.
         'sdpc-yll': [0, 1.05],  # Y-axis limits

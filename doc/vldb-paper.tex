@@ -1,0 +1,51 @@
+\documentclass{include/vldb}
+\usepackage{graphicx} \usepackage{balance} \usepackage{hyperref} \usepackage{natbib}
+\usepackage{tikz} \usepackage{tikz-3dplot} \usepackage{nicefrac} \usepackage{algorithm} \usepackage{subcaption}
+\usepackage[noend]{algpseudocode} \usepackage{array} \usepackage{pgfplots} \usepackage{booktabs} \usepackage{siunitx}
+
+
+%\usepackage{graphicx} \usepackage{url} \usepackage{hyperref} \usepackage{caption} \usepackage{amsmath}
+%\usepackage{amssymb} \usepackage{array} \usepackage{listings} \usepackage{color} \usepackage{textcomp}
+%\usepackage[utf8]{inputenc} \usepackage{natbib} \usepackage{algorithm} \usepackage{tikz} \usepackage{multicol}
+%\usepackage[noend]{algpseudocode} \usepackage{csquotes} \usepackage{setspace} \usepackage{stfloats}
+
+
+\vldbTitle{Query, Reduction, and End-to-End Analysis of Lost-in-Space Star Identification Algorithms}
+\vldbAuthors{Glenn Galvizo and Lipyeow Lim}
+\vldbDOI{https://doi.org/TBD}
+
+\begin{document}
+	\title{Analysis of Lost-in-Space Star Identification Algorithms [Experiment and Analysis]}
+
+	\numberofauthors{2}
+	\author{
+		\alignauthor Glenn Galvizo  \\
+			\affaddr{University of Hawaii at Manoa} \\
+			\affaddr{2500 Campus Road} \\
+			\affaddr{Honolulu, Hawaii 96822} \\
+			\email{glennga@hawaii.edu}
+		\alignauthor Lipyeow Lim \\
+			\affaddr{University of Hawaii at Manoa} \\
+			\affaddr{2500 Campus Road} \\
+			\affaddr{Honolulu, Hawaii 96822} \\
+			\email{lipyeow@hawaii.edu}
+	}
+
+	\maketitle
+
+	\input{include/abstract}
+	\input{include/background}
+	\input{include/problem}
+	\input{include/existing}
+	\input{include/evaluation}
+%	\input{include/methods}
+%	\input{include/results}
+%	\input{include/conclusion}
+	\balance
+
+	\nocite{*}
+	\bibliographystyle{abbrv}
+	\bibliography{include/references}
+	\subsection{References}\label{subsec:references}
+
+\end{document}

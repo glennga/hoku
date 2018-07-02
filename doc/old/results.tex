@@ -298,7 +298,7 @@ but these differences magnify the flaw of the expensive Dot Angle query step.
 
 In 1st, 2nd, and 3rd place are the Planar Triangle method, Composite Pyramid method, and Spherical Triangle method
 respectively.
-All of these methods have an average runtime of $159.2 \pm 13.7$ms, consuming 1 query set on average to obtain a result.
+All of these methods have an average runtime of $159.2 \pm 24.7$ms, consuming 1 query set on average to obtain a result.
 The Spherical and Planar Triangle methods use the \Call{Pivot}{} reduction step, but the majority of the $R$ reducing
 comes from their efficient query steps.
 For all methods combined (total of 3000 points), there exist only 12 reduction runs
@@ -308,10 +308,10 @@ Of these 12, only one additional query was required to reduce the candidate sets
 In~\autoref{figure:reductionShift}, the deviation of Gaussian noise against the average accuracy and runtime is
 displayed for different identification methods.
 As soon as Gaussian noise of $10^{-5}$ degrees is introduced, all methods using triangular features can no longer
-promise 100\% accuracy (average of MP48\% decrease).
-The Pyramid and Angle methods experience an average decline in accuracy of MP49\% with Gaussian noise of $10^{-3}$
+promise 100\% accuracy (average of 1.5\% decrease).
+The Pyramid and Angle methods experience an average decline in accuracy of 76.3\% with Gaussian noise of $10^{-3}$
 degrees from $10^{-4}$ degrees.
-The Dot Angle method, with the largest query $\sigma$ parameter experiences a decline of MP50\% with noise of $10^{-2}$
+The Dot Angle method, with the largest query $\sigma$ parameter experiences a decline of 40.3\% with noise of $10^{-2}$
 degrees from $10^{-3}$ degrees.
 
 Note that the hyperparameters for all methods were chosen without any noise introduced.
@@ -321,9 +321,9 @@ It follows that any angular noise greater than this should lead to a decline in 
 
 For methods using triangular features, the answer is not as easy to determine.
 The Planar Triangle, Spherical Triangle, and Composite Pyramid method's accuracy decreases to an average of
-$MP51 \pm SP2\%$ for noise of $10^{-4}$ degrees.
-At $10^{-3}$, all triangular methods decreases to MP52\%.
-Beyond this, accuracy drops very close to zero (MP53\% at $10^{-2}$ degrees).
+83.0\% for noise of $10^{-4}$ degrees.
+At $10^{-3}$, all triangular methods decreases to 30.7\%.
+Beyond this, accuracy drops very close to zero (3.2\% at $10^{-2}$ degrees).
 The triangle methods would be less sensitive to noise if the $\sigma$ parameters were increased, but this comes at the
 price of time.
 This can be observed with the Dot Angle method who is able to promise near-to 100\% accuracy longer than all other
@@ -336,29 +336,27 @@ Each method's reduction step would have to iterate through more stars in the ima
 reduction criteria.
 The Angle method though, does not follow this reasoning.
 This method actually decreases in time as $10^{-3}$ degrees of noise is introduced from $10^{-4}$ degrees, running
-MP54ms faster and consuming MP55 less query steps.
+400.2ms faster and consuming 25.1 less query steps.
 The fact that the Angle method is taking faster to run and using less catalog accesses under more noise suggests that
 the method arrives at false answers quicker than accurate ones.
 Once noise goes beyond the $\sigma_1$ query parameter, the correct pair found less noisy images no longer meets the
 query criteria.
 
-As $10^{-4}$ degrees of noise is introduced, all methods using triangular features run MP56ms longer on average.
-The average query step count increase from $10^{-5}$ degrees of noise to $10^{-4}$ degrees is MP57 (MP58 steps vs.
-MP59 steps).
-The other large jump in accuracy was observed at $10^{-3}$ degrees of noise.
-From $10^{-4}$ degrees, all methods using triangular features run MP60ms longer on average.
-The average query step count increases by a factor of MP61 here, or MP62 steps.
+As $10^{-4}$ degrees of noise is introduced, all methods using triangular features run 6.4ms longer on average.
+The average query step count increase from $10^{-5}$ degrees of noise to $10^{-4}$ degrees is 46.2 steps (6.87 steps vs.
+51.5 steps).
+Increasing the noise to $10^{-3}$ degrees, these same methods run 14.9ms longer.
+The average query step count increases by a factor of 3.6 here, or 134.5 steps.
 Both the $\{ R \mid 1 = |R| \}$ and pivoting reduction step generally handle this type of noise the same.
 As the noise increases with these methods, so does the number of catalog accesses and the running time.
 
 The Dot Angle method experiences the largest jump in runtime as noise increases from $10^{-3}$ degrees to $10^{-2}$.
-Runtime increases MP63ms, and the average number of catalog accesses increases by MP64.
+Runtime increases 110.9ms, and the average number of catalog accesses increases by 1.73.
 For noise beyond the $\sigma_{(1, 2, 3)}$ parameters, the aggressiveness of the $\{ R \mid 1 = |R| \}$ reduction step
 is seen as more iterations are required to obtain an accurate result or error out.
-On the other end the Pyramid method has the most consistent running time of all methods here, running an average of
-$MP65 \pm SP3$ms for all of the trials associated with this type of noise.
-From $10^{-4}$ degrees of noise to $10^{-3}$, only MP66 more query steps are consumed on average.
-From $10^{-3}$ degrees of noise to $10^{-2}$, only MP67 more steps are consumed.
+
+The Pyramid method has the most consistent running time of all methods here, running an average of
+$166.1 \pm 6.5$ms for all of the trials associated with this type of noise.
 
 \begin{figure*}
     \centering{
@@ -388,7 +386,7 @@ The list below orders each method from least responsive to most responsive from 
     \end{enumerate}
 \end{multicols}
 
-The Angle and Dot Angle methods experience the largest decline from no noise to 12 false stars of MP68\% and MP69\%
+The Angle and Dot Angle methods experience the largest decline from no noise to 12 false stars of 58.6\% and 49.7\%
 respectively.
 Both methods specify no protection against this type of noise beyond the features themselves, and it follows that
 both of these rank last in terms of false star tolerance.
@@ -429,18 +427,18 @@ This is likely due to the Pyramid method's weak reduction step, which does not a
 The avoidance process will not wok in the Pyramid method's favor if it does not choose new query sets.
 
 The running time plot again shows that the Angle method runs faster when more noise is introduced.
-From 0 to 12 false stars, the Angle method runs MP70ms faster and consumes MP71 less query steps on average.
+From 0 to 12 false stars, the Angle method runs 269.7ms faster and consumes 18.0 less query steps on average.
 Incorrect answers fit the reduction criteria better than correct ones here.
-From 0 to 12 false stars, the Pyramid method performs MP72 more query steps (MP73 catalog accesses) on average.
-Similarly, the Composite Pyramid method accesses the catalog MP74 more times on average.
+From 0 to 12 false stars, the Pyramid method performs 1.2 more query steps (3.8 catalog accesses) on average.
+Similarly, the Composite Pyramid method only accesses the catalog 2.8 more times on average.
 
 The Planar and Spherical Triangle methods both exhibit slight runtime response to an increasing number of false
 stars.
-From 0 to 12 false stars, the Planar Triangle method increases in runtime by MP75ms and consumes MP76 more query sets
-on average.
-Similarly, the Spherical Triangle method increases in runtime by MP77ms and consumes MP78 more query sets on average.
+From 0 to 12 false stars, the Planar Triangle method increases in runtime by 5.6ms and consumes 84.0 more catalog
+accesses on average.
+The Spherical Triangle method increases in runtime by 18.9ms, but only consumes 73.0 more query sets on average.
 
-Last in runtime and second to last in accuracy given false stars is the Dot Angle method.
+Second to last in both runtime and accuracy given false stars is the Dot Angle method.
 Recall that this was the most accurate under the largest amount of noise, but the slowest of the six.
 From 0 to 12 false stars, the Dot Angle method increases in runtime by MP79ms and accesses the catalog MP80 more times
 on average.
