@@ -168,7 +168,7 @@ namespace Experiment {
         /// Schema header that corresponds to the log file for all identification trials.
         const char *const SCHEMA = "IdentificationMethod TEXT, Timestamp TEXT, Sigma1 FLOAT, Sigma2 FLOAT, "
                                    "Sigma3 FLOAT, Sigma4 FLOAT, ShiftDeviation FLOAT, FalseStars INT, "
-                                   "QueryCount INT, TimeToResult FLOAT, PercentageCorrect FLOAT";
+                                   "QueryCount INT, TimeToResult FLOAT, PercentageCorrect FLOAT, IsErrorOut INT";
 
         double percentage_correct (const Star::list &big_i, const Star::list &b, double fov);
 
@@ -221,7 +221,7 @@ namespace Experiment {
                         lu.log_trial(
                                 {p.sigma_1, p.sigma_2, p.sigma_3, p.sigma_4, is_shift ? s : 0, !is_shift ? s : es_min,
                                  static_cast<double>(*p.nu), static_cast<double>(t.count()),
-                                 percentage_correct(big_i, w, fov)}), t.reset();
+                                 percentage_correct(big_i, w, fov), (w == Identification::NO_CONFIDENT_A)}), t.reset();
                     }
                 }
             };
