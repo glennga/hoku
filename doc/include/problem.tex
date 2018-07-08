@@ -46,7 +46,7 @@ frame and the body frame.
 \begin{subequations}
     ~\autoref{figure:coordinateSystem} describes an inertial frame $\kFrame$ with a right hand set of three orthogonal
     vectors $\{\vv{u_1}, \vv{u_2}, \vv{u_3}\}$ and a body frame $\iFrame$ with another right hand set of three
-    orthogonal vectors $\{\vv{v_1}, \vv{v_2}, \vv{v_3}\}$ (CITE SO STUFF HERE!!!!).
+    orthogonal vectors $\{\vv{v_1}, \vv{v_2}, \vv{v_3}\}$~\cite{RotationMatricies}.
     A \textit{rotation matrix} $A$ can be assembled to describe the basis vectors of $\kFrame$ in terms of $\iFrame$:
     \begin{align}
         \begin{bmatrix}
@@ -79,7 +79,7 @@ frame and the body frame.
 \end{subequations}
 The issue here is that this rotation matrix $A$ is not given and that we need to account for noise in obtaining our
 measurements.
-This problem is known as \textit{Wahba's problem}, first posed by Gracie Wahba in [CITE ME].
+This problem is known as \textit{Wahba's problem}, first posed by Gracie Wahba in 1965~\cite{Wahba}.
 Wahba's problem states that finding the optimal $A$ involves minimizing the loss function below:
 \begin{equation}
     L(A) = \frac{1}{2} \sum_j^n \vv{w_j} \left\| \vv{I_j} - A\vv{K_j} \right\|^2
@@ -87,20 +87,23 @@ Wahba's problem states that finding the optimal $A$ involves minimizing the loss
 where $\vv{w_j}$ represents a non negative weight associated with the noise between the observations $\vv{I_j}$
 in the body frame and $\vv{K_j}$ in the inertial frame.
 
-For $n > 2$, Wahba's problem exists as an optimization problem.
-In the $n = 2$ case though, the \textit{TRIAD method} exists as a closed form solution [CITE ME].
-This algorithm starts by constructing two sets of basis vectors: one attached to the body referential (two
-observations in the body frame) $\left[ \vv{t_{1I}} \ \vv{t_{2I}} \ \vv{t_{3I}} \right]$ and another attached to
-the inertial referential (two observations in the inertial frame) $\left[ \vv{t_{2I}} \ \vv{t_{2K}} \ \vv{t_{3K}}
-\right]$ [CITE ME].
-This is known as the triad frame:
-\begin{alignat}{2}
-    \vv{t_{1I}} &= \frac{\vv{v_1}}{\left| \vv{v_1} \right|} &\vv{t_{2I}} &{}={}&
-        \frac{\vv{u_1}}{\left| \vv{u_1} \right|} \\
-    \vv{t_{2I}} &= \frac{\vv{v_1} \times \vv{v_2}}{\left| \vv{v_1} \times \vv{v_2} \right|} \ \ \ \ \ \ \ \
-        &\vv{t_{2K}} &{}={}& \frac{\vv{u_1} \times \vv{u_2}}{\left| \vv{u_1} \times \vv{u_2} \right|} \\
-    \vv{t_{3I}} &= \vv{t_{1I}} \times \vv{t_{2I}} &\vv{t_{3K}} &{}={}& \vv{t_{2I}} \times \vv{t_{2K}}
-\end{alignat}
+\begin{subequations}
+    For $n > 2$, Wahba's problem exists as an optimization problem.
+    In the $n = 2$ case though, the \textit{TRIAD method} (short for TRIaxial Attitude Determination) exists as a
+    closed form solution~\cite{ClosedForm}.
+    This algorithm starts by constructing two sets of basis vectors: one attached to the body referential (two
+    observations in the body frame) $\left[ \vv{t_{1I}} \ \vv{t_{2I}} \ \vv{t_{3I}} \right]$ and another attached to
+    the inertial referential (two observations in the inertial frame) $\left[ \vv{t_{2I}} \ \vv{t_{2K}} \ \vv{t_{3K}}
+    \right]$~\cite{TRIAD, TRIADOriginal}.
+    This is known as the triad frame:
+    \begin{alignat}{2}
+        \vv{t_{1I}} &= \frac{\vv{v_1}}{\left| \vv{v_1} \right|} &\vv{t_{2I}} &{}={}&
+            \frac{\vv{u_1}}{\left| \vv{u_1} \right|} \\
+        \vv{t_{2I}} &= \frac{\vv{v_1} \times \vv{v_2}}{\left| \vv{v_1} \times \vv{v_2} \right|} \ \ \ \ \ \ \ \
+            &\vv{t_{2K}} &{}={}& \frac{\vv{u_1} \times \vv{u_2}}{\left| \vv{u_1} \times \vv{u_2} \right|} \\
+        \vv{t_{3I}} &= \vv{t_{1I}} \times \vv{t_{2I}} &\vv{t_{3K}} &{}={}& \vv{t_{2I}} \times \vv{t_{2K}}
+    \end{alignat}
+\end{subequations}
 Getting from frame $\kFrame$ to $\iFrame$ now simplifies to multiplication of the triad frame base change matrices:
 \begin{equation}
     A =
@@ -120,10 +123,10 @@ For all instances where a rotation between the inertial and body frames was requ
     For simplicity, we make the assumption here that all stars in $\kFrame$ are fixed and exist in a inertial frame
     known as the \textit{Earth centered inertial} frame, or ECI frame.
     The star vectors themselves come from star catalogs, the majority of which use the ECI frame and record the
-    positions of stars as points lying on a unit sphere (celestial sphere).
-    Two pieces of information are given here: right ascension $\alpha$ (equivalent to latitude on Earth) and declination $\delta$
-    (equivalent to longitude).
-    Representing some spherical point $(\alpha, \delta, r)$ in Cartesian space involves the following:
+    positions of stars as points lying on a unit sphere (celestial sphere)~\cite{Tappe}.
+    Two pieces of information are given here: right ascension $\alpha$ (equivalent to latitude on Earth) and
+    declination $\delta$ (equivalent to longitude).
+    Representing some spherical point $(\alpha, \delta, r)$ in 3D Cartesian space involves the following:
     \begin{align} \label{eq:sphereToCartesian}
         x &= r \cos(\delta) \cos(\alpha) \\
         y &= r \cos(\delta) \sin(\alpha) \\
@@ -139,7 +142,7 @@ computer.
 After taking the picture, the pixel positions of potential stars in the image are determined.
 This involves finding bright blobs in the image, and computing each blob's center of mass to get a point ($x, y$).
 Through some 2D to 3D transformation process involving the camera's hardware (i.e.\ field of view, focal point,
-etc\ldots), a 3D point is then obtained.
+etc\ldots), a 3D point is then obtained~\cite{Tappe}.
 This point is then used to compare stars in the inertial frame.
 %    To align these stars with the ones in the catalog, the inverse Mercator mapping is used [CITE ME]:
 %    \begin{align}
@@ -150,5 +153,6 @@ This point is then used to compare stars in the inertial frame.
 %        z &= k \sin\left( \frac{x}{R}  \right)
 %    \end{align}
 
-The last problem is the focus of this paper: determining which observation from the star tracker frame $\iFrame$
+The next issue is the focus of this paper: determining which observation from the star tracker frame $\iFrame$
 corresponds which observation from the star catalog frame $\kFrame$.
+Once these are recognized, the situation reduces to Wahba's problem to find the optimal attitude~\cite{Survey}.

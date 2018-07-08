@@ -1,56 +1,19 @@
 \section{Conclusion}\label{sec:conclusion}
-Attitude determination is a vital part of all spacecraft missions.
-Previously, devices such as magnetometers and Sun sensors would give one observation each in both the body and inertial
-frames.
-The advantage of star trackers is the presentation of multiple observations with just one device.
-Star identification is the process associated that maps observations found in the body frame (i.e.\ the image) to the
-inertial frame (i.e.\ the catalog).
-
-Gottlieb's Angle method, Liebe's Dot Angle method, Motari's Pyramid method, Cole and Crassidis's Spherical and
-Planar Triangle method, and Toloei's Composite Pyramid method were adjusted to fit a general identification flow
-and were analyzed in terms of their query, reduction, and identification steps.
+In this paper, we discussed six star identification methods and their strengths and weaknesses.
+Each method was modified from their original literature to fit a general identification flow.
 Portions that were interchangeable amongst all methods such as database access and centroid determination were
 normalized or removed to focus on the star identification aspect itself.
+To control the severity of our error, artifical images were generated.
 
-In all experiments, the Pyramid method ranked first (or close to first) in running time and fairly high in accuracy.
-The average short running time is a result of a relatively fast query step, and its accuracy can be attributed to the
-verification procedure at identification time.
-The Pyramid method is the least sensitive to hyperparameter changes in terms of query size response and accuracy
-response.
-This method produced the lowest number of catalog candidate sets for a given query, and is the most tolerant of
-both Gaussian noise and false stars.
-
-The Angle method had the fastest query step, which stems from the small catalog ($\sim$35 times smaller than
-the next larger catalogs, the triangle catalogs).
-There were a few instances where the accuracy of the Angle method was greater than the Pyramid method, but this came
-at the cost of runtime.
-The results produced by the query step heavily impacted the reduction and identification runtime.
-For the no noise end-to-end case, this method was a factor of MP200 times slower than the next slowest method (Dot
-Angle method).
-
-The Dot Angle method is the most sensitive to hyperparameter changes, but had a larger ideal region than the other
-methods.
-The catalog for this method was $\sim$105 times larger than the Angle method, and consequently had the longest query
-step.
-This method handles Gaussian noise the best of all other methods, being the second fastest to identify an image and
-being first in how accurate the result is.
-In terms of false stars, this method ranks last in accuracy.
-
-The accuracy of the Spherical and Planar Triangle methods rank in between for both Gaussian noise and false stars.
-The differences between the spherical and planar triangle features are minuscule compared to the algorithms
-encapsulating the features themselves.
-These methods produced the smallest amount of candidates on average, which was useful in mitigating the highest
-theoretical upper bound for catalog accesses.
-Unfortunately, these methods were not the fastest nor were they the most accurate.
-
-The Composite Pyramid method, a composite of the Planar Triangle method's features and the Pyramid method's processes,
-ranks last in accuracy and average runtime for images with Gaussian noise 2nd in accuracy for images with just
-false stars.
-Combining the two methods also means combining the filters associated with each, and the results show inconsistent
-runtime due to failing at different stages of the algorithm.
-Instead of getting the best of both worlds here, the Composite Pyramid method inherits the worst portions of the two.
+The Angle method is the simplest of the six and has the fastest query step, but its runtime is heavily impacted by
+the $\abs{R} = 1$ criterion and \Call{DMT}{} process.
+The Dot Angle method's $f$ accuracy is the least sensitive to varying levels of Gaussian noise,
+$K$ catalog and has the slowest query step.
+The Planar Triangle and Spherical Triangle methods produced the smallest $R$ set after querying, but their $f$ accuracy
+is the most sensitive to increasing amounts of false stars.
+The Pyramid method is the fastest method given varying amounts of Gaussian noise \& false stars and is also the most
+accurate given varying amounts of spikes, but is not able to achieve $100\%$ average accuracy due to its query step.
+The Composite Pyramid method does not suffer from this inaccuracy problem, but does not achieve the same consistent
+performance of the Pyramid or the triangle methods due to the number of filters implemented.
 
 Overall, the Pyramid method handles both Gaussian noise and false stars the best in a reasonable amount of time.
-If one is working with a small field-of-view with limited stars to choose from and Gaussian noise, the Dot Angle
-method works best for using one less star than the Pyramid method.
-If speed is not a factor but the field-of-view problem still persists, the Angle method should suffice.

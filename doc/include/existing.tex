@@ -38,7 +38,7 @@ Complete identification of the all stars in each image is not the focus.
 \begin{subequations}
     Every algorithm starts with some combination from all possible $d$ combinations of $n$ stars $C(n, d)$, where
     $d = $ the size of the image subset that specific identification method uses.
-    The subset of stars from the image is selected using one of these combinations.
+    The subset of stars from the image $b$ is selected using one of these combinations.
     For an identification method that uses $d=2$ stars to determine the mapping in an image of $n=4$ stars, the
     combinations of $I$ are:
     \begin{align}
@@ -112,6 +112,7 @@ In 1978, Gottlieb developed the Polygon Angular Matching method~\cite{Angle,Anal
 This method has been adjusted to fit the general flow posed in~\autoref{subsec:genericIdentificationMethod}.
 
 Given a set of stars from the image $I$, $d = 2$ stars are selected to obtain the $b$ set.
+The original literature does not specify how to choose the image subset, so the naive approach is taken.
 The selection order is governed by lines (2) and (3) in~\autoref{algorithm:angleIdentification}.
 This fixes the star $\vv{b_1}$ in $b$ for $|I| = n$ image star subset selections, while constantly changing
 $\vv{b_2}$ for every new $b$ choice.
@@ -132,7 +133,8 @@ To obtain $R$, the predicate $P_\theta(r, b)$ is used to filter the $K^2$ catalo
 \end{equation}
 where $\sigma_{\theta}$ represents the deviation of the uncertainty between the $\theta$ computation from star sensor
 measurements and the same $\theta$ computation from points defined in the catalog.
-Assuming the noise follows a Gaussian distribution, it follows that 99.7\% of all true pairs will be within this range.
+Assuming the noise follows a Gaussian distribution, it follows that 99.7\% of all true pairs will be within this range
+~\cite{Spherical}.
 
 Once the catalog candidates are obtained, the $R$ criteria for the Angle method is $|R| = 1$.
 This process is repeated until only one candidate exists in $R$.
@@ -140,7 +142,7 @@ This sole element $\vv{R_1}$ is then selected to be $r$.
 
 \begin{subequations}
     To determine the most likely bijection $f$, Needlemen specifies the use of a \textit{direct match test}
-    (DMT)~\cite{Tappe, DMT}.
+    (DMT)~\cite{Tappe,DMT}.
     Given an image star pair $b$ and a catalog star pair $r$ for, the following is proposed:
     \begin{equation}
     f_1 : f_1\left(\vv{b_1}\right) \rightarrow \vv{r_1}, f_1\left(\vv{b_2}\right) \rightarrow \vv{r_2}
@@ -229,7 +231,7 @@ indexed database of size $m_2$.
 All methods associated with the Angle method are written in~\autoref{algorithm:angleIdentification}.
 
 \subsection{Dot Angle Method}\label{subsec:dotAngleMethod}
-In 1995, Liebe developed the Liebe Star ID method~\cite{Survey,AnalysisUncompensated}.
+In 1995, Liebe developed the Liebe Star ID method~\cite{DotAngle,AnalysisUncompensated}.
 This method has been adjusted to fit the general flow posed in~\autoref{subsec:genericIdentificationMethod}.
 
 Starting with an image $I$, a central star $\vv{b_c}$ is selected.
@@ -256,20 +258,23 @@ To obtain $R$, the predicate $P_{\theta, \phi}$ is used to filter the $\bar{K^3}
         \sigma_\phi \ \land \\\theta(\vv{r_{c1}}, \vv{r_c}) &< \theta(\vv{r_{c2}}, \vv{r_c})
     \end{aligned}
 \end{equation}
-where $\sigma_{\theta}$ and $\sigma_{\phi}$ represent the deviation of measurement to catalog uncertainty of
+where $\sigma_{\theta}$ and $\sigma_{\phi}$ represent the deviation of measurement to catalog uncertainty of the
 $\theta$ and $\phi$ computations respectively.
 
+The original literature states that this should be repeated for all $b$ sets.
+Given that complete identification of $I$ is not the goal, this method has been adjusted to query with one $b$ at a
+time.
 After finding an $R$ that meets the same $R$ criterion as the Angle method, the bijection:
 \begin{equation}
     f: f\left(\vv{b_1}\right) \rightarrow \vv{r_1}, f\left(\vv{b_2}\right) \rightarrow \vv{r_2}, f\left(\vv{b_3}\right)
     \rightarrow \vv{r_3}
 \end{equation}
 is constructed and returned.
-By imposing the last term in  predicate $P_{\theta, \phi}$ at query time (last term in) and by searching all
-permutations instead of combinations, the need for a star mapping procedure (e.g.\ Needleman's direct match test) is
+By imposing the last term in predicate $P_{\theta, \phi}$ at query time (last term in) and by searching all
+permutations instead of combinations, the need for a star mapping procedure (e.g.\ direct match test) is
 no longer required.
 Storing permutations does increase the storage required for the $\bar{K^3}$ catalog though, which begs the question,
-"Does this space tradeoff result in a significant time increase?".
+"Does this extra space aid in accuracy or runtime?".
 
 %The star trios in the catalog star candidates represent potential catalog maps for the image star trio $(b_i, b_j,
 %b_c)$.
@@ -319,6 +324,7 @@ In 2004, Cole and Crassidus developed the Spherical Triangle method~\cite{Spheri
 This method has been adjusted to fit the general flow posed in~\autoref{subsec:genericIdentificationMethod}.
 
 Given a set of stars from the image $I$, $d = 3$ stars are selected to obtain the $b$ set.
+Again, the $b$ selection is not specified here so we assume the naive approach.
 The selection order is governed in a similar manner to the Angle method, but with $C(n, 3)$ instead of
 $C(n, 2)$.
 The star $\vv{b_1}$ is fixed in $b$ for $n^2$ image star subset selections, the star $\vv{b_2}$ is fixed for
@@ -348,11 +354,11 @@ In $\bar{b}$, the first two stars are held constant while the third star is swap
 already used in this specific pivot.
 All star trios in the initial search that do not match a trio in the second search by \textit{two stars} (a partial
 match) are removed from the initial search candidate star set.
-A pivot uses at most $n$ additional catalog accesses, but prevents wasting a catalog candidate set that may contain the
-correct $r$ set for the given $b$.
+A pivot uses at most $n - 3$ additional catalog accesses, but prevents wasting a catalog candidate set that may contain
+the correct $r$ set for the given $b$.
 
 \begin{subequations}
-    Cole and Crassidus do not specify identification steps, so Needleman's DMT process is used to complete the star
+    Cole and Crassidus do not specify identification steps, so the DMT process is used to complete the star
     identification process.
     Given an image star trio and a catalog star trio, an bijection is proposed:
     \begin{equation}
@@ -426,7 +432,7 @@ For all six attitudes, the bijection yielding the most aligned stars is returned
 
 The running time of this algorithm $T_{sphere}$ is depicted below in terms of the number of queries and the number of
 entries in the $K^3$ catalog.
-At most, this requires $2n^4$ catalog access: $n^3$ for each combination of trios in $I$, $n$ potential catalog
+At most, this requires $2n^4$ catalog access: $n^3$ for each combination of trios in $I$, $n - 3$ potential catalog
 accesses incurred for each pivot, and an additional $n^4$ queries with each \Call{DMT}{} call.
 \begin{equation}\label{eq:sphereComplexity}
     T_{sphere} = \bigO\left( n^4 \cdot \log (m_3) \right)
@@ -446,7 +452,7 @@ a more noise tolerant process.
 % Mortari introduced the use of \textit{search-less} catalog access using the $k$-vector approach, but this will not be
 % discussed in this paper.
 \subsection{Pyramid Method}\label{subsec:pyramidMethod}
-In 2004, Mortari developed the Pyramid method~\cite{Pyramid}.
+In 2004, Mortari developed the Pyramid method~\cite{Pyramid,AnalysisUncompensated}.
 This method has been adjusted to fit the general flow posed in~\autoref{subsec:genericIdentificationMethod}.
 
 Given a set of stars from the image $I$, $d = 3$ stars are selected to obtain the $b$ set.
@@ -462,7 +468,9 @@ An example sequence of trios is depicted below for $n = 5$ stars.
     \end{aligned}
 \end{equation}
 
-The catalog query step stars with three queries based on $b$: pairs from the $K^2$ catalog whose angular separation
+The literature states that a unique trio is to be found and be identifiable after the query step using $\theta$,
+but does not specify how nor is source code provided.
+One approach stars by querying the following items with $b$: pairs from the $K^2$ catalog whose angular separation
 is close to the angular separation of $\set{\vv{b_i}, \vv{b_j}}$, pairs from the catalog whose angular separation
 is close to the angular separation of $\set{\vv{b_i}, \vv{b_k}}$, and pairs from the catalog whose angular separation is
 close to the angular separation of $\set{ b_j, \vv{b_k} }$.

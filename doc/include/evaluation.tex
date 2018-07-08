@@ -2,15 +2,15 @@
 \newcommand{\AVG}{\mathit{AVG}}
 
 \section{Evaluation}\label{sec:evaluation}
-
-TODO: Some text about the section here.
-% TODO: Some text about the section here.
+In this section all six identification methods are analyzed in terms of their process to obtain the catalog candidate
+set $R$, their catalog set $r$ selection process, and their bijection $f$ production process under varying amounts
+of false stars and Gaussian noise.
+The main areas of interest here are the accuracy of each step, and the time to produce a result.
 
 \subsection{Experimental Setup}\label{subsec:experimentalSetup}
-
 \begin{subequations}
     \nsubparagraph{Star Catalog:}
-    The star catalog used for $K$ is the Hipparcos Input Catalogue.
+    The star catalog used for $K$ is the Hipparcos Input Catalogue~\cite{Hipparcos}.
     Entries that do not have a point $\left( \alpha, \delta \right)$ associated with it were not recorded, giving
     117,956 total stars.
     Out of this entire set, only 4,560 are visible from Earth with the naked eye (apparent magnitude $m$ less than 6.0).
@@ -47,7 +47,7 @@ the center of the image.
 The next step is to find all nearby bright stars to the $\vv{r_f}$ in the catalog.
 This is denoted as $J$:
 \begin{equation}
-    J = \set{ j \mid j \in K \land \theta\left( j, \vv{r_f} \right) < \frac{psi}{2} }
+    J = \set{ j \mid j \in K \land \theta\left( j, \vv{r_f} \right) < \frac{\psi}{2} }
 \end{equation}
 To get the $I$ set, each star in $J$ is then rotated by the true attitude $A^{\nicefrac{\iFrame}{\kFrame}}$:
 \begin{equation}
@@ -63,22 +63,24 @@ To introduce Gaussian noise to an image, we linearly interpolate each star towar
 the unit sphere spherically (\textit{SLERP}) and distribute the magnitude of the movement normally.
 To describe our noise independent of this random vector, we divide our distribution by the current angular separation
 between both stars.
-Given a star $b_i \in I$, Gaussian noise is applied to obtain the distributed vector $b'_i$ [CITE ME]:
+Given a star $b_i \in I$, Gaussian noise is applied to obtain the distributed vector $b'_i$~\cite{SLERP}:
 \begin{equation}
     b'_i &= \frac{\sin (1 - K)\Omega}{\sin \Omega}b_i + \frac{\sin \left( K \Omega )\right}{\sin \Omega}b^\star_i
 \end{equation}
-where $b^\star_i$ represents some random vector whose elements are distributed uniformly, $\Omega$ describes the angle
-subtended by the arc, and $K$ describes the magnitude of the interpolation:
-\begin{equation}
-    \begin{aligned}
-        b^\star_i &= \left( \sim U(-1, 1), \sim U(-1, 1), \sim U(-1, 1) \right) \\
-        \Omega &= \arccos \left ( b^{\star}_i \cdot b_i \right) \\
-        K &= \frac{ \sim N\left(0, \sigma^2\right)}{\theta\left( b^{\star}_i, b_i \right)}
-    \end{aligned}
-\end{equation}
-The additional constraint that the resulting star exist near the image center is also applied:
-$\theta\left( b'_i, \vv{r_f} \right) < \nicefrac{\psi}{2}$.
-If this is not met, then the process is repeated for this star.
+\begin{subequations}
+    where $b^\star_i$ represents some random vector whose elements are distributed uniformly, $\Omega$ describes the
+    angle subtended by the arc, and $K$ describes the magnitude of the interpolation.
+    $\rho$ in the equation below represents the standard deviation of noise.
+    \begin{align}
+            b^\star_i &= \left[ \sim U(-1, 1), \sim U(-1, 1), \sim U(-1, 1) \right] \\
+            \Omega &= \arccos \left ( b^{\star}_i \cdot b_i \right) \\
+            K &= \left(\sim N\left(0, \rho^2\right)\right) \cdot \left(\theta\left( b^{\star}_i, b_i \right)
+            \right)^{-1}
+    \end{align}
+    The additional constraint that the resulting star exist near the image center is also applied:
+    $\theta\left( b'_i, \vv{r_f} \right) < \nicefrac{\psi}{2}$.
+    If this is not met, then the process is repeated for this star.
+\end{subequations}
 
 The second type of noise exists as falsely identified sources of light, or spikes in the image.
 This involves generating $b^\star_i$ in the same manner that was done for the Gaussian noise process, and normalizing
@@ -94,10 +96,24 @@ The exact implementation is available at the following link:
 \url{https://github.com/glennga/hoku}.
 
 \subsection{1st Filter: Catalog}\label{subsec:1stFilter:Catalog}
-\nsubparagraph{Determining Query $\sigma$:} TODO: Some text here % TODO: Finish this part
+\nsubparagraph{Determining Query $\sigma$:}
+In all predicates used to query the catalog, an assumption must be made about the difference between the catalog
+measurements and the image measurements.
+If this deviation assumption $\sigma$ is too large, false positives will exist in $R$ after querying and may slow
+down identification.
+On the other hand, $\abs{R} = 0$ if the deviation assumption is too small.
+The heuristic used to determine each query $\sigma$ was a grid search, iteratively exhausting every permutation of
+deviations in the set below for 30 query steps each:
+\begin{equation}
+    \sigma_{gd} \in \set{ 10^{-16}, 10^{-15}, \ldots, 10^1 }
+\end{equation}
+As an example, the Dot Angle method of $d = 3$ would have $18^3$ distinct parameter sets with 30 runs attached
+to each set.
+The Angle method of $d = 1$ would have $18$ distinct parameter sets with 30 runs attached to each set.
+The parameter sets with the largest $\sigma$ choices but most number of instances where $\abs{R} = 1$ were selected.
 
 The results of each grid search are displayed below, and were used for the following experiments.
-\begin{alignat*}{3} % TODO: Format this with \num?
+\begin{alignat*}{3}
     \text{Angle}&: \sigma_\theta &&= 10^{-4} &&{}\\
     \text{Pyramid}&: \sigma_\theta &&= 10^{-4} &&{} \\
     \text{Dot Angle}&: \sigma_{\theta_{c1}} &&= 10^{-2}, \sigma_{\theta_{c2}} &&= 10^{-2}, \sigma_\phi = 10^{-2} \\
@@ -127,8 +143,8 @@ magnitude and field-of-view constraints.
 The $K^3$ catalog, used by the Spherical Triangle, Planar Triangle, and Composite Pyramid methods is of size
 $m_3 = 12,520,359$ elements.
 The $K^3'$ catalog, used by the Dot Angle method is of size $m_{3'} = 37,561,083$ elements.
-Given the size of each catalog, we hypothesize that the Angle method has the fastest query step
-(Pyramid method accesses $K^2$ three times in query step) and the Dot Angle has the slowest query step.
+Given the size of each catalog, we expect that the Angle method will have the fastest query step
+(Pyramid method accesses $K^2$ three times in query step) and the Dot Angle will have the slowest query step.
 
 In~\autoref{tab:queryExperimentResults}, the average running time to obtain an $R$ set is displayed for each
 identification method given an image for 2000 runs.
@@ -151,6 +167,7 @@ With the data collected here, the Angle method has the fastest query step.
 \subsubsection{Which method meets the $\abs{R} = 1$ criterion the most often?}
 The $\abs{R} = 1$ criterion is required for all identification methods, and meeting this criteria as often as possible
 prevents additional catalog accesses from occurring.
+
 In~\autoref{tab:queryExperimentResults}, the lowest number of instances where the criterion is met $S$ lies with the
 Angle method.
 Out of 2000 query steps, the Angle method will have had to perform an additional query step at least 1968 more times.
@@ -169,12 +186,13 @@ distinguish it better, compared to only using $\theta(b, r)$ as the sole feature
 It appears that the all methods using triangular features (Planar Triangle, Composite Pyramid, Spherical Triangle)
 meet the criterion the most often (average of $1989.7 \pm 4.2$ runs).
 Again, a larger $\sigma_a$ or $\sigma_\imath$ query parameter may lead to a larger $\abs{R}$.
-The next method with the most $\abs{R} = 1$ runs that does not use triangular features is the Pyramid method.
-Given the null hypothesis that the difference between the number of $\abs{R} = 1$ Pyramid method runs and the
-number of $\abs{R} = 1$ runs for methods with triangular features is not significant, $z = 38.0, p < 0.0001$ is
-obtained with a two proportion $Z$ test.
-With the data collected here, we find that methods with triangular features are very likely to have more instances
-where the $\abs{R} = 1$ criterion is met.
+The next method with the most $\abs{R} = 1$ runs that does not use triangular features is the Pyramid method,
+which has a factor of 0.75 less runs.
+With the data collected here, methods with triangular features are more likely to have more instances where the
+$R$ criterion is met when compared to methods with angular features.
+%Given the null hypothesis that the difference between the number of $\abs{R} = 1$ Pyramid method runs and the
+%number of $\abs{R} = 1$ runs for methods with triangular features is not significant, $z = 38.0, p < 0.0001$ is
+%obtained with a two proportion $Z$ test.
 
 \subsubsection{How effective is the Pyramid method query?}
 In the Angle, Spherical Triangle, Planar Triangle, and Composite Pyramid methods, catalog queries can be
@@ -183,7 +201,7 @@ generalized to the following SQL query:
     \texttt{SELECT } &r \\
     \texttt{FROM } &K^d \\
     \texttt{WHERE } &g_1(r) < g_1(b) + 3\sigma_{g1} \texttt{ AND } g_1(r) > g_1(b) - 3\sigma_{g1} \texttt{ AND } \\
-    &g_2(r) < g_2(b) + 3\sigma_{g2} \texttt{ AND } g_2(r) > g_2(b) - 3\sigma_{g2} \\
+    &g_2(r) < g_2(b) + 3\sigma_{g2} \texttt{ AND } g_2(r) > g_2(b) - 3\sigma_{g2} \texttt{ AND } \\
     &\vdots \\
     &g_d(r) < g_d(b) + 3\sigma_{gd} \texttt{ AND } g_d(r) > g_d(b) - 3\sigma_{gd}
 \end{align*}
@@ -201,7 +219,7 @@ found among each $R$ set to create a singular candidate set for trios.
 %import numpy as np
 %m_1, m_2, s_1, s_2, n_1, n_2 = 0.99, 1.0, 0.09949874371066202, 0, 2000, 2000
 %z = (m_2 - m_1) / np.sqrt( ((s_1 * s_1) / n_1) + ((s_2 * s_2) / n_2) )
-There exist several areas where the Pyramid could drop in accuracy here.
+There exist several areas where the Pyramid could drop in accuracy in its query.
 In~\autoref{tab:queryExperimentResults}, the frequency of the correct $r$ for some $b$ existing in $R$ is displayed
 for each identification method.
 The Pyramid method is shown to have a 0.01\% difference from the 100\% accuracy of each other method.
@@ -217,7 +235,7 @@ Although small, this error will propagate to the next steps and will result in m
     \input{include/floats/pivot}
     \caption{
     Depicts the average number of catalog accesses required to obtain a $r$ set for methods with triangular
-    features given $\sigma = \ang{0.0001}$ of Gaussian noise.
+    features given $\rho = \ang{0.0001}$ of Gaussian noise.
     To characterize the pivoting method itself, we only display instances where $\abs{R} \neq 1$ with the first $b$
     selection.
     The Spherical Triangle method (SPH) has 1952 / 2000 runs matching the criteria before, the Planar Triangle
@@ -240,7 +258,7 @@ Given the null hypothesis that the difference between the Planar Triangle method
 the Composite Pyramid method's number of catalog accesses is not significant, $z = 3.3, p < 0.0001$ is
 obtained with a two-tailed two sample $Z$ test.
 With the data collected here, we find that the pivoting process results in more catalog accesses on average.
-This results in a $6.70\si{ms}$ difference on average between the two.
+This increased number of catalog accesses results in a $6.70\si{ms}$ difference on average between the two.
 
 The pivoting process was only tested with methods using triangular features, whose candidate sets met the $R$ criterion
 the most frequently.
@@ -249,26 +267,183 @@ Dot Angle, Pyramid).
 These methods met the criterion less frequently, and would likely benefit from attempting to reduce the $R$ set before
 deciding to choose another $b$ set.
 
-\section{End to End}\label{sec:endToEndEvaluation}
+\subsection{3rd Filter: Bijection}\label{subsec:3rdFilter:Bijection}
+\begin{figure}
+    \centering{
+        \input{include/floats/verify}
+        \caption{
+        Depicts the frequency of correct bijections formed with and without the verification step of both the Pyramid
+        and Composite Pyramid methods.
+        There exists 2000 runs for each identification method, with a 500 catalog access limit.
+        PYR corresponds to the Pyramid method with the verification step, PYR-N corresponds to the Pyramid method
+        without the verification step, COM corresponds to the Composite Pyramid method with the verification step,
+        and COM-N corresponds to the Composite Pyramid method without the verification step.
+        }\label{fig:verify}
+    }
+\end{figure}
 
-\begin{figure*}
+\begin{figure*} % HAD TO MOVE THIS GUY TOO...
     \centering{
     \begin{subfigure}[b]{0.48\linewidth}
         \input{include/floats/gaussian-t}
     \end{subfigure}
     \begin{subfigure}[b]{0.48\linewidth}
-        \input{include/floats/gaussian-acc}
+        \input{include/floats/gaussian-fit}
     \end{subfigure}
     \caption{
     Both plots represent some statistic about the resulting bijection $f$ produced by each identification method
     given some image with varying Gaussian noise.
-    The left plot depicts the average time to obtain $f$, and the right plot depicts the average accuracy of $f$.
-    There exist 2000 runs for each identification method, with a 500 $b$ selection bound.
+    There exist 2000 runs for each identification method, with a 500 catalog access limit.
+    The left plot depicts the average time to obtain $f$, and the right plot depicts the trend line
+    $g(f) = A \cdot \mathit{ln}\left( \sigma \right) + B$.
     }\label{fig:gaussianNoise}
     }
 \end{figure*}
 
-\begin{figure*}
+\subsubsection{How effective are additional verification steps?}
+%if __name__ == '__main__':
+%from numpy import std, average, sqrt
+%from sqlite3 import connect
+%from os import environ
+%
+%conn_1 = connect(environ['HOKU_PROJECT_PATH'] + '/data/lumberjack-all-triad.db')
+%conn_2 = connect(environ['HOKU_PROJECT_PATH'] + '/data/lumberjack-pyramid-noverify.db')
+%
+%name = 'Pyramid'
+%
+%sample_1 = list(map(lambda b: b.execute("""
+%SELECT PercentageCorrect
+%FROM IDENTIFICATION
+%WHERE ShiftDeviation < 1.0e-7 AND FalseStars = 0
+%AND IdentificationMethod LIKE '{}'
+%""".format(name)).fetchall(), [conn_1, conn_2]))
+%
+%sample_2 = list(map(lambda b: b.execute("""
+%SELECT PercentageCorrect
+%FROM IDENTIFICATION
+%WHERE ShiftDeviation < 1.0e-5 AND FalseStars = 0
+%AND IdentificationMethod LIKE '{}'
+%""".format(name)).fetchall(), [conn_1, conn_2]))
+%
+%sample_3 = list(map(lambda b: b.execute("""
+%SELECT PercentageCorrect
+%FROM IDENTIFICATION
+%WHERE ShiftDeviation < 1.0e-2 AND ShiftDeviation > 1.0e-4 AND FalseStars = 0
+%AND IdentificationMethod LIKE '{}'
+%""".format(name)).fetchall(), [conn_1, conn_2]))
+%
+%flatten = lambda a: [b[0] for b in a]
+%for i, sample in enumerate([sample_1, sample_2, sample_3]):
+%n_1, n_2 = 2000, 2000
+%m_1, m_2 = average(flatten(sample[0])), average(flatten(sample[1]))
+%s_1, s_2 = std(flatten(sample[0])), std(flatten(sample[1]))
+%print('Z Score of {}: {}'.format(i, (m_2 - m_1) / sqrt( ((s_1 * s_1) / n_1) + ((s_2 * s_2) / n_2) )))
+
+%import numpy as np
+%print(np.average( [6.97725 - 3.00525, 6.9615 - 3.005, 398.0655 -  ))
+In~\autoref{fig:verify}, the accuracy of the bijection produced by the Pyramid and Composite Pyramid methods are
+displayed with and without the verification step for varying levels of Gaussian noise.
+Without noise, the Pyramid method without its verification step is 4.33\% less accurate than the Pyramid method with
+verification on average.
+This behavior is consistently seen for Gaussian noise of $\rho=\ang{0.000001}$ and $\rho=\ang{0.001})$, and
+can be attributed to the more frequent rejection of bijections whose $R$ sets have met the criterion but whose resulting
+$f$ would have been incorrect.
+In the $\rho=\ang{0.001}$ case, there exists a difference of 389.952 accesses between both variations of the Pyramid
+and a 15\% bijection accuracy difference in favor of the method with the verification step.
+Given the null hypotheses that the difference between both variations of the Pyramid method are different for each level
+of noise, $z_0 = 15.874, z_{0.000001} = 16.038, z_{0.001} = 12.135$ (all $p < 0.0001$) is obtained with two sample
+$Z$ tests.
+With the data collected here, the verification step increases the accuracy of the Pyramid method.
+
+The response to Gaussian noise for the Composite Pyramid begins at $\rho=\ang{0.001}$, with a 34.6\% difference
+between the two variants in favor of the method without the verification step.
+Unlike the verification step in the Pyramid method, this filter appears to be too aggressive for the Composite Pyramid
+method.
+The variant without the verification step has an average of 193.926 catalog accesses at $\rho=\ang{0.001}$.
+The Pyramid variant without the verification step only had an average of 8.114 catalog accesses, suggesting that the
+$\abs{R} = 1$ criterion and the \Call{DMT}{} process are sufficient enough for rejecting incorrect $r$ sets and
+bijections.
+
+\subsection{End to End}\label{subsec:endToEndEvaluation}
+\subsubsection{Which method is the fastest given no noise?}
+In~\autoref{fig:gaussianNoise}, the left plot depicts the end to end running time of each identification method given
+varying degrees of Gaussian noise.
+In the no noise case, the Angle method is the slowest identification method on average.
+The next slowest method is the Composite Pyramid method, a factor of 2.95 times faster than the Angle method.
+Recall that the Angle method had the fastest query step, but the largest $\abs{R}$.
+On average, it takes 69.851 catalog accesses to obtain a bijection and 68.100 catalog accesses to obtain $r$.
+This suggests that the Angle method's long running time stems from the $\abs{R} = 1$ criterion and not the \Call{DMT}{}
+process.
+
+%import numpy as np
+%m_1, m_2, s_1, s_2, n_1, n_2 = 160.675, 170.7905, 0.53808, 0.52922, 2000, 2000
+%z = (m_2 - m_1) / np.sqrt( ((s_1 * s_1) / n_1) + ((s_2 * s_2) / n_2) )
+The fastest method in the noise case appears to be the Dot Angle method, with the second fastest method running
+10.11\si{ms} slower.
+There exists 0 / 2000 runs where the Dot Angle method runs above the Pyramid method's average running time
+($170.79\si{ms}$) and the Dot Angle method has the fastest recorded identification run of 135ms.
+The Dot Angle method is the fastest identification method given no noise.
+
+\subsubsection{Which method is the fastest given varying levels of Gaussian noise?}
+As Gaussian noise is increased from $\rho=\ang{0}$ to $\rho=\ang{0.01}$, the Angle method experiences the largest
+response of $5311.57$ additional $\si{ms}$.
+The next slowest method in the noise of $\rho=\ang{0.01}$ case is the Dot Angle method, a factor of 7.46 times faster
+than the Angle method.
+On average, the Angle method takes 399.655 catalog accesses to obtain a bijection and only 36.720 catalog accesses
+to obtain $r$ here.
+In the no noise case, this method's long running time can attributed to the aggressive $R$ criterion.
+Given Gaussian noise, the \Call{DMT}{} process appears to play a larger role with the Angle method and returns to $b$
+decision process more often.
+
+The Composite Pyramid method shows an interesting runtime response to this type of noise, running $1139.92\si{ms}$
+longer given $\ang{0.0001}$ of noise from no noise but $1183.15\si{ms}$ shorter from $\ang{0.0001}$ of noise to
+$\ang{0.01}$.
+The Pyramid method is observed to have this same running time response against noise at $\rho=\ang{0.001}$
+(not depicted).
+The most probable explanation lies in how far each run travels from the $b$ decision process.
+At $\rho=\ang{0.0001}$, the Composite Pyramid has gone through the $\abs{R} = 1$ criterion and is likely choosing
+another $b$ set after the verification step.
+At $\rho=\ang{0.01}$, the Composite Pyramid is not passing the same criterion and does not waste as many catalog
+accesses because the verification step is not being performed.
+
+%if __name__ == '__main__':
+%from numpy import std, average, sqrt
+%from sqlite3 import connect
+%from os import environ
+%
+%conn_1 = connect(environ['HOKU_PROJECT_PATH'] + '/data/lumberjack-all-triad.db')
+%conn_2 = connect(environ['HOKU_PROJECT_PATH'] + '/data/lumberjack-pyramid-noverify.db')
+%
+%sample_1 = conn_1.execute("""
+%SELECT TimeToResult
+%FROM IDENTIFICATION
+%WHERE ShiftDeviation > 1.0e-7 AND FalseStars = 0
+%AND IdentificationMethod LIKE 'Plane'
+%""").fetchall()
+%
+%sample_2 = conn_1.execute("""
+%SELECT TimeToResult
+%FROM IDENTIFICATION
+%WHERE ShiftDeviation > 1.0e-7 AND FalseStars = 0
+%AND IdentificationMethod LIKE 'Pyramid'
+%""").fetchall()
+%
+%flatten = lambda a: [b[0] for b in a]
+%n_1, n_2 = 12000, 12000
+%m_1, m_2 = average(flatten(sample_1)), average(flatten(sample_2))
+%s_1, s_2 = std(flatten(sample_1)), std(flatten(sample_2))
+%print('Z Score of: {}'.format((m_2 - m_1) / sqrt( ((s_1 * s_1) / n_1) + ((s_2 * s_2) / n_2) )))
+The fastest method on average given images with the set of Gaussian noise below is the Pyramid method at
+$288.438\si{ms}$ (of 12000 runs).
+\begin{equation}\label{eq:sigmasTested}
+    \rho \in \set{10^{-1}, 10^{-2}, \ldots, 10^{-6}}
+\end{equation}
+The second fastest method given the same noise set is the Planar Triangle method at $341.157\si{ms}$.
+Given the null hypothesis that the difference between both averages is not significant, $z = 24.320, p < 0.0001$ is
+found with a two sample $Z$ test.
+With the data collected here, the Pyramid method is the fastest method given varying amounts of Gaussian noise.
+
+\begin{figure*} % NOTE: HAD TO MOVE THIS AWAY FROM THE FALSE STAR SECTION.
     \centering{
     \begin{subfigure}[b]{0.48\linewidth}
         \input{include/floats/false-t}
@@ -278,17 +453,194 @@ deciding to choose another $b$ set.
     \end{subfigure}
     \caption{
     Both plots represent some statistic about the resulting bijection $f$ produced by each identification method
-    given some image with varying amounts of spikes (false stars).
+    given some image with varying amounts of spikes $\omega$.
+    There exist 2000 runs for each identification method, with a 500 catalog access limit.
     The left plot depicts the average time to obtain $f$, and the right plot depicts the average accuracy of $f$.
-    There exist 2000 runs for each identification method, with a 500 $b$ selection bound.
     }\label{fig:falseNoise}
     }
 \end{figure*}
 
-\subsubsection{Which method is the most accurate under Gaussian noise?}
+\subsubsection{Which method has the slowest growing $f$ accuracy response to increasing noise?}
+The selection of the query $\sigma$ parameters play a significant role in accuracy of each method given images with
+Gaussian noise.
+For methods that query the catalog using on the $\theta$ feature (Angle, Dot Angle, Pyramid), the $\sigma$ parameter
+serves as a rough upper bound for the amount of Gaussian noise tolerated.
+%In~\autoref{fig:gaussianNoise}, the plot on the right depicts the accuracy of resulting bijection of each method for
+%varying levels of Gaussian noise.
+When the level of noise is equal to the Angle and Pyramid $\sigma_\theta$ parameter ($\ang{0.0001}$),
+both methods have an average $f$ accuracy of $98.592 \pm 1.342\%$.
+When Gaussian noise is increased to $\ang{0.001}$, both methods drop to $47.0164 \pm 1.584\%$.
+For methods with features that are not angular (Spherical Triangle, Planar Triangle, Composite Pyramid),
+characterizing the effect of Gaussian noise becomes more difficult.
+These methods have the query parameters $\sigma_a = 10^{-9}$ and $\sigma_\imath = 10^{-9}$, and first show an
+accuracy response to noise at $\ang{0.00001}$.
+The Dot Angle method has the largest query $\sigma$ parameters, and only experiences a response to noise at
+$\ang{0.01}$.
+%Given the current set of query $\sigma$, the Dot Angle is the most accurate method on average.
 
-\subsubsection{Which method is the fastest under Gaussian noise?}
+Ranking each method based their $f$ accuracy here is not insightful, so instead we analyze the rate of change involved
+with varying levels of noise.
+The right plot in~\autoref{fig:gaussianNoise} depicts the trend line for all methods where $f$ accuracy is displayed
+against the amount of Gaussian noise.
+Each line was fit to the equation below using least squares:
+\begin{equation}
+    a(f, b, r) =
+    \begin{cases}
+        0 & \rho < 0 \\
+        1 & 0 \leq \rho < \rho_c \\
+        A \cdot \mathit{ln}(\rho) + B & \rho \geq \rho_c
+    \end{cases}
+\end{equation}
+where $A$ and $B$ are the parameters found with the regression, $a(f, b, r)$ is the accuracy of the bijection, and
+$\rho_c$ is the point where $a(f, b, r)$ is observed to dip below 95\%.
+The acceleration of the accuracy varies across methods through the value of $A$:
+\begin{equation}
+    \frac{d^{2}a(f, b, r)}{d\rho^2} = \frac{-A}{\rho^2}
+\end{equation}
+A smaller $A$ suggests that a change in query $\sigma$ or Gaussian noise will not affect the accuracy of the method
+as much as a method with a larger $A$.
+The method with the largest acceleration toward $0\% f$ accuracy is the Dot Angle method ($A = -0.15749$) .
+The Spherical Triangle method has the slowest growing $f$ accuracy response to increasing noise ($A = -0.09266$).
 
-\subsubsection{Which method is the most accurate under false star noise?}
+\subsubsection{Which method is the fastest given varying \\ amounts of false stars?}
+In~\autoref{fig:falseNoise}, the plot on the left depicts the end to end running time of each method given varying
+amounts of spikes.
+As the number of spikes increases from 0 to 12, the Angle method again experiences the largest response of
+$1234.15\si{ms}$.
+The next slowest method in the Composite Pyramid method, a factor of 2.50 times faster than the Angle method.
+The difference between the 1st and 2nd slowest methods is 2.98 times less than the Gaussian noise case.
+On average, it takes 114.231 catalog accesses to obtain $f$ and only 54.848 accesses to obtain $r$.
+Relative to the Gaussian noise comparison, the \Call{DMT}{} and $\abs{R} = 1$ criterion play a more equal role in
+the decision to choose a new $b$ set.
 
-\subsubsection{Which method is the fastest under false star noise?}
+%if __name__ == '__main__':
+%from numpy import std, average, sqrt
+%from sqlite3 import connect
+%from os import environ
+%
+%conn_1 = connect(environ['HOKU_PROJECT_PATH'] + '/data/lumberjack-all-triad.db')
+%conn_2 = connect(environ['HOKU_PROJECT_PATH'] + '/data/lumberjack-pyramid-noverify.db')
+%
+%sample_1 = conn_1.execute("""
+%SELECT TimeToResult
+%FROM IDENTIFICATION
+%WHERE FalseStars > 0
+%AND IdentificationMethod LIKE 'Pyramid'
+%""").fetchall()
+%
+%sample_2 = conn_1.execute("""
+%SELECT TimeToResult
+%FROM IDENTIFICATION
+%WHERE FalseStars > 0
+%AND IdentificationMethod LIKE 'Dot'
+%""").fetchall()
+%
+%flatten = lambda a: [b[0] for b in a]
+%n_1, n_2 = 8000, 8000
+%m_1, m_2 = average(flatten(sample_1)), average(flatten(sample_2))
+%s_1, s_2 = std(flatten(sample_1)), std(flatten(sample_2))
+%print('Z Score of: {}'.format((m_2 - m_1) / sqrt( ((s_1 * s_1) / n_1) + ((s_2 * s_2) / n_2) )))
+The fastest method on average given images with the set of spikes below is the Pyramid method at $186.224\si{ms}$
+(of 8000 runs).
+\begin{equation}\label{eq:numberOfSpikes}
+    \omega \in \set{ 3, 6, 9, 12 }
+\end{equation}
+The second fastest method given the same noise set is the Dot Angle method at $228.371\si{ms}$.
+Given the null hypothesis that the difference between both averages is not significant, $z = 28.473, p < 0.0001$ is
+found with a two sample $Z$ test.
+With the data collected here, the Pyramid method is the fastest method given varying amounts of spikes.
+The process for choosing distinct image star sets is shown to be effective in finding a bijection that meets the Pyramid
+criteria the fastest.
+
+%if __name__ == '__main__':
+%from numpy import std, average, sqrt, polyfit, log
+%from sqlite3 import connect
+%from os import environ
+%
+%conn_1 = connect(environ['HOKU_PROJECT_PATH'] + '/data/lumberjack-all-triad.db')
+%cur = conn_1.cursor()
+%
+%for name in ['Angle', 'Dot', 'Sphere', 'Plane', 'Pyramid', 'Composite']:
+%sample_1 = list(map(lambda a: a[0], cur.execute("""
+%SELECT AVG(TimeToResult)
+%FROM IDENTIFICATION
+%WHERE FalseStars > 0
+%AND IdentificationMethod LIKE ?
+%GROUP BY FalseStars
+%ORDER BY FalseStars
+%""", (name, )).fetchall()))
+%
+%t = polyfit([3, 6, 9, 12], sample_1, 1)
+%print('{name}: {t_0}*x + {t_1}'.format(name=name, t_0=round(t[0], 5), t_1=round(t[1], 5)))
+Each method exhibits an increase to runtime as additional spikes are added.
+To characterize how each method's runtime grows with increasing false stars, each method's runtime was fit to a linear
+equation using least squares:
+\begin{equation}
+    t = A\cdot\omega + B
+\end{equation}
+where $A$ and $B$ are the parameters found with the regression and $t$ is the end to end running time of the method.
+A smaller $A$ suggests that the number of spikes will affect the end to end runtime than that of a method with a larger
+$A$.
+The method with the largest $A$ term is the Angle method with $A = -414.559$.
+The method with this smallest $A$ term is the Pyramid method with $A = -6.766$.
+The Pyramid method is the fastest given varying amounts of false stars, whose runtime is also the least responsive to
+increasing spikes.
+
+\subsubsection{Which method is the most accurate given varying amounts of false stars?}
+%if __name__ == '__main__':
+%from numpy import std, average, sqrt
+%from sqlite3 import connect
+%from os import environ
+%
+%conn_1 = connect(environ['HOKU_PROJECT_PATH'] + '/data/lumberjack-all-triad.db')
+%conn_2 = connect(environ['HOKU_PROJECT_PATH'] + '/data/lumberjack-pyramid-noverify.db')
+%
+%sample_1 = conn_1.execute("""
+%SELECT PercentageCorrect
+%FROM IDENTIFICATION
+%WHERE FalseStars = 12
+%AND (IdentificationMethod LIKE 'Plane' OR IdentificationMethod LIKE 'Sphere')
+%""").fetchall()
+%
+%sample_2 = conn_1.execute("""
+%SELECT PercentageCorrect
+%FROM REDUCTION
+%WHERE FalseStars = 12
+%AND (IdentificationMethod LIKE 'Plane' OR IdentificationMethod LIKE 'Sphere')
+%""").fetchall()
+%
+%flatten = lambda a: [b[0] for b in a]
+%n_1, n_2 = 2000, 2000
+%m_1, m_2 = average(flatten(sample_1)), average(flatten(sample_2))
+%s_1, s_2 = std(flatten(sample_1)), std(flatten(sample_2))
+%print('Z Score of: {}'.format((m_2 - m_1) / sqrt( ((s_1 * s_1) / n_1) + ((s_2 * s_2) / n_2) )))
+In~\autoref{fig:falseNoise}, the plot on the right depicts the average accuracy of each bijection given varying amounts
+of spikes.
+As the number of false stars is increased from $\omega = 0$ to $\omega = 12$, the methods that experience the largest
+$f$ accuracy response are the Spherical Triangle method ($30.417\%$ average decrease) and the Planar Triangle method
+($29.683\%$ average decrease).
+The average accuracy of the $r$ selection (frequency of $r$ sets such that a correct $f$ can be formed with $b$) is
+a few percent less than the average accuracy of $f$ here ($0.53 \pm 1.78\%$ for both methods).
+Given the null hypothesis that the difference between the accuracy of the $f$ bijection and the accuracy of the $r$
+selection is not significant, $z = 0.3691, p = 0.7121$ was found with a two sample $Z$ test.
+There does not exist enough data to reject this hypothesis with $\alpha = 0.01$.
+This suggests that the \Call{DMT}{} process is neither helpful or detrimental to the end to end accuracy of these
+methods.
+
+Ruling out the \Call{DMT}{} process, the most likely source of error for the triangle methods is their decision of
+different $b$ sets.
+If a false star exists as $b_1$ in $b$, the triangle methods will have to iterate through $n^2$ combinations and $n - 3$
+pivots at most to choose another star that is not the spike.
+The Angle method only has to wait $n$ additional combinations at most if a false star exists in $b$.
+The Dot Angle method is able to get around the spike persistence problem by choosing $b$ sets based on their $\theta$
+proximity to the central star $b_c$.
+The Pyramid and Composite Pyramid methods have their $b$ decision process designed for this situation, increasing the
+average turnover of all stars in the $b$ set.
+
+The Pyramid method has the most accurate $f$ on average given images with $\omega$ in~\autoref{eq:numberOfSpikes}
+at $99.841 \pm 3.532\%$.
+The second most accurate method is the Composite Pyramid method at $99.192 \pm 8.954\%$.
+Given the null hypothesis that the difference between the $f$ accuracies of both methods is not significant,
+$z = 3.0200, p = 0.0025$ with a two sample $Z$ test.
+At $\alpha = 0.01$, our hypothesis does not hold true.
+The Pyramid method is the most accurate under varying amounts of spikes.

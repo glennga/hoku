@@ -1,6 +1,24 @@
 % Encoding: UTF-8
 
-@InBook{Angle,
+@book{RotationMatricies,
+    author = {Bong Wie},
+    title = {Space Vehicle Dynamics and Control, Second Edition},
+    publisher = {American Institute of Aeronautics and Astronautics},
+    chapter = {5},
+    pages = {307},
+    year = {2008},
+}
+
+@article{ClosedForm,
+    author = {F. Landis Markley},
+    title = {Attitude Determination Using Two Vector Measurements},
+    pages = {1},
+    journal = {Guidance Navigation and Control Systems Engineering Branch},
+    publisher = {NASA Goddard},
+    year = {1998},
+}
+
+@inbook{Angle,
     chapter   = {7.7},
     pages     = {259-266},
     title     = {Spacecraft Attitude Determination and Control},
@@ -15,7 +33,7 @@
     journal = {Navigation},
     volume = {51},
     number = {3},
-    pages = {171-183},
+    pages = {13-18, 31-32},
     year = {2014},
 }
 
@@ -23,7 +41,8 @@
     title = {Development of Star Tracker System for Accurate Estimation of Spacecraft Attitude},
     author = {Jack A. Tappe},
     year = {2009},
-    publisher = {Calhoun}
+    publisher = {Calhoun},
+    pages = {9-14, 19-22},
 }
 
 @article{Survey,
@@ -32,7 +51,8 @@
     month = {03},
     title = {A Survey on Star Identification Algorithms},
     volume = {2},
-    journal = {Algorithms}
+    journal = {Algorithms},
+    pages = {94-95},
 }
 
 @article{Planar,
@@ -41,13 +61,15 @@
     month = {01},
     title = {Fast Star-Pattern Recognition Using Planar Triangles},
     volume = {29},
-    journal = {Journal of Guidance Control and Dynamics}
+    journal = {Journal of Guidance Control and Dynamics},
+    pages = {8-13},
 }
 
 @article{Spherical,
     author = {Craig L. Cole. and John L. Crassidis},
     year = {2004},
     month = {08},
+    pages = {3-10},
     title = {Fast Star Pattern Recognition Using Spherical Triangles},
     journal = {AIAA/AAS Astrodynamics Specialist Conference and Exhibit},
 }
@@ -56,13 +78,13 @@
     author = {Ali RezaToloei and Morteza Shayan and Manouchehr Abaszadeh},
     year = {2014},
     month = {09},
-    pages = {28-33},
+    pages = {30-31},
     title = {A New Composite Algorithm for Identifying the Stars in the Star Tracker},
     volume = {102},
     journal = {International Journal of Computer Applications}
 }
 
-@InBook{Attitude,
+@book{Attitude,
     title={Spacecraft Attitude Dynamics and Control},
     author={Hall, Christopher D},
     chapter = {4},
@@ -83,6 +105,7 @@
     author = {Landis Markley and Daniele Motari},
     year = {2000},
     month = {01},
+    pages = {2, 8},
     title = {How to Estimate Attitude from Vector Observations},
     volume = {103}
 }
@@ -94,13 +117,14 @@
     year={1995},
     volume={10},
     number={6},
-    pages={10-16},
+    pages={13-15},
     month={Jun},
 }
 
 @masterthesis{AnalysisUncompensated,
     author = {Steven Paul Brätt},
     title = {Analysis of Star Identification Algorithms due to Uncompensated Spatial Distortion},
+    pages = {9-10, 12-13, 33-34},
     school = {Utah State University},
     year = {2013},
 }
@@ -108,20 +132,73 @@
 @misc{ProperMotion,
     title = {Calculating Precise Long Term Stellar Motions},
     author = {David Nash},
+    publisher = {The Astronomy Nexus},
     year = {2006},
-    url = {http://www.astronexus.com/a-a/motions-long-term},
+    url = {http://www.astronexus.com/a-a/motions},
+    pages = {1},
 }
 
-@article{SensitivityAnalysis,
-    title={Sensitivity Analysis: Strategies, Methods, Concepts, Examples},
-    author={David J Pannell},
-    journal = {Agricultural Economics},
-    year = {1997},
-}
+%@article{SensitivityAnalysis,
+%    title={Sensitivity Analysis: Strategies, Methods, Concepts, Examples},
+%    author={David J Pannell},
+%    journal = {Agricultural Economics},
+%    year = {1997},
+%}
 
 @article{DMT,
     author = {David Needelman and Rongsheng Li and Yeong-Wei Wu},
     title = {Recent Advances in Stellar Attitude Acquisition (SAA) Algorithms and Procedures},
     journal = {AIAA Guidance, Navigation, and Control Conference and Exhibit},
     year = {2005},
+    pages = {1-17},
+}
+
+@article{Wahba,
+    author = {Grace Wahba},
+    title = {Problem 65-1: A Least Squares Estimation of Satellite Attitude},
+    journal = {SIAM Review},
+    volume = {7},
+    pages = {409},
+    publisher = {Society for Industrial and Applied Mathematics},
+    year = {1965},
+}
+
+@mastersthesis{TRIAD,
+    author = {Jordi Martin Benet},
+    title = {SwissCube Attitude Determination Algorithm Design and Validation},
+    school = {\'Ecole Polytechnique F\'ed\'erale de Lausanne},
+    year = {2007},
+    month = {7},
+    pages = {10-11},
+}
+
+@article{TRIADOriginal,
+    author = {Harold D. Black},
+    title = {A Passive System for Determining the Attitude of a Satellite},
+    journal = {American Institute of Aeronautics and Astronautics},
+    pages = {1350-1351},
+    year = {1964},
+    volume = {2},
+}
+
+@article{Hipparcos,
+    author = {A. C. Perryman, M and Lindegren, Lennart and Kovalevsky,
+    J and Hoeg, E and Bastian, U and L. Bernacca, P and Cr\'ez\'e, M and Donati,
+    Francesco and Grenon, M and Grewing, M and van Leeuwen, Floor and Marel,
+    Hans and Mignard, F and Murray, CA and Le Poole, Rudolf and Schrijver,
+    H and Turon, C and Arenou, Frédéric and Froeschlé, M and S. Petersen, C},
+    year = {1997},
+    month = {06},
+    pages = {L49-L50},
+    title = {The Hipparcos Catalogue},
+    volume = {323},
+    booktitle = {Astronomy and Astrophysics}
+}
+
+@unpublished{SLERP,
+    author = {Verena Elisabeth Kremer},
+    title = {Quaternions and SLERP},
+    school = {University of Saarbr\"ucken},
+    year = {2008},
+    pages = {6-7},
 }

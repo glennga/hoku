@@ -4,10 +4,11 @@
     width=\linewidth, height=5cm,
     ylabel={$t \ (\si{ms})$}, ylabel near ticks, ymin=10, ymax=100000,
     xtick={1, 2, 3}, xticklabels={0, 6, 12},
-    xlabel={Number of Spikes}, xmin=0.5, xmax=3.5, xtick pos=left, point meta=rawy,
-    nodes near coords, every node near coord/.append style={rotate=90, anchor=west},
+    xlabel={$\omega$}, xmin=0.5, xmax=3.5, xtick pos=left, point meta=rawy,
+    nodes near coords, every node near coord/.append style={rotate=90, anchor=west,
+    /pgf/number format/.cd,fixed,precision=2},
     legend style={at={(0.5,-0.35)}, anchor=north,legend columns=-1},
-    bar width=7, ymode=log, log origin=infty %, max space between ticks=20
+    bar width=7, ymode=log, log origin=infty, max space between ticks=20
     ]
         \addplot coordinates {(1, 1197.43) (2, 1737.94) (3, 2431.58)};
         \addplot coordinates {(1, 160.68) (2, 209.36) (3, 280.54)};
