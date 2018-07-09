@@ -10,17 +10,17 @@ fi
 cd $HOKU_PROJECT_PATH/doc
 
 # If "paper" is passed, then we have to build the bibliography as well.
-if [ "$1" = "paper" ]; then
-    yes "" | pdflatex paper.tex >> paper-build.log
+if [[ "$1" = *"paper"* ]]; then
+    yes "" | pdflatex $1.tex >> $1-build.log
     sleep 1
 
-    yes "" | bibtex paper >> paper-build.log 2>&1
+    yes "" | bibtex $1 >> $1-build.log 2>&1
     sleep 1
 
-    yes "" | pdflatex paper.tex >> paper-build.log 2>&1
+    yes "" | pdflatex $1.tex >> $1-build.log 2>&1
     sleep 1
 
-    yes "" | pdflatex paper.tex >> paper-build.log 2>&1
+    yes "" | pdflatex $1.tex >> $1-build.log 2>&1
     sleep 1
 else
     # Otherwise, just run pdflatex on the file passed.

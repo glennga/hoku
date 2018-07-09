@@ -1,0 +1,46 @@
+\tdplotsetmaincoords{60}{110}
+
+% Origin for the secondary coordinate system (body), in spherical coordinates of the inertial.
+\pgfmathsetmacro{\rvec}{.8} \pgfmathsetmacro{\thetavec}{30} \pgfmathsetmacro{\phivec}{60}
+
+\begin{tikzpicture}[scale=3,tdplot_main_coords]
+
+    % Draw the inertial frame.
+    \coordinate (O) at (0,0,0);
+    \node[color=red, anchor=east] at (0,0,0) {$\kFrame$ Frame};
+    \draw[thick,->] (0,0,0) -- (0.7,0,0) node[anchor=north east]{$\vv{u_1}$};
+    \draw[thick,->] (0,0,0) -- (0,0.7,0) node[anchor=north west]{$\vv{u_2}$};
+    \draw[thick,->] (0,0,0) -- (0,0,0.7) node[anchor=south]{$\vv{u_3}$};
+
+    % Plot the origin body frame in the inertial frame, show this connection.
+    \tdplotsetcoord{P}{\rvec}{\thetavec}{\phivec}
+%    \draw[dashed] (O) -- (P) node[anchor=north east, xshift=-0.5cm, yshift=-0.5cm]{$A^\nicefrac{I}{C}$};
+
+    % Setup the body frame (don't draw till the end).
+    \tdplotsetrotatedcoords{\phivec}{\thetavec}{0}
+    \tdplotsetrotatedcoordsorigin{(P)}
+
+    % Draw the point itself.
+    \draw[tdplot_rotated_coords] (.205,.205,.205) circle[radius=0.3pt,fill=gray];
+    \node[tdplot_rotated_coords, anchor=west, xshift=1cm, color=blue] at (.2,.2,.2) {$\vv{I_j}$};
+
+    % Draw the point in the body frame.
+    \draw[-stealth,color=blue,tdplot_rotated_coords] (0,0,0) -- (.2,.2,.2);
+%    \node[color=blue,tdplot_rotated_coords,fill=white,xshift=0.6cm] at (.1,.1,.1) {};
+    \draw[dashed,color=blue,tdplot_rotated_coords] (0,0,0) -- (.2,.2,0);
+    \draw[dashed,color=blue,tdplot_rotated_coords] (.2,.2,0) -- (.2,.2,.2);
+
+    % Draw the point in the inertial frame.
+    \coordinate (Q) at (0.4,0.767,0.91);
+    \draw[-stealth,color=red] (O) -- (Q);
+    \node[color=red,fill=white,xshift=-0.1cm,yshift=-0.1cm] at (0.2,0.3835,0.455) {$\vv{K_j}$};
+    \draw[dashed, color=red] (O) -- (0.4,0.767,0);
+    \draw[dashed, color=red] (Q) -- (0.4,0.767,0);
+
+    % Draw the body frame.
+    \node[color=blue,tdplot_rotated_coords,anchor=east,xshift=1.1cm, yshift=1.2cm] at (0,0,0) {$\iFrame$ Frame};
+    \draw[thick,tdplot_rotated_coords,->] (0,0,0) -- (.5,0,0) node[anchor=east]{$\vv{v_1}$};
+    \draw[thick,tdplot_rotated_coords,->] (0,0,0) -- (0,.5,0) node[anchor=west]{$\vv{v_2}$};
+    \draw[thick,tdplot_rotated_coords,->] (0,0,0) -- (0,0,.5) node[anchor=west]{$\vv{v_3}$};
+
+\end{tikzpicture}

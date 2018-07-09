@@ -41,7 +41,7 @@ position relative to Earth.
 Once the images were generated, three experiments were performed: one for feature uniqueness, one for reduction
 effectiveness, and one for identification performance and accuracy.
 
-All trials were performed on an Intel i7-7700 CPU, 3.60GHz with 16 GB RAM\@.
+All trials were performed on an Intel i7-7700 CPU, 3.60GHz with 8 GB RAM\@.
 Each algorithm was implemented in C++14, and compiled without optimization (at \texttt{-O0}).
 The exact implementation is available at the following link: \newline
 \url{https://github.com/glennga/hoku}.
@@ -84,7 +84,10 @@ To generate clean benchmark images, three items must be specified:
     \item True attitude to take stars in the catalog frame to the image frame $q_{rb}$.
 \end{itemize}
 
-Note that the goal of attitude determination is to find this true attitude $q_{rb}$.
+$f$ was chosen to be $20^\circ$ here, but there does exist multiple star trackers with $f < 5^\circ$.
+These trackers are often used in conjunction with other sensors (Sun sensors, other star trackers) or recursively
+(i.e.\ prior attitude information) to the true attitude $q_{rb}$.
+It is assumed here that the only input comes from a single image, and consequently requires a larger $f$.
 
 \begin{figure}
     \centering{
@@ -226,7 +229,7 @@ A general SQL statement to search each image star subset becomes:
     n =& \text{ number of features used to query the catalog.} \\
     \sigma_n =& \text{ deviation of Gaussian noise.} \\
     C =& \text{ the catalog.}
-\end{align*}
+\end{align*}\subsubsection{How effective is the DMT method?}
 
 There are five features tested, given that Toloei's Composite Pyramid uses the same features as the Cole and
 Crassidus's Planar Triangles method.
@@ -258,8 +261,9 @@ Crassidus's Planar Triangles method.
 
 The resulting candidate sets represents one element inside the \textit{set} of $R$ sets.
 Repeating this $N$ times would give us the measures in~\autoref{eq:querySelectivityMeasures}.
+$N = 2000$ here, and the entire experiment was repeated five times.
 
-The running time of each query step $t$ will also be recorded.
+The running time of each query step $t$ (in seconds) will also be recorded.
 This represents the time to retrieve each $R$ set, and will be used to determine the efficiency.
 \begin{equation}\label{eq:queryEfficiency}
     \text{Query efficiency } = \frac{1}{|R| \times t}
@@ -299,6 +303,7 @@ Image} step and executes the identification method to past the \textit{Confident
 single match from the catalog candidate set for some image star subset.
 The resulting candidate set represent one element inside the set of $r$ sets.
 Repeating this $N$ times would give us the measures in~\autoref{eq:reductionAccuracyMeasures}.
+$N = 2000$ here, and the entire experiment was repeated five times.
 
 An ideal reduction processes consists of a reduction hit probability = 1 and a short running time compared to the other
 reduction processes.
@@ -326,6 +331,7 @@ Referencing~\autoref{figure:genericIdentificationMethodFlowchart} again, this ex
 method end to end.
 Partial accuracy was recorded by counting the number of correct stars against the total amount of stars in a given
 map.
+$N = 2000$ here, and the entire experiment was repeated five times.
 
 An ideal identification method consists of an average identification accuracy = 1 and a short running time compared
 to the other identification methods.
