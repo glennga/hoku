@@ -3,11 +3,9 @@
 %\newcommand{\vv}[1]{\overrightarrow{#1}}
 \newcommand{\vv}[1]{#1} % Not doing anything special for vectors right now...
 
-\section{Attitude Determination}\label{sec:attitudeDetermination}
-
-\begin{figure}[ht]
+\begin{figure}
     \centering{
-%    \includegraphics[scale=0.23]{images/moving-coordinate-systems-edit.PNG}
+    %    \includegraphics[scale=0.23]{images/moving-coordinate-systems-edit.PNG}
     \input{include/floats/coordinate-systems}
     \caption{
     Visual of two coordinate frames: the inertial frame $\kFrame$, and the body frame $\iFrame$.
@@ -19,8 +17,10 @@
     }
 \end{figure}
 
-This section serves to give a brief overview into what attitude is, what Wahba's problem is, and the processing required
-before the star identification can begin.
+\section{Attitude Determination}\label{sec:attitudeDetermination}
+
+This section serves to give a brief overview into what attitude is, what Wahba's problem is \& how to solve it, and what
+stellar based attitude determination entails.
 
 \subsection{General Attitude Determination}\label{subsec:generalAttitudeDetermination}
 Attitude refers to the translation between how one system describes an object compared to how a different system
@@ -29,16 +29,17 @@ These systems are referred to as \textit{reference frames}, and describe objects
 \ldots$).
 As an example, observer $A$ at the bottom of a mountain may describe the mountain itself as large and above itself.
 Another observer $B$ on a helicopter hovering over the same mountain may describe it as small and below itself.
-To find an attitude between $A$'s reference frame and $B$'s reference frame is to find some function $f(x_1, x_2, x_3,
+To find an attitude between $A$'s reference frame and $B$'s reference frame is to find some function $h(x_1, x_2, x_3,
 \ldots)$ that is able to produce $B$'s description of the mountain with $A$'s observations.
 
 In the context of spacecraft attitude from star tracking, there exist three reference frames: the \textit{body frame},
 the \textit{sensor frame}, and the \textit{inertial frame}.
 The body frame itself is fixed to the structure of the spacecraft, the sensor frame is fixed to the star tracker,
 and the inertial frame refers to some non-accelerating frame.
-All observations from the spacecraft exist in the sensor frame, but can easily be rotated to align with the body frame.
-To simplify the problem, the body frame is used interchangeably with the sensor frame.
-To describe the spacecraft itself, an inertial frame is convenient for simplifying the process of finding an attitude.
+All observations from the spacecraft exist in the sensor frame, but can easily be rotated to align with the body frame
+(the sensor itself is fixed to the spacecraft chassis).
+Consequently, the body frame is used interchangeably with the sensor frame.
+To describe the craft itself, an inertial frame is required for simplifying the process of finding an attitude.
 A star observed in the inertial frame is more predictable than the same star observed in a tumbling spacecraft.
 Using all three, the goal of attitude determination becomes finding some method of translation between the inertial
 frame and the body frame.
@@ -77,8 +78,8 @@ frame and the body frame.
         \end{bmatrix}
     \end{align}
 \end{subequations}
-The issue here is that this rotation matrix $A$ is not given and that we need to account for noise in obtaining our
-measurements.
+The issue here is that this rotation matrix $A$ is not given and that we need to account for the noise associated with
+our measurements.
 This problem is known as \textit{Wahba's problem}, first posed by Gracie Wahba in 1965~\cite{Wahba}.
 Wahba's problem states that finding the optimal $A$ involves minimizing the loss function below:
 \begin{equation}
@@ -94,7 +95,7 @@ in the body frame and $\vv{K_j}$ in the inertial frame.
     This algorithm starts by constructing two sets of basis vectors: one attached to the body referential (two
     observations in the body frame) $\left[ \vv{t_{1I}} \ \vv{t_{2I}} \ \vv{t_{3I}} \right]$ and another attached to
     the inertial referential (two observations in the inertial frame) $\left[ \vv{t_{2I}} \ \vv{t_{2K}} \ \vv{t_{3K}}
-    \right]$~\cite{TRIAD, TRIADOriginal}.
+    \right]$~\cite{TRIAD,TRIADOriginal}.
     This is known as the triad frame:
     \begin{alignat}{2}
         \vv{t_{1I}} &= \frac{\vv{v_1}}{\left| \vv{v_1} \right|} &\vv{t_{2I}} &{}={}&
@@ -142,8 +143,7 @@ computer.
 After taking the picture, the pixel positions of potential stars in the image are determined.
 This involves finding bright blobs in the image, and computing each blob's center of mass to get a point ($x, y$).
 Through some 2D to 3D transformation process involving the camera's hardware (i.e.\ field of view, focal point,
-etc\ldots), a 3D point is then obtained~\cite{Tappe}.
-This point is then used to compare stars in the inertial frame.
+etc\ldots), a 3D point $I_j$ is then obtained~\cite{Tappe}.
 %    To align these stars with the ones in the catalog, the inverse Mercator mapping is used [CITE ME]:
 %    \begin{align}
 %        x &= k \cos\left( \frac{x}{R}  \right) \cos\left(2 * \arctan\left(\exp\left(\frac{y}{R}\right)\right) -
@@ -154,5 +154,5 @@ This point is then used to compare stars in the inertial frame.
 %    \end{align}
 
 The next issue is the focus of this paper: determining which observation from the star tracker frame $\iFrame$
-corresponds which observation from the star catalog frame $\kFrame$.
-Once these are recognized, the situation reduces to Wahba's problem to find the optimal attitude~\cite{Survey}.
+corresponds to which observation from the star catalog frame $\kFrame$.
+Once this correspondence is found, Wahba's problem is solved to obtain $A$ and this is returned to the main computer.
