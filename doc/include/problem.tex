@@ -3,20 +3,6 @@
 %\newcommand{\vv}[1]{\overrightarrow{#1}}
 \newcommand{\vv}[1]{#1} % Not doing anything special for vectors right now...
 
-\begin{figure}
-    \centering{
-    %    \includegraphics[scale=0.23]{images/moving-coordinate-systems-edit.PNG}
-    \input{include/floats/coordinate-systems}
-    \caption{
-    Visual of two coordinate frames: the inertial frame $\kFrame$, and the body frame $\iFrame$.
-    Observation $j$ is described with vector $\vv{I_j}$ in the $\iFrame$ body frame.
-    The same observation $j$ is described with vector $\vv{K_j}$ in the $\kFrame$ inertial frame.
-    By aligning several observations in both frames, a spacecraft orientation $A^\nicefrac{\iFrame}{\kFrame}$ can be
-    determined to take all points in $\kFrame$ to $\iFrame$.
-    } \label{figure:coordinateSystem}
-    }
-\end{figure}
-
 \section{Attitude Determination}\label{sec:attitudeDetermination}
 
 This section serves to give a brief overview into what attitude is, what Wahba's problem is \& how to solve it, and what
@@ -44,10 +30,23 @@ A star observed in the inertial frame is more predictable than the same star obs
 Using all three, the goal of attitude determination becomes finding some method of translation between the inertial
 frame and the body frame.
 
+\begin{figure}
+    \centering{
+    \input{include/floats/coordinate-systems}
+    \caption{
+    Visual of two coordinate frames: the inertial frame $\kFrame$, and the body frame $\iFrame$.
+    Observation $j$ is described with vector $\vv{I_j}$ in the $\iFrame$ body frame.
+    The same observation $j$ is described with vector $\vv{K_j}$ in the $\kFrame$ inertial frame.
+    By aligning several observations in both frames, a spacecraft orientation $A^\nicefrac{\iFrame}{\kFrame}$ can be
+    determined to take all points in $\kFrame$ to $\iFrame$.
+    } \label{figure:coordinateSystem}
+    }
+\end{figure}
+
 \begin{subequations}
     ~\autoref{figure:coordinateSystem} describes an inertial frame $\kFrame$ with a right hand set of three orthogonal
     vectors $\{\vv{u_1}, \vv{u_2}, \vv{u_3}\}$ and a body frame $\iFrame$ with another right hand set of three
-    orthogonal vectors $\{\vv{v_1}, \vv{v_2}, \vv{v_3}\}$~\cite{RotationMatricies}.
+    orthogonal vectors $\{\vv{v_1}, \vv{v_2}, \vv{v_3}\}$~\cite{wie:spaceVehicleDynamics}.
     A \textit{rotation matrix} $A$ can be assembled to describe the basis vectors of $\kFrame$ in terms of $\iFrame$:
     \begin{align}
         \begin{bmatrix}
@@ -80,7 +79,8 @@ frame and the body frame.
 \end{subequations}
 The issue here is that this rotation matrix $A$ is not given and that we need to account for the noise associated with
 our measurements.
-This problem is known as \textit{Wahba's problem}, first posed by Gracie Wahba in 1965~\cite{Wahba}.
+This problem is known as \textit{Wahba's problem}, first posed by Gracie Wahba in
+1965~\cite{wahba:attitudeEstimationProblem}.
 Wahba's problem states that finding the optimal $A$ involves minimizing the loss function below:
 \begin{equation}
     L(A) = \frac{1}{2} \sum_j^n \vv{w_j} \left\| \vv{I_j} - A\vv{K_j} \right\|^2
@@ -89,13 +89,13 @@ where $\vv{w_j}$ represents a non negative weight associated with the noise betw
 in the body frame and $\vv{K_j}$ in the inertial frame.
 
 \begin{subequations}
-    For $n > 2$, Wahba's problem exists as an optimization problem.
-    In the $n = 2$ case though, the \textit{TRIAD method} (short for TRIaxial Attitude Determination) exists as a
-    closed form solution~\cite{ClosedForm}.
+    For $n \!>\! 2$, Wahba's problem exists as an optimization problem.
+    In the $n\seq2$ case though, the \textit{TRIAD method} (short for TRIaxial Attitude Determination) exists as a
+    closed form solution~\cite{markley:attitudeDeterminationTwoVectors}.
     This algorithm starts by constructing two sets of basis vectors: one attached to the body referential (two
     observations in the body frame) $\left[ \vv{t_{1I}} \ \vv{t_{2I}} \ \vv{t_{3I}} \right]$ and another attached to
     the inertial referential (two observations in the inertial frame) $\left[ \vv{t_{2I}} \ \vv{t_{2K}} \ \vv{t_{3K}}
-    \right]$~\cite{TRIAD,TRIADOriginal}.
+    \right]$~\cite{benet:swisscubeAttitudeDetermination,black:passiveAttitudeDetermination}.
     This is known as the triad frame:
     \begin{alignat}{2}
         \vv{t_{1I}} &= \frac{\vv{v_1}}{\left| \vv{v_1} \right|} &\vv{t_{2I}} &{}={}&
@@ -119,12 +119,12 @@ For all instances where a rotation between the inertial and body frames was requ
 
 \subsection{Stellar Based Attitude Determination}\label{subsec:stellarBasedAttitudeDetermination}
 \begin{subequations}
-    Relative to our solar system, the majority of bright stars ($m < 6.0$, or visible from the Earth with the naked
+    Relative to our solar system, the majority of bright stars ($m \!<\! 6.0$, or visible from the Earth with the naked
     eye) do not visibly move.
     For simplicity, we make the assumption here that all stars in $\kFrame$ are fixed and exist in a inertial frame
     known as the \textit{Earth centered inertial} frame, or ECI frame.
     The star vectors themselves come from star catalogs, the majority of which use the ECI frame and record the
-    positions of stars as points lying on a unit sphere (celestial sphere)~\cite{Tappe}.
+    positions of stars as points lying on a unit sphere (celestial sphere)~\cite{tappe:starTrackerDevelopment}.
     Two pieces of information are given here: right ascension $\alpha$ (equivalent to latitude on Earth) and
     declination $\delta$ (equivalent to longitude).
     Representing some spherical point $(\alpha, \delta, r)$ in 3D Cartesian space involves the following:
@@ -137,13 +137,13 @@ For all instances where a rotation between the inertial and body frames was requ
     $\vv{K_j}$ represents a point obtained from a star catalog that lies in the ECI frame, $r$ units away from Earth.
 \end{subequations}
 
-$\vv{I_j}$ represents a 2D point obtained from the star tracker projected into 3D space.
+Let $\vv{I_j}$ represent a 3D point projected from a 2D observation taken by the star tracker.
 A basic star tracker is composed of a camera, a computer for determining orientation, and a link back to the main
 computer.
 After taking the picture, the pixel positions of potential stars in the image are determined.
 This involves finding bright blobs in the image, and computing each blob's center of mass to get a point ($x, y$).
 Through some 2D to 3D transformation process involving the camera's hardware (i.e.\ field of view, focal point,
-etc\ldots), a 3D point $I_j$ is then obtained~\cite{Tappe}.
+etc\ldots), a 3D point $I_j$ is then obtained~\cite{tappe:starTrackerDevelopment}.
 %    To align these stars with the ones in the catalog, the inverse Mercator mapping is used [CITE ME]:
 %    \begin{align}
 %        x &= k \cos\left( \frac{x}{R}  \right) \cos\left(2 * \arctan\left(\exp\left(\frac{y}{R}\right)\right) -

@@ -1,7 +1,7 @@
 \section{Introduction}\label{sec:introduction}
 Ancient mariners could look up at the night sky, point out which stars they were looking at, and navigate across the
 globe without the use of maps.
-\textit{Star identification algorithm} refers to a computational approach to determining which stars are in the sky.
+\textit{Star identification algorithms} refer to computational approaches to determining which stars are in the sky.
 Given an image of the sky, star identification is matching the bright spots in an image to stars in an astronomical
 catalog.
 The device that performs these computations is the star tracker, much like the navigators on the ship.
@@ -13,23 +13,25 @@ In order for a craft to point a payload, direct its thrusters, or orient its sol
 \textit{attitude} (another term for orientation) must be known.
 There are a few known landmarks in space where some attitude can be extracted (the Earth, the Sun), but this
 requires constant direction towards just these objects.
-Star trackers do not limit themselves to a single object, rather they use the entire sky of stars to determine its
-orientation.
+Star trackers do not limit themselves to a single object, rather they use multiple stars within their field of view
+to determine their orientation.
 
-% TODO: Maybe mention the subgraph isomorphism problem?
-There exist roughly 4500 stars in the sky visible to the human eye.
-For an image of $n$ stars, the naive approach would be compute $C(4500, n)$ combinations from this collection and
-compare each to the the image.
-For $n = 6$, this requires over $10^{19}$ comparisons.
-As an alternative, we sacrifice precision for speed by only searching for a subset of the image.
-When this subset is identified, we determine and return the orientation of the image relative to collection of 4500
-stars.
+\newcommand{\seq}{\!=\!}
+There exist roughly 4,500 stars in the sky visible to the human eye.
+For an image of $n$ stars, the naive approach would be compute $C(4,500, n)$ combinations from this collection and
+compare each to some subset of stars found in the image.
+For $n\seq 3$, this requires over $10^{10}$ comparisons.
+As an alternative, we sacrifice storage and precision for speed by searching a separate collection which indexes the
+${\sim}4,500$ stars by one or more features.
+When this subset is identified, we determine and return the orientation of the image relative to collection
+of ${\sim}4,500$ stars.
 
+% TODO: The addtion of 'to'? Need to ask about this...
 This research is motivated by a growing difference in the number of stellar attitude determination methods and the
-comparison between each of these methods in a more controlled manner for star development.
+comparison between each of these methods in a more systematic manner for star tracker development.
 Interchangeable factors are abstracted away (camera hardware, blob detection, etc\ldots) to focus more on how each
-method matches stars in an image to a catalog.
-This paper aims to contribute this hardware independent comparison process, an algorithmic description of several
+method matches stars in an image to stars in a catalog.
+This paper aims to contribute a hardware independent comparison process, an algorithmic description of several
 existing methods, as well as runtime and catalog access analysis of these methods under various types of noise.
 The process of identifying blobs in an image, constructing the image coordinate system, and efficiently querying
 static databases are not addressed here.

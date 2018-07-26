@@ -1,7 +1,7 @@
 \newcommand{\nsubparagraph}[1]{\subparagraph{\textbf{#1}}}
 \newcommand{\AVG}{\mathit{AVG}}
 
-\section{Evaluation}\label{sec:evaluation}
+\section{Empirical Evaluation}\label{sec:empiricalEvaluation}
 In this section all six identification methods are analyzed in terms of their process to obtain the catalog candidate
 set $R$, their catalog set $r$ selection process, and their bijection $h$ production process under varying amounts
 of false stars and Gaussian noise.
@@ -10,15 +10,16 @@ The main areas of interest here are the accuracy of each step, and the time to p
 \subsection{Experimental Setup}\label{subsec:experimentalSetup}
 \begin{subequations}
     \nsubparagraph{Star Catalog:}
-    The star catalog used for $K$ is the Hipparcos Input Catalogue~\cite{Hipparcos}.
+    The star catalog used for $K$ is the Hipparcos Input Catalogue~\cite{perryman:hipparcosCatalogue}.
     Entries that do not have a point $\left( \alpha, \delta \right)$ associated with it were not recorded, giving
     117,956 total stars.
     Out of this entire set, only 4,560 are visible from Earth with the naked eye (apparent magnitude $m$ less than 6.0).
     An additional constraint for each catalog $K^2, K^3, \bar{K^3}$ that all stars in each pair or trio be within 20
     degrees of each other was placed to shorten each algorithm's query step running time.
-    A field-of-view between 10 to 20 degrees is common for most astronomy based CCD cameras~\cite{Pyramid}.
-    All sets $K^2, K^3, \bar{K^3}$ construct combinations and permutations using the 4,560 elements and this field of view
-    constraint.
+    A field-of-view between 10 to 20 degrees is common for most astronomy based CCD
+    cameras~\cite{motari:pyramidIdentification}.
+    All sets $K^2, K^3, \bar{K^3}$ construct combinations and permutations using the 4,560 elements and this field
+    of view constraint.
 
     Each entry in $K$ was also been updated from MJD 48319 (March 1991) to MJD 58119 (January 2018).
     The conversion to obtain these updated positions is given below:
@@ -29,7 +30,7 @@ The main areas of interest here are the accuracy of each step, and the time to p
     where $\mu_\alpha$ and $\mu_\delta$ represent the proper motion of some star's right ascension and declination in
     radians per year, $\alpha_{0}$ and $\delta_{0}$ represent the right ascension and declination at time
     $t_0$, $t_0$ represents the time the catalog was recorded, and $t$ represents the time we want to update
-    our stars to~\cite{ProperMotion}.
+    our stars to~\cite{nash:3dMotionsAstronomy}.
     To construct the point $[ x \ y \ z ]$ for $K$,~\autoref{eq:sphereToCartesian} was used with
     each new $\left(\alpha_t, \delta_t \right)$, with $r = 1$, and then normalized.
 \end{subequations}
@@ -40,7 +41,7 @@ three major processes: blob detection, centroid determination, and a 2D $\righta
 If a blob is not wholly detected, the centroid is not determined correctly, or the transformation process
 is not precise enough, error will exist as input to the algorithm prior to starting.
 Given that our goal is to only characterize each star identification algorithm itself, the solution implemented here
-involves generating artificial images in 3D space.
+involves generating artificial images in some quasi 3D space.
 
 Prior to generating the benchmark data, three items are specified: a field of view $\psi$, a true attitude
 $A^{\nicefrac{\iFrame}{\kFrame}}$, and a 3D vector $\vv{r_f}$ in the catalog frame $\kFrame$ that determines
@@ -60,16 +61,16 @@ are then presented to each star identification algorithm.
 The first type of noise exists as variance between the relative positions of stars represented in the catalog and those
 represented in the image.
 This may come from misidentifying the centroids in the image or out-of-date catalogs.
-To introduce Gaussian noise to an image, we linearly interpolate each star toward some random 3D vector on
-the unit sphere spherically (\textit{SLERP}) and distribute the magnitude of the movement normally.
+To introduce Gaussian noise to an image, we spherically linearly interpolate each star toward some random 3D vector on
+the unit sphere (\textit{SLERP}) and distribute the magnitude of the movement normally.
 To describe our noise independent of this random vector, we divide a normal random variable by the current angular
 separation between both stars.
-Given a star $b_i \in I$, Gaussian noise is applied to obtain the distributed vector $b'_i$~\cite{SLERP}:
+Given a star $b_i \in I$, Gaussian noise is applied to obtain the distributed vector $b'_i$~\cite{kremer:slerp}:
 \begin{equation}
     b'_i &= \frac{\sin (1 - K)\Omega}{\sin \Omega}b_i + \frac{\sin \left( K \Omega )\right}{\sin \Omega}b^\star_i
 \end{equation}
 \begin{subequations}
-    where $b^\star_i$ represents some random vector whose elements are distributed uniformly, $\Omega$ describes the
+    where $b^\star_i$ represents some random vector with uniformly distributed elements, $\Omega$ describes the
     angle subtended by the arc, and $K$ describes the magnitude of the interpolation.
     $\rho$ in the equation below represents the standard deviation of noise.
     \begin{align}
@@ -96,7 +97,8 @@ Each algorithm was implemented in C++14, and compiled without optimization (at \
 The exact implementation is available at the following link:
 \url{https://github.com/glennga/hoku}.
 
-\subsection{1st Filter: Catalog}\label{subsec:1stFilter:Catalog}
+\newpage
+\subsection{Catalog Query Step}\label{subsec:catalogQueryStep}
 \nsubparagraph{Determining Query $\sigma$:}
 In all predicates used to query the catalog, an assumption must be made about the difference between the catalog
 measurements and the image measurements.
@@ -179,6 +181,23 @@ this comes at the cost of being less flexible with Gaussian noise.
 The methods using $K^3$ and $\bar{K^3}$ have the advantage of being able to create utilize more features of the $b$ set and
 distinguish it better, compared to only using $\theta(b, r)$ as the sole feature.
 
+\begin{figure}
+    \begin{align*}
+        \texttt{SELECT } &r \\
+        \texttt{FROM } &K^d \\
+        \texttt{WHERE } &g_1(r) < g_1(b) + 3\sigma_{g1} \texttt{ AND } g_1(r) > g_1(b) - 3\sigma_{g1} \texttt{ AND } \\
+        &g_2(r) < g_2(b) + 3\sigma_{g2} \texttt{ AND } g_2(r) > g_2(b) - 3\sigma_{g2} \texttt{ AND } \\
+        &\vdots \\
+        &g_d(r) < g_d(b) + 3\sigma_{gd} \texttt{ AND } g_d(r) > g_d(b) - 3\sigma_{gd}
+    \end{align*}
+     \caption{
+     Depicts a generalized SQL query used for the Angle, Spherical Triangle, Planar Triangle, and Composite Pyramid
+     methods.
+     Here, $d$ represents the number of stars used in the query, $g$ represents the function used to obtain a feature,
+     and $\sigma$ refers to the deviation of noise.
+     }\label{fig:sqlQuery}
+\end{figure}
+
 %import numpy as np
 %p_1, p_2, n_1, n_2 = (1501 / 2000), ((1994 + 1991 + 1984) / 6000), 2000, 6000
 %p = (1501 + 1994 + 1991 + 1984) / (2000 + 6000)
@@ -196,20 +215,7 @@ when compared to methods with angular features.
 
 \subsubsection{How effective is the Pyramid method query?}
 In the Angle, Spherical Triangle, Planar Triangle, and Composite Pyramid methods, catalog queries can be
-generalized to the following SQL query:
-\begin{align*}
-    \texttt{SELECT } &r \\
-    \texttt{FROM } &K^d \\
-    \texttt{WHERE } &g_1(r) < g_1(b) + 3\sigma_{g1} \texttt{ AND } g_1(r) > g_1(b) - 3\sigma_{g1} \texttt{ AND } \\
-    &g_2(r) < g_2(b) + 3\sigma_{g2} \texttt{ AND } g_2(r) > g_2(b) - 3\sigma_{g2} \texttt{ AND } \\
-    &\vdots \\
-    &g_d(r) < g_d(b) + 3\sigma_{gd} \texttt{ AND } g_d(r) > g_d(b) - 3\sigma_{gd}
-\end{align*}
-\begin{align*}
-    d =& \text{ number of stars used in the query.} \\
-    g =& \text{ function used to obtain a feature. } \\
-    \sigma =& \text{ deviation of noise. }
-\end{align*}
+generalized to the query in~\autoref{fig:sqlQuery}.
 The Dot Angle method requires the $\theta(r_{c1}, r_{c}) < \theta(r_{c2}, r_c)$ constraint before performing the query
 above, but the Pyramid method has the most involved query that involves processing outside of SQL\@.
 Three of the queries above must be performed to obtain the $T$ sets, and the common stars must be
@@ -229,7 +235,7 @@ We find that the Pyramid method's query step is less accurate than other identif
 Although small, this error will propagate to the next steps and will result in more catalog accesses and/or a lower
 average accuracy.
 
-\subsection{2nd Filter: Catalog Candidates}\label{subsec:2ndFilter:CatalogCandidates}
+\subsection{Candidate Selection Step}\label{subsec:candidateSelectionStep}
 \begin{figure}
     \centering{
     \input{include/floats/pivot}
@@ -260,14 +266,13 @@ obtained with a two-tailed two sample $Z$ test.
 With the data collected here, we find that the pivoting process results in more catalog accesses on average.
 This increased number of catalog accesses results in a $6.70\si{ms}$ difference on average between the two.
 
-The pivoting process was only tested with methods using triangular features, whose candidate sets met the $R$ criterion
-the most frequently.
+The pivoting process was only tested with the methods most frequently meeting the $R$ criterion.
 An area of interest would be to see the effects of applying this process to methods with angular features (i.e.\ Angle,
 Dot Angle, Pyramid).
 These methods met the criterion less frequently, and would likely benefit from attempting to reduce the $R$ set before
 deciding to choose another $b$ set.
 
-\subsection{3rd Filter: Bijection}\label{subsec:3rdFilter:Bijection}
+\subsection{Identification Step}\label{subsec:identificationStep}
 \begin{figure}
     \centering{
         \input{include/floats/verify}
@@ -346,8 +351,7 @@ displayed with and without the verification step for varying levels of Gaussian 
 Without noise, the Pyramid method without its verification step is 4.33\% less accurate than the Pyramid method with
 verification on average.
 This behavior is consistently seen for Gaussian noise of $\rho=\ang{0.000001}$ \& $\rho=\ang{0.001}$, and
-can be attributed to the more frequent rejection of bijections whose $R$ sets have met the criterion but whose resulting
-$h$ would have been incorrect.
+can be attributed to the more frequent rejection of incorrect bijections with $R$ sets that have met the criterion.
 In the $\rho=\ang{0.001}$ case, there exists a difference of 389.95 accesses between both variations of the Pyramid
 and a 15\% bijection accuracy difference in favor of the method with the verification step.
 Given the null hypotheses that the difference between both variations of the Pyramid method are different for each level
@@ -443,23 +447,6 @@ Given the null hypothesis that the difference between both averages is not signi
 found with a two sample $Z$ test.
 With the data collected here, the Pyramid method is the fastest method given varying amounts of Gaussian noise.
 
-\begin{figure*} % NOTE: HAD TO MOVE THIS AWAY FROM THE FALSE STAR SECTION.
-    \centering{
-    \begin{subfigure}[b]{0.48\linewidth}
-        \input{include/floats/false-t}
-    \end{subfigure}
-    \begin{subfigure}[b]{0.48\linewidth}
-        \input{include/floats/false-acc}
-    \end{subfigure}
-    \caption{
-    Both plots represent some statistic about the resulting bijection $h$ produced by each identification method
-    given some image with varying amounts of spikes $\omega$.
-    There exist 2000 runs for each identification method, with a 500 catalog access limit.
-    The left plot depicts the average time to obtain $h$, and the right plot depicts the average accuracy of $h$.
-    }\label{fig:falseNoise}
-    }
-\end{figure*}
-
 \subsubsection{Which method has the slowest growing $h$ accuracy response to increasing noise?}
 The selection of the query $\sigma$ parameters play a significant role in accuracy of each method given images with
 Gaussian noise.
@@ -502,6 +489,23 @@ A larger $A$ suggests that a change in query $\sigma$ or Gaussian noise will not
 as much as a method with a larger $A$.
 The method with the largest acceleration toward $0\%$ $h$ accuracy is the Dot Angle method ($A = -0.15749$) .
 The Spherical Triangle method has the slowest growing $h$ accuracy response to increasing noise ($A = -0.09266$).
+
+\begin{figure*}
+    \centering{
+    \begin{subfigure}[b]{0.48\linewidth}
+        \input{include/floats/false-t}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.48\linewidth}
+        \input{include/floats/false-acc}
+    \end{subfigure}
+    \caption{
+    Both plots represent some statistic about the resulting bijection $h$ produced by each identification method
+    given some image with varying amounts of spikes $\omega$.
+    There exist 2000 runs for each identification method, with a 500 catalog access limit.
+    The left plot depicts the average time to obtain $h$, and the right plot depicts the average accuracy of $h$.
+    }\label{fig:falseNoise}
+    }
+\end{figure*}
 
 \subsubsection{Which method is the fastest given varying \\ amounts of false stars?}
 In~\autoref{fig:falseNoise}, the plot on the left depicts the end to end running time of each method given varying
@@ -584,8 +588,8 @@ A smaller $\abs{A}$ suggests that the number of spikes will affect the end to en
 larger $\abs{A}$.
 The method with the largest $\abs{A}$ is the Angle method with $A = -414.559$.
 The method with this smallest $\abs{A}$ term is the Pyramid method with $A = -6.766$.
-The Pyramid method is the fastest given varying amounts of false stars, whose runtime is also the least responsive to
-increasing spikes.
+The Pyramid method is the fastest given varying amounts of false stars, having a runtime that is also the least
+responsive to increasing spikes.
 
 \subsubsection{Which method is the most accurate given varying amounts of false stars?}
 %if __name__ == '__main__':

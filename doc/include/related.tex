@@ -1,0 +1,70 @@
+\section{Related Work}\label{sec:relatedWork}
+This section serves to give a brief overview into the different approaches to the lost-in-space star identification
+problem.
+Many of the methods listed here have also been described and compared by
+Spratling~\cite{spratling:surveyStarIdentification} and Br\"{a}tt~\cite{bratt:analysisStarIdentification}.
+
+\subsection{Subgraph Isomorphism Approach}\label{subsec:subgraphIsomorphismApproach}
+\textit{Subgraph isomorphism} is a NP complete problem which aims to find some 1-to-1 mapping between the vertices
+(stars) in two graphs (i.e.\ the catalog and the image) if it exists~\cite{scott:graphIsomorphismProblem}.
+Methods that approach the star identification problem as such are the ones analyzed in this paper.
+
+In 1978, Gottlieb developed the Polygon Angular Matching method which identifies 3 stars using interstar
+angles~\cite{gottlieb:spacecraftAttitudeDetermination}.
+In 1986, Groth introduced a Pattern Matching algorithm for lists of coordinates, which identifies 3 stars using the
+relative ratios between each interstar angle and logarithm of this sum~\cite{groth:patternMatchingMethod}.
+In 1991, Anderson proposed the use of storing permutations instead of combinations to avoid an additional
+identification step at the expense of storage~\cite{spratling:surveyStarIdentification,anderson:autonomousStarSensing}.
+In 1992, Renken developed a method which allowed for variable number of image subsets based on interstar angle matching
+of 2 to 6 stars~\cite{bratt:analysisStarIdentification,renken:starConstellationMatching}.
+
+In 1993, Baldini introduced a method which identifies $b$ bright stars in an image using five stars and their interstar
+angles~\cite{spratling:surveyStarIdentification,baldini:starConstellationMatching}.
+In 1994, Scholl proposed using the intesities themselves as features to remove the additional identification step
+~\cite{spratling:surveyStarIdentification,scholl:starFieldIdentification}.
+In 1995, Liebe developed the Liebe Star ID method which identifies 3 stars using two interstar angles and the
+interior angle with one of the stars as the vertex~\cite{liebe:starTrackersAttitudeDetermination}.
+Also in 1995, Ketchum developed the second sequential filtering algorithm, which identifies 2 stars using their
+brightness~\cite{spratling:surveyStarIdentification,ketchum:onboardStarIdentification}.
+
+In 2004, Mortari first developed the Pyramid method which introduces a special process for determining image star
+subsets, a verification step to identify 4 stars, and a "searchless" database access
+method to speed up query time~\cite{motari:pyramidIdentification}.
+In 2004 and 2006, Cole \& Crassidus developed the Spherical and Planar Triangle methods
+respectively which identifies 3 stars using the area and torque formed by the triangles of interstar angles, and a
+process for reducing candidates~\cite{coleAndCrassidis:sphericalTriangleMethod, coleAndCrassidis:planarTriangleMethod}.
+In 2005, Rousseau et. al introduced the use of the sine of the interior angle of three stars as a feature as well as
+the idea of truncating the possible catalog matches based on a computed
+attitude~\cite{bratt:analysisStarIdentification,rousseau:starRecognitionAPS}.
+
+In 2007, Kolomenkin et. al developed the voting algorithm, which would accumulate votes for every combination of
+two stars in the image if the interstar angle of some pair in the image matched the angle in the
+catalog and maps stars based on the number of votes
+received~\cite{bratt:analysisStarIdentification,kolomenkin:geometricVoting}.
+In 2011, Tichy et. al developed the two-star voting algorithm, which votes in a similar fashion to the voting algorithm
+but applies votes toward a single star based off two interstar angles instead of votes toward two stars
+~\cite{bratt:analysisStarIdentification,tichy:preliminaryTestsCommericalImagers}.
+In 2014, Toloei developed the Novel Stars ID method, which retains all of the key aspects of the Pyramid method but
+uses the features from Planar Triangle method~\cite{toloei:compositeIdentification}.
+
+\newcommand{\srightarrow}{\! \rightarrow \!}
+\begin{figure}[ht]
+    \centering{
+    \input{include/floats/generic-identification}
+    \caption{
+    Flowchart depicting the unified identification framework which all methods here follow.
+    Given an image $I$, this process returns a bijection $h$ between some subset of the input $b$ and a subset of the
+    catalog $r$.
+    In the event all subsets are exhausted, the function $h: b \srightarrow \emptyset$ is returned (not depicted).
+    } \label{figure:unifiedIdentificationFlowchart}
+    }
+\end{figure}
+
+\subsection{Pattern Recognition Approaches}\label{subsec:otherApproaches}
+The \textit{pattern recognition} approach differs from the subgraph ismorphism approach in that stars themselves exist
+as a part of patterns to be matched across the catalog and the image~\cite{bittanti:starIdentificationStudy}.
+This is the other main approach to the identification problem, most of which is composed of grid algorithms
+~\cite{lee:modifiedGridAlgorithm,padgett:gridAlgorithm} and neural network
+approaches~\cite{lindsey:neuralNetworkMethods,alvelda:neuralNetworkStar}.
+%There exist several methods outside of the norm that appear to perform well, the most notable being Quan's Adaptive
+%Ant Colony method~\cite{}.

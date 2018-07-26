@@ -17,15 +17,15 @@ Our research goal is directed toward star tracker development, where our input i
 Before a raw image can be used in a star identification algorithm it must first go through some process to filter out
 extraneous light.
 From here, centroid coordinates of an image (i.e.\ stars) are determined in 2D using a center-of-mass approach.
-The coordinates are then projected from 2D to the 3D image frame, and then run through the star identification
-algorithm~\cite{Survey}.
+The coordinates are then projected from 2D to a quasi 3D image frame, and then run through the star identification
+algorithm~\cite{spratling:surveyStarIdentification}.
 
 There are a number of places where error can be introduced here.
 What if the filtering removes a star?
 What if centroid coordinates are inaccurately determined?
 What if the 2D to 3D transformation is inaccurate as well?
 In order to quantity star identification error solely, a process must be created to produce an accurate
-representation of the 3D image frame.
+representation of the quasi 3D image frame.
 The exact stars in the image must be known, the date of the image, the field-of-view of the camera, what type of
 error exists in the image, \ldots.
 As much of the image is supposed to be known, while only varying the star identification algorithm itself.
@@ -58,11 +58,11 @@ Benchmark images were generated with the process below:
 \begin{subequations}
     \label{eq:catalogToCartesian}
     The catalog here does not refer to the raw Hipparcos Input Catalogue using spherical coordinates, rather a
-    modified catalog whose entries exist in a 3D cartesian frame and whose positions are updated to MJD 58119 (January
+    modified catalog with entries in a quasi 3D frame and positions updated to MJD 58119 (January
     2018) from MJD 48319 (March 1991).
     Depicted below is the conversion to ($x, y, z$) points, with $\alpha$ \& $\delta$ in radians,
     $\mu_\alpha$ \& $\mu_\delta$ in radians per year, and $t$ \& $\tau$ (MJD 58119 and time of catalog = MJD 48316
-    respectively) in years~\cite{ProperMotion}.
+    respectively) in years~\cite{nash:3dMotionsAstronomy}.
     \begin{align}
         \alpha_t &= \alpha_\tau + \mu_\alpha (\tau - t) \\
         \delta_t &= \delta_\tau + \mu_\delta (\tau - t) \\
@@ -74,7 +74,7 @@ Benchmark images were generated with the process below:
 
 $d$ in~\autoref{eq:catalogToCartesian} represents the distance from the Earth (an observer) to the star.
 For this set of experiments, $d = 1$ to normalize each vector and work entirely on the celestial sphere.
-\textit{For simplicity, the \underline{catalog} refers to the set of stars in this Cartesian frame at time = MJD 58119.}
+\textit{For simplicity, the \underline{catalog} refers to the set of stars in this quasi 3D frame at time = MJD 58119.}
 
 As mentioned before, all catalog stars exist in an inertial frame known as the \textit{catalog frame}.
 To generate clean benchmark images, three items must be specified:
@@ -94,8 +94,8 @@ It is assumed here that the only input comes from a single image, and consequent
     \includegraphics[scale=0.4]{images/benchmark.png}
     \caption{
     Visualization of an image presented to a star identification procedure.
-    Stars are represented as vectors whose origin is the observer (i.e.\ Earth), and whose endpoint lies on a section
-    of the celestial sphere.
+    Stars are represented as vectors with the observer (i.e.\ Earth) as the origin and with some point on the celestial
+    sphere as the endpoint.
     } \label{figure:benchmarkImageExample}
     }
 \end{figure}
@@ -116,8 +116,8 @@ False stars were added by generating a random vector within $\frac{f}{2}$ of the
 \subsection{What are the best hyperparameters for each algorithm?}\label{subsec:hyperparameterSelectionMethods}
 This experiment helps determine the optimal hyperparameters (i.e.\ query $\sigma$, overlay $\sigma$) for each
 identification method.
-Referencing~\autoref{figure:genericIdentificationMethodFlowchart}, different values for this deviation in the
-\textit{Search Catalog} step, or "query" step may lead to exclusion of the correct candidates in $R$.
+Referencing~\autoref{figure:unifiedIdentificationFlowchart}, different values for this deviation in the
+\textit{Search Catalog} step, or ``query'' step may lead to exclusion of the correct candidates in $R$.
 Similarly, differing values for the overlay deviation in the \textit{Identify} step for methods using the
 \Call{FPO} call may lead to the wrong map $a$ being selected.
 
@@ -169,7 +169,7 @@ corresponds to $\phi$.
 % Local Method: https://en.wikipedia.org/wiki/Sensitivity_analysis
 \begin{subequations}
     \label{eq:sensitivityQuery}
-    For the same outputs in~\autoref{eq:querySelectivityMeasures}, the sensitivity~\cite{SensitivityAnalysis}
+    For the same outputs in~\autoref{eq:querySelectivityMeasures}, the sensitivity~\cite{pannell:sensitivityAnalysis}
     of some critical point $\sigma_c$ can be represented as:
     \begin{align}
         \left\lvert\frac{\partial Q}{\partial \sigma}\right\rvert_{\sigma_{c1}} &= \text{response of } Q \text{ to }
@@ -298,7 +298,7 @@ method's query steps.
     \end{equation}
 \end{subequations}
 
-Referencing~\autoref{figure:genericIdentificationMethodFlowchart}, the experiment starts at the \textit{Get Camera
+Referencing~\autoref{figure:unifiedIdentificationFlowchart}, the experiment starts at the \textit{Get Camera
 Image} step and executes the identification method to past the \textit{Confident in $r$?} decision block to produce a
 single match from the catalog candidate set for some image star subset.
 The resulting candidate set represent one element inside the set of $r$ sets.
@@ -327,7 +327,7 @@ An accurate map will reduce an attitude determination problem to Wahba's problem
     \end{equation}
 \end{subequations}
 
-Referencing~\autoref{figure:genericIdentificationMethodFlowchart} again, this experiment runs the identification
+Referencing~\autoref{figure:unifiedIdentificationFlowchart} again, this experiment runs the identification
 method end to end.
 Partial accuracy was recorded by counting the number of correct stars against the total amount of stars in a given
 map.
