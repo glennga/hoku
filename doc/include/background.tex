@@ -17,21 +17,21 @@ Star trackers do not limit themselves to a single object, rather they use multip
 to determine their orientation.
 
 \newcommand{\seq}{\!=\!}
-There exist roughly 4,500 stars in the sky visible to the human eye.
-For an image of $n$ stars, the naive approach would be compute $C(4,500, n)$ combinations from this collection and
+There exist roughly $4{,}500$ stars in the sky visible to the human eye.
+For an image of $n$ stars, the naive approach would be compute $C(4{,}500, n)$ combinations from this collection and
 compare each to some subset of stars found in the image.
 For $n\seq 3$, this requires over $10^{10}$ comparisons.
 As an alternative, we sacrifice storage and precision for speed by searching a separate collection which indexes the
-${\sim}4,500$ stars by one or more features.
+${\sim}4{,}500$ stars by one or more features.
 When this subset is identified, we determine and return the orientation of the image relative to collection
-of ${\sim}4,500$ stars.
+of ${\sim}4{,}500$ stars.
 
 % TODO: The addtion of 'to'? Need to ask about this...
-This research is motivated by a growing difference in the number of stellar attitude determination methods and the
-comparison between each of these methods in a more systematic manner for star tracker development.
+This research is motivated by a growing difference in the number of stellar attitude determination methods and
+empirical comparison between each of these methods in a more systematic manner for star tracker development.
 Interchangeable factors are abstracted away (camera hardware, blob detection, etc\ldots) to focus more on how each
 method matches stars in an image to stars in a catalog.
 This paper aims to contribute a hardware independent comparison process, an algorithmic description of several
-existing methods, as well as runtime and catalog access analysis of these methods under various types of noise.
+identification methods, as well as runtime and catalog access analysis of these methods under various types of noise.
 The process of identifying blobs in an image, constructing the image coordinate system, and efficiently querying
 static databases are not addressed here.

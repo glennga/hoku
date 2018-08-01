@@ -3,6 +3,7 @@
 \usepackage{graphicx} \usepackage{balance} \usepackage{hyperref} \usepackage[all]{nowidow} \usepackage{float}
 \usepackage{tikz} \usepackage{tikz-3dplot} \usepackage{nicefrac} \usepackage{algorithm} \usepackage{subcaption}
 \usepackage[noend]{algpseudocode} \usepackage{array} \usepackage{pgfplots} \usepackage{booktabs} \usepackage{siunitx}
+\usepackage{enumitem} \usepackage[utf8]{inputenc}
 
 \vldbTitle{Empirical Analysis of Common Subgraph Isomorphism Approaches to the Lost-in-Space Star
 Identification Problem [Experiment and Analysis]}
@@ -35,11 +36,10 @@ Identification Problem [Experiment and Analysis]}
 	\input{include/evaluation}
 	\input{include/conclusion}
     \input{include/acknowledgements}
+    \balance
 
-    \newpage
-	\nocite{*}
+%	\nocite{*}
 	\bibliographystyle{abbrv}
 	\bibliography{include/references}
-    \balance
 
 \end{document}

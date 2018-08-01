@@ -1,51 +1,97 @@
+\newcommand{\nsubparagraph}[1]{\subparagraph{\textbf{#1}}}
+
+%%%%%%%% TODO: Mention recursive algorithms: http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.517.936&rep=rep1&type=pdf
+%%%%%%%% TODO: Modifed grid algoritm: http://koasas.kaist.ac.kr/bitstream/10203/14436/1/[%EC%9D%B4%ED%98%84%EC%9E%AC]%20[Modified%20Grid%20Algorithm%20for%20Star%20Pattern%20Identification%20by%20using%20Star%20Trackers]%20[RAST%202003]%20[2003.%2011.%2020-22].pdf
+% If possible, reference this: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4541885/
+% TODO: Original grid: https://trs.jpl.nasa.gov/bitstream/handle/2014/27621/96-1672.pdf?sequence=1
+% Selecting B Sets, MUST REFERENCE: https://arxiv.org/pdf/1607.04552.pdf
+% More grid stuff: https://cs.nyu.edu/~roweis/papers/Harvey_msc_thesis.pdf
+%%%%%%% Parameter determination: file:///home/glenn/downloads/3209-Article%20Text-6940-1-10-20180625.pdf
+% Something other than grids: http://www.ijmo.org/papers/118-E092.pdf
+
 \section{Related Work}\label{sec:relatedWork}
 This section serves to give a brief overview into the different approaches to the lost-in-space star identification
 problem.
-Many of the methods listed here have also been described and compared by
-Spratling~\cite{spratling:surveyStarIdentification} and Br\"{a}tt~\cite{bratt:analysisStarIdentification}.
+More comprehensive survey papers have been published by Spratling~\cite{spratling:surveyStarIdentification} and
+Br\"{a}tt~\cite{bratt:analysisStarIdentification}.
 
-\subsection{Subgraph Isomorphism Approach}\label{subsec:subgraphIsomorphismApproach}
-\textit{Subgraph isomorphism} is a NP complete problem which aims to find some 1-to-1 mapping between the vertices
-(stars) in two graphs (i.e.\ the catalog and the image) if it exists~\cite{scott:graphIsomorphismProblem}.
-Methods that approach the star identification problem as such are the ones analyzed in this paper.
+\nsubparagraph{Identification Classes:}
+The first main class of identification and the focus of this paper is the \textit{subgraph isomorphism} class.
+Subgraph isomorphism is NP complete problem which aims to find some 1-to-1 mapping between the vertices (stars) in two
+graphs (i.e.\ the catalog and the image) if it exists~\cite{scott:graphIsomorphismProblem}.
+This involves describing and mapping sets of stars between both the catalog and image in terms of their features
+relative to each other.
 
-In 1978, Gottlieb developed the Polygon Angular Matching method which identifies 3 stars using interstar
-angles~\cite{gottlieb:spacecraftAttitudeDetermination}.
-In 1986, Groth introduced a Pattern Matching algorithm for lists of coordinates, which identifies 3 stars using the
-relative ratios between each interstar angle and logarithm of this sum~\cite{groth:patternMatchingMethod}.
-In 1991, Anderson proposed the use of storing permutations instead of combinations to avoid an additional
-identification step at the expense of storage~\cite{spratling:surveyStarIdentification,anderson:autonomousStarSensing}.
-In 1992, Renken developed a method which allowed for variable number of image subsets based on interstar angle matching
-of 2 to 6 stars~\cite{bratt:analysisStarIdentification,renken:starConstellationMatching}.
+The second class of identification is the \textit{pattern recognition} class.
+In contrast to subgraph isomorphism class, the pattern recognition class commonly deals with larger star sets within
+some defined field-of-view and matches patterns rather than features.
+Pattern formation typically involves 2D binary matrices (grids), where `1' occupies a cell with a star and `0' occupies
+a cell without one~\cite{padgett:gridAlgorithm}.
 
-In 1993, Baldini introduced a method which identifies $b$ bright stars in an image using five stars and their interstar
-angles~\cite{spratling:surveyStarIdentification,baldini:starConstellationMatching}.
-In 1994, Scholl proposed using the intesities themselves as features to remove the additional identification step
-~\cite{spratling:surveyStarIdentification,scholl:starFieldIdentification}.
-In 1995, Liebe developed the Liebe Star ID method which identifies 3 stars using two interstar angles and the
-interior angle with one of the stars as the vertex~\cite{liebe:starTrackersAttitudeDetermination}.
-Also in 1995, Ketchum developed the second sequential filtering algorithm, which identifies 2 stars using their
-brightness~\cite{spratling:surveyStarIdentification,ketchum:onboardStarIdentification}.
+%
+%
+%Another notable attempt toward pattern formation utlizes Delaunay Triangulation, as seen from Miri~\cite
+%
+%Some notable approaches utilize Padgett's~\cite{padgett:gridAlgorithm} and Lee's~\cite{lee:modifiedGridAlgorithm}
+%use of binary matrices (grids) to construct patterns, Lindsey~\cite{lindsey:neuralNetworkMethods} and
+%Alvelda's~\cite{alvelda:neuralNetworkStar} use of neural networks to optimize pattern similarity, and
+%Paladugu's~\cite{paladugu:geneticAlgorithms} use of a genetic algorithm to solve the same pattern similarity problem.
 
-In 2004, Mortari first developed the Pyramid method which introduces a special process for determining image star
-subsets, a verification step to identify 4 stars, and a "searchless" database access
-method to speed up query time~\cite{motari:pyramidIdentification}.
-In 2004 and 2006, Cole \& Crassidus developed the Spherical and Planar Triangle methods
-respectively which identifies 3 stars using the area and torque formed by the triangles of interstar angles, and a
-process for reducing candidates~\cite{coleAndCrassidis:sphericalTriangleMethod, coleAndCrassidis:planarTriangleMethod}.
-In 2005, Rousseau et. al introduced the use of the sine of the interior angle of three stars as a feature as well as
-the idea of truncating the possible catalog matches based on a computed
-attitude~\cite{bratt:analysisStarIdentification,rousseau:starRecognitionAPS}.
+\nsubparagraph{Recursive Property:}
+Recall that the lost-in-space condition specifies that we do not have any information about the spacecraft's attitude
+prior to starting our identification algorithm.
+For the majority of a star tracker's lifetime though, this constraint can be relaxed to allow for the use of
+\textit{recursive} star identification.
+Recursive methods possess an attitude recorded at time $t$, and perform the identification at a later time $t + dt$.
+Two methods proposed by Samaan (SP-Search and SNA) reduce the amount of candidate stars from the catalog that could
+map to stars from the image~\cite{samaan:recursiveMode}.
 
-In 2007, Kolomenkin et. al developed the voting algorithm, which would accumulate votes for every combination of
-two stars in the image if the interstar angle of some pair in the image matched the angle in the
-catalog and maps stars based on the number of votes
-received~\cite{bratt:analysisStarIdentification,kolomenkin:geometricVoting}.
-In 2011, Tichy et. al developed the two-star voting algorithm, which votes in a similar fashion to the voting algorithm
-but applies votes toward a single star based off two interstar angles instead of votes toward two stars
-~\cite{bratt:analysisStarIdentification,tichy:preliminaryTestsCommericalImagers}.
-In 2014, Toloei developed the Novel Stars ID method, which retains all of the key aspects of the Pyramid method but
-uses the features from Planar Triangle method~\cite{toloei:compositeIdentification}.
+\nsubparagraph{Features:}
+Each star has a position associated with it, be it from a star catalog or from the image.
+Using this position, the most common feature is the interstar angle between two stars, first utilized by Gottlieb to
+identify sets of three stars with three angles~\cite{gottlieb:spacecraftAttitudeDetermination}.
+Notable methods with geometric functions utilizing these interstar angles were proposed by:
+Groth~\cite{groth:patternMatchingMethod}, Cole \&
+Crassidus~\cite{coleAndCrassidis:sphericalTriangleMethod,coleAndCrassidis:planarTriangleMethod}, and
+Lang~\cite{lang:astrometryDotNet}.
+Another common feature is the interior angle between three stars, where one star exists as a vertex to two other stars.
+Liebe uses this in conjunction with interstar angles~\cite{liebe:starTrackersAttitudeDetermination}.
+
+%Each star has a position associated with it, be it from a star catalog or from the image.
+%Using this position, the most common feature is the interstar angle between two stars, first utilized by Gottlieb to
+%identify sets of three stars with three angles~\cite{gottlieb:spacecraftAttitudeDetermination}.
+%Additional geometric functions utilizing these interstar angles were proposed by: Groth (using the log of the sum of
+%three interstar angles in a trio~\cite{groth:patternMatchingMethod}), Cole \& Crassidus (treating the angles of a
+%star trio as sides to a triangle, and computing the triangle's area and
+%torque)~\cite{coleAndCrassidis:sphericalTriangleMethod, coleAndCrassidis:planarTriangleMethod}, and Lang (using the
+%differences in interstar angle between a star quad in a localized coordinate system)~\cite{lang:astrometryDotNet}.
+%Another common feature is the interior angle between three stars, where one star exists as a vertex to two other stars.
+%Liebe uses this in conjuction with interstar angles~\cite{liebe:starTrackersAttitudeDetermination}.
+
+%This feature is used solely by Rousseau (the sine of the closest two closest stars of a trio)
+%~\cite{rousseau:starRecognitionAPS}
+%and Samaan (the interior angles of three stars)
+%~\cite{samaan:nondimensionalStarIdentification},
+%and in conjunction with the interstar angles by Liebe~\cite{liebe:starTrackersAttitudeDetermination}.
+
+Each star also has a brightness attached it, a feature less commonly used due to large variance in measurement.
+Spratling describes two early methods to take advantage of this feature.
+Scholl proposed the usage of this to remove the need for ambiguity after matching star subsets with angular features
+~\cite{scholl:starFieldIdentification}.
+Ketchum later introduced the second sequential filtering algorithm, which identifies two stars using their brightness
+in comparison to the common trio required of interstar angle methods~\cite{ketchum:onboardStarIdentification}.
+More recent work toward integrating brightness more heavily has been performed by Zhang et
+al~\cite{zhang:brightnessReferenced}.
+
+\nsubparagraph{Database Access:}
+The naive approach to searching for matching features in a subgraph isomorphism approach is to perform a
+linear search across the entire catalog and search for matching subsets.
+Early star identification methods focused on reducing the size of the database to be queried, rather the query process
+itself.
+In 1996, Quine (according to Spratling) was the first to reduce the database search time from linear to log time
+using a binary search tree~\cite{quine:fastAutonomousStarAcquistion}.
+The following year Mortari's "Search-Less Algorithm" was introduced, which utilizes $k$-vectors to search the database
+independent of its size~\cite{mortari:kVectorApproach}.
 
 \newcommand{\srightarrow}{\! \rightarrow \!}
 \begin{figure}[ht]
@@ -60,11 +106,14 @@ uses the features from Planar Triangle method~\cite{toloei:compositeIdentificati
     }
 \end{figure}
 
-\subsection{Pattern Recognition Approaches}\label{subsec:otherApproaches}
-The \textit{pattern recognition} approach differs from the subgraph ismorphism approach in that stars themselves exist
-as a part of patterns to be matched across the catalog and the image~\cite{bittanti:starIdentificationStudy}.
-This is the other main approach to the identification problem, most of which is composed of grid algorithms
-~\cite{lee:modifiedGridAlgorithm,padgett:gridAlgorithm} and neural network
-approaches~\cite{lindsey:neuralNetworkMethods,alvelda:neuralNetworkStar}.
-%There exist several methods outside of the norm that appear to perform well, the most notable being Quan's Adaptive
-%Ant Colony method~\cite{}.
+\nsubparagraph{Mapping:}
+To identify a star in an image is to pair it with some star in a catalog.
+Gottlieb's method used a voting approach to remove the ambiguity after identifying a single star
+pair~\cite{gottlieb:spacecraftAttitudeDetermination},
+which was later generalized by Kolomenkin to vote for every star in the image~\cite{kolomenkin:geometricVoting}.
+The direct match test was proposed by Needleman (according to Tappe), which determines the likelihood of a map based
+on how many stars from each frame align with the attitude formed by the map~\cite{needelman:stellarAttitudeAcquisition}.
+In an effort to avoid the mapping processes above, Anderson (according to Spratling) proposed the use of storing
+permutations of star subsets instead of combinations at the expense of storage~\cite{anderson:autonomousStarSensing}.
+The usage of neural networks~\cite{lindsey:neuralNetworkMethods,alvelda:neuralNetworkStar} and genetic
+algorithms~\cite{paladugu:geneticAlgorithms} have also been proposed to optimize the mapping process.

@@ -12,21 +12,22 @@
 
 \section{Star Identification Methods}\label{sec:starIdentificationMethods}
 Six different approaches to star identification are described in this section.
-The majority of the literature specifying these methods do not include pseudocode, rather they specify descriptions 
-of specific processes used by each method.
+The majority of the literature specifying identification methods do not include pseudocode, rather they specify
+descriptions of specific processes used by each method.
 Each algorithm is composed of these processes, structured to follow a general identification flow.
-When the description did not specify a step in this flow, a naive or existing approach from another method was used.
-Several deviations to the algorithms from the original literature were introduced from newer literature to evaluate
-the effectiveness of these changes.
+%When the description did not specify a step in this flow, a simple or existing approach from another method was used.
+%Several deviations to the algorithms from the original literature were introduced from newer literature to evaluate
+%the effectiveness of these changes.
 
+\clearpage
 \subsection{Unified Identification Framework}\label{subsec:unifiedIdentification}
-Each identification method is presented with an image $I$ of size $n$ containing all the stars in the image reference,
-as well as a catalog of known stars $K$.
+Each identification method is presented with information about the camera hardware, an image $I$ of size $n$
+containing all the stars in the image reference, as well as a catalog of known stars $K$.
 All stars in $I$ exist in the body frame $\iFrame$, and all stars in $K$ exist in the inertial frame $\kFrame$.
 The goal of each method is to find some bijection between a subset of the image stars $b$ and a subset
 of the catalog stars $r$.
 This function is denoted as $h$ with domain $b$ and codomain $r$.
-Complete identification of all stars in each image is not the focus.
+Identification of all stars in each image is not the focus.
 
 \begin{subequations}
     Every algorithm starts with some combination from all possible $d$ combinations of $n$ stars $C(n, d)$, where
@@ -59,9 +60,17 @@ Complete identification of all stars in each image is not the focus.
 Through some filter process or restriction criteria for $R$ itself, a single set $r$ from the catalog star candidates is
 eventually selected.
 This may require going through multiple catalog candidate sets and repeating the catalog query step.
-This is known as the $r$ selection step.
+This is known as the catalog candidate $r$ selection step.
 For a process with the $R$ restriction criterion of $|R| \seq 1$, the following sequence
 of events may occurring before finding a single $r$ set.
+%\begin{description}[noitemsep]
+%    \item[$t = 1:$] $\text{ query with } b^{(1)}, \text{ get } R^{(1)} = \{\vv{r_{11}}, \vv{r_{12}}, \ldots\}.$
+%    \item[$t = 2:$] $\abs{ R^{(1)} } \neq 1, \text{ criterion not met. }$
+%    \item[$t = 3:$] $\text{ choose new image subset } b^{(2)}.$
+%    \item[$t = 4:$] $\text{ query with } b^{(2)}, \text{ get } R^{(2)} = \{\vv{r_{21}}\}.$
+%    \item[$t = 5:$] $\abs{ R^{(2)} } = 1, \text{ criterion met. }$
+%    \item[$t = 6:$] $\text{ return } r, r \in R^{(2)} (\text{sole element in } R^{(2)} ).$
+%\end{description}
 \begin{align*}
     &t = 1, \text{ query with } b^{(1)}, \text{ get } R^{(1)} = \{\vv{r_{11}}, \vv{r_{12}}, \ldots\}. \\
     &t = 2, \ \abs{ R^{(1)} } \neq 1, \text{ criterion not met. } \\
@@ -100,7 +109,7 @@ instead.
 %\end{algorithm}
 
 % Citation: https://digitalcommons.usu.edu/cgi/viewcontent.cgi?article=2723&context=etd AND Gottlieb.
-\subsection{Angle Method}\label{subsec:angleMethod}
+\subsection{Angle Method (ANG)}\label{subsec:angleMethod}
 \newcommand{\invalidBijection}{\If{$\forall \ \vv{b^\star}, \ \vv{b^\star} \in b \land h\left(\vv{b^\star}\right)
 \neq \emptyset$}}
 \begin{algorithm}
@@ -118,7 +127,7 @@ instead.
         \For {$h \in H$}
         \State $A \gets $ \Call{TRIAD}{$h, b, r$}, $M_h \gets $ \Call{FPO}{$P, I, A$}
         \EndFor
-        \If{$|M_0| = |M_1| = \ldots = \abs{M_\abs{M}}$}
+        \If{$\forall \ M_h \left( M_h \in M \land \abs{M_h} = \abs{b} \right)$}
         \State \textbf{return} $h : b \rightarrow \emptyset $ \Comment Not confident in result.
         \Else
         \State \textbf{return} $h \in H$ associated with largest set in $M$
@@ -142,9 +151,10 @@ instead.
     \end{algorithmic}
 \end{algorithm}
 
-Given a set of stars from the image $I$, $d \seq 2$ stars are selected to obtain the $b$
-set~\cite{gottlieb:spacecraftAttitudeDetermination}.
-The original literature does not specify how to choose the image subset, so the naive approach is taken.
+The \textit{Angle} method is composed of a naive $b$ image subset decision, angular features of pairs first described by
+Gottlieb's Polygon Angular Matching method, and a direct-match test for identification.
+
+Given a set of stars from the image $I$, $d \seq 2$ stars are selected to obtain the $b$ set.
 The selection order is governed by lines (2) and (3) in~\autoref{algorithm:angleIdentification}.
 This fixes the star $\vv{b_1}$ in $b$ for $n$ image star subset selections, while constantly changing
 $\vv{b_2}$ for every new $b$ choice.
@@ -173,7 +183,7 @@ one candidate exists in $R$.
 This sole element $\vv{R_1}$ is then selected to be $r$.
 
 \begin{subequations}
-    To determine the most likely bijection $h$, we follow Needlemen's implementation of the method and perform a
+    To determine the most likely bijection $h$, we follow Tappe's implementation of the method and perform a
     \textit{direct match test} (DMT)~\cite{tappe:starTrackerDevelopment,needelman:stellarAttitudeAcquisition}.
     Given an image star pair $b$ and a catalog star pair $r$ for, the following is proposed:
     \begin{equation}
@@ -189,7 +199,7 @@ This sole element $\vv{R_1}$ is then selected to be $r$.
 The most likely attitude is determined by the \Call{FPO}{} method, which returns how many stars from $I$ align with
 $K$ given rotation $A_1$ or $A_2$.
 The bijection with the most stars is then returned.
-If all bijections return sets with the same size, then we are not confident in any of our choices and
+If all bijections return sets of size $d \seq 2$, then we are not confident in any of our choices and
 return the function $h: \vv{b} \rightarrow \emptyset $.
 
 %The \Call{FPO}{} method determines the number of stars from $I$ in the body frame $\iFrame$ align with $C$ in the
@@ -220,11 +230,11 @@ comparisons are required~\cite{patel:advanceTreeStructures}.
     T_{angle} = \bigO\left( n^2 \cdot \log(m_2) \right)
 \end{equation}
 
-All methods associated with the Angle method are written in~\autoref{algorithm:angleIdentification}.
+%All methods associated with the Angle method are written in~\autoref{algorithm:angleIdentification}.
 
-\subsection{Dot Angle Method}\label{subsec:dotAngleMethod}
+\subsection{Interior Angle Method (INT)}\label{subsec:interiorAngleMethod}
 \begin{algorithm}
-    \caption{Dot Angle Identification Method} \label{algorithm:dotAngleIdentification}
+    \caption{Interior Angle Identification Method} \label{algorithm:interiorAngleIdentification}
     \begin{algorithmic}[1]
         \Function{Identify}{$I, \bar{K^3}$}
         \For{$c \gets 1 \text{\textbf{ to }} n$}  \Comment Iterate through all of $I$.
@@ -244,6 +254,9 @@ All methods associated with the Angle method are written in~\autoref{algorithm:a
     \end{algorithmic}
 \end{algorithm}
 
+The \textit{Interior Angle} method is composed of Liebe's feature set (two interstar angles, an interior angle),
+Liebe's $b$ image subset decision, and a permutation store for identification.
+
 Given a set of stars from the image $I$, a central star $\vv{b_c}$ is selected.
 A new central star selection does not involve generating permutations like the Angle method, rather it involves
 iterating through $I$ in a sequential manner.
@@ -261,6 +274,7 @@ angular separation between the second closest star and the central star, ($\thet
 and the angular separation between the two closest stars with the central star as the origin instead of the Earth or 
 focal point ($\phi(b) $ vs. $ \phi(r)$).
 To obtain $R$, the predicate $P_{\theta, \phi}(r, b)$ is used to filter the $\bar{K^3}$ catalog:
+
 \begin{equation}
     \begin{aligned}
         P_{\theta, \phi} (r, b): \left\lvert \theta(\vv{r_{c1}}, \vv{r_c}) - \theta(\vv{b_{c1}}, \vv{b_c})\right\rvert
@@ -273,18 +287,19 @@ where $\sigma_{\theta}$ and $\sigma_{\phi}$ represent the deviation of the uncer
 computations with the star sensor measurements and the same $\theta$ and $\phi$ computations with stars defined in the
 catalog.
 
-The original literature states that this should be repeated for all $b$ sets.
-Given that complete identification of $I$ is not the goal, this method has been adjusted to query with one $b$ at a
-time.
+%The original literature states that this should be repeated for all $b$ sets.
+%Given that complete identification of $I$ is not the goal, this method has been adjusted to query with one $b$ at a
+%time.
 After finding some $R$ that meets the same $R$ criterion as the Angle method, the bijection:
 \begin{equation}
     h: h\left(\vv{b_1}\right) \rightarrow \vv{r_1}, h\left(\vv{b_2}\right) \rightarrow \vv{r_2}, h\left(\vv{b_3}\right)
     \rightarrow \vv{r_3}
 \end{equation}
 is constructed and returned.
-Tololei's implementation imposes the last term in predicate $P_{\theta, \phi}(r, b)$ at query time (last term in)
-and borrows from Anderson by searches all permutations instead of combinations, removing the need for a star
-mapping procedure (e.g.\ direct match test)~\cite{toloei:compositeIdentification, anderson:autonomousStarSensing}.
+RezaToloei's implementation imposes the last term in predicate $P_{\theta, \phi}(r, b)$ at query
+time~\cite{toloei:compositeIdentification}, borrowing from Anderson (according to Spratling) by searching all
+permutations instead of combinations to remove the need for a star mapping
+procedure~\cite{anderson:autonomousStarSensing}.
 Storing permutations does increase the storage required for the $\bar{K^3}$ catalog though, which begs the question,
 ``Does this extra space aid in accuracy or runtime?''.
 
@@ -296,7 +311,7 @@ Storing permutations does increase the storage required for the $\bar{K^3}$ cata
 %The complete $I \rightarrow R$ map is found by picking the most frequent catalog star appearing in each $Y$
 %set~\cite{liebe:starTrackersAttitudeDetermination,bratt:analysisStarIdentification}.
 %
-%To more closely follow the generic star identification flow, we modified the Dot Angle method to not store $Y$,
+%To more closely follow the generic star identification flow, we modified the Interior Angle method to not store $Y$,
 %requiring that only one central star choice is needed to acquire a total match.
 %If a confident match is not found by the first central star, then the search process will be repeated until such a
 %match is found.
@@ -308,9 +323,9 @@ and $\bar{K^3}$ catalog entries:
 \end{equation}
 where $\bar{m_3}$ is the size of the $\bar{K^3}$ catalog.
 
-This entire method is described in~\autoref{algorithm:dotAngleIdentification}.
+%This entire method is described in~\autoref{algorithm:interiorAngleIdentification}.
 
-\subsection{Spherical Triangle Method}\label{subsec:sphericalTriangleMethod}
+\subsection{Spherical Triangle Method (SPH)}\label{subsec:sphericalTriangleMethod}
 \begin{algorithm}
     \caption{Triangle Method Identification} \label{algorithm:triangleIdentification}
     \begin{algorithmic}[1]
@@ -359,10 +374,16 @@ This entire method is described in~\autoref{algorithm:dotAngleIdentification}.
     \end{algorithmic}
 \end{algorithm}
 
-Given a set of stars from the image $I$, $d \seq 3$ stars are selected to obtain the $b$ set.
-Again, the $b$ selection is not specified here so we assume the naive approach with $C(n, 3)$ combinations.
-The star $\vv{b_1}$ is fixed in $b$ for $n^2$ image star subset selections, the star $\vv{b_2}$ is fixed for
-$n$ selections, and the last star $\vv{b_3}$ is constantly changed for every new $b$ choice.
+The \textit{Spherical Triangle} method is composed of Cole and Crassidus's spherical area and moment features, a
+naive $b$ image subset decision, Cole and Crassidus's candidate selection process, and a direct-match test to create
+the image to catalog bijection.
+
+Given a set of stars from the image $I$, $d \seq 3$ stars are selected to obtain the $b$ set in the same
+straightforward manner as the Angle method.
+%Again, the $b$ selection is not specified here so we assume the naive approach with $C(n, 3)$ combinations.
+For $C(n, 3)$ combinations the star $\vv{b_1}$ is fixed in $b$ for $n^2$ image star subset selections,
+the star $\vv{b_2}$ is fixed for $n$ selections, and the last star $\vv{b_3}$ is constantly changed for
+every new $b$ choice.
 
 The catalog query step searches the $K^3$ catalog for trios such that the spherical area and moment of the catalog trios
 are close to the spherical area and moment of the image star subset~\cite{coleAndCrassidis:sphericalTriangleMethod}.
@@ -393,9 +414,8 @@ A pivot uses at most $n - 3$ additional catalog accesses, but prevents wasting a
 the correct $r$ set for the given $b$.
 
 \begin{subequations}
-    Cole and Crassidus do not specify identification steps, so the DMT process is used to complete the star
-    identification process.
-    Given an image star trio and a catalog star trio, an bijection is proposed:
+    The \Call{DMT}{} process is used to complete the star identification process here.
+    Given an image star trio and a catalog star trio, a bijection is proposed:
     \begin{equation}
         h_1 : h_1\left(\vv{b_1}\right) \rightarrow \vv{r_1}, h_1\left(\vv{b_2}\right) \rightarrow \vv{r_2},
         h_1\left(\vv{b_{3}}\right) \rightarrow \vv{r_3}
@@ -427,16 +447,14 @@ accesses incurred for each pivot, and an additional $n^4$ queries with each \Cal
 \end{equation}
 where $m_3$ represents the size of the $K^3$ catalog.
 
-This entire method is described in~\autoref{algorithm:triangleIdentification}.
+%This entire method is described in~\autoref{algorithm:triangleIdentification}.
 
-\subsection{Planar Triangle Method}\label{subsec:coleAndCrassidus'sPlanarTriangleMethod}
-The Planar Triangle method is identical to their Spherical Triangle method, with the exception that each image
+\subsection{Planar Triangle Method (PLN)}\label{subsec:coleAndCrassidus'sPlanarTriangleMethod}
+The \textit{Planar Triangle} method is identical to their Spherical Triangle method, with the exception that each image
 trio is represented as a planar triangle instead of a spherical one.
 This results in the computation of a planar area and moment as opposed to a spherical area and moment.
 
-% Mortari introduced the use of \textit{search-less} catalog access using the $k$-vector approach, but this will not be
-% discussed in this paper.
-\subsection{Pyramid Method}\label{subsec:pyramidMethod}
+\subsection{Pyramid Method (PYR)}\label{subsec:pyramidMethod}
 \begin{algorithm}
     \caption{Pyramid Identification Method} \label{algorithm:pyramidIdentification}
     \begin{algorithmic}[1]
@@ -500,12 +518,15 @@ This results in the computation of a planar area and moment as opposed to a sphe
     \end{algorithmic}
 \end{algorithm}
 
+The \textit{Pyramid} method is composed of Mortari's $b$ image subset decision, a custom voting based identification
+process for star trios, and a voting based verification step.
+
 Given a set of stars from the image $I$, $d \seq 3$ stars are selected to obtain the $b$ set.
 The selection order is governed by lines (27), (28), and (29) in~\autoref{algorithm:pyramidIdentification}.
 As opposed to the selection order of the Angle and triangle methods, the $\vv{b_1}$ star in $b$ is no longer fixed
 for $n$ or $n^2$ image star subset selections.
-This is meant to avoid the persistence of badly recorded or false stars for more than a few combinations
-~\cite{motari:pyramidIdentification}.
+This is meant to avoid the persistence of misleading stars for more than a few combinations
+~\cite{mortari:pyramidIdentification}.
 An example sequence of trios is depicted below for $n \seq 5$ stars.
 \begin{equation}
     \begin{aligned}
@@ -514,8 +535,8 @@ An example sequence of trios is depicted below for $n \seq 5$ stars.
     \end{aligned}
 \end{equation}
 
-The literature states that a unique and identifiable trio is to be found after the query step using $\theta$,
-but does not specify how nor is source code provided.
+%The literature states that a unique and identifiable trio is to be found after the query step using $\theta$,
+%but does not specify how nor is source code provided.
 The approach developed here was inspired by the two star voting algorithm, which accumlates "votes" for some star by
 determining the angle between the same star and two other stars~\cite{tichy:preliminaryTestsCommericalImagers}.
 We start by querying for pairs from the $K^2$ catalog such that the angular separations of the catalog pairs are
@@ -538,15 +559,15 @@ An example of finding catalog candidates for $b_j$ with this method is given bel
 $R$ is found by repeating the process above for $T_i$ and $T_k$, and generating all possible sequences.
 This is depicted in the \Call{Query}{} function in~\autoref{algorithm:pyramidIdentification}.
 
-After finding some $R$ where $\abs{T_i} \seq \abs{T_j} \seq \abs{T_k} \seq 1$ (same criterion as Angle and Dot Angle), a
-verification step is performed.
-A different star from the image $\vv{\beta}$ is selected and the query step is performed for each distinct combination
-of $b$ and $\vv{\beta}$.
+After finding some $R$ where $\abs{T_i} \seq \abs{T_j} \seq \abs{T_k} \seq 1$ (same criterion as Angle and
+Interior Angle), a verification step is performed.
+A different star from the image $\vv{\beta}$ is selected and the query step is performed for each distinct trio
+combination of $b$ and $\vv{\beta}$.
 If $\abs{T_\beta} \neq 1$, then verification step has failed and another image subset is selected.
 Otherwise, the bijection $h : h\left(\vv{b_1}\right) \rightarrow \vv{r_1}, h\left(\vv{b_2}\right)
 \rightarrow \vv{r_2}, h\left(\vv{b_3}\right) \rightarrow(\vv{b_3})$ is returned.
-Like the Dot Angle method, a star mapping procedure is not required because each individual star is identified
-at query time.
+Like the Interior Angle method, a star mapping procedure is not required because each individual star is identified
+at query time.\looseness=-1
 
 The running time of this algorithm $T_{pyramid}$ is depicted below in terms of the number of queries and the number
 of entries in the $K^2$ catalog.
@@ -557,9 +578,8 @@ for each verification step.
 \end{equation}
 where $m_2$ is the size of the $K^2$ catalog.
 
-This entire method is specified in~\autoref{algorithm:pyramidIdentification}.
+%This entire method is specified in~\autoref{algorithm:pyramidIdentification}.
 
-\subsection{Composite Pyramid Method}\label{subsec:compositePyramidMethod}
 \begin{algorithm}
     \caption{Composite Pyramid Identification Method}\label{algorithm:compositePyramid}
     \begin{algorithmic}[1]
@@ -592,6 +612,10 @@ This entire method is specified in~\autoref{algorithm:pyramidIdentification}.
     \end{algorithmic}
 \end{algorithm}
 
+\subsection{Composite Pyramid Method (COM)}\label{subsec:compositePyramidMethod}
+The \textit{Composite Pyramid} method is composed of Mortari's $b$ image subset decision, Cole and Crassidus's
+spherical area and moment features, and a voting based verification step.
+
 Given a set of stars from the image $I$, $d \seq 3$ stars are selected in same manner as the Pyramid method to obtain
 the $b$ set.
 From here, the process to obtain the $R$ set is the same as the triangle methods: use $P_{a, \tau}(r, b)$ and $b$ to
@@ -601,7 +625,7 @@ is performed with the Planar Triangle features.
 Once this test has passed, the \Call{DMT}{} method is used to construct the bijection $h$ to potentially return.
 The Pyramid method did not need this call as an implicit bijection was formed through its query process.
 
-The running time of this algorithm $T_{composite}$ is depicted below in terms of number of queries and the number of}
+The running time of this algorithm $T_{composite}$ is depicted below in terms of number of queries and the number of
 items in the $K^3$ catalog.
 At most, this requires $5n^3$ catalog accesses: $n^3$ for each query step, an additional $3n^3$ accesses for each
 verification step, and an additional $n^3$ accesses for each \Call{DMT}{} call.
@@ -610,7 +634,7 @@ verification step, and an additional $n^3$ accesses for each \Call{DMT}{} call.
 \end{equation}
 where $m_3$ represents the number of entries in the $K^3$ catalog.
 
-This entire method is specified in~\autoref{algorithm:compositePyramid}.
+%This entire method is specified in~\autoref{algorithm:compositePyramid}.
 
 %\begin{table*}[ht]
 %    \centering{
