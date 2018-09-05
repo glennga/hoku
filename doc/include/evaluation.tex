@@ -58,7 +58,7 @@ To describe our noise independent of this random vector, we divide a normal rand
 separation between both stars.
 Given a star $b_i\!\in\!I$, Gaussian noise is applied to obtain the distributed vector $b'_i$~\cite{kremer:slerp}:
 \begin{equation}
-    b'_i &= \frac{\sin (1 - K)\Omega}{\sin \Omega}b_i + \frac{\sin \left( K \Omega )\right}{\sin \Omega}b^\star_i
+    b'_i = \frac{\sin (1 - K)\Omega}{\sin \Omega}b_i + \frac{\sin \left( K \Omega \right)}{\sin \Omega}b^\star_i
 \end{equation}
 \begin{subequations}
     where $b^\star_i$ represents some random vector with uniformly distributed elements, $\Omega$ describes the
@@ -110,7 +110,7 @@ The parameter sets with the largest $\sigma$ choices but most number of instance
 The results for each method are displayed below, and were used for the following experiments.
 \begin{alignat*}{3}
     \text{ANG / PYR}&: \sigma_\theta &&= 10^{-4} &&{}\\
-    \text{INT}&: \sigma_\theta_ &&= 10^{-2}, \sigma_\phi &&= 10^{-2} \\
+    \text{INT}&: \sigma_\theta &&= 10^{-2}, \sigma_\phi &&= 10^{-2} \\
     \text{SPH / PLN / COM}&: \sigma_a &&= 10^{-9}, \sigma_\tau &&= 10^{-9}
 \end{alignat*}
 
@@ -464,7 +464,9 @@ Ranking each method based their $h$ accuracy is not particularly insightful here
 $\sigma$ parameters, so instead we analyze the rate of change involved with varying levels of noise.
 The right plot in~\autoref{fig:gaussianNoise} depicts the trend line for all methods where $h$ accuracy is displayed
 against the amount of Gaussian noise.
-Each line was fit to the equation below using least squares:
+It has been observed that the accuracy of each method remains near 100\% until it decreases exponentially to zero.
+As such, each line was fit to the piecewise equation below.
+The $c\cdot \mathit{ln}(\rho) + d$ term was fit using least squares:
 \begin{equation}
     a(f, b, r) =
     \begin{cases}
@@ -481,7 +483,7 @@ The accuracy acceleration varies across methods through the value of $c$:
 \end{equation}
 A larger $c$ suggests that a change in query $\sigma$ or Gaussian noise will not affect the accuracy of the method
 as much as a method with a larger $c$.
-The method with the largest acceleration toward $0\%$ $h$ accuracy is the Interior Angle method ($c \seq -0.15749$) .
+The method with the largest acceleration toward $0\%$ $h$ accuracy is the Interior Angle method ($c \seq -0.15749$).
 The Spherical Triangle method has the slowest growing $h$ accuracy response to increasing noise ($c \seq -0.09266$).
 
 \begin{figure*}
@@ -539,7 +541,8 @@ the decision to choose a new $b$ set.
 %m_1, m_2 = average(flatten(sample_1)), average(flatten(sample_2))
 %s_1, s_2 = std(flatten(sample_1)), std(flatten(sample_2))
 %print('Z Score of: {}'.format((m_2 - m_1) / sqrt( ((s_1 * s_1) / n_1) + ((s_2 * s_2) / n_2) )))
-The fastest method on average given images with the set of spikes below is the Pyramid method at $186.22\si{ms}$.
+The fastest method on average given images with varying amounts of spikes is the Pyramid method at $186.22\si{ms}$.
+The images given to each method contained $\omega$ spikes, as defined below:
 \begin{equation}\label{eq:numberOfSpikes}
     \omega \in \set{ 3, 6, 9, 12 }
 \end{equation}
@@ -570,7 +573,7 @@ criteria the fastest.
 %
 %t = polyfit([3, 6, 9, 12], sample_1, 1)
 %print('{name}: {t_0}*x + {t_1}'.format(name=name, t_0=round(t[0], 5), t_1=round(t[1], 5)))
-Each method exhibits an increase to runtime as additional spikes are added.
+Each method exhibits a linear increase to runtime as additional spikes are added.
 To characterize how each method's runtime grows with increasing false stars, each method's runtime was fit to a linear
 equation using least squares:
 \begin{equation}
@@ -580,7 +583,7 @@ where $c$ and $d$ are the parameters found with the regression and $t$ is the en
 A smaller $\abs{c}$ suggests that the number of spikes will affect the end to end runtime than that of a method with a
 larger $\abs{c}$.
 The method with the largest $\abs{c}$ is the Angle method with $c \seq -414.559$.
-The method with this smallest $\abs{c}$ term is the Pyramid method with $c \seq -6.766$.
+The method with the smallest $\abs{c}$ term is the Pyramid method with $c \seq -6.766$.
 The Pyramid method is the fastest given varying amounts of false stars, having a runtime that is also the least
 responsive to increasing spikes.
 

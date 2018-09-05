@@ -1,32 +1,28 @@
-\documentclass{include/vldb}
+\documentclass[conference]{IEEEtran}
 
 \usepackage{graphicx} \usepackage{balance} \usepackage{hyperref} \usepackage[all]{nowidow} \usepackage{float}
 \usepackage{tikz} \usepackage{tikz-3dplot} \usepackage{nicefrac} \usepackage{algorithm} \usepackage{subcaption}
 \usepackage[noend]{algpseudocode} \usepackage{array} \usepackage{pgfplots} \usepackage{booktabs} \usepackage{siunitx}
-\usepackage{enumitem} \usepackage[utf8]{inputenc}
-
-\vldbTitle{Empirical Analysis of Common Subgraph Isomorphism Approaches to the Lost-in-Space Star
-Identification Problem [Experiments and Analysis]}
-\vldbAuthors{Glenn Galvizo and Lipyeow Lim}
-\vldbDOI{https://doi.org/TBD}
-\vldbVolume{12}
-\vldbNumber{xxx}
-\vldbYear{2019}
+\usepackage{enumitem} \usepackage[utf8]{inputenc} \usepackage{amsmath} \usepackage{amssymb} \usepackage{filecontents}
 
 \begin{document}
 	\title{Empirical Analysis of Common Subgraph Isomorphism Approaches to the Lost-in-Space Star
-    Identification Problem [Experiments and Analysis]}
+    Identification Problem}
 
-	\numberofauthors{2}
 	\author{
-		\alignauthor Glenn Galvizo  \\
-			\affaddr{University of Hawaii at Manoa} \\
-			\affaddr{Honolulu, Hawaii 96822} \\
-			\email{glennga@hawaii.edu}
-		\alignauthor Lipyeow Lim \\
-			\affaddr{University of Hawaii at Manoa} \\
-			\affaddr{Honolulu, Hawaii 96822} \\
-			\email{lipyeow@hawaii.edu}
+	\IEEEauthorblockN{Glenn Galvizo}
+	\IEEEauthorblockA{
+	University of Hawaii at Manoa \\
+	Honolulu, USA \\
+	glennga@hawaii.edu
+	}
+	\and
+	\IEEEauthorblockN{Lipyeow Lim}
+	\IEEEauthorblockA{
+	University of Hawaii at Manoa \\
+	Honolulu, USA \\
+	lipyeow@hawaii.edu
+	}
 	}
 
 	\maketitle
@@ -37,7 +33,7 @@ Identification Problem [Experiments and Analysis]}
 	\input{include/related}
 	\input{include/existing}
 	\input{include/evaluation}
-	\newpage \input{include/conclusion}
+	\input{include/conclusion}
     \input{include/acknowledgements}
     \balance
 

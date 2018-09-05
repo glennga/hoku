@@ -1,13 +1,4 @@
-\newcommand{\nsubparagraph}[1]{\subparagraph{\textbf{#1}}}
-
-%%%%%%%% TODO: Mention recursive algorithms: http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.517.936&rep=rep1&type=pdf
-%%%%%%%% TODO: Modifed grid algoritm: http://koasas.kaist.ac.kr/bitstream/10203/14436/1/[%EC%9D%B4%ED%98%84%EC%9E%AC]%20[Modified%20Grid%20Algorithm%20for%20Star%20Pattern%20Identification%20by%20using%20Star%20Trackers]%20[RAST%202003]%20[2003.%2011.%2020-22].pdf
-% If possible, reference this: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4541885/
-% TODO: Original grid: https://trs.jpl.nasa.gov/bitstream/handle/2014/27621/96-1672.pdf?sequence=1
-% Selecting B Sets, MUST REFERENCE: https://arxiv.org/pdf/1607.04552.pdf
-% More grid stuff: https://cs.nyu.edu/~roweis/papers/Harvey_msc_thesis.pdf
-%%%%%%% Parameter determination: file:///home/glenn/downloads/3209-Article%20Text-6940-1-10-20180625.pdf
-% Something other than grids: http://www.ijmo.org/papers/118-E092.pdf
+\newcommand{\nsubparagraph}[1]{\textbf{#1}}
 
 \section{Related Work}\label{sec:relatedWork}
 This section serves to give a brief overview into the different approaches to the lost-in-space star identification
@@ -115,5 +106,5 @@ The direct match test was proposed by Needleman (according to Tappe), which dete
 on how many stars from each frame align with the attitude formed by the map~\cite{needelman:stellarAttitudeAcquisition}.
 In an effort to avoid the mapping processes above, Anderson (according to Spratling) proposed the use of storing
 permutations of star subsets instead of combinations at the expense of storage~\cite{anderson:autonomousStarSensing}.
-The usage of neural networks~\cite{lindsey:neuralNetworkMethods,alvelda:neuralNetworkStar} and genetic
+The use of neural networks~\cite{lindsey:neuralNetworkMethods,alvelda:neuralNetworkStar} and genetic
 algorithms~\cite{paladugu:geneticAlgorithms} have also been proposed to optimize the mapping process.

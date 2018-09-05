@@ -187,13 +187,13 @@ This sole element $\vv{R_1}$ is then selected to be $r$.
     \textit{direct match test} (DMT)~\cite{tappe:starTrackerDevelopment,needelman:stellarAttitudeAcquisition}.
     Given an image star pair $b$ and a catalog star pair $r$ for, the following is proposed:
     \begin{equation}
-    h_1 : h_1\left(\vv{b_1}\right) \rightarrow \vv{r_1}, h_1\left(\vv{b_2}\right) \rightarrow \vv{r_2}
+        h_1 : \vv{b_1} \mapsto \vv{r_1}, \vv{b_2} \mapsto \vv{r_2}
     \end{equation}
     Wahba's problem is then solved using the TRIAD method to obtain a rotation $A_1$ between the image and catalog
     frames.
     This process is repeated for the other possible permutation to obtain a second rotation $A_2$:
     \begin{equation}
-        h_2 : h_2\left(\vv{b_1}\right) \rightarrow \vv{r_2}, h_2\left(\vv{b_2}\right) \rightarrow \vv{r_1}
+        h_2 : \vv{b_1} \mapsto \vv{r_2}, \vv{b_2} \mapsto \vv{r_1}
     \end{equation}
 \end{subequations}
 The most likely attitude is determined by the \Call{FPO}{} method, which returns how many stars from $I$ align with
@@ -245,9 +245,8 @@ comparisons are required~\cite{patel:advanceTreeStructures}.
         \State $b \gets \left(\vv{b_c}, \vv{b_{c1}}, \vv{b_{c2}}\right)$, $R \gets \set{ r \mid r \in \bar{K^3} \land
         P_{\theta, \phi}(r, b) }$
         \If{$\lvert R \rvert = 1$}
-        \State \textbf{return} $b, r, h: h\left(\vv{b_c}\right) \rightarrow \vv{r_c}, h\left(\vv{b_{c1}}\right)
-        \rightarrow \vv{r_{c1}},$
-        \State \ \ \ \ \ \ \ \ \ \ \ \ \ \  \ \ \ \ \ \ $h\left(\vv{b_{c2}}\right) \rightarrow \vv{r_{c2}}$
+        \State \textbf{return} $b, r, h: \vv{b_c} \mapsto \vv{r_c}, \vv{b_{c1}} \mapsto \vv{r_{c1}}, $
+        \State \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \  $\vv{b_{c2}} \rightarrow \vv{r_{c2}}$
         \EndIf
         \EndFor
         \EndFunction
@@ -292,8 +291,7 @@ catalog.
 %time.
 After finding some $R$ that meets the same $R$ criterion as the Angle method, the bijection:
 \begin{equation}
-    h: h\left(\vv{b_1}\right) \rightarrow \vv{r_1}, h\left(\vv{b_2}\right) \rightarrow \vv{r_2}, h\left(\vv{b_3}\right)
-    \rightarrow \vv{r_3}
+    h: \vv{b_1} \mapsto \vv{r_1}, \vv{b_2} \mapsto \vv{r_2}, \vv{b_3} \mapsto \vv{r_3}
 \end{equation}
 is constructed and returned.
 RezaToloei's implementation imposes the last term in predicate $P_{\theta, \phi}(r, b)$ at query
@@ -417,23 +415,17 @@ the correct $r$ set for the given $b$.
     The \Call{DMT}{} process is used to complete the star identification process here.
     Given an image star trio and a catalog star trio, a bijection is proposed:
     \begin{equation}
-        h_1 : h_1\left(\vv{b_1}\right) \rightarrow \vv{r_1}, h_1\left(\vv{b_2}\right) \rightarrow \vv{r_2},
-        h_1\left(\vv{b_{3}}\right) \rightarrow \vv{r_3}
+        h_1 : \vv{b_1} \mapsto \vv{r_1}, \vv{b_2} \mapsto \vv{r_2}, \vv{b_3} \mapsto \vv{r_3}
     \end{equation} \label{eq:trianglePossibleMaps}
     The TRIAD method only uses two vector observations from each frame, meaning that the $\vv{b_3} \rightarrow \vv{r_3}$
     pairing is disregarded as the first rotation $A_1$ is computed.
     This process is repeated for all 5 other possible bijections to get $A_2, A_3, \dots, A_6$.
     \begin{align}
-        h_2 &: h_2\left(\vv{b_1}\right) \rightarrow \vv{r_1}, h_2\left(\vv{b_2}\right) \rightarrow \vv{r_3},
-        h_2\left(\vv{b_3}\right) \rightarrow \vv{r_2} \\
-        h_3 &: h_3\left(\vv{b_1}\right) \rightarrow \vv{r_2}, h_3\left(\vv{b_2}\right) \rightarrow \vv{r_1},
-        h_3\left(\vv{b_3}\right) \rightarrow \vv{r_3} \\
-        h_4 &: h_4\left(\vv{b_1}\right) \rightarrow \vv{r_2}, h_4\left(\vv{b_2}\right) \rightarrow \vv{r_3},
-        h_4\left(\vv{b_3}\right) \rightarrow \vv{r_1} \\
-        h_5 &: h_5\left(\vv{b_1}\right) \rightarrow \vv{r_3}, h_5\left(\vv{b_2}\right) \rightarrow \vv{r_1},
-        h_5\left(\vv{b_3}\right) \rightarrow \vv{r_2} \\
-        f_{6} &: h_6\left(\vv{b_1}\right) \rightarrow r_4, h_6\left(\vv{b_2}\right) \rightarrow \vv{r_2},
-        h_6\left(\vv{b_3}\right) \rightarrow \vv{r_1}
+        h_2 &: \vv{b_1} \mapsto \vv{r_1}, \vv{b_2} \mapsto \vv{r_3}, \vv{b_3} \mapsto \vv{r_2} \\
+        h_3 &: \vv{b_1} \mapsto \vv{r_2}, \vv{b_2} \mapsto \vv{r_1}, \vv{b_3} \mapsto \vv{r_3} \\
+        h_4 &: \vv{b_1} \mapsto \vv{r_2}, \vv{b_2} \mapsto \vv{r_3}, \vv{b_3} \mapsto \vv{r_1} \\
+        h_5 &: \vv{b_1} \mapsto \vv{r_3}, \vv{b_2} \mapsto \vv{r_1}, \vv{b_3} \mapsto \vv{r_2} \\
+        h_6 &: \vv{b_1} \mapsto \vv{r_3}, \vv{b_2} \mapsto \vv{r_2}, \vv{b_3} \mapsto \vv{r_1}
     \end{align}
 \end{subequations}
 For all six attitudes, the bijection yielding the most aligned stars is returned.
@@ -497,7 +489,7 @@ This results in the computation of a planar area and moment as opposed to a sphe
         \For{$dk \gets 1 \text{\textbf{ to }} n - 1 - dj$}
         \For{$i \gets 1 \text{\textbf{ to }} n - dj - dk$}
         \State $j \gets i + dj$, $k \gets j + dk$
-        \State $b \gets left(\vv{b_i}, \vv{b_j}, \vv{b_k}\right)$, $R \gets $\Call{Query}{$b, K^2$}
+        \State $b \gets \left(\vv{b_i}, \vv{b_j}, \vv{b_k}\right)$, $R \gets $\Call{Query}{$b, K^2$}
         \If{$\abs{R} = 1$}
         \LineComment Verification step below.
         \State $\vv{\beta} \gets $ single star in $I$ where $\vv{\beta} \notin b$
@@ -506,9 +498,8 @@ This results in the computation of a planar area and moment as opposed to a sphe
         \State \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \  \ \ \ \ \ \ \ \ $\set{ \vv{b_k}, \vv{\beta} }, K^2$}
         \State $T_\beta \gets $ \Call{FC}{$T_{i\beta}, T_{j\beta}$} $\cap$ \Call{FC}{$T_{j\beta}, T_{k\beta}$}
         \If{ $\abs{T_\beta} = 1$}
-        \State \textbf{return} $b, r, h: h\left(\vv{b_1}\right) \rightarrow \vv{r_1}, h\left(\vv{b_2}\right)
-        \rightarrow \vv{r_2},$
-        \State \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $h\left(\vv{b_3}\right) \rightarrow \vv{r_3}$
+        \State \textbf{return} $b, r, h: \vv{b_1} \mapsto \vv{r_1}, \vv{b_2} \mapsto \vv{r_2},$
+        \State \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\vv{b_3} \mapsto \vv{r_3}$
         \EndIf
         \EndIf
         \EndFor
@@ -564,10 +555,10 @@ Interior Angle), a verification step is performed.
 A different star from the image $\vv{\beta}$ is selected and the query step is performed for each distinct trio
 combination of $b$ and $\vv{\beta}$.
 If $\abs{T_\beta} \neq 1$, then verification step has failed and another image subset is selected.
-Otherwise, the bijection $h : h\left(\vv{b_1}\right) \rightarrow \vv{r_1}, h\left(\vv{b_2}\right)
-\rightarrow \vv{r_2}, h\left(\vv{b_3}\right) \rightarrow(\vv{b_3})$ is returned.
-Like the Interior Angle method, a star mapping procedure is not required because each individual star is identified
-at query time.\looseness=-1
+Otherwise, the bijection $h : \vv{b_1} \mapsto \vv{r_1}, \vv{b_2} \mapsto \vv{r_2}, \vv{b_3} \mapsto \vv{r_3}$ is
+returned.
+Like the Interior Angle method, a star mapping procedure is not required to determine $h$.
+Instead, each individual star is identified at query time.\looseness=-1
 
 The running time of this algorithm $T_{pyramid}$ is depicted below in terms of the number of queries and the number
 of entries in the $K^2$ catalog.
