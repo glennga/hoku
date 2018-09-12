@@ -130,8 +130,12 @@ int identify_fits (const std::string &id_method, const Star::list &s_i) {
         Chomp ch;
         Star r_f = ch.query_hip(result[0].get_label());
 
+        // Display the quaternion associated with this mapping.
+        std::cout << "Rotation: " << p.f({result[0], result[1]}, {ch.query_hip(result[0].get_label()),
+                                                                  ch.query_hip(result[1].get_label())}) << std::endl;
+
         // Search for all stars near our focus. This is what will be plotted.
-        Benchmark output(ch.nearby_bright_stars(r_f, fov / 2.0, 100), r_f, fov);
+        Benchmark output(ch.nearby_bright_stars(r_f, fov, 100), r_f, fov);
         output.display_plot();
         return 0;
     };

@@ -230,6 +230,7 @@ To build any presentation or paper that resides in the `doc` folder, use the bui
 targets:
 ```cmd
 cd hoku/script
+mkdir hoku/doc/pdf
 chmod +x build-doc.sh
 
 # Build the paper and presentations.
@@ -240,12 +241,14 @@ chmod +x build-doc.sh
 ./doc-build.sh present-wahba
 ```
 
-The PDFs reside in the `doc` folder.
+The PDFs reside in the `doc/pdf` folder.
 ```cmd
-cd hoku/doc
+cd hoku/doc/pdf
 
 # Open the PDFs from the console.
-xdg-open paper.pdf
+xdg-open arxiv-paper.pdf
+xdg-open vldb-paper.pdf
+xdg-open icde-paper.pdf
 xdg-open present.pdf
 xdg-open present-wahba.pdf
 ```

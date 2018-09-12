@@ -9,6 +9,7 @@
 
 #include <cmath>
 #include "third-party/inih/INIReader.h"
+#include "third-party/cxxtimer/cxxtimer.hpp"
 
 #include "benchmark/benchmark.h"
 #include "identification/identification.h"
@@ -33,7 +34,8 @@ namespace Experiment {
     namespace Query {
         /// Schema comma separated string that corresponds to the creation of the query table.
         const char *const SCHEMA = "IdentificationMethod TEXT, Timestamp TEXT, Sigma1 FLOAT, Sigma2 FLOAT, "
-                                   "Sigma3 FLOAT, ShiftDeviation FLOAT, CandidateSetSize FLOAT, SExistence INT";
+                                   "Sigma3 FLOAT, ShiftDeviation FLOAT, CandidateSetSize FLOAT, RunningTime FLOAT, "
+                                   "SExistence INT";
 
         Star::list generate_n_stars (Chomp &ch, unsigned int n, Star &center, double fov);
 
@@ -53,12 +55,13 @@ namespace Experiment {
         void trial (Chomp &ch, Lumberjack &lu, INIReader &cf, const std::string &identifier) {
             Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
             double fov = cf.GetReal("hardware", "fov", 0);
+            cxxtimer::Timer t(false);
             Star focus;
 
             // Define our hyperparameters and testing parameters.
             Identification::collect_parameters(p, cf, identifier);
-            int samples = cf.GetInteger("general-experiment", "samples", 0);
-            int ss_iter = cf.GetInteger("query-experiment", "ss-iter", 0);
+            int samples = static_cast<int>(cf.GetInteger("general-experiment", "samples", 0));
+            int ss_iter = static_cast<int>(cf.GetInteger("query-experiment", "ss-iter", 0));
             double ss_step = cf.GetReal("query-experiment", "ss-step", 0);
 
             for (int ss_i = 0; ss_i < ss_iter; ss_i++) {
@@ -71,7 +74,9 @@ namespace Experiment {
                     beta.shift_light(T::QUERY_STAR_SET_SIZE, ss);
 
                     // Perform a single trial.
+                    t.start();
                     std::vector<Identification::labels_list> r = T(beta, p).query(s);
+                    t.stop();
 
                     // Create the list to compare to.
                     Identification::labels_list w;
@@ -82,7 +87,7 @@ namespace Experiment {
 
                     // Log the results of the trial.
                     lu.log_trial({p.sigma_1, p.sigma_2, p.sigma_3, ss, static_cast<double> (r.size()),
-                                  (set_existence(r, w) ? 1.0 : 0)});
+                                  static_cast<double>(t.count()), (set_existence(r, w) ? 1.0 : 0)}), t.reset();
                 }
             }
         }
@@ -94,7 +99,8 @@ namespace Experiment {
     namespace Reduction {
         /// Schema header that corresponds to the log file for all reduction trials.
         const char *const SCHEMA = "IdentificationMethod TEXT, Timestamp TEXT, Sigma1 FLOAT, Sigma2 FLOAT, "
-                                   "Sigma3 FLOAT, ShiftDeviation FLOAT, FalseStars INT, ComparisonCount INT, PercentageCorrect FLOAT";
+                                   "Sigma3 FLOAT, ShiftDeviation FLOAT, FalseStars INT, ComparisonCount INT, "
+                                   "TimeToResult FLOAT, PercentageCorrect FLOAT";
 
         double percentage_correct (const Star::list &big_i, const Star::list &r);
 
@@ -112,14 +118,15 @@ namespace Experiment {
             std::shared_ptr<unsigned int> nu = std::make_shared<unsigned int>(0);
             Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
             double fov = cf.GetReal("hardware", "fov", 0);
+            cxxtimer::Timer t(false);
             Star::list big_i, big_c;
             Star focus;
 
             // Define our hyperparameters and testing parameters.
             Identification::collect_parameters(p, cf, identifier), p.nu = nu;
-            int samples = cf.GetInteger("general-experiment", "samples", 0);
-            int ss_iter = cf.GetInteger("reduction-experiment", "ss-iter", 0);
-            int es_iter = cf.GetInteger("reduction-experiment", "es-iter", 0);
+            int samples = static_cast<int>(cf.GetInteger("general-experiment", "samples", 0));
+            int ss_iter = static_cast<int>(cf.GetInteger("reduction-experiment", "ss-iter", 0));
+            int es_iter = static_cast<int>(cf.GetInteger("reduction-experiment", "es-iter", 0));
             double ss_step = cf.GetReal("reduction-experiment", "ss-step", 0);
             double es_min = cf.GetReal("reduction-experiment", "es-min", 0);
             double es_step = cf.GetReal("reduction-experiment", "es-step", 0);
@@ -138,12 +145,15 @@ namespace Experiment {
                                    : input.add_extra_light(
                                 static_cast<unsigned int> (s));
 
-                        // Perform a single trial.
+                        // Perform a single trial. Record it's duration.
+                        t.start();
                         Star::list w = T(input, p).reduce();
+                        t.stop();
 
-                        // Log the results of our trial.
+                        // Log the results of our trial, and reset our timer.
                         lu.log_trial({p.sigma_1, p.sigma_2, p.sigma_3, is_shift ? s : 0, !is_shift ? s : es_min,
-                                      static_cast<double>(*nu), percentage_correct(big_c, w)});
+                                      static_cast<double>(*nu),
+                                      static_cast<double>(t.count()), percentage_correct(big_c, w)}), t.reset();
                     }
                 }
             };
@@ -157,10 +167,10 @@ namespace Experiment {
     namespace Map {
         /// Schema header that corresponds to the log file for all identification trials.
         const char *const SCHEMA = "IdentificationMethod TEXT, Timestamp TEXT, Sigma1 FLOAT, Sigma2 FLOAT, "
-                                   "Sigma3 FLOAT, Sigma4 FLOAT, ShiftDeviation FLOAT, FalseStars INT, ComparisonCount INT, "
-                                   "PercentageCorrect FLOAT";
+                                   "Sigma3 FLOAT, Sigma4 FLOAT, ShiftDeviation FLOAT, FalseStars INT, "
+                                   "ComparisonCount INT, TimeToResult FLOAT, PercentageCorrect FLOAT";
 
-        double percentage_correct (const Star::list &big_i, const Star::list &b);
+        double percentage_correct (const Star::list &big_i, const Star::list &b, double fov);
 
         /// Generic experiment function for the identification trials. Performs a identification trial and records the
         /// experiment in the lumberjack. The provided Nibble connection is used for generating the input image.
@@ -176,14 +186,15 @@ namespace Experiment {
             std::shared_ptr<unsigned int> nu = std::make_shared<unsigned int>(0);
             Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
             double fov = cf.GetReal("hardware", "fov", 0);
+            cxxtimer::Timer t(false);
             Star::list big_i, big_c;
             Star focus;
 
             // Define our hyperparameters and testing parameters.
             Identification::collect_parameters(p, cf, identifier), p.nu = nu;
-            int samples = cf.GetInteger("general-experiment", "samples", 0);
-            int ss_iter = cf.GetInteger("identification-experiment", "ss-iter", 0);
-            int es_iter = cf.GetInteger("identification-experiment", "es-iter", 0);
+            int samples = static_cast<int>(cf.GetInteger("general-experiment", "samples", 0));
+            int ss_iter = static_cast<int>(cf.GetInteger("identification-experiment", "ss-iter", 0));
+            int es_iter = static_cast<int>(cf.GetInteger("identification-experiment", "es-iter", 0));
             double ss_step = cf.GetReal("identification-experiment", "ss-step", 0);
             double es_min = cf.GetReal("identification-experiment", "es-min", 0);
             double es_step = cf.GetReal("identification-experiment", "es-step", 0);
@@ -201,13 +212,16 @@ namespace Experiment {
                         (is_shift) ? input.shift_light(static_cast<signed> (big_i.size()), s)
                                    : input.add_extra_light(static_cast<unsigned int> (s));
 
-                        // Perform a single trial.
+                        // Perform a single trial. Record it's duration.
+                        t.start();
                         Star::list w = T(input, p).identify();
+                        t.stop();
 
                         // Log the results of our trial.
                         lu.log_trial(
                                 {p.sigma_1, p.sigma_2, p.sigma_3, p.sigma_4, is_shift ? s : 0, !is_shift ? s : es_min,
-                                 static_cast<double>(*nu), percentage_correct(big_i, w)});
+                                 static_cast<double>(*nu), static_cast<double>(t.count()),
+                                 percentage_correct(big_i, w, fov)});
                     }
                 }
             };
@@ -221,7 +235,8 @@ namespace Experiment {
     namespace Overlay {
         /// Schema comma separated string that corresponds to the creation of the DMT table.
         const char *const SCHEMA = "IdentificationMethod TEXT, Timestamp TEXT, Sigma4 FLOAT, ShiftDeviation FLOAT, "
-                                   "FalseStars INT, TruePositive INT, FalsePositive INT, TrueNegative INT, FalseNegative INT, N INT";
+                                   "FalseStars INT, TruePositive INT, FalsePositive INT, TrueNegative INT, "
+                                   "FalseNegative INT, N INT";
 
         std::array<double, 5> confusion_matrix (const Star::list &big_i_prime, const Star::list &big_i,
                                                 const std::vector<int> &big_i_i, double es);
@@ -245,9 +260,9 @@ namespace Experiment {
 
             // Define our hyperparameters and testing parameters.
             Identification::collect_parameters(p, cf, identifier);
-            int samples = cf.GetInteger("general-experiment", "samples", 0);
-            int ss_iter = cf.GetInteger("overlay-experiment", "ss-iter", 0);
-            int es_iter = cf.GetInteger("overlay-experiment", "es-iter", 0);
+            int samples = static_cast<int>(cf.GetInteger("general-experiment", "samples", 0));
+            int ss_iter = static_cast<int>(cf.GetInteger("overlay-experiment", "ss-iter", 0));
+            int es_iter = static_cast<int>(cf.GetInteger("overlay-experiment", "es-iter", 0));
             double ss_step = cf.GetReal("overlay-experiment", "ss-step", 0);
             double es_min = cf.GetReal("overlay-experiment", "es-min", 0);
             double es_step = cf.GetReal("overlay-experiment", "es-step", 0);
