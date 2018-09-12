@@ -31,7 +31,7 @@
 \begin{tikzpicture}
     \begin{axis}[
     width=0.8\linewidth, height=5.3cm,
-    ylabel={$a(h, b, r)$}, ymin=0, ymax=1,
+    ylabel={$a(h, b)$}, ymin=0, ymax=1.1,
     xlabel={$\rho$ (degrees)}, xmin=1, xmax=8,
     xtick={1, 2, 3, 4, 5, 6, 7, 8},
     xticklabels={$0$, $10^{-6}$, $10^{-5}$, $10^{-4}$, $10^{-3}$, $10^{-2}$, $10^{-1}$, $1$},
@@ -42,10 +42,10 @@
         \addplot +[domain=4:8]{-1.416887591459587*ln(x) + 2.7697617012853217};
         \addlegendentry{ANG}
 
-        \addplot +[domain=1:5, forget plot]{1};
-        \addplot +[forget plot] coordinates {(5, 1) (5, 1.00849264777955)};
-        \addplot +[domain=5:8]{-2.3292306442173216*ln(x) + 4.757244753386215};
-        \addlegendentry{DOT}
+        \addplot +[domain=1:5.03, forget plot]{1};
+%        \addplot +[forget plot] coordinates {(5, 1) (5, 1)};
+        \addplot +[domain=5.02:8]{-2.3292306442173216*ln(x) + 4.757244753386215};
+        \addlegendentry{INT}
 
         \addplot +[domain=1:3, forget plot]{1};
         \addplot +[forget plot] coordinates {(3, 1) (3, 0.9738787471803161)};
@@ -53,8 +53,8 @@
         \addlegendentry{SPH}
 
         \addplot +[domain=1:3, forget plot]{1};
-        \addplot +[forget plot] coordinates {(3, 1) (3, 1.016999618158761)};
-        \addplot +[domain=3:8]{-1.1696544292494204*ln(x) + 2.301996347627258};
+%        \addplot +[forget plot] coordinates {(3, 1) (3, )};
+        \addplot +[domain=3.04:8]{-1.1696544292494204*ln(x) + 2.301996347627258};
         \addlegendentry{PLN}
 
         \addplot +[domain=1:4, forget plot]{1};

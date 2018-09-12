@@ -1,0 +1,54 @@
+\documentclass[conference]{IEEEtran}
+
+\usepackage{graphicx} \usepackage{balance} \usepackage{hyperref} \usepackage[all]{nowidow} \usepackage{float}
+\usepackage{tikz} \usepackage{tikz-3dplot} \usepackage{nicefrac} \usepackage{algorithm} \usepackage{subcaption}
+\usepackage[noend]{algpseudocode} \usepackage{array} \usepackage{pgfplots} \usepackage{booktabs} \usepackage{siunitx}
+\usepackage{enumitem} \usepackage[utf8]{inputenc} \usepackage{amsmath} \usepackage{amssymb} \usepackage{filecontents}
+\usepackage{amsfonts}
+
+\newcommand{\vv}[1]{#1} % Not doing anything special for vectors right now...
+\newcommand{\seq}{\!=\!}
+\newcommand{\iFrame}{\mathcal{I}}
+\newcommand{\kFrame}{\mathcal{K}}
+\everypar{\looseness=-1}
+
+\begin{document}
+	\title{An Experimental Survey of Processing Strategies for Lost-in-Space Constellation Queries}
+
+	\author{
+	\IEEEauthorblockN{Glenn Galvizo}
+	\IEEEauthorblockA{
+	University of Hawaii at Manoa \\
+	Honolulu, USA \\
+	glennga@hawaii.edu
+	}
+	\and
+	\IEEEauthorblockN{Lipyeow Lim}
+	\IEEEauthorblockA{
+	University of Hawaii at Manoa \\
+	Honolulu, USA \\
+	lipyeow@hawaii.edu
+	}
+	}
+
+	\maketitle
+
+	\input{include/abstract}
+    \begin{IEEEkeywords}
+        information retrieval, low earth orbit satellites, performance analysis, query processing
+    \end{IEEEkeywords}
+
+	\input{include/background}
+%	\input{include/problem}
+	\input{include/related}
+	\input{include/existing}
+	\input{include/evaluation}
+	\input{include/conclusion}
+    \input{include/acknowledgements}
+    \balance
+
+%	\nocite{*}
+	\bibliographystyle{IEEEtran}
+	\bibliography{include/references}
+
+\end{document}

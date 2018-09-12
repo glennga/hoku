@@ -1,21 +1,21 @@
 \section{Conclusion}\label{sec:conclusion}
-In this paper, we discussed six star identification methods and their strengths and weaknesses.
-Each method was modified from their original literature to fit a general identification flow.
-Portions that were interchangeable amongst all methods such as database access and centroid determination were
-normalized or removed to focus on the star identification aspect itself.
-To control the severity of our error, artificial images were generated.
+In this paper, we discussed six constellation querying strategies and their strengths and weaknesses.
+%A unified identification framework was created to describe all strategies for fair analysis.
+%Portions that were interchangeable amongst all strategies such as database access and centroid determination were
+%normalized or removed to focus on the star identification aspect itself.
+%To control the severity of our error, artificial images were generated.
 
-The Angle method is the simplest of the six and has the fastest query step, but its runtime is heavily impacted by
+The Angle strategy is the simplest of the six and has the fastest query step, but its runtime is heavily impacted by
 the $\abs{R} = 1$ criterion and \Call{DMT}{} process.
-The Dot Angle method is the fastest running method under no noise, but its accuracy is the most sensitive to varying
-Gaussian noise and the slowest query step.
-The Spherical Triangle method's accuracy is the least sensitive to varying Gaussian noise, but is the most sensitive
+The Interior Angle strategy is the fastest running strategy under no noise, but its accuracy is the most sensitive to
+varying Gaussian noise and the slowest query step.
+The Spherical Triangle strategy's accuracy is the least sensitive to varying Gaussian noise, but is the most sensitive
 to varying amounts of false stars.
-The Planar Triangle is on average faster than the Spherical Triangle method, but is also very sensitive to varying
+The Planar Triangle is on average faster than the Spherical Triangle strategy, but is also very sensitive to varying
 amounts of false stars.
-The Pyramid method is the fastest method given varying amounts of Gaussian noise \& false stars and is also the most
+The Pyramid strategy is the fastest strategy given varying amounts of Gaussian noise \& false stars and is also the most
 accurate given varying amounts of spikes, but is not able to achieve $100\%$ average accuracy due to its query step.
-The Composite Pyramid method does not suffer from this inaccuracy problem, but does not achieve the same consistent
-performance of the Pyramid or the triangle methods due to the number of filters implemented.
+The Composite Pyramid strategy does not suffer from this inaccuracy problem, but does not achieve the same consistent
+performance of the Pyramid or the triangle strategies due to the number of filters implemented.
 
-Overall, the Pyramid method handles both Gaussian noise and false stars the best in a reasonable amount of time.
+Overall, the Pyramid strategy handles both Gaussian noise and false stars the best in a reasonable amount of time.
