@@ -61,10 +61,10 @@ static databases are not addressed here.
 
 Let $\kFrame$ describe an inertial reference frame and $\iFrame$ describe a body reference
 frame~\cite{wie:spaceVehicleDynamics}.
-To find a \textit{rotation matrix} $A$ that describes the basis vectors of $\kFrame$ in terms of $\iFrame$ but accounts
-for the noise of each measurement is known as \textit{Wahba's problem}, first posed by Gracie Wahba in
-1965~\cite{wahba:attitudeEstimationProblem}.
-Wahba's problem states that finding the optimal $A$ involves minimizing the loss function below:
+To find a matrix $A$ that describes the basis vectors of $\kFrame$ in terms of $\iFrame$ but accounts
+for the noise of each measurement is known as \textit{Wahba's problem}.
+First posed by Gracie Wahba in 1965~\cite{wahba:attitudeEstimationProblem},
+Wahba's problem states that finding the optimal $A$ is minimizing the loss function below:
 \begin{equation}
     L(A) = \frac{1}{2} \sum_j^n \vv{w_j} \left\| \vv{I_j} - A\vv{K_j} \right\|^2
 \end{equation}
@@ -105,12 +105,12 @@ was used as a closed form solution~\cite{markley:attitudeDeterminationTwoVectors
 %eye) do not visibly move.
 %Relative to our solar system, the majority of stars visible from Earth with the naked eye do not visibly move.
 For simplicity, we make the assumption here that all stars in $\kFrame$ are fixed and exist in an inertial frame
-known as the \textit{Earth centered inertial} frame, or ECI frame.
+known as the \textit{Earth centered inertial} (ECI) frame.
 The star vectors themselves come from astronomical catalogs, recorded as points lying on the celestial
 sphere~\cite{tappe:starTrackerDevelopment}.
 Two pieces of information are given here: right ascension $\alpha$ (equivalent to latitude on Earth) and
 declination $\delta$ (equivalent to longitude).
-$\vv{K_j}$ represents a point $\left( \alpha, \delta \right)$ in a 3D spherical frame with constant radius,
+$\vv{K_j}$ represents a point $\left( \alpha, \delta \right)$ in a 3D spherical frame with a fixed radius for all stars,
 projected to 3D Cartesian space.
 %    Representing some spherical point $(\alpha, \delta, r)$ in 3D Cartesian space involves the following:
 %    \begin{align} \label{eq:sphereToCartesian}
@@ -139,5 +139,5 @@ obtained~\cite{tappe:starTrackerDevelopment}.
 %    \end{align}
 
 The next issue is the focus of this paper: determining which observation from the star tracker frame $\iFrame$
-corresponds to which observation from the star catalog frame $\kFrame$.
+maps to which observation from the star catalog frame $\kFrame$.
 Once this correspondence is found, Wahba's problem is solved to obtain $A$ and this is returned to the main computer.

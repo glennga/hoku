@@ -3,7 +3,7 @@
 
 \section{Empirical Evaluation}\label{sec:empiricalEvaluation}
 In this section all six identification strategies are analyzed in terms of their process to obtain the database
-candidate set $R$ (retrieval step), their database set $r$ selection process, and their bijection $h$ production process
+candidate set $R$ (retrieval step), their database set $r$ selection process, and their injection $h$ production process
 (identification) under varying amounts of false stars and Gaussian noise.
 The main areas of interest here are the accuracy of each step, and the time to produce a result.
 
@@ -13,12 +13,12 @@ The main areas of interest here are the accuracy of each step, and the time to p
 
 \subsection{Experimental Setup}\label{subsec:experimentalSetup}
 \nsubparagraph{Star Database}
-The astronomical catalog used to populate the $K$ database is the Hipparcos Input
+The astronomical catalog used to populate $K$ is the Hipparcos Input
 Catalogue~\cite{perryman:hipparcosCatalogue}.
 Entries that do not have a point $\left( \alpha, \delta \right)$ associated with it were not recorded, giving
 $117{,}956$ total stars.
 Out of this entire set, only $4{,}560$ are visible from Earth with the naked eye (apparent magnitude $m$ less than 6.0).
-An additional constraint for each database $K^2, K^3, \bar{K^3}$ that all stars in each pair or trio be within 20
+An additional constraint for each set $K^2, K^3, \bar{K^3}$ that all stars in each pair or trio be within 20
 degrees of each other was placed to shorten each algorithm's $R$ retrieval running time.
 A field-of-view between 10 to 20 degrees is common for most astronomy based CCD
 cameras~\cite{mortari:pyramidIdentification}.
@@ -93,7 +93,7 @@ The exact implementation is available at the following link:
 
 \subsection{$R$ Retrieval Step}\label{subsec:catalogQueryStep}
 \nsubparagraph{Determining Retrieval $\sigma$}
-In all predicates used to search the database, an assumption must be made about the difference between the database
+In all predicates used to search the $K^d$ sets, an assumption must be made about the difference between the database
 measurements and the image measurements.
 If this deviation assumption $\sigma$ is too large, false positives will exist in $R$ after retrieval and may slow
 down identification.
@@ -122,7 +122,7 @@ The results for each strategy are displayed below, and were used for the followi
     \input{include/floats/query-table}
     \caption{
     Depicts all data associated with testing the $R$ retrieval step: the frequency of correct database candidate sets
-    ($r_b$, such that the correct bijection can be formed with $b$) existing in $R$ after retrieval, the number of
+    ($r_b$, such that the correct injection can be formed with $b$) existing in $R$ after retrieval, the number of
     trials where the resulting $R$ meets the $\abs{R} \seq 1$ criterion ($S$),
     and the average retrieval running time ($t_{\AVG}$) given images with no noise.
     There exist $2{,}000$ runs for each identification strategy.
@@ -132,13 +132,13 @@ The results for each strategy are displayed below, and were used for the followi
 
 \subsubsection{Which strategy has the fastest $R$ retrieval?}
 In~\autoref{sec:starIdentificationMethods}, we describe each strategy's running time in terms of the number of database
-accesses $n$ and the size of the $K^d$ database.
-The $K^2$ database, used by the Angle and Pyramid strategies, is of size $m_2 \seq 353{,}700$ elements with the apparent
+accesses $n$ and the cardinality of $K^d$.
+The $K^2$ set, used by the Angle and Pyramid strategies, is of size $m_2 \seq 353{,}700$ elements with the apparent
 magnitude and field-of-view constraints.
-The $K^3$ database, used by the Spherical Triangle, Planar Triangle, and Composite Pyramid strategies is of size
+The $K^3$ set, used by the Spherical Triangle, Planar Triangle, and Composite Pyramid strategies is of size
 $m_3 \seq 12{,}520{,}359$ elements.
-The $\bar{K^3}$ database, used by the Interior Angle strategy is of size $\bar{m_3} \seq 37{,}561{,}083$ elements.
-Given the size of each database, we expect that the Angle strategy will have the fastest $R$ retrieval and
+The $\bar{K^3}$ set, used by the Interior Angle strategy is of size $\bar{m_3} \seq 37{,}561{,}083$ elements.
+Given the size of each set, we expect that the Angle strategy will have the fastest $R$ retrieval and
 Interior Angle will have the slowest $R$ retrieval.
 
 %\begin{figure}
@@ -173,7 +173,7 @@ $t_\AVG$ only vary by 1.05ms.
 Given the null hypothesis that the difference between the Planar Triangle strategy's $R$ retrieval running time and the
 Angle strategy's $R$ retrieval running time is not significant, $z \seq 8.75, p\!<\!0.0001$ is found with a two-tailed
 two sample $Z$ test.
-The Angle strategy has the fastest $R$ retrieval step due its small database size.
+The Angle strategy has the fastest $R$ retrieval step due its small search set cardinality.
 
 \subsubsection{Which strategy meets the $\abs{R} \seq 1$ criterion the most often?}
 %The $\abs{R} = 1$ criterion is required for all identification strategy at some point (after pivoting for the triangle
@@ -303,7 +303,7 @@ before deciding to choose another $b$ set.
     \centering{
         \input{include/floats/verify}
         \caption{
-        Depicts the frequency of correct bijections $a(h, b, r)$ formed with and without the verification step of
+        Depicts the frequency of correct injections $a(h, b)$ formed with and without the verification step of
         both the Pyramid and Composite Pyramid strategies.
         There exists $2{,}000$ runs for each identification strategy, with a database access limit (i.e.\ number of 
         times the database is searched) of 500.
@@ -324,11 +324,11 @@ before deciding to choose another $b$ set.
         \input{include/floats/gaussian-fit}
     \end{subfigure}
     \caption{
-    Both plots represent some statistic about the resulting bijection $h$ produced by each identification strategy
+    Both plots represent some statistic about the resulting injection $h$ produced by each identification strategy
     given some image with varying Gaussian noise.
     There exist $2{,}000$ runs for each identification strategy, with a database access limit of 500.
     The left plot depicts the average time to obtain $h$, and the right plot depicts the trend line
-    $a(h, b, r) = c \cdot \mathit{\ln}\left( \rho \right) + d$.
+    $a(h, b) = c \cdot \mathit{\ln}\left( \rho \right) + d$.
     }\label{fig:gaussianNoise}
     }
 \end{figure*}
@@ -374,14 +374,14 @@ before deciding to choose another $b$ set.
 
 %import numpy as np
 %print(np.average( [6.97725 - 3.00525, 6.9615 - 3.005, 398.0655 -  ))
-In~\autoref{fig:verify}, the accuracy of the bijection produced by the Pyramid and Composite Pyramid strategies are
+In~\autoref{fig:verify}, the accuracy of the injection produced by the Pyramid and Composite Pyramid strategies are
 displayed with and without the verification step for varying levels of Gaussian noise.
 Without noise, the Pyramid strategy without its verification step is 4.33\% less accurate than the Pyramid strategy with
 verification on average.
 This behavior is consistently seen for Gaussian noise of $\rho\seq\ang{0.000001}$ \& $\rho\seq\ang{0.001}$, and
-can be attributed to the more frequent rejection of incorrect bijections with $R$ sets that have met the criterion.
+can be attributed to the more frequent rejection of incorrect injections with $R$ sets that have met the criterion.
 In the $\rho\seq\ang{0.001}$ case, there exists a difference of 389.95 accesses between both variations of the Pyramid
-and a 15\% bijection accuracy difference in favor of the strategy with the verification step.
+and a 15\% injection accuracy difference in favor of the strategy with the verification step.
 Given the null hypotheses that the difference between both variations of the Pyramid strategy are different for each
 level of noise, $z_0 \seq 15.87, z_{0.000001} \seq 16.04, z_{0.001} \seq 12.14$ (all $p\!<\!0.0001$) is obtained with
 two-tailed two sample $Z$ tests.
@@ -394,7 +394,7 @@ strategy.
 The variant without the verification step has an average of 193.93 database accesses at $\rho\seq\ang{0.001}$.
 The Pyramid variant without the verification step only had an average of 8.114 database accesses, suggesting that the
 $\abs{R} \seq 1$ criterion and the \Call{DMT}{} process are sufficient enough for rejecting incorrect $r$ sets and
-bijections for the Composite Pyramid strategies.
+injections for the Composite Pyramid strategies.
 
 \subsection{End to End}\label{subsec:endToEndEvaluation}
 \subsubsection{Which strategy is the fastest given no noise?}
@@ -403,7 +403,7 @@ varying degrees of Gaussian noise.
 In the no noise case, the Angle strategy is the slowest identification strategy on average.
 The next slowest strategy is the Composite Pyramid strategy, a factor of 2.95 times faster than the Angle strategy.
 Recall that the Angle strategy had the fastest $R$ retrieval, but the largest $\abs{R}$.
-On average, it takes 69.85 database accesses to obtain a bijection and 68.10 database accesses to obtain $r$.
+On average, it takes 69.85 database accesses to obtain a injection and 68.10 database accesses to obtain $r$.
 This suggests that the Angle strategy's long running time stems from the $\abs{R} \seq 1$ criterion and not the
 \Call{DMT}{} process.
 
@@ -421,7 +421,7 @@ As Gaussian noise is increased from $\rho\seq\ang{0}$ to $\rho=\ang{0.01}$, the 
 response of $5{,}311.57$ additional $\si{ms}$.
 The next slowest strategy in the noise of $\rho\seq\ang{0.01}$ case is the Interior Angle strategy, a factor of 7.46 times
 faster than the Angle strategy.
-On average, the Angle strategy takes 399.66 database accesses to obtain a bijection and only 36.72 database accesses
+On average, the Angle strategy takes 399.66 database accesses to obtain a injection and only 36.72 accesses
 to obtain $r$ here.
 In the no noise case, this strategy's long running time can attributed to the aggressive $R$ criterion.
 Given Gaussian noise, the \Call{DMT}{} process plays a larger role with the Angle strategy and returns to $b$
@@ -484,7 +484,7 @@ With the data collected here, the Pyramid strategy is the fastest strategy given
         \input{include/floats/false-acc}
     \end{subfigure}
     \caption{
-    Both plots represent some statistic about the resulting bijection $h$ produced by each identification strategy
+    Both plots represent some statistic about the resulting injection $h$ produced by each identification strategy
     given some image with varying amounts of spikes $\omega$.
     There exist $2{,}000$ runs for each identification strategy, with a database access limit of 500.
     The left plot depicts the average time to obtain $h$, and the right plot depicts the average accuracy of $h$.
@@ -497,7 +497,7 @@ The selection of the retrieval $\sigma$ parameters play a significant role in ac
 with Gaussian noise.
 For strategies that search the database using on the $\theta$ feature (Angle, Interior Angle, Pyramid), the $\sigma$
 parameter serves as a rough upper bound for the amount of Gaussian noise tolerated.
-%In~\autoref{fig:gaussianNoise}, the plot on the right depicts the accuracy of resulting bijection of each method for
+%In~\autoref{fig:gaussianNoise}, the plot on the right depicts the accuracy of resulting injection of each method for
 %varying levels of Gaussian noise.
 When the level of noise is equal to the Angle and Pyramid $\sigma_\theta$ parameter ($\ang{0.0001}$),
 both strategies have an average $h$ accuracy of $98.59\!\pm\!1.34\%$.
@@ -525,7 +525,7 @@ It has been observed that the accuracy of each strategy remains near 100\% until
     \end{cases}
 \end{equation}
 Each line was fit to the piecewise equation above ($c\cdot \ln(\rho) + d$ term with least squares), where $c$ and $d$
-are the parameters found with the regression, $a(f, b, r)$ is the accuracy of the bijection, and $\rho^{\star}$ is the
+are the parameters found with the regression, $a(f, b, r)$ is the accuracy of the injection, and $\rho^{\star}$ is the
 point where $a(f, b, r)$ is observed to dip below 95\%.
 The accuracy acceleration varies across strategies through the value of $c$:
 \begin{equation}
@@ -580,7 +580,7 @@ The second fastest strategy given the same noise set is the Interior Angle strat
 Given the null hypothesis that the difference between both averages is not significant, $z \seq 28.47, p\!<\!0.0001$ is
 found with a two-tailed two sample $Z$ test.
 The Pyramid strategy is the fastest strategy given varying amounts of spikes.
-The process for choosing distinct image star sets is shown to be effective in finding a bijection that meets the Pyramid
+The process for choosing distinct image star sets is shown to be effective in finding a injection that meets the Pyramid
 criteria the fastest.
 
 %if __name__ == '__main__':
@@ -645,14 +645,14 @@ responsive to increasing spikes.
 %m_1, m_2 = average(flatten(sample_1)), average(flatten(sample_2))
 %s_1, s_2 = std(flatten(sample_1)), std(flatten(sample_2))
 %print('Z Score of: {}'.format((m_2 - m_1) / sqrt( ((s_1 * s_1) / n_1) + ((s_2 * s_2) / n_2) )))
-In~\autoref{fig:falseNoise}, the plot on the right depicts the average accuracy of each bijection given varying amounts
+In~\autoref{fig:falseNoise}, the plot on the right depicts the average accuracy of each injection given varying amounts
 of spikes.
 As the number of false stars is increased from $\omega \seq 0$ to $\omega \seq 12$, the strategies that experience
 the largest $h$ accuracy response are the Spherical Triangle strategy ($30.42\%$ average decrease) and the Planar
 Triangle strategy ($29.68\%$ average decrease).
 The average accuracy of the $r$ selection is a few percent less than the average accuracy of $h$ here
 ($0.53\!\pm\!1.78\%$ for both strategies).
-Given the null hypothesis that the difference between the accuracy of the $h$ bijection and the accuracy of the $r$
+Given the null hypothesis that the difference between the accuracy of the $h$ injection and the accuracy of the $r$
 selection is not significant, $z \seq 0.37, p \seq 0.71$ was found with a two-tailed two sample $Z$ test.
 There does not exist enough data to reject this hypothesis with $\alpha \seq 0.01$.
 This suggests that the \Call{DMT}{} process is neither helpful or detrimental to the end to end accuracy of these

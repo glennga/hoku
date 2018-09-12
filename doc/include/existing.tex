@@ -20,13 +20,13 @@ Each algorithm is composed of these processes, structured to follow a general id
 %Several deviations to the algorithms from the original literature were introduced from newer literature to evaluate
 %the effectiveness of these changes.
 
-\subsection{Unified Identification Framework}\label{subsec:unifiedIdentification}
+\subsection{Unified Identification Strategy Framework}\label{subsec:unifiedIdentification}
 Each identification strategy is presented with information about the camera hardware, an image $I$ of size $n$
-containing all the stars in the image reference, as well as a database of known stars $K$.
+containing all the stars in the image reference, as well as a set of known stars $K$ residing in some database.
 All stars in $I$ exist in the body frame $\iFrame$, and all stars in $K$ exist in the inertial frame $\kFrame$.
-The goal of each constellation query is to find some bijection between a subset of the image stars $b$ and a subset
+The goal of each constellation query is to find some 1:1 mapping between a subset of the image stars $b$ and a subset
 of the database stars $r$.
-This function is denoted as $h$ with domain $b$ and codomain $r$.
+This function is denoted as $h$ with domain $b$, range $r$, and codomain $K$.
 Identification of all stars in each image is not the focus.
 
 \begin{subequations}
@@ -44,7 +44,7 @@ Identification of all stars in each image is not the focus.
 
 \begin{subequations}
     There exists a set $K^d$, composed of $d$ sized sets of all possible combinations (or permutations) of stars
-    from the database $K$.
+    from $K$.
     Using certain features of the image star subset, the entire $K^d$ set is filtered to a set of database star
     candidates $R$.
     This is known as the $R$ retrieval step.
@@ -80,13 +80,14 @@ of events may occurring before finding a single $r$ set.
     &t = 6, \text{ return } r, r \in R^{(2)} (\text{sole element in } R^{(2)} ).
 \end{align*}
 
-From here, a bijection $h : b \srightarrow r$ is determined that maps each star found in the image star subset to a
-single star in the database candidate set.
+\newcommand{\smapsto}{\! \mapsto \!}
+From here, a injection $h \mid b \smapsto r$ is determined that maps each star found in the image
+star subset to a single star in the database candidate set.
+For brevity, it is assumed that all functions in this paper have domain $b$ and codomain $K$.
 If we are not confident in $h$ at this point, another image star subset is chosen and the process is repeated.
-If we are confident in $h$, then $b$, $r$, and $h$ are returned.
+If we are confident in $h$, then $b$ and $h$ are returned.
 This process is detailed in~\autoref{figure:unifiedIdentificationFlowchart}.
-In the event no map is determined, an error is raised and the function $h : b \srightarrow \emptyset$ is returned
-instead.
+In the event all possible $b$ sets have been selected, $h$ with mapping $b \smapsto \emptyset$ is returned instead.
 
 % Leaving this out for now. The flowchart should explain the process better.
 %\begin{algorithm}[ht] \setstretch{1.0}[H]
@@ -122,13 +123,13 @@ instead.
         \EndFunction
 %        \\
         \Function{DMT}{$b, r, I$}
-        \State $H \gets $ all possible bijections of $b$ and $r$
+        \State $H \gets $ $b \times r$ \Comment All possible pairings of $b$ and $r$.
         \State $P \gets $ all stars in database near $r$, $M \gets \emptyset$
         \For {$h \in H$}
         \State $A \gets $ \Call{TRIAD}{$h, b, r$}, $M_h \gets $ \Call{FPO}{$P, I, A$}
         \EndFor
         \If{$\forall \ M_h \left( M_h \in M \land \abs{M_h} = \abs{b} \right)$}
-        \State \textbf{return} $h : b \rightarrow \emptyset $ \Comment Not confident in result.
+        \State \textbf{return} $h \mid b \mapsto \emptyset $ \Comment Not confident in result.
         \Else
         \State \textbf{return} $h \in H$ associated with largest set in $M$
         \EndIf
@@ -142,7 +143,7 @@ instead.
         \If{$\lvert R \rvert = 1$}
         \State $h \gets $ \Call{DMT}{$b, R_1, I$} % TODO: Maybe change this notation...
         \invalidBijection
-        \State \textbf{return} $b, r, h$
+        \State \textbf{return} $b, h$
         \EndIf
         \EndIf
         \EndFor
@@ -165,9 +166,9 @@ An example sequence of pairs is depicted below for $n \seq 3$ stars.
     \ldots \right)
 \end{equation}
 
-The $R$ retrieval step searches the $K^2$ database for pairs such that the angular separations of the database pairs
-are close to the angular separation of the image star subset~\cite{bratt:analysisStarIdentification}.
-For the image star subset, the origin of the angular separation calculation $\theta(b)$ is the focal point of the lens
+The $R$ retrieval step searches the $K^2$ set for pairs such that the angular separations of the database pairs
+are close to the separations of the image star subset~\cite{bratt:analysisStarIdentification}.
+For the image star subset, the origin of the separation calculation $\theta(b)$ is the focal point of the lens
 itself.
 For a database star candidate set, the origin of this calculation $\theta(r)$ is the center of the Earth.
 To obtain $R$, the predicate $P_\theta(r, b)$ is used to filter the $K^2$ database:
@@ -184,24 +185,24 @@ one candidate exists in $R$.
 This sole element $\vv{R_1}$ is then selected to be $r$.
 
 \begin{subequations}
-    To determine the most likely bijection $h$, we follow Tappe's implementation of the strategy and perform a
+    To determine the most likely injection $h$, we follow Tappe's implementation of the strategy and perform a
     \textit{direct match test} (DMT)~\cite{tappe:starTrackerDevelopment,needelman:stellarAttitudeAcquisition}.
-    Given an image star pair $b$ and a database star pair $r$ for, the following is proposed:
+    Given an image star pair $b$ and a database star pair $r$ for, the following is proposed.
     \begin{equation}
-        h_1 : \vv{b_1} \mapsto \vv{r_1}, \vv{b_2} \mapsto \vv{r_2}
+        h_1 \mid h_1(b_1) = r_1, \ h_1(b_2) = r_2
     \end{equation}
     Wahba's problem is then solved using the TRIAD method to obtain a rotation $A_1$ between the image and database
     frames.
     This process is repeated for the other possible permutation to obtain a second rotation $A_2$:
     \begin{equation}
-        h_2 : \vv{b_1} \mapsto \vv{r_2}, \vv{b_2} \mapsto \vv{r_1}
+        h_2 \mid h_2(b_1) = r_2, \ h_2(b_2) = r_1
     \end{equation}
 \end{subequations}
 The most likely attitude is determined by the \Call{FPO}{} method, which returns how many stars from $I$ align with
 $K$ given rotation $A_1$ or $A_2$.
-The bijection with the most stars is then returned.
-If all bijections return sets of size $d \seq 2$, then we are not confident in any of our choices and
-return the function $h: \vv{b} \rightarrow \emptyset $.
+The injection with the most stars is then returned.
+If all injections return sets of size $d \seq 2$, then we are not confident in any of our choices and
+return the function $h \mid \vv{b} \smapsto \emptyset$.
 
 %The \Call{FPO}{} method determines the number of stars from $I$ in the body frame $\iFrame$ align with $C$ in the
 %inertial frame $\kFrame$.
@@ -213,11 +214,11 @@ return the function $h: \vv{b} \rightarrow \emptyset $.
 
 Accessing the database is the most expensive operation for all of the identification strategies.
 Consequently, the running time of this algorithm $T_{angle}$ can be described in terms of the number of queries and
-the number of entries that exist in the $K^2$ database.
+the number of elements that exist in $K^2$.
 There exist $2n^2$ database accesses at worst, requiring two database accesses ($R$ retrieval step and \Call{DMT}{}
 calls) for each combination of pairs in $I$.
 The $\log (m_2)$ term describes the number of comparisons until $r$ sets are found and are able to be returned.
-Given a B+ tree indexed database with $\abs{K^2} \seq m_2$ elements, no more than $\bigO \left( \log(m_2) \right)$
+Given a B+ tree indexed relation with $\abs{K^2} \seq m_2$ elements, no more than $\bigO \left( \log(m_2) \right)$
 comparisons are required~\cite{patel:advanceTreeStructures}.
 %\begin{equation}\label{eq:complexityAnglePart1}
 %    T_{angle} = \bigO\left(C(n, 2) \cdot n \cdot \log(m_{angle}) \right)
@@ -247,8 +248,8 @@ comparisons are required~\cite{patel:advanceTreeStructures}.
         P_{\theta, \phi}(r, b) }$
         \If{$\lvert R \rvert = 1$}
 %        \State \textbf{return} $b, r, h: (\vv{b_c}, \vv{r_c}), (\vv{b_{c1}, \vv{r_{c1}}}), (\vv{b_{c2}, \vv{r_{c2}}})$
-        \State \textbf{return} $b, r, h: \vv{b_c} \mapsto \vv{r_c}, \vv{b_{c1}} \mapsto \vv{r_{c1}}, $
-        \State \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \  $\vv{b_{c2}} \rightarrow \vv{r_{c2}}$
+        \State \textbf{return} $b, h \mid h(r_c) = b_{c}, \ h(r_{c1}) = b_{c1},$
+        \State \ \ \ \ \ \ \ \ \ \ \ \ \ \ \  $h(r_{c2}) = b_{c2}$
         \EndIf
         \EndFor
         \EndFunction
@@ -264,7 +265,7 @@ iterating through $I$ in a sequential manner.
 The two closest stars in the image to the central star are selected next, denoted as $\vv{b_{c1}}$ and $\vv{b_{c2}}$
 ~\cite{liebe:starTrackersAttitudeDetermination}.
 
-The $R$ retrieval step searches the $\bar{K^3}$ database for trios such that the features of the database trios are
+The $R$ retrieval step searches the $\bar{K^3}$ set for trios such that the features of the database trios are
 close to the same features of the image subset~\cite{bratt:analysisStarIdentification}.
 Unlike the Angle strategy's $K^d$ set, $\bar{K^d}$ is defined to be all \textit{permutations} of size $d$ rather than
 combinations.
@@ -274,7 +275,7 @@ angular separation between the second closest star and the central star, ($\thet
 \vv{b_c}\right) $ vs. $\theta\left(\vv{r_{c2}}, \vv{r_c}\right)$),
 and the angular separation between the two closest stars with the central star as the origin instead of the Earth or 
 focal point ($\phi(b) $ vs. $ \phi(r)$).
-To obtain $R$, the predicate $P_{\theta, \phi}(r, b)$ is used to filter the $\bar{K^3}$ database:
+To obtain $R$, the predicate $P_{\theta, \phi}(r, b)$ is used to filter $\bar{K^3}$:
 
 \begin{equation}
     \begin{aligned}
@@ -291,16 +292,16 @@ database.
 %The original literature states that this should be repeated for all $b$ sets.
 %Given that complete identification of $I$ is not the goal, this method has been adjusted to query with one $b$ at a
 %time.
-After finding some $R$ that meets the same $R$ criterion as the Angle strategy, the bijection:
+After finding some $R$ that meets the same $R$ criterion as the Angle strategy, the injection:
 \begin{equation}
-    h: \vv{b_1} \mapsto \vv{r_1}, \vv{b_2} \mapsto \vv{r_2}, \vv{b_3} \mapsto \vv{r_3}
+    h \mid h(b_1) = r_1, \ h(b_2) = r_2, \ h(b_3) = r_3
 \end{equation}
 is constructed and returned.
 RezaToloei's implementation imposes the last term in predicate $P_{\theta, \phi}(r, b)$ at $R$ retrieval
 time~\cite{toloei:compositeIdentification}, borrowing from Anderson (according to Spratling) by searching all
 permutations instead of combinations to remove the need for a star mapping
 procedure~\cite{anderson:autonomousStarSensing}.
-Storing permutations does increase the storage required for the $\bar{K^3}$ database though, which begs the question,
+Storing permutations does increase the storage required for $\bar{K^3}$ though, which begs the question,
 ``Does this extra space aid in accuracy or runtime?''.
 
 %The star trios in the catalog star candidates represent potential catalog maps for the image star trio $(b_i, b_j,
@@ -317,11 +318,11 @@ Storing permutations does increase the storage required for the $\bar{K^3}$ data
 %match is found.
 
 The running time of this algorithm $T_{dot}$ is depicted below, again described in terms of the number of queries
-and $\bar{K^3}$ database entries:
+and the number of entries in $\bar{K^3}$:
 \begin{equation}\label{eq:dotComplexity}
     T_{dot} = O\left( n \cdot \log(\bar{m_3}) \right)
 \end{equation}
-where $\bar{m_3}$ is the size of the $\bar{K^3}$ database.
+where $\bar{m_3}$ is the cardinality of $\bar{K^3}$.
 
 %This entire method is described in~\autoref{algorithm:interiorAngleIdentification}.
 
@@ -364,7 +365,7 @@ where $\bar{m_3}$ is the size of the $\bar{K^3}$ database.
         \If{$R \neq \emptyset$} \Comment Verify the pivot's success.
         \State $h \gets $ \Call{DMT}{$b, R_1, I$}
         \invalidBijection
-        \State \textbf{return} $b, R_1, h$
+        \State \textbf{return} $b, h$
         \EndIf
         \EndIf
         \EndFor
@@ -376,7 +377,7 @@ where $\bar{m_3}$ is the size of the $\bar{K^3}$ database.
 
 The \textit{Spherical Triangle} strategy is composed of Cole and Crassidus's spherical area and moment features, a
 naive $b$ image subset decision, Cole and Crassidus's candidate selection process, and a direct-match test to create
-the image to database bijection.
+the image to database function.
 
 Given a set of stars from the image $I$, $d \seq 3$ stars are selected to obtain the $b$ set in the same
 straightforward manner as the Angle strategy.
@@ -385,12 +386,12 @@ For $C(n, 3)$ combinations the star $\vv{b_1}$ is fixed in $b$ for $n^2$ image s
 the star $\vv{b_2}$ is fixed for $n$ selections, and the last star $\vv{b_3}$ is constantly changed for
 every new $b$ choice.
 
-The $R$ retrieval step searches the $K^3$ database for trios such that the spherical area and moment of the database
+The $R$ retrieval step searches the $K^3$ set for trios such that the spherical area and moment of the database
 trios are close to the spherical area and moment of the image star
 subset~\cite{coleAndCrassidis:sphericalTriangleMethod}.
 For the image star subset, the spherical area and moment are represented as $a(b)$ and $\tau(b)$ respectively.
 For the database star candidate set, these same features are represented as $a(r)$ and $\tau(r)$.
-To obtain $R$, the predicate $P_{a, \tau}(r, b)$ is used to filter the $K^3$ database:
+To obtain $R$, the predicate $P_{a, \tau}(r, b)$ is used to filter $K^3$:
 \begin{equation}
     \begin{aligned}
         P_{a, \tau}(r, b) : \abs{ a(r) - a(b)} &< 3\sigma_{a}
@@ -465,8 +466,9 @@ the correct $r$ set for the given $b$.
         \State \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \  \ \ \ \ \ \ \ \ $\set{ \vv{b_k}, \vv{\beta} }, K^2$}
         \State $T_\beta \gets $ \Call{FC}{$T_{i\beta}, T_{j\beta}$} $\cap$ \Call{FC}{$T_{j\beta}, T_{k\beta}$}
         \If{ $\abs{T_\beta} = 1$}
-        \State \textbf{return} $b, r, h: \vv{b_1} \mapsto \vv{r_1}, \vv{b_2} \mapsto \vv{r_2},$
-        \State \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\vv{b_3} \mapsto \vv{r_3}$
+        \State \textbf{return} $b, h \mid h(b_1) = r_1, \ h(b_2) = r_2$
+        \State \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $h(b_3) = r_3$
+        %        \State \textbf{return} $b, r, h: \vv{b_1} \mapsto \vv{r_1}, \vv{b_2} \mapsto \vv{r_2},$
         \EndIf
         \EndIf
         \EndFor
@@ -478,22 +480,22 @@ the correct $r$ set for the given $b$.
 
 \begin{subequations}
     The \Call{DMT}{} process is used to complete the star identification process here.
-    Given an image star trio and a database star trio, a bijection is proposed:
+    Given an image star trio and a database star trio, a injection is proposed:
     \begin{equation}
-        h_1 : \vv{b_1} \mapsto \vv{r_1}, \vv{b_2} \mapsto \vv{r_2}, \vv{b_3} \mapsto \vv{r_3}
+        h_1 \mid h_1(b_1) = r_1, \ h_1(r_2) = r_2, \ h_1(b_3) = r_3
     \end{equation} \label{eq:trianglePossibleMaps}
-    The TRIAD method only uses two vector observations from each frame, meaning that the $\vv{b_3} \rightarrow \vv{r_3}$
+    The TRIAD method only uses two vector observations from each frame, meaning that the $(b_3, r_3)$
     pairing is disregarded as the first rotation $A_1$ is computed.
-    This process is repeated for all 5 other possible bijections to get $A_2, A_3, \dots, A_6$.
+    This process is repeated for all 5 other possible injections to get $A_2, A_3, \dots, A_6$.
     \begin{align}
-        h_2 &: \vv{b_1} \mapsto \vv{r_1}, \vv{b_2} \mapsto \vv{r_3}, \vv{b_3} \mapsto \vv{r_2} \\
-        h_3 &: \vv{b_1} \mapsto \vv{r_2}, \vv{b_2} \mapsto \vv{r_1}, \vv{b_3} \mapsto \vv{r_3} \\
-        h_4 &: \vv{b_1} \mapsto \vv{r_2}, \vv{b_2} \mapsto \vv{r_3}, \vv{b_3} \mapsto \vv{r_1} \\
-        h_5 &: \vv{b_1} \mapsto \vv{r_3}, \vv{b_2} \mapsto \vv{r_1}, \vv{b_3} \mapsto \vv{r_2} \\
-        h_6 &: \vv{b_1} \mapsto \vv{r_3}, \vv{b_2} \mapsto \vv{r_2}, \vv{b_3} \mapsto \vv{r_1}
+        h_2 &\mid h_2(b_1) = r_1, \ h_2(r_2) = r_3, \ h_2(b_3) = r_2 \\
+        h_3 &\mid h_3(b_1) = r_2, \ h_3(r_2) = r_1, \ h_3(b_3) = r_3 \\
+        h_4 &\mid h_4(b_1) = r_2, \ h_4(r_2) = r_3, \ h_4(b_3) = r_1 \\
+        h_5 &\mid h_5(b_1) = r_3, \ h_5(r_2) = r_1, \ h_5(b_3) = r_2 \\
+        h_6 &\mid h_6(b_1) = r_3, \ h_6(r_2) = r_2, \ h_6(b_3) = r_1
     \end{align}
 \end{subequations}
-For all six attitudes, the bijection yielding the most aligned stars is returned.
+For all six attitudes, the injection yielding the most aligned stars is returned.
 
 The running time of this algorithm $T_{sphere}$ is depicted below in terms of the number of queries and the number of
 entries in the $K^3$ database.
@@ -502,7 +504,7 @@ accesses incurred for each pivot, and an additional $n^4$ queries with each \Cal
 \begin{equation}\label{eq:sphereComplexity}
     T_{sphere} = \bigO\left( n^4 \cdot \log (m_3) \right)
 \end{equation}
-where $m_3$ represents the size of the $K^3$ database.
+where $m_3$ is the cardinality of $K^3$.
 
 %This entire method is described in~\autoref{algorithm:triangleIdentification}.
 
@@ -534,7 +536,7 @@ An example sequence of trios is depicted below for $n \seq 5$ stars.
 %but does not specify how nor is source code provided.
 The approach developed here was inspired by the two star voting algorithm, which accumulates "votes" for some star by
 determining the angle between the same star and two other stars~\cite{tichy:preliminaryTestsCommericalImagers}.
-We start by retrieving pairs from the $K^2$ database such that the angular separations of the database pairs are
+We start by retrieving pairs from $K^2$ such that the angular separations of the database pairs are
 close to the angular separation of the image pair $\set{\vv{b_i}, \vv{b_j}}$.
 This is repeated for the other two permutations $\set{\vv{b_i}, \vv{b_k}}$ and $\set{ b_j, \vv{b_k} }$ to obtain
 the sets $T_{ij}, T_{ik}$ and $T_{jk}$ respectively.
@@ -559,19 +561,18 @@ Interior Angle), a verification step is performed.
 A different star from the image $\vv{\beta}$ is selected and the $R$ retrieval step is performed for each distinct trio
 combination of $b$ and $\vv{\beta}$.
 If $\abs{T_\beta} \neq 1$, then verification step has failed and another image subset is selected.
-Otherwise, the bijection $h : \vv{b_1} \mapsto \vv{r_1}, \vv{b_2} \mapsto \vv{r_2}, \vv{b_3} \mapsto \vv{r_3}$ is
-returned.
+Otherwise, the injection with mapping $h(b_1) = r_1 \ h(b_2) = r_2 \ h(b_3) = r_3$ is returned.
 Like the Interior Angle strategy, a star mapping procedure is not required to determine $h$.
 Instead, each individual star is identified at $R$ retrieval time.
 
 The running time of this algorithm $T_{pyramid}$ is depicted below in terms of the number of queries and the number
-of entries in the $K^2$ database.
+of elements in $K^2$.
 At most, this requires $6n^3$ database accesses: $3n^3$ accesses for each $T$ retrieval with an additional
 $3n^3$ accesses for each verification step.
 \begin{equation}
     T_{pyramid} = \bigO \left( n^3 \cdot \log( m_2 ) \right)
 \end{equation}
-where $m_2$ is the size of the $K^2$ database.
+where $m_2$ is the cardinality the $K^2$.
 
 %This entire method is specified in~\autoref{algorithm:pyramidIdentification}.
 
@@ -617,17 +618,17 @@ From here, the process to obtain the $R$ set is the same as the triangle strateg
 select all candidates from $K^3$.
 If the current $R$ set meets the same $\abs{R} \seq 1$ criterion, then a similar verification step to the Pyramid
 strategy is performed with the Planar Triangle features.
-Once this test has passed, the \Call{DMT}{} method is used to construct the bijection $h$ to potentially return.
-The Pyramid strategy did not need this call as an implicit bijection was formed through its $R$ retrieval process.
+Once this test has passed, the \Call{DMT}{} method is used to construct the injection $h$ to potentially return.
+The Pyramid strategy did not need this call as an implicit injection was formed through its $R$ retrieval process.
 
-The running time of this algorithm $T_{composite}$ is depicted below in terms of number of queries and the number of
-items in the $K^3$ database.
+The running time of this algorithm $T_{composite}$ is depicted below in terms of number of queries and the number
+of elements in $K^3$.
 At most, this requires $5n^3$ database accesses: $n^3$ for each $T$ retrieval, an additional $3n^3$ accesses for each
 verification step, and an additional $n^3$ accesses for each \Call{DMT}{} call.
 \begin{equation}
     T_{composite} = \bigO (n^3 \cdot \log(m_3))
 \end{equation}
-where $m_3$ represents the number of entries in the $K^3$ database.
+where $m_3$ is the cardinality of $K^3$.
 
 %This entire method is specified in~\autoref{algorithm:compositePyramid}.
 

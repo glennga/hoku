@@ -2,12 +2,12 @@
 
 \section{Related Work}\label{sec:relatedWork}
 This section serves to give a brief overview of the different approaches to querying for constellations.
-More comprehensive survey papers have been published by Spratling~\cite{spratling:surveyStarIdentification} and
+Additional survey papers have been published by Spratling~\cite{spratling:surveyStarIdentification} and
 Br\"{a}tt~\cite{bratt:analysisStarIdentification}.
 
 \nsubparagraph{Identification Classes}
 The first main class of identification and the focus of this paper is the \textit{subgraph isomorphism} class.
-Subgraph isomorphism is NP complete problem which aims to find some 1-to-1 mapping between the vertices (stars) in two
+Subgraph isomorphism is a NP complete problem which aims to find some 1-to-1 mapping between the vertices (stars) in two
 graphs (i.e.\ the database and the image) if it exists~\cite{scott:graphIsomorphismProblem}.
 This involves describing and mapping sets of stars between both the database and image in terms of their features
 relative to each other.
@@ -29,7 +29,7 @@ a cell without one~\cite{padgett:gridAlgorithm}.
 
 \nsubparagraph{Recursive Property}
 Recall that the lost-in-space condition specifies that we do not have any information about the spacecraft's attitude
-prior to starting our identification algorithm.
+prior to starting our query.
 For the majority of a star tracker's lifetime though, this constraint can be relaxed to allow for the use of
 \textit{recursive} star identification.
 Recursive strategies possess an attitude recorded at time $t$, and perform the identification at a later time $t + dt$.
@@ -75,12 +75,12 @@ al~\cite{zhang:brightnessReferenced}.
 
 \nsubparagraph{Database Access}
 The naive approach to searching for matching features in a subgraph isomorphism approach is to perform a
-linear search across the entire database and search for matching subsets.
-Early star identification strategies focused on reducing the size of the database to be searched, rather than the search
+linear search across an entire relation in a database and search for matching subsets.
+Early star identification strategies focused on reducing the size of the relation to be searched, rather than the search
 process itself.
-In 1996, Quine (according to Spratling) was the first to reduce the database search time from linear to log time
+In 1996, Quine (according to Spratling) was the first to reduce the relation search time from linear to log time
 using a binary search tree~\cite{quine:fastAutonomousStarAcquistion}.
-The following year Mortari's "Search-Less Algorithm" was introduced, which utilizes $k$-vectors to search the database
+The following year Mortari's "Search-Less Algorithm" was introduced, which utilizes $k$-vectors to search a relation
 independent of its size~\cite{mortari:kVectorApproach}.
 
 \newcommand{\srightarrow}{\! \rightarrow \!}
