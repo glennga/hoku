@@ -226,16 +226,18 @@ cd hoku/bin
 ```
 
 ## LaTeX Generation
-To build any presentation or paper that resides in the `doc` folder, use the build script. There currently exist three
+To build any presentation or paper that resides in the `doc` folder, use the build script. There currently exist the following
 targets:
 ```cmd
 cd hoku/script
 chmod +x build-doc.sh
 
 # Build the paper and presentations.
-./build-doc.sh paper
-./build-doc.sh present
-,.build-doc.sh present-wahba
+./doc-build.sh arxiv-paper
+./doc-build.sh vldb-paper
+./doc-build.sh icde-paper
+./doc-build.sh present
+./doc-build.sh present-wahba
 ```
 
 The PDFs reside in the `doc` folder.
