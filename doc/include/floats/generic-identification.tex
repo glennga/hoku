@@ -18,7 +18,7 @@ fill=green!30, inner sep=-12pt]
 \begin{tikzpicture}[node distance=1.2cm]
     \node[scale=1](getImage)[terminal]{Get Camera Image};
     \node[scale=1](pickQueryStars) [process, left of=getImage, xshift = -2.2cm] {Pick $d$ Image Stars};
-    \node[scale=1](searchCatalog)[process, below of=pickQueryStars, yshift=-0.4cm] {Query Catalog};
+    \node[scale=1](searchCatalog)[process, below of=pickQueryStars, yshift=-0.4cm] {Retrieve from Catalog};
     \node[scale=1](confidentInCatalog)[decision, below of=searchCatalog, yshift=-0.4cm] {$\lvert R \rvert > 0$?};
     \node[scale=1](filterCandidates)[process, below of=confidentInCatalog, yshift=-0.4cm] {Select Candidate};
     \node[scale=1](confidentAfterFilter)[decision, below of=filterCandidates, yshift=-0.4cm] {Confident?};

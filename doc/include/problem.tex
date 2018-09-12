@@ -1,24 +1,20 @@
-\newcommand{\iFrame}{\mathcal{I}}
-\newcommand{\kFrame}{\mathcal{K}}
-%\newcommand{\vv}[1]{\overrightarrow{#1}}
-\newcommand{\vv}[1]{#1} % Not doing anything special for vectors right now...
-
 \section{Attitude Determination}\label{sec:attitudeDetermination}
 
 This section serves to give a brief overview into what attitude is, what Wahba's problem is \& how to solve it, and what
 stellar based attitude determination entails.
+
+As an example, observer $A$ at the bottom of a mountain may describe the mountain itself as large and above itself.
+Another observer $B$ on a helicopter hovering over the same mountain may describe it as small and below itself.
+To find an attitude between $A$'s reference frame and $B$'s reference frame is to find some function $h(x_1, x_2, x_3,
+\ldots)$ that is able to produce $B$'s description of the mountain with $A$'s observations.
 
 \subsection{General Attitude Determination}\label{subsec:generalAttitudeDetermination}
 Attitude refers to the translation between how one system describes an object compared to how a different system
 describes the same object.
 These systems are referred to as \textit{reference frames}, and describe objects in terms of dimensions ($x_1, x_2, x_3,
 \ldots$).
-As an example, observer $A$ at the bottom of a mountain may describe the mountain itself as large and above itself.
-Another observer $B$ on a helicopter hovering over the same mountain may describe it as small and below itself.
-To find an attitude between $A$'s reference frame and $B$'s reference frame is to find some function $h(x_1, x_2, x_3,
-\ldots)$ that is able to produce $B$'s description of the mountain with $A$'s observations.
 
-In the context of spacecraft attitude from star identification, there exist three reference frames: the
+In the context of spacecraft attitude for star identification, there exist three reference frames: the
 \textit{body frame}, the \textit{sensor frame}, and the \textit{inertial frame}.
 The body frame itself is fixed to the structure of the spacecraft, the sensor frame is fixed to the star tracker,
 and the inertial frame refers to some non-accelerating frame in which stellar objects are recorded.

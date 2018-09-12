@@ -4,10 +4,16 @@
 \usepackage{tikz} \usepackage{tikz-3dplot} \usepackage{nicefrac} \usepackage{algorithm} \usepackage{subcaption}
 \usepackage[noend]{algpseudocode} \usepackage{array} \usepackage{pgfplots} \usepackage{booktabs} \usepackage{siunitx}
 \usepackage{enumitem} \usepackage[utf8]{inputenc} \usepackage{amsmath} \usepackage{amssymb} \usepackage{filecontents}
+\usepackage{amsfonts}
+
+\newcommand{\vv}[1]{#1} % Not doing anything special for vectors right now...
+\newcommand{\seq}{\!=\!}
+\newcommand{\iFrame}{\mathcal{I}}
+\newcommand{\kFrame}{\mathcal{K}}
+\everypar{\looseness=-1}
 
 \begin{document}
-	\title{Empirical Analysis of Common Subgraph Isomorphism Approaches to the Lost-in-Space Star
-    Identification Problem}
+	\title{An Experimental Survey of Processing Strategies for Lost-in-Space Constellation Queries}
 
 	\author{
 	\IEEEauthorblockN{Glenn Galvizo}
@@ -28,8 +34,12 @@
 	\maketitle
 
 	\input{include/abstract}
+    \begin{IEEEkeywords}
+        information retrieval, low earth orbit satellites, performance analysis, query processing
+    \end{IEEEkeywords}
+
 	\input{include/background}
-	\input{include/problem}
+%	\input{include/problem}
 	\input{include/related}
 	\input{include/existing}
 	\input{include/evaluation}
@@ -38,7 +48,7 @@
     \balance
 
 %	\nocite{*}
-	\bibliographystyle{abbrv}
+	\bibliographystyle{IEEEtran}
 	\bibliography{include/references}
 
 \end{document}
