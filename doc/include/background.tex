@@ -1,11 +1,51 @@
 \section{Introduction}\label{sec:introduction}
-Ancient mariners could look up at the night sky, point out which stars they were looking at, and navigate across the
-globe without the use of maps.
-\textit{Constellation queries} refer to approaches to determine which stars are in the sky.
-Given an image of the sky, to query for a constellation is to map a select few bright spots in image to stars in
-a stellar repository.
-\textit{Lost-in-space} refers to an additional constraint on the problem: the absence of knowing where we took
-the picture and how we pointed the camera.
+With the advent of commercial space industry, we are seeing
+an increasing number of spacecrafts, both manned and unmanned,
+launched into space. One important function on a spacecraft
+is the ability to determine its orientation in space using
+the images captured by a camera on the spacecraft - this is
+often known as the \textit{Lost-in-space} problem.
+For example, consider the design of low Earth
+orbit (LEO) spacecrafts. In order for the spacecraft to
+point a payload, direct its thrusters, or orient its solar
+panels, an accurate \textit{attitude} (another term for
+orientation) must be known. There are a few known landmarks
+in space where some attitude can be extracted (e.g., the
+Earth, the Sun), but this requires constant direction
+towards just these objects. Most attitude determination
+systems do not limit themselves to using a single object as
+a landmark, rather they use multiple stars within the
+field of view of their camera to determine their orientation.
+The images capture a rectangular region of space -- from an
+earth centric perspective, we can think of an image of the
+sky at night. Each image is essentially a collection of
+bright spots (celestial objects) and their location in the
+image coordinate system. To find the orientation of the
+spacecraft, we have to match the pattern of celestial
+objects in the image to a database of known celectial
+objects. We refer to such database queries as 
+\textit{Constellation Queries}: Given a set of query points (in
+the image coordinate system), find the sets of points, i.e.,
+constellations, in a database of known points (in a standard
+coordinate system) that best matches the pattern of the
+query points. 
+
+Hypothetically, if we could transform the
+query points and database points to a common coordinate
+system, then constellation queries would be a simple
+database lookup for each query point. Unfortunately,
+evaluating constellation queries are complicated by several
+issues. First the query points and the points in the
+database are in two different coordinate system (also known
+as reference frames) and the transformation between the two
+coordinate system is not known a priori. In fact, attitude
+determination \emph{is} finding the transformation between
+the two coordinate system. Second, the query
+points are affected by transient celestial objects (e.g.,
+meteors) resulting in spurious points in the image,
+obstructions resulting in missing points, and camera
+charateristics resulting in deviations of the query points
+true position.
 
 %Ancient mariners could look up at the night sky, point out which stars they were looking at, and navigate across the
 %globe without the use of maps.
@@ -16,14 +56,6 @@ the picture and how we pointed the camera.
 %\textit{Lost-in-space} refers to an additional constraint on the problem: the absence of knowing where we took
 %the picture and how we pointed the camera.
 
-This problem is most prevalent in designing LEO (low Earth orbit) spacecraft.
-In order for a craft to point a payload, direct its thrusters, or orient its solar panels, an accurate
-\textit{attitude} (another term for orientation) must be known.
-There are a few known landmarks in space where some attitude can be extracted (the Earth, the Sun), but this
-requires constant direction towards just these objects.
-Star trackers do not limit themselves to a single object, rather they use multiple stars within their field of view
-to determine their orientation.
-
 %There exist roughly $4{,}500$ stars in the sky visible to the human eye.
 %For an image of $n$ stars, the naive approach would be compute $C(4{,}500, n)$ combinations from this collection and
 %compare each to some subset of stars found in the image.
@@ -33,14 +65,20 @@ to determine their orientation.
 %When this subset is identified, we determine and return the orientation of the image relative to collection
 %of ${\sim}4{,}500$ stars.
 
-This research is motivated by a growing difference in the number of stellar attitude determination methods and
-empirical comparison between each of these methods in a more systematic manner for star tracker development.
-Interchangeable factors are abstracted away (camera hardware, blob detection, etc\ldots) to focus more on how each
-query strategy matches stars in an image to stars in a database.
-This paper aims to contribute a hardware independent comparison process, an algorithmic description of several
-query strategies, as well as runtime and catalog access analysis of these strategies under various types of noise.
-The process of identifying blobs in an image, constructing the image coordinate system, and efficiently querying
-static databases are not addressed here.
+This research is motivated by a growing difference in the
+number of stellar attitude determination methods and
+empirical comparison between each of these methods in a more
+systematic manner for star tracker development.
+Interchangeable factors are abstracted away (camera
+hardware, blob detection, etc\ldots) to focus more on how
+each query strategy matches stars in an image to stars in a
+database. This paper aims to contribute a hardware
+independent comparison process, an algorithmic description
+of several query strategies, as well as runtime and catalog
+access analysis of these strategies under various types of
+noise. The process of identifying blobs in an image,
+constructing the image coordinate system, and efficiently
+querying static databases are not addressed here.
 
 \subsection{Stellar Based Attitude Determination}\label{subsec:stellarBasedAttitudeDetermination}
 %Attitude refers to the translation between how one system describes an object compared to how a different system
