@@ -16,9 +16,9 @@ towards just these objects. Most attitude determination
 systems do not limit themselves to using a single object as
 a landmark, rather they use multiple stars within the
 field of view of their camera to determine their orientation.
-The images capture a rectangular region of space -- from an
-earth centric perspective, we can think of an image of the
-sky at night. Each image is essentially a collection of
+The images capture a rectangular region of space -- think of an image of the
+sky at night from an earth-centric perspective. Each image is essentially a
+collection of
 bright spots (celestial objects) and their location in the
 image coordinate system. To find the orientation of the
 spacecraft, we have to match the pattern of celestial
@@ -65,22 +65,7 @@ true position.
 %When this subset is identified, we determine and return the orientation of the image relative to collection
 %of ${\sim}4{,}500$ stars.
 
-This research is motivated by a growing difference in the
-number of stellar attitude determination methods and
-empirical comparison between each of these methods in a more
-systematic manner for star tracker development.
-Interchangeable factors are abstracted away (camera
-hardware, blob detection, etc\ldots) to focus more on how
-each query strategy matches stars in an image to stars in a
-database. This paper aims to contribute a hardware
-independent comparison process, an algorithmic description
-of several query strategies, as well as runtime and catalog
-access analysis of these strategies under various types of
-noise. The process of identifying blobs in an image,
-constructing the image coordinate system, and efficiently
-querying static databases are not addressed here.
-
-\subsection{Stellar Based Attitude Determination}\label{subsec:stellarBasedAttitudeDetermination}
+%\subsection{Stellar Based Attitude Determination}\label{subsec:stellarBasedAttitudeDetermination}
 %Attitude refers to the translation between how one system describes an object compared to how a different system
 %describes the same object.
 %
@@ -97,21 +82,66 @@ querying static databases are not addressed here.
 %Using all three, the goal of attitude determination becomes finding some method of translation between the inertial
 %frame and the body frame.
 
-Let $\kFrame$ describe an inertial reference frame and $\iFrame$ describe a body reference
-frame~\cite{wie:spaceVehicleDynamics}.
-To find a matrix $A$ that describes the basis vectors of $\kFrame$ in terms of $\iFrame$ but accounts
-for the noise of each measurement is known as \textit{Wahba's problem}.
-First posed by Gracie Wahba in 1965~\cite{wahba:attitudeEstimationProblem},
-Wahba's problem states that finding the optimal $A$ is minimizing the loss function below:
+Let $\kFrame$ describe an inertial reference frame for $K$, the objects in the
+database, and $\iFrame$ describe a body reference
+frame~\cite{wie:spaceVehicleDynamics} for $I$, the set of objects in the query image.
+For simplicity, we make the assumption here that all stars in $\kFrame$ are
+fixed and exist in an inertial frame known as the \textit{Earth centered
+inertial} (ECI) frame. The star vectors themselves come from astronomical
+catalogs, recorded as points lying on the celestial
+sphere~\cite{tappe:starTrackerDevelopment}. Two pieces of information are given
+here: right ascension $\alpha$ (equivalent to latitude on Earth) and
+declination $\delta$ (equivalent to longitude). The vector $\vv{K_j}$ represents a point
+$\left( \alpha, \delta \right)$ in a 3D spherical frame with a fixed radius for
+all stars, projected to 3D Cartesian space.
+Let $\vv{I_j}$ represent a 3D point projected from a 2D observation taken by the star tracker.
+A basic star tracker is composed of a camera, a computer for determining
+orientation, and a link back to the main computer. After taking the picture,
+the pixel positions of potential stars in the image are determined.  This
+involves finding bright blobs in the image, and computing each blob's center of
+mass to get a point ($x, y$).
+Through some 2D to 3D transformation process involving the camera's lens structure, a 3D point is then
+obtained~\cite{tappe:starTrackerDevelopment}.
+Let the matrix $A$ represent the transformation from $\kFrame$ to $\iFrame$.
+In 1965 Gracie Wahba first formulated the attitude determination
+problem~\cite{wahba:attitudeEstimationProblem} as
+finding the optimal $A$ that minimizes the loss function:
 \begin{equation}
     L(A) = \frac{1}{2} \sum_j^n \vv{w_j} \left\| \vv{I_j} - A\vv{K_j} \right\|^2
 \end{equation}
-where $\vv{w_j}$ represents a non negative weight associated with the noise between the observations $\vv{I_j}$
-in the body frame and $\vv{K_j}$ in the inertial frame.
-For all instances where Wahba's problem appeared, the \textit{TRIAD method} (short for TRIaxial Attitude Determination)
-was used as a closed form solution~\cite{markley:attitudeDeterminationTwoVectors}.
+where $\vv{w_j}$ represents a nonnegative weight associated with the noise
+between the query points $\vv{I_j}$ in the body frame and the matching points $\vv{K_j}$
+from the database in the inertial frame. The \textit{TRIAD method} (short for
+TRIaxial Attitude Determination) is typically used as a closed form
+solution~\cite{markley:attitudeDeterminationTwoVectors} to Wahba's problem after
+the evaluating the constellation query to retrieve the matching set of points
+from the database.
+Hence, constellation queries do not deal with finding the
+transformation matrix $A$, but focus on finding the sets of points, i.e.,
+constellations, in a database of known points (in a standard
+coordinate system) that best matches a set of query points (in
+the image coordinate system) in the query image.
 
-%
+This paper is an empirical survey of six existing constellation query processing
+strategies in the literature and in the industry. The six strategies are: the
+Angle strategy, the Interior Angle strategy, the Spherical Triangle strategy,
+the Planar Triangle strategy, the Pyramid strategy, and the Composite
+Pyramid strategy. Our contributions are as follows:
+\begin{itemize}
+\item We developed a unified framework for describing the six existing
+constellation query processing strategies/algorithms
+\item We implemented all six existing constellation query processing algorithms
+\item We performed extensive empirical evaluation of the six constellation query processing
+algorithms using the XXXX database and synthetically generated query images.  
+\end{itemize} 
+To the best of our knowledge, no systematic survey exists for constellation
+query processing algorithms, no attempts have been made to study them in a
+unified framework, and no empirical evaluation of the algorithms have been done
+even though many of these algorithms have been deployed in spacecrafts and
+satellites. Our analysis focus on a hardware-independent comparison of
+constellation query processing strategies and does not address the preprocessing
+of an image to identifying blobs.
+
 %For $n \!>\! 2$, Wahba's problem exists as an optimization problem.
 %In the $n\seq2$ case though, the \textit{TRIAD method} (short for TRIaxial Attitude Determination) exists as a
 %closed form solution~\cite{markley:attitudeDeterminationTwoVectors}.
@@ -142,31 +172,6 @@ was used as a closed form solution~\cite{markley:attitudeDeterminationTwoVectors
 %Relative to our solar system, the majority of bright stars ($m \!<\! 6.0$, or visible from the Earth with the naked
 %eye) do not visibly move.
 %Relative to our solar system, the majority of stars visible from Earth with the naked eye do not visibly move.
-For simplicity, we make the assumption here that all stars in $\kFrame$ are fixed and exist in an inertial frame
-known as the \textit{Earth centered inertial} (ECI) frame.
-The star vectors themselves come from astronomical catalogs, recorded as points lying on the celestial
-sphere~\cite{tappe:starTrackerDevelopment}.
-Two pieces of information are given here: right ascension $\alpha$ (equivalent to latitude on Earth) and
-declination $\delta$ (equivalent to longitude).
-$\vv{K_j}$ represents a point $\left( \alpha, \delta \right)$ in a 3D spherical frame with a fixed radius for all stars,
-projected to 3D Cartesian space.
-%    Representing some spherical point $(\alpha, \delta, r)$ in 3D Cartesian space involves the following:
-%    \begin{align} \label{eq:sphereToCartesian}
-%    x &= r \cos(\delta) \cos(\alpha) \\
-%    y &= r \cos(\delta) \sin(\alpha) \\
-%    z &= r \sin(\delta)
-%    \end{align}
-%    where both $\alpha$ and $\delta$ are in degrees, and $r$ represents some constant distance from Earth.
-%    $\vv{K_j}$ represents a point obtained from a star catalog that lies in the ECI frame, $r$ units away from Earth.
-%\end{subequations}
-
-Let $\vv{I_j}$ represent a 3D point projected from a 2D observation taken by the star tracker.
-A basic star tracker is composed of a camera, a computer for determining orientation, and a link back to the main
-computer.
-After taking the picture, the pixel positions of potential stars in the image are determined.
-This involves finding bright blobs in the image, and computing each blob's center of mass to get a point ($x, y$).
-Through some 2D to 3D transformation process involving the camera's lens structure, a 3D point is then
-obtained~\cite{tappe:starTrackerDevelopment}.
 %    To align these stars with the ones in the catalog, the inverse Mercator mapping is used [CITE ME]:
 %    \begin{align}
 %        x &= k \cos\left( \frac{x}{R}  \right) \cos\left(2 * \arctan\left(\exp\left(\frac{y}{R}\right)\right) -
@@ -176,6 +181,8 @@ obtained~\cite{tappe:starTrackerDevelopment}.
 %        z &= k \sin\left( \frac{x}{R}  \right)
 %    \end{align}
 
-The next issue is the focus of this paper: determining which observation from the star tracker frame $\iFrame$
-maps to which observation from the star catalog frame $\kFrame$.
-Once this correspondence is found, Wahba's problem is solved to obtain $A$ and this is returned to the main computer.
+The rest of the paper is organized as follows. Related work is presented in the
+next section. Section~\ref{sec:starIdentificationMethods} describes the different
+constellation query processing strategies using our unified framework.
+Section~\ref{sec:empiricalEvaluation} presents our experimental evaluation of
+the different strategies. Section~\ref{sec:conclusion} draws conclusions.
