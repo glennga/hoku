@@ -12,19 +12,16 @@
 %\end{abstract}
 
 \begin{abstract}
-Given a set of query points in an image coordinate system, 
-constellation queries find the matching points in a database of known points in
-a standard coordinate system. Constellation queries are an integral part of
-orientation determination systems used in spacecrafts (e.g. satellites) to
-orient and navigate themselves. The query points are bright spots in an image
-captured by a camera on the spacecraft and the database contains known celestial
-objects in a celestial coordinate system.
-This paper studies six existing constellation query processing strategies
-(Angle, Interior Angle, Spherical Triangle, Planar Triangle, Pyramid, Composite
-Pyramid) using a unified algorithmic framework and presents an extensive
-experimental evaluation of the six strategies.
-Given an image with false stars, the Pyramid strategy has the highest
-average accuracy and is the fastest of the six.  Given an image where each
-star's true position is distributed randomly (Gaussian noise), the Spherical
-Triangle strategy's accuracy is the least sensitive to positional change.
+    Given a set of query points within an image coordinate system, constellation queries find the matching points in a
+    database of known points within a standard coordinate system.
+    Constellation queries are an integral part of orientation determination systems used in spacecrafts to orient and
+    navigate themselves.
+    The query points are bright spots in an image captured by a camera on the spacecraft and the database contains known
+    celestial objects in a celestial coordinate system.
+    This paper studies six existing constellation query processing strategies (Angle, Interior Angle, Spherical Triangle,
+    Planar Triangle, Pyramid, Composite Pyramid) using a unified algorithmic framework and presents an extensive
+    experimental evaluation of the six strategies.
+    Given an image with false points, the Pyramid strategy has the highest average accuracy and is the fastest of the six.
+    Given an image where each point's true position is distributed randomly (Gaussian noise), the Spherical
+    Triangle strategy's accuracy is the least sensitive to positional change.
 \end{abstract}

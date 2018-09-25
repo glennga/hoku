@@ -484,7 +484,7 @@ Even though all of the methods using triangular features and the Pyramid method 
 reduction step, the extra steps in the identification portion appear to slow down methods with triangular features.
 The most notable candidate for the slowdown is the \Call{DMT}{} procedure, used by the Angle method, Spherical Triangle
 method, Planar Triangle method, and the Composite Pyramid method.
-At most, this incurs $|I|$ additional catalog accesses for all of the methods above.
+At most, this results in $|I|$ additional catalog accesses for all of the methods above.
 For both pyramid methods, their respective verification steps each require $3|I|$ additional catalog accesses at worst.
 
 The Interior Angle method is the only routine that does not require an additional steps after reduction.
