@@ -4,7 +4,7 @@
 \section{Empirical Evaluation}\label{sec:empiricalEvaluation}
 In this section all six identification strategies are analyzed in terms of their process to obtain the database
 candidate set $R$ (retrieval step), their database set $r$ selection process, and their injection $h$ production process
-(identification) under varying amounts of false stars and Gaussian noise.
+(identification) under varying amounts of false points and Gaussian noise.
 The main areas of interest here are the accuracy of each step, and the time to produce a result.
 
 %For the figures given in the following section, ANG corresponds to the Angle method, INT to the Interior Angle method,
@@ -12,13 +12,11 @@ The main areas of interest here are the accuracy of each step, and the time to p
 %and COM to the Composite Pyramid method.
 
 \subsection{Experimental Setup}\label{subsec:experimentalSetup}
-\nsubparagraph{Star Database}
-The astronomical catalog used to populate $K$ is the Hipparcos Input
-Catalogue~\cite{perryman:hipparcosCatalogue}.
-Entries that do not have a point $\left( \alpha, \delta \right)$ associated with it were not recorded, giving
-$117{,}956$ total stars.
+\nsubparagraph{Stellar Database}
+The astronomical catalog used to populate $K$ is the Hipparcos Input Catalogue~\cite{perryman:hipparcosCatalogue}.
+Entries that do not have a $\left( \alpha, \delta \right)$ associated with it were not recorded, giving $117{,}956$ total point.
 Out of this entire set, only $4{,}560$ are visible from Earth with the naked eye (apparent magnitude $m$ less than 6.0).
-An additional constraint for each set $K^2, K^3, \bar{K^3}$ that all stars in each pair or trio be within 20
+An additional constraint for each set $K^2, K^3, \bar{K^3}$ that all points in each pair or trio be within 20
 degrees of each other was placed to shorten each algorithm's $R$ retrieval running time.
 A field-of-view between 10 to 20 degrees is common for most astronomy based CCD
 cameras~\cite{mortari:pyramidIdentification}.
@@ -30,60 +28,60 @@ frame to a 3D Cartesian frame to construct the point $[ x \ y \ z ]$ for $K$.
 %each recorded $\left(\alpha, \delta \right)$ and $r \seq 1$, then normalized.
 
 \nsubparagraph{Benchmark Data Generation}
-Before a raw image can be used in any of the star identification algorithms presented above, it must go through
+Before a raw image can be used in a constellation query following the unified framework, it first must go through
 three major processes: blob detection, centroid determination, and a 2D $\rightarrow$ 3D transformation process.
 If a blob is not wholly detected, the centroid is not determined correctly, or the transformation process
 is not precise enough, error will exist as input to the algorithm prior to starting.
-Given that our goal is to only characterize each star identification algorithm itself, the solution implemented here
+Given that our goal is to only characterize each constellation query itself, the solution implemented here
 involves generating artificial images in some quasi 3D space.
 
 Prior to generating the benchmark data, three items are specified: a field of view $\psi$, a true attitude
 $A^{\nicefrac{\iFrame}{\kFrame}}$, and a 3D vector $\vv{r_f}$ in the database frame $\kFrame$ that determines
 the center of the image.
-The next step is to find all nearby stars to the $\vv{r_f}$ in the database.
+The next step is to find all nearby points to the $\vv{r_f}$ in the database.
 This is denoted as $J$:
 \begin{equation}
     J = \set{ j \mid j \in K \land \theta\left( j, \vv{r_f} \right) < \frac{\psi}{2} }
 \end{equation}
-To get the $I$ set, each star in $J$ is then rotated by the true attitude $A^{\nicefrac{\iFrame}{\kFrame}}$:
+To get the $I$ set, each point in $J$ is then rotated by the true attitude $A^{\nicefrac{\iFrame}{\kFrame}}$:
 \begin{equation}
     I = \set{ A^{\nicefrac{\iFrame}{\kFrame}} \cdot j \mid j \in J }
 \end{equation}
 The set $I$, the field of view, and the rotated image center
-$\vv{b_f} \seq A^{\nicefrac{\iFrame}{\kFrame}} \cdot \vv{r_f}$ are then presented to each star identification algorithm.
+$\vv{b_f} \seq A^{\nicefrac{\iFrame}{\kFrame}} \cdot \vv{r_f}$ are then presented to the constellation query.
 
-The first type of noise exists as variance between the relative positions of stars represented in the database and those
-represented in the image.
+The first type of noise exists as variance between the relative positions of points represented in the database and
+those represented in the image.
 This may come from misidentifying the centroids in the image or out-of-date databases.
-To introduce Gaussian noise to an image, we spherically linearly interpolate each star toward some random 3D vector on
+To introduce Gaussian noise to an image, we spherically linearly interpolate each point toward some random 3D vector on
 the unit sphere (\textit{SLERP}) and distribute the magnitude of the movement normally.
 To describe our noise independent of this random vector, we divide a normal random variable by the current angular
-separation between both stars.
-Given a star $b_i\!\in\!I$, Gaussian noise is applied to obtain the distributed vector $b'_i$~\cite{kremer:slerp}:
+separation between both points.
+Given a point $b_i\!\in\!I$, noise is applied to obtain the distributed vector $b'_i$~\cite{kremer:slerp}:
 \begin{equation}
     b'_i = \frac{\sin (1 - K)\Omega}{\sin \Omega}b_i + \frac{\sin \left( K \Omega \right)}{\sin \Omega}b^\star_i
 \end{equation}
 \begin{subequations}
     where $b^\star_i$ represents some random vector with uniformly distributed elements, $\Omega$ describes the
     angle subtended by the arc, and $K$ describes the magnitude of the interpolation.
-    Below, $\rho$ represents the standard deviation of noise.
+    Below, $\rho$ represents the standard deviation of our Gaussian noise.
     \begin{align}
             b^\star_i &= \left[ \sim U(-1, 1), \sim U(-1, 1), \sim U(-1, 1) \right] \\
             \Omega &= \arccos \left ( b^{\star}_i \cdot b_i \right) \\
             K &= \left(\sim N\left(0, \rho^2\right)\right) \cdot \left(\theta\left( b^{\star}_i, b_i \right)
             \right)^{-1}
     \end{align}
-    The additional constraint that the resulting star exist near the image center is also applied:
+    The additional constraint that the resulting point exist near the image center is also applied:
     $\theta\left( b'_i, \vv{r_f} \right)\!<\!\nicefrac{\psi}{2}$.
-    If this is not met, then the process is repeated for this star.
+    If this is not met, then the process is repeated for this point.
 \end{subequations}
 
 The second type of noise exists as falsely identified sources of light, or spikes in the image.
 This involves generating $b^\star_i$ in the same manner that was done for the Gaussian noise process, and normalizing
 this.
-If the constraint that $b^\star_i$ be near the image center is not met, this process is repeated until such a star is
+If the constraint that $b^\star_i$ be near the image center is not met, this process is repeated until such a point is
 found.
-This is repeated for a set number of spikes.
+This is repeated for a set number of spikes $\omega$.
 
 \nsubparagraph{Hardware}
 All trials were performed on an Intel i7-7700 CPU, 3.60GHz with 8 GB RAM\@.
@@ -100,14 +98,15 @@ down identification.
 On the other hand, $\abs{R} \seq 0$ if the deviation assumption is too small.
 The heuristic used to determine each retrieval $\sigma$ was to exhaust every permutation of deviations in the set below for
 30 retrieval steps each.
-Work toward more accurately estimating these star identification parameters has been performed by
+Work toward more accurately estimating these constellation query parameters has been performed by
 Balodis~\cite{balodis:parametersAutomated}:
 \begin{equation}
     \sigma_{gd} \in \set{ 10^{-16}, 10^{-15}, \ldots, 10^1 }
 \end{equation}
 The Interior Angle and triangular feature based strategies of $\abs{\omega} \seq 2$ have $18^2$ distinct parameter sets
 with 30 runs attached to each set.
-The Angle and Pyramid strategies of $\abs{\omega} \seq 1$ has $18$ distinct parameter sets with 30 runs attached to each set.
+The Angle and Pyramid strategies of $\abs{\omega} \seq 1$ has $18$ distinct parameter sets with 30 runs attached to
+each set.
 The parameter sets with the largest $\sigma$ choices but most number of instances where $\abs{R} \seq 1$ were selected.
 
 The results for each strategy are displayed below, and were used for the following experiments.
@@ -123,8 +122,8 @@ The results for each strategy are displayed below, and were used for the followi
     \caption{
     Depicts all data associated with testing the $R$ retrieval step: the frequency of correct database candidate sets
     ($r_b$, such that the correct injection can be formed with $b$) existing in $R$ after retrieval, the number of
-    trials where the resulting $R$ meets the $\abs{R} \seq 1$ criterion ($S$),
-    and the average retrieval running time ($t_{\AVG}$) given images with no noise.
+    trials where the resulting $R$ meets the $\abs{R} \seq 1$ criterion ($S$), and the average retrieval running time
+    ($t_{\AVG}$) given images with no noise.
     There exist $2{,}000$ runs for each identification strategy.
     } \label{tab:queryExperimentResults}
     }
@@ -158,11 +157,11 @@ Interior Angle will have the slowest $R$ retrieval.
 %     }\label{fig:sqlQuery}
 %\end{figure}
 
-In~\autoref{tab:queryExperimentResults}, the average running time to obtain an $R$ set is displayed for each
-identification strategy given an image for $2{,}000$ runs.
+In~\autoref{tab:queryExperimentResults} the average running time (out of $2{,}000$ runs) to obtain an $R$ set is
+displayed for each identification strategy given an image.
 The slowest strategy on average is the Interior Angle strategy, with its $t_{\AVG} = 30.64 \si{ms}$ longer than the
 average $t_{\AVG}$ for all other strategy ($141.16 \pm 4.30 \si{ms}$).
-More time is being spent searching for the appropriate elements.
+With the Interior Angle strategy, more time is being spent searching for the appropriate elements.
 
 %# http://www.socscistatistics.com/pvalues/normaldistribution.aspx
 %import numpy as np
@@ -208,58 +207,44 @@ when compared to strategies with angular features.
 %number of $\abs{R} = 1$ runs for methods with triangular features is not significant, $z = 38.0, p < 0.0001$ is
 %obtained with a two proportion $Z$ test.
 
-%\enlargethispage{-\baselineskip} \enlargethispage{-\baselineskip}
-\subsubsection{How effective is the Pyramid strategy $R$ retrieval?}
-In the Angle, Spherical Triangle, Planar Triangle, and Composite Pyramid strategies, database searches can be
-generalized to SQL query below:
-
-\small \noindent
-\begin{align*}
-    \texttt{SELECT } &r \\
-    \texttt{FROM } &K^d \\
-    \texttt{WHERE } &g_1 \texttt{ BETWEEN } g_1(b) - 3\sigma_{g1} \texttt{ AND } g_1(b) + 3\sigma_{g1} \texttt{ AND } \\
-                    &g_2 \texttt{ BETWEEN } g_2(b) - 3\sigma_{g2} \texttt{ AND } g_2(b) + 3\sigma_{g2} \texttt{ AND } \\
-                    &\vdots \\
-                    &g_d \texttt{ BETWEEN } g_d(b) - 3\sigma_{gd} \texttt{ AND } g_d(b) + 3\sigma_{gd}
-\end{align*}
-\normalsize
-%    \begin{aligned}
-%        \Pi_r \sigma_{g_1 < g_1(b) + 3\sigma_{g1} \land g_1(r) > g_1(b) - 3\sigma_{g1} \ldots \land g_d(r) < g_d(b) + 3\sigma_{gd} \land g_d(r) > g_d(b) - 3\sigma_{gd}} \left(K^d \right)
-%    \end{aligned}
+%\subsubsection{How effective is the Pyramid strategy $R$ retrieval?}
+%In the Angle, Spherical Triangle, Planar Triangle, and Composite Pyramid strategies, database searches can be
+%generalized to SQL query below:
+%
+%\small \noindent
 %\begin{align*}
 %    \texttt{SELECT } &r \\
 %    \texttt{FROM } &K^d \\
-%    \texttt{WHERE } &g_1(r) < g_1(b) + 3\sigma_{g1} \texttt{ AND } \\
-%                    &g_1(r) > g_1(b) - 3\sigma_{g1} \texttt{ AND } \\
-%                    &g_2(r) < g_2(b) + 3\sigma_{g2} \texttt{ AND } \\
-%                    &g_2(r) > g_2(b) - 3\sigma_{g2} \texttt{ AND } \\
+%    \texttt{WHERE } &g_1 \texttt{ BETWEEN } g_1(b) - 3\sigma_{g1} \texttt{ AND } g_1(b) + 3\sigma_{g1} \texttt{ AND } \\
+%                    &g_2 \texttt{ BETWEEN } g_2(b) - 3\sigma_{g2} \texttt{ AND } g_2(b) + 3\sigma_{g2} \texttt{ AND } \\
 %                    &\vdots \\
-%                    &g_d(r) < g_d(b) + 3\sigma_{gd} \texttt{ AND } \\
-%                    &g_d(r) > g_d(b) - 3\sigma_{gd}
+%                    &g_d \texttt{ BETWEEN } g_d(b) - 3\sigma_{gd} \texttt{ AND } g_d(b) + 3\sigma_{gd}
 %\end{align*}
-where $d$ represents the number of stars used in the search, $g$ represents the function used to obtain a feature,
-and $\sigma$ refers to the deviation of noise.
-The Interior Angle strategy requires the $\theta(r_{c1}, r_{c})\!<\!\theta(r_{c2}, r_c)$ constraint before performing
-the strategy above.
-Compared to the rest of the strategies presented here, the Pyramid strategy has the most involved $R$ retrieval that
-involves processing outside of SQL\@.
-Three of the queries above must be performed to obtain the $T$ sets, and the common stars must be
-found among each $R$ set to create a singular candidate set for trios.
-
-%# http://www.socscistatistics.com/pvalues/normaldistribution.aspx
-%import numpy as np
-%m_1, m_2, s_1, s_2, n_1, n_2 = 0.99, 1.0, 0.09949874371066202, 0, 2000, 2000
-%z = (m_2 - m_1) / np.sqrt( ((s_1 * s_1) / n_1) + ((s_2 * s_2) / n_2) )
-
-The additional complexity of the Pyramid strategy increases the frequency of false negatives after retrieval.
-In~\autoref{tab:queryExperimentResults}, the frequency of the correct $r$ existing in $R$ for some $b$ is displayed
-for each identification strategy.
-The Pyramid strategy is shown to have a 0.01\% difference from the 100\% accuracy of each other strategy.
-Given the null hypothesis that this difference is not significant, $z \seq 4.49, p\!<\!0.0001$ is obtained with a
-one tailed two sample $Z$ test.
-We find that the Pyramid strategy's $R$ retrieval step is less accurate than other identification strategies.
-Although small, this error will propagate to the next steps and will result in more database accesses and/or a lower
-average accuracy.
+%\normalsize
+%
+%where $d$ represents the number of stars used in the search, $g$ represents the function used to obtain a feature,
+%and $\sigma$ refers to the deviation of noise.
+%The Interior Angle strategy requires the $\theta(r_{c1}, r_{c})\!<\!\theta(r_{c2}, r_c)$ constraint before performing
+%the strategy above.
+%Compared to the rest of the strategies presented here, the Pyramid strategy has the most involved $R$ retrieval that
+%involves processing outside of SQL\@.
+%Three of the queries above must be performed to obtain the $T$ sets, and the common stars must be
+%found among each $R$ set to create a singular candidate set for trios.
+%
+%%# http://www.socscistatistics.com/pvalues/normaldistribution.aspx
+%%import numpy as np
+%%m_1, m_2, s_1, s_2, n_1, n_2 = 0.99, 1.0, 0.09949874371066202, 0, 2000, 2000
+%%z = (m_2 - m_1) / np.sqrt( ((s_1 * s_1) / n_1) + ((s_2 * s_2) / n_2) )
+%
+%The additional complexity of the Pyramid strategy increases the frequency of false negatives after retrieval.
+%In~\autoref{tab:queryExperimentResults}, the frequency of the correct $r$ existing in $R$ for some $b$ is displayed
+%for each identification strategy.
+%The Pyramid strategy is shown to have a 0.01\% difference from the 100\% accuracy of each other strategy.
+%Given the null hypothesis that this difference is not significant, $z \seq 4.49, p\!<\!0.0001$ is obtained with a
+%one tailed two sample $Z$ test.
+%We find that the Pyramid strategy's $R$ retrieval step is less accurate than other identification strategies.
+%Although small, this error will propagate to the next steps and will result in more database accesses and/or a lower
+%average accuracy.
 
 \subsection{Candidate Selection Step}\label{subsec:candidateSelectionStep}
 \begin{figure}
@@ -493,7 +478,7 @@ With the data collected here, the Pyramid strategy is the fastest strategy given
 \end{figure*}
 
 \subsubsection{Which strategy has the slowest growing $h$ accuracy response to increasing noise?}
-The selection of the retrieval $\sigma$ parameters play a significant role in accuracy of each strategy given images
+The selection of the retrieval $\sigma$ parameters plays a significant role in accuracy of each strategy given images
 with Gaussian noise.
 For strategies that search the database using on the $\theta$ feature (Angle, Interior Angle, Pyramid), the $\sigma$
 parameter serves as a rough upper bound for the amount of Gaussian noise tolerated.
@@ -536,9 +521,9 @@ as much as a strategy with a larger $c$.
 The strategy with the largest acceleration toward $0\%$ $h$ accuracy is the Interior Angle strategy ($c \seq -0.15749$).
 The Spherical Triangle strategy has the slowest growing $h$ accuracy response to increasing noise ($c \seq -0.09266$).
 
-\subsubsection{Which strategy is the fastest given varying \\ amounts of false stars?}
+\subsubsection{Which strategy is the fastest given varying \\ amounts of false points?}
 In~\autoref{fig:falseNoise}, the plot on the left depicts the end to end running time of each strategy given varying
-amounts of spikes.
+amounts of spikes (i.e.\ false points).
 As the number of spikes increases from 0 to 12, the Angle strategy again experiences the largest response of
 $1{,}234.15\si{ms}$.
 The next fastest strategy is the Composite Pyramid strategy, a factor of 2.50 times faster than the Angle strategy.
@@ -580,7 +565,7 @@ The second fastest strategy given the same noise set is the Interior Angle strat
 Given the null hypothesis that the difference between both averages is not significant, $z \seq 28.47, p\!<\!0.0001$ is
 found with a two-tailed two sample $Z$ test.
 The Pyramid strategy is the fastest strategy given varying amounts of spikes.
-The process for choosing distinct image star sets is shown to be effective in finding a injection that meets the Pyramid
+The process for choosing distinct image subsets is shown to be effective in finding a injection that meets the Pyramid
 criteria the fastest.
 
 %if __name__ == '__main__':
@@ -604,7 +589,7 @@ criteria the fastest.
 %t = polyfit([3, 6, 9, 12], sample_1, 1)
 %print('{name}: {t_0}*x + {t_1}'.format(name=name, t_0=round(t[0], 5), t_1=round(t[1], 5)))
 Each strategy exhibits a linear increase to runtime as additional spikes are added.
-To characterize how each strategy's runtime grows with increasing false stars, each strategy's runtime was fit
+To characterize how each strategy's runtime grows with increasing false points, each strategy's runtime was fit
 to a linear equation using least squares:
 \begin{equation}
     t = c\cdot\omega + d
@@ -614,10 +599,10 @@ A smaller $\abs{c}$ suggests that the number of spikes will affect the end to en
 larger $\abs{c}$.
 The strategy with the largest $\abs{c}$ is the Angle strategy with $c \seq -414.559$.
 The strategy with the smallest $\abs{c}$ term is the Pyramid strategy with $c \seq -6.766$.
-The Pyramid strategy is the fastest given varying amounts of false stars, having a runtime that is also the least
+The Pyramid strategy is the fastest given varying amounts of false points, having a runtime that is also the least
 responsive to increasing spikes.
 
-\subsubsection{Which strategy is the most accurate given varying amounts of false stars?}
+\subsubsection{Which strategy is the most accurate given varying amounts of false points?}
 %if __name__ == '__main__':
 %from numpy import std, average, sqrt
 %from sqlite3 import connect
@@ -647,7 +632,7 @@ responsive to increasing spikes.
 %print('Z Score of: {}'.format((m_2 - m_1) / sqrt( ((s_1 * s_1) / n_1) + ((s_2 * s_2) / n_2) )))
 In~\autoref{fig:falseNoise}, the plot on the right depicts the average accuracy of each injection given varying amounts
 of spikes.
-As the number of false stars is increased from $\omega \seq 0$ to $\omega \seq 12$, the strategies that experience
+As the number of false points is increased from $\omega \seq 0$ to $\omega \seq 12$, the strategies that experience
 the largest $h$ accuracy response are the Spherical Triangle strategy ($30.42\%$ average decrease) and the Planar
 Triangle strategy ($29.68\%$ average decrease).
 The average accuracy of the $r$ selection is a few percent less than the average accuracy of $h$ here
@@ -660,13 +645,13 @@ strategies.
 
 Ruling out the \Call{DMT}{} process, the most likely source of error for the triangle strategies is their decision of
 different $b$ sets.
-If a false star exists as $b_1$ in $b$, the triangle strategies will have to iterate through $n^2$ combinations and
-$n - 3$ pivots at most to choose another star that is not the spike.
-The Angle strategy only has to wait $n$ additional combinations at most if a false star exists in $b$.
+If a false point exists as $b_1$ in $b$, the triangle strategies will have to iterate through $n^2$ combinations and
+$n - 3$ pivots at most to choose another point that is not the spike.
+The Angle strategy only has to wait $n$ additional combinations at most if a false point exists in $b$.
 The Interior Angle strategy is able to get around the spike persistence problem by choosing $b$ sets based on their
-$\theta$ proximity to the central star $b_c$.
+$\theta$ proximity to the central point $b_c$.
 The Pyramid and Composite Pyramid strategies have their $b$ decision process designed for this situation, increasing the
-average turnover of all stars in the $b$ set.
+average turnover of all points in the $b$ set.
 
 The Pyramid strategy has the most accurate $h$ on average given images with all different $\omega$ at $99.84\!\pm\!3.53\%$.
 The second most accurate strategy is the Composite Pyramid strategy at $99.19\!\pm\!8.95\%$.
