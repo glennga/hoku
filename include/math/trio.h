@@ -67,13 +67,13 @@ class Trio {
     private:
 #endif
     /// Star one of the trio.
-    Vector3 b_1;
+    std::shared_ptr<Vector3> b_1;
     
     /// Star two of the trio.
-    Vector3 b_2;
+    std::shared_ptr<Vector3> b_2;
     
     /// Star three of the trio.
-    Vector3 b_3;
+    std::shared_ptr<Vector3> b_3;
 };
 
 #endif /* HOKU_TRIO_H */

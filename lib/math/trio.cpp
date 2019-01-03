@@ -19,18 +19,20 @@ const double Trio::DUPLICATE_STARS_IN_TRIO = 0;
 
 /// Private constructor. Sets the individual stars.
 ///
-/// @param b_1 Star B_1 of the trio.
-/// @param b_2 Star B_2 of the trio.
-/// @param b_3 Star B_3 of the trio.
+/// @param b_1 Pointer to star B_1 of the trio.
+/// @param b_2 Pointer to star B_2 of the trio.
+/// @param b_3 Pointer to star B_3 of the trio.
 Trio::Trio (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &b_3) {
-    this->b_1 = b_1, this->b_2 = b_2, this->b_3 = b_3;
+    this->b_1 = std::make_shared<Vector3>(b_1);
+    this->b_2 = std::make_shared<Vector3>(b_2);
+    this->b_3 = std::make_shared<Vector3>(b_3);
 }
 
 /// Compute the planar side lengths of the triangle.
 ///
 /// @return Side lengths in order a, b, c.
 Trio::side_lengths Trio::planar_lengths () const {
-    return {Vector3::Magnitude(b_1 - b_2), Vector3::Magnitude(b_2 - b_3), Vector3::Magnitude(b_3 - b_1)};
+    return {Vector3::Magnitude(*b_1 - *b_2), Vector3::Magnitude(*b_2 - *b_3), Vector3::Magnitude(*b_3 - *b_1)};
 }
 
 /// Compute the spherical side lengths of the triangle.
@@ -40,7 +42,7 @@ Trio::side_lengths Trio::spherical_lengths () const {
     static auto compute_length = [] (const Vector3 &beta_1, const Vector3 &beta_2) -> double {
         return acos(Vector3::Dot(beta_1, beta_2) / (Vector3::Magnitude(beta_1) * Vector3::Magnitude(beta_2)));
     };
-    return {compute_length(b_1, b_2), compute_length(b_2, b_3), compute_length(b_3, b_1)};
+    return {compute_length(*b_1, *b_2), compute_length(*b_2, *b_3), compute_length(*b_3, *b_1)};
 }
 
 /// Find the triangle's semi perimeter (perimeter * 0.5) given the side lengths.
@@ -114,8 +116,9 @@ double Trio::spherical_area (const Vector3 &b_1, const Vector3 &b_2, const Vecto
 ///
 /// @return Star with the components of {B_1, B_2, B_3} centroid.
 Vector3 Trio::planar_centroid () const {
-    return {(1 / 3.0) * (this->b_1.X + this->b_2.X + this->b_3.X),
-        (1 / 3.0) * (this->b_1.Y + this->b_2.Y + this->b_3.Y), (1 / 3.0) * (this->b_1.Z + this->b_2.Z + this->b_3.Z)};
+    return {(1 / 3.0) * (this->b_1->X + this->b_2->X + this->b_3->X),
+        (1 / 3.0) * (this->b_1->Y + this->b_2->Y + this->b_3->Y),
+        (1 / 3.0) * (this->b_1->Z + this->b_2->Z + this->b_3->Z)};
 }
 
 /// Cut the current triangle into one smaller triangle (by ~ 1/4). Determine which corner to keep with k. If k = 3,
@@ -157,14 +160,14 @@ Trio Trio::cut_triangle (const Vector3 &c_1, const Vector3 &c_2, const Vector3 &
 double Trio::recurse_spherical_moment (const Vector3 &c, const int td_n, const int td_i) {
     if (td_n == td_i) {
         double theta = Vector3::Angle(c, this->planar_centroid());
-        return spherical_area(this->b_1, this->b_2, this->b_3) * pow(theta, 2);
+        return spherical_area(*this->b_1, *this->b_2, *this->b_3) * pow(theta, 2);
     }
     else {
         // Divide the triangle into four equal parts. Recurse for each of these new triangles.
-        Trio t_1 = cut_triangle(this->b_1, this->b_2, this->b_3, 0);
-        Trio t_2 = cut_triangle(this->b_1, this->b_2, this->b_3, 1);
-        Trio t_3 = cut_triangle(this->b_1, this->b_2, this->b_3, 2);
-        Trio t_4 = cut_triangle(this->b_1, this->b_2, this->b_3, 3);
+        Trio t_1 = cut_triangle(*this->b_1, *this->b_2, *this->b_3, 0);
+        Trio t_2 = cut_triangle(*this->b_1, *this->b_2, *this->b_3, 1);
+        Trio t_3 = cut_triangle(*this->b_1, *this->b_2, *this->b_3, 2);
+        Trio t_4 = cut_triangle(*this->b_1, *this->b_2, *this->b_3, 3);
         
         return t_1.recurse_spherical_moment(c, td_n, td_i + 1) + t_2.recurse_spherical_moment(c, td_n, td_i + 1)
                + t_3.recurse_spherical_moment(c, td_n, td_i + 1) + t_4.recurse_spherical_moment(c, td_n, td_i + 1);

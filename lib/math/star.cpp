@@ -5,6 +5,8 @@
 
 #define _USE_MATH_DEFINES
 #include <iomanip>
+#include <math/star.h>
+
 
 #include "math/star.h"
 #include "math/random-draw.h"
@@ -41,7 +43,7 @@ Star::Star (const double i, const double j, const double k, const int label, con
 /// @param m Magnitude to attach to vector.
 /// @return A Star object with the components in V, and the given label and m.
 Star Star::wrap (Vector3 v, int label, double m) {
-    return Star(v.data[0], v.data[1], v.data[2], label, m);
+    return {v.data[0], v.data[1], v.data[2], label, m};
 }
 
 /// Place all components of S into the given stream.
@@ -75,6 +77,13 @@ int Star::get_label () const {
 /// @return Apparent magnitude of the current star.
 double Star::get_magnitude () const {
     return this->m;
+}
+
+/// Return the current star as a Vector3. To please Clang-Tidy. (:
+///
+/// @return The current star as a Vector3 object.
+Vector3 Star::get_vector() const {
+    return {this->data[0], this->data[1], this->data[2]};
 }
 
 /// Generate a random star with normalized components. Using C++11 random functions.
@@ -134,7 +143,7 @@ bool Star::within_angle (const list &s_l, const double theta) {
 /// @param label New label to attach to the star.
 /// @return Same star with the given label.
 Star Star::define_label (const Star &s, int label) {
-    return Star(s.data[0], s.data[1], s.data[2], label, s.m);
+    return {s.data[0], s.data[1], s.data[2], label, s.m};
 }
 
 /// Return the given star with a catalog ID of NO_LABEL.
