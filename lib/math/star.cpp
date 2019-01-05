@@ -4,6 +4,7 @@
 /// Source file for Star class, which represents three-dimensional star vectors.
 
 #define _USE_MATH_DEFINES
+
 #include <iomanip>
 #include <math/star.h>
 
@@ -82,7 +83,7 @@ double Star::get_magnitude () const {
 /// Return the current star as a Vector3. To please Clang-Tidy. (:
 ///
 /// @return The current star as a Vector3 object.
-Vector3 Star::get_vector() const {
+Vector3 Star::get_vector () const {
     return {this->data[0], this->data[1], this->data[2]};
 }
 
@@ -102,7 +103,7 @@ Star Star::chance () {
 Star Star::chance (const int label) {
     Star s = chance();
     s.label = label;
-    
+
     return s;
 }
 
@@ -126,14 +127,14 @@ bool Star::within_angle (const list &s_l, const double theta) {
     if (s_l.size() < 2) {
         return true;
     }
-    
+
     // Fancy for loop wrapping... (: All distinct combination pairs of s_l.
     for (unsigned int i = 0, j = 1; i < s_l.size() - 1; j = (j < s_l.size() - 1) ? j + 1 : 1 + ++i) {
         if (!within_angle(s_l[i], s_l[j], theta)) {
             return false;
         }
     }
-    
+
     return true;
 }
 

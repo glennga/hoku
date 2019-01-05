@@ -23,16 +23,18 @@
 /// @endcode
 namespace RandomDraw {
     int draw_integer (int floor, int ceiling);
+
     double draw_real (double floor, double ceiling);
+
     double draw_normal (double mu, double sigma);
-    
+
     namespace {
         /// Random device used to seed mersenne twister.
-        std::random_device seed;
+        std::random_device seed; // NOLINT(cert-err58-cpp)
     }
-    
+
     /// Mersenne twister used for all random distributions.
-    static std::mt19937_64 mersenne_twister (seed());
+    static std::mt19937_64 mersenne_twister(seed()); // NOLINT(cert-err58-cpp)
 }
 
 #endif /* HOKU_RANDOM_DRAW_H */

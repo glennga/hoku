@@ -4,6 +4,7 @@
 /// Source file for Trio class, which retrieves attributes based off of three Stars.
 
 #define _USE_MATH_DEFINES
+
 #include <cmath>
 
 #include "math/trio.h"
@@ -64,7 +65,7 @@ double Trio::semi_perimeter (const double a, const double b, const double c) {
 double Trio::planar_area (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &b_3) {
     side_lengths ell = Trio(b_1, b_2, b_3).planar_lengths();
     double s = semi_perimeter(ell[0], ell[1], ell[2]);
-    
+
     return sqrt(s * (s - ell[0]) * (s - ell[1]) * (s - ell[2]));
 }
 
@@ -91,22 +92,22 @@ double Trio::planar_moment (const Vector3 &b_1, const Vector3 &b_2, const Vector
 /// area of {B_1, B_2, B_3} otherwise.
 double Trio::spherical_area (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &b_3) {
     side_lengths ell = Trio(b_1, b_2, b_3).spherical_lengths();
-    
+
     // If any of the stars are positioned in the same spot, this is a line. There exists no area.
     if (b_1 == b_2 || b_2 == b_3 || b_3 == b_1) {
         return DUPLICATE_STARS_IN_TRIO;
     }
-    
+
     // Determine the inner component of the square root.
     double s = semi_perimeter(ell[0], ell[1], ell[2]);
     double f = tan(0.5 * s) * tan(0.5 * (s - ell[0]));
     f *= tan(0.5 * (s - ell[1])) * tan(0.5 * (s - ell[2]));
-    
+
     // F should a positive number. If this is not the case, then we don't proceed.
     if (f < 0 || std::isnan(f)) {
         return INVALID_TRIO_A;
     }
-    
+
     // Find and return the excess.
     return 4.0 * atan(sqrt(f));
 }
@@ -117,8 +118,8 @@ double Trio::spherical_area (const Vector3 &b_1, const Vector3 &b_2, const Vecto
 /// @return Star with the components of {B_1, B_2, B_3} centroid.
 Vector3 Trio::planar_centroid () const {
     return {(1 / 3.0) * (this->b_1->X + this->b_2->X + this->b_3->X),
-        (1 / 3.0) * (this->b_1->Y + this->b_2->Y + this->b_3->Y),
-        (1 / 3.0) * (this->b_1->Z + this->b_2->Z + this->b_3->Z)};
+            (1 / 3.0) * (this->b_1->Y + this->b_2->Y + this->b_3->Y),
+            (1 / 3.0) * (this->b_1->Z + this->b_2->Z + this->b_3->Z)};
 }
 
 /// Cut the current triangle into one smaller triangle (by ~ 1/4). Determine which corner to keep with k. If k = 3,
@@ -133,18 +134,23 @@ Trio Trio::cut_triangle (const Vector3 &c_1, const Vector3 &c_2, const Vector3 &
     static auto midpoint = [] (const Vector3 &s_i, const Vector3 &s_j) -> Vector3 {
         return Vector3::Normalized(Vector3::Slerp(s_i, s_j, 0.5));
     };
-    
+
     switch (k) {
         // Case 1: Keep c_1. Cut c_1 - c_2 and c_1 - c_3.
-        case 0: return {c_1, midpoint(c_1, c_2), midpoint(c_1, c_3)};
+        case 0:
+            return {c_1, midpoint(c_1, c_2), midpoint(c_1, c_3)};
             // Case 2: Keep c_2. Cut c_1 - c_2 and c_2 - c_3.
-        case 1: return {midpoint(c_1, c_2), c_2, midpoint(c_2, c_3)};
+        case 1:
+            return {midpoint(c_1, c_2), c_2, midpoint(c_2, c_3)};
             // Case 3: Keep c_3. Cut c_1 - c_3 and c_2 - c_3.
-        case 2: return {midpoint(c_1, c_3), midpoint(c_2, c_3), c_3};
+        case 2:
+            return {midpoint(c_1, c_3), midpoint(c_2, c_3), c_3};
             // Case 4: Keep no corners. Determine the middle triangle.
-        case 3: return {midpoint(c_1, c_2), midpoint(c_1, c_3), midpoint(c_2, c_3)};
+        case 3:
+            return {midpoint(c_1, c_2), midpoint(c_1, c_3), midpoint(c_2, c_3)};
             // Return the original trio if k is invalid.
-        default: return {c_1, c_2, c_3};
+        default:
+            return {c_1, c_2, c_3};
     }
 }
 
@@ -168,7 +174,7 @@ double Trio::recurse_spherical_moment (const Vector3 &c, const int td_n, const i
         Trio t_2 = cut_triangle(*this->b_1, *this->b_2, *this->b_3, 1);
         Trio t_3 = cut_triangle(*this->b_1, *this->b_2, *this->b_3, 2);
         Trio t_4 = cut_triangle(*this->b_1, *this->b_2, *this->b_3, 3);
-        
+
         return t_1.recurse_spherical_moment(c, td_n, td_i + 1) + t_2.recurse_spherical_moment(c, td_n, td_i + 1)
                + t_3.recurse_spherical_moment(c, td_n, td_i + 1) + t_4.recurse_spherical_moment(c, td_n, td_i + 1);
     }
@@ -184,10 +190,10 @@ double Trio::recurse_spherical_moment (const Vector3 &c, const int td_n, const i
 /// @return INVALID_TRIO_M if the result is NaN or < 0. The spherical polar moment of {B_1, B_2, B_3}.
 double Trio::spherical_moment (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &b_3, const int td_h) {
     Trio t(b_1, b_2, b_3);
-    
+
     // We star at the root, where the current tree depth td_i = 0.
     double t_i = t.recurse_spherical_moment(t.planar_centroid(), td_h, 0);
-    
+
     // Don't return NaN or negative values.
     return (std::isnan(t_i) || t_i < 0) ? INVALID_TRIO_M : t_i;
 }
