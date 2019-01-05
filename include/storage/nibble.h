@@ -42,47 +42,55 @@
 /// }
 /// @endcode
 class Nibble {
-  public:
+public:
     /// Alias for a SQL row of results or input, provided the results are floating numbers.
     using tuple_d = std::vector<double>;
-    
+
     /// Alias for a set of results (tuples), provided the results are floating numbers.
     using tuples_d = std::vector<tuple_d>;
-    
+
     /// Alias for a SQL row of input, provided the results are integers.
     using tuple_i = std::vector<int>;
-    
+
     /// Open and unique database connection object. This must be public to work with SQLiteCpp library.
     std::unique_ptr<SQLite::Database> conn;
-    
-  public:
+
+public:
     Nibble ();
+
     explicit Nibble (const std::string &table_name, const std::string &focus = "");
-    
+
     tuples_d search_table (const std::string &fields, unsigned int expected, int = NO_LIMIT);
+
     tuples_d search_table (const std::string &fields, const std::string &constraint, unsigned int expected,
                            int limit = NO_LIMIT);
-    
+
     double search_single (const std::string &fields, const std::string &constraint = "");
-    
-    void select_table (const std::string &table, bool check_existence = false);
+
+    void select_table (const std::string &table);
+
+    bool does_table_exist (const std::string &table);
+
     int create_table (const std::string &table, const std::string &schema);
-    
+
     int find_attributes (std::string &schema, std::string &fields);
+
     int sort_table (const std::string &focus);
+
     int polish_table (const std::string &focus);
 
     static const int TABLE_NOT_CREATED;
     static const double NO_RESULT_FOUND;
     static const int NO_LIMIT;
-  public:
+
+public:
     /// Using the currently selected table, insert the set of values in order of the fields given.
     ///
     /// @tparam T Type of input vector. Should be tuple_i or tuple_d.
     /// @param fields The fields corresponding to vector of in_values.
     /// @param in_values Vector of values to insert to table.
     /// @return 0 when finished.
-    template <typename T>
+    template<typename T>
     int insert_into_table (const std::string &fields, const T &in_values) {
         // Create bind statement with necessary amount of '?'.
         std::string sql = "INSERT INTO " + table + " (" + fields + ") VALUES (";
@@ -90,26 +98,18 @@ class Nibble {
             sql.append("?, ");
         }
         sql.append("?)");
-        
+
         // Bind all the fields to the in values.
         SQLite::Statement query(*conn, sql);
         for (unsigned int i = 0; i < in_values.size(); i++) {
             query.bind(i + 1, in_values[i]);
         }
         query.exec();
-        
+
         return 0;
     }
 
-#if !defined ENABLE_TESTING_ACCESS
-  protected:
-#endif
-    static const std::string PROJECT_LOCATION;
-    static const std::string DATABASE_LOCATION;
-
-#if !defined ENABLE_TESTING_ACCESS
-  protected:
-#endif
+protected:
     /// Current table being operated on.
     std::string table;
 };

@@ -10,6 +10,7 @@
 #include <iomanip>
 #include <iostream>
 #include <iterator>
+#include <sstream>
 
 #include "storage/chomp.h"
 
@@ -24,9 +25,6 @@ const int Chomp::TABLE_EXISTS = -1;
 
 /// Standard machine epsilon for doubles. This represents the smallest possible change in precision.
 const double Chomp::DOUBLE_EPSILON = std::numeric_limits<double>::epsilon();
-
-/// Returned from query method if the specified star does not exist.
-const Star Chomp::NONEXISTENT_STAR = Star::wrap(Vector3::Zero());
 
 /// Returned from bound query methods if the stars do not exist.
 const Nibble::tuples_d Chomp::RESULTANT_EMPTY = {};
@@ -105,7 +103,7 @@ std::array<double, 7> Chomp::components_from_line (const std::string &entry, con
 /// @return Difference in years from J1991.25 and the month & year specified in CONFIG.ini.
 double Chomp::year_difference (INIReader &cf) {
     std::string time_e = cf.Get("hardware", "time", "");
-    if (time_e == "") {
+    if (time_e.empty()) {
         throw std::runtime_error(std::string("'time' in 'CONFIG.ini' is not formatted correctly."));
     }
     
@@ -131,7 +129,7 @@ double Chomp::year_difference (INIReader &cf) {
 /// @param m_flag If true, generate restrict the magnitude of each entry and insert only bright stars.
 /// @return TABLE_EXISTS if the bright stars table already exists. 0 otherwise.
 int Chomp::generate_table (INIReader &cf, bool m_flag) {
-    std::ifstream catalog(PROJECT_LOCATION + "/data/hip2.dat");
+    std::ifstream catalog(std::string(std::getenv("HOKU_PROJECT_PATH")) + "/data/hip2.dat");
     if (!catalog.is_open()) {
         throw std::runtime_error(std::string("Catalog file cannot be opened."));
     }
@@ -164,18 +162,19 @@ int Chomp::generate_table (INIReader &cf, bool m_flag) {
     return polish_table("label");
 }
 
-/// Search the Hipparcos catalog in memory (all_hip_stars) for a star with the matching catalog ID.
+/// Search the Hipparcos catalog in memory (all_hip_stars) for a star with the matching catalog ID. If the star does
+/// not exist, than an exception is thrown. This is meant to discourage the use of guessing stars through labels.
 ///
 /// @param label Catalog ID of the star to return.
-/// @return NONEXISTENT_STAR if the star does not exist. Star with the components of the matching catalog ID entry
-/// otherwise.
+/// @return Star with the components of the matching catalog ID entry.
 Star Chomp::query_hip (int label) {
     for (const Star &s : all_hip_stars) {
         if (s.get_label() == label) {
             return s;
         }
     }
-    return NONEXISTENT_STAR;
+
+    throw std::runtime_error("Star does exist with the label: " + std::to_string(label) + ".");
 }
 
 /// Accessor for all_bright_stars list.

@@ -41,55 +41,61 @@
 /// Star::list b = ch.nearby_bright_stars(nb.query_hip(4), 15, 20);
 /// @endcode
 class Chomp : public Nibble {
-  public:
+public:
     using Nibble::tuples_d;
-    
+
     Chomp ();
+
     Chomp (const std::string &table_name, const std::string &focus);
-    
+
     int generate_table (INIReader &cf, bool m_flag = true);
-    
+
     int create_k_vector (const std::string &focus);
+
     tuples_d k_vector_query (const std::string &focus, const std::string &fields, double y_a, double y_b,
                              unsigned int expected);
+
     tuples_d simple_bound_query (const std::vector<std::string> &foci, const std::string &fields,
                                  const std::vector<double> &y_a, const std::vector<double> &y_b, unsigned int limit);
-    
+
     Star::list nearby_bright_stars (const Vector3 &focus, double fov, unsigned int expected);
+
     Star::list nearby_hip_stars (const Vector3 &focus, double fov, unsigned int expected);
-    
+
     Star::list bright_as_list ();
+
     Star query_hip (int label);
-    
-    static const Star NONEXISTENT_STAR;
+
     static const tuples_d RESULTANT_EMPTY;
     static const unsigned int BRIGHT_TABLE_LENGTH;
     static const unsigned int HIP_TABLE_LENGTH;
     static const int TABLE_EXISTS;
 
 #if !defined ENABLE_TESTING_ACCESS
-    private:
+private:
 #endif
     /// All stars in the HIP_BRIGHT table, from the 'load_all_stars' method.
     Star::list all_bright_stars;
-    
+
     /// All stars in the HIP table, from the 'load_all_stars' method.
     Star::list all_hip_stars;
-    
+
     /// String of the Nibble table name holding all of the bright stars in the Hipparcos.
     std::string bright_table;
-    
+
     /// String of the Nibble table name holding all of the stars in the Hipparcos.
     std::string hip_table;
 #if !defined ENABLE_TESTING_ACCESS
-    private:
+private:
 #endif
     static const double DOUBLE_EPSILON;
-    
+
     int build_k_vector_table (const std::string &focus_column, double m, double q);
+
     void load_all_stars ();
-    
+
     static std::array<double, 7> components_from_line (const std::string &entry, double y_t);
+
     static double year_difference (INIReader &cf);
 };
 
