@@ -70,11 +70,6 @@ class Benchmark {
 #endif
     Star::list clean_stars () const;
     void shuffle ();
-    
-    static const std::string PROJECT_LOCATION;
-    static const std::string CURRENT_TMP;
-    static const std::string ERROR_TMP;
-    static const std::string PLOT_SCRIPT;
 
 #if !defined ENABLE_TESTING_ACCESS
     private:
