@@ -30,7 +30,6 @@ Usage: python3 draw_image.py [arg1] [arg2] [arg3] ...
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib
-import tempfile
 import numpy as np
 import os
 import sys
@@ -98,7 +97,7 @@ def parse_files():
     focus, stars, errors = [], [], []
 
     # Parse the plot file.
-    with open(tempfile.gettempdir() + '/cuplt.tmp') as current_plot:
+    with open('/tmp/cuplt.tmp') as current_plot:
         # Record the focus vector.
         for component in current_plot.readline().split():
             focus.append(float(component))
@@ -112,7 +111,7 @@ def parse_files():
 
     # If desired, parse the error file.
     if err_flag:
-        with open(tempfile.gettempdir() + '/errplt.tmp') as error_plot:
+        with open('/tmp/errplt.tmp') as error_plot:
             for line in error_plot:
                 error = []
 

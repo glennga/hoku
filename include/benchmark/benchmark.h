@@ -78,7 +78,7 @@ class Benchmark {
     using model_list = std::vector<ErrorModel>;
     
     /// Current list of stars in image. All stars must be near the focus.
-    Star::list b;
+    std::shared_ptr<Star::list> b;
     
     /// The focal point of the star list. Does not necessarily have to be a BSC5 star itself.
     Vector3 center;

@@ -48,7 +48,7 @@ Benchmark::Benchmark (Chomp &ch, const Vector3 &center, const Rotation &q, const
 /// @param center Focus star of the given star set.
 /// @param fov Field of view (degrees) associated with the given star set.
 Benchmark::Benchmark (const Star::list &s, const Vector3 &center, const double fov) {
-    this->fov = fov, this->b = s, this->center = center;
+    this->fov = fov, this->b = std::make_shared<Star::list>(s), this->center = center;
 }
 
 /// Dummy image. Holds no image or field of view.
@@ -63,12 +63,12 @@ const Benchmark Benchmark::black () {
 /// @param n Star of b to return.
 /// @return Star located at index n inside B.
 Star Benchmark::operator[] (const unsigned int n) const {
-    return this->b[n];
+    return (*this->b)[n];
 }
 
 /// Shuffle the current star set. Uses C++11 random library.
 void Benchmark::shuffle () {
-    std::shuffle(this->b.begin(), this->b.end(), RandomDraw::mersenne_twister);
+    std::shuffle(this->b->begin(), this->b->end(), RandomDraw::mersenne_twister);
 }
 
 /// Obtain a set of stars around the current focus vector. This is the 'clean' star set, meaning that all stars in
@@ -78,12 +78,13 @@ void Benchmark::shuffle () {
 void Benchmark::generate_stars (Chomp &ch, const double m_bar) {
     // Expected number of stars = fov * 8. Not too concerned with accuracy here.
     auto expected = static_cast<unsigned int>(this->fov * 4);
+    this->b = std::make_shared<Star::list>();
 
     // Find nearby stars. Rotate these stars and the center.
     Star::list s_l = ch.nearby_hip_stars(this->center, this->fov / 2.0, expected);
     std::for_each(s_l.begin(), s_l.end(), [this, &m_bar] (const Star &s) -> void {
         if (s.get_magnitude() <= m_bar) {
-            this->b.push_back(Rotation::rotate(s, this->q_rb));
+            this->b->push_back(Rotation::rotate(s, this->q_rb));
         }
     });
     this->center = Rotation::rotate(Star::wrap(this->center), this->q_rb).get_vector();
@@ -100,7 +101,7 @@ void Benchmark::generate_stars (Chomp &ch, const double m_bar) {
 /// @return Copy of current star set with catalog IDs set to Star::NO_LABEL.
 Star::list Benchmark::clean_stars () const {
     // Keep the current star set intact.
-    Star::list clean = this->b;
+    Star::list clean = (*this->b);
 
     std::transform(clean.begin(), clean.end(), clean.begin(), Star::reset_label);
     return clean;
@@ -118,8 +119,8 @@ void Benchmark::present_image (Star::list &image_s, double &image_fov) const {
 
 /// Write the current data in the star set to two files. This includes the fov, focus, star set, and the error set.
 void Benchmark::record_current_plot () {
-    std::ofstream current(std::string(std::getenv("TEMP")) + "/cuplt.tmp");
-    std::ofstream error(std::string(std::getenv("TEMP")) + "/errplt.tmp");
+    std::ofstream current("/tmp/cuplt.tmp");
+    std::ofstream error("/tmp/errplt.tmp");
     std::ostringstream current_record, error_record;
 
     // Do not record if files are unable to open.
@@ -132,7 +133,7 @@ void Benchmark::record_current_plot () {
     current_record << this->center.data[0] << " " << this->center.data[1] << " " << this->center.data[2] << "\n";
 
     // Record the stars.
-    std::for_each(this->b.begin(), this->b.end(), [&current_record] (const Star &s) -> void {
+    std::for_each(this->b->begin(), this->b->end(), [&current_record] (const Star &s) -> void {
         current_record << s[0] << " " << s[1] << " " << s[2] << " " << s.get_label() << "\n";
     });
     current << current_record.str();
@@ -160,7 +161,7 @@ void Benchmark::display_plot () {
             " q=on fov=" + std::to_string(this->fov);
 
     std::string cmd = "python3 " + std::string(std::getenv("HOKU_PROJECT_PATH")) +
-                      "/script/python/draw_image.py\"" + params;
+                      "/script/python/draw_image.py " + params;
 
     // Record the current instance, and let Python work its magic!
     this->record_current_plot();
@@ -181,7 +182,7 @@ void Benchmark::add_extra_light (const unsigned int n, bool shuffle) {
     while (current_n < n) {
         Star generated = Star::chance(-current_n - 1);
         if (Star::within_angle(generated, this->center, this->fov / 2.0)) {
-            this->b.emplace_back(generated);
+            this->b->emplace_back(generated);
             extra_light.affected.emplace_back(generated);
             current_n++;
         }
@@ -219,16 +220,21 @@ void Benchmark::remove_light (const unsigned int n, const double psi, const bool
         }
 
         // Second, check if any of the stars fall within psi / 2 of a dark spot.
-        for (unsigned int i = 0; i < blobs.size(); i++) {
-            for (const Star &s : this->b) {
-                if (Star::within_angle(blobs[i], s, psi / 2.0)) {
-                    this->b.erase(this->b.begin() + i);
-                    removed_light.affected.emplace_back(s);
+        for (const Star &blob : blobs) {
+            auto s = this->b->begin();
+
+            while (s != this->b->end()) {
+                if (Star::within_angle(blob, *s, psi / 2.0)) {
+                    removed_light.affected.emplace_back(*s);
+                    s = this->b->erase(s);
+                }
+                else {
+                    ++s;
                 }
             }
         }
 
-        // Only when we have some stars affected, we exit out of this loop.
+        // Only when we have some stars affected, we exit out of this loop. We always expect to remove some stars.
         is_affected = !removed_light.affected.empty();
     }
 
@@ -252,16 +258,16 @@ void Benchmark::shift_light (const unsigned int n, const double sigma, bool shuf
     ErrorModel shifted_light = {"Shifted Light", "g", {Star::wrap(Vector3::Zero())}};
     unsigned int current_n = 0;
 
-    for (unsigned int i = 0; i < this->b.size() && current_n < n; i++) {
+    for (unsigned int i = 0; i < this->b->size() && current_n < n; i++) {
         Star candidate;
 
         // Ensure that the shifted star does not veer out of focus.
         do {
-            candidate = Rotation::shake(this->b.at(i), sigma);
+            candidate = Rotation::shake(this->b->at(i), sigma);
         } while (!Star::within_angle(candidate, this->center, this->fov / 2.0));
 
         // Modify our star set.
-        this->b.at(i) = candidate, current_n++;
+        this->b->at(i) = candidate, current_n++;
         shifted_light.affected.emplace_back(candidate);
     }
 
@@ -283,7 +289,7 @@ void Benchmark::barrel_light (double alpha) {
     // TODO: Finish this method. Need to visually check output.
     ErrorModel barreled_light = {"Barreled Light", "y", {}};
 
-    std::transform(this->b.begin(), this->b.end(), this->b.begin(), [this, alpha] (const Star &s) -> Star {
+    std::transform(this->b->begin(), this->b->end(), this->b->begin(), [this, alpha] (const Star &s) -> Star {
         // Determine the distance our current star must be from the center.
         double u = (180.0 / M_PI) * Star::Angle(s.get_vector(), this->center);
         double d = u * (1 - alpha * u * u);
