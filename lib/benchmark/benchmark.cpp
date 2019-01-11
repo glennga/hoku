@@ -110,11 +110,11 @@ Star::list Benchmark::clean_stars () const {
 /// Modify the given image_s and image_fov to the current stars and fov fields. These are all points that define an
 /// image, and are required for all identification methods.
 ///
-/// @param image_s Reference to the star list to benchmark star set.
+/// @param image_s Reference to the pointer that will hold the star list to benchmark star set.
 /// @param image_fov Reference to the double to set as the fov.
-void Benchmark::present_image (Star::list &image_s, double &image_fov) const {
+void Benchmark::present_image (std::shared_ptr<Star::list> &image_s, double &image_fov) const {
     image_fov = this->fov;
-    image_s = clean_stars();
+    image_s = std::make_shared<Star::list>(clean_stars());
 }
 
 /// Write the current data in the star set to two files. This includes the fov, focus, star set, and the error set.

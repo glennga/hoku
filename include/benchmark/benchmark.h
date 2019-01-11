@@ -55,7 +55,7 @@ class Benchmark {
     Star operator[] (unsigned int n) const;
     
     void generate_stars (Chomp &ch, double m_bar = DEFAULT_M_BAR);
-    void present_image (Star::list &image_s, double &image_fov) const;
+    void present_image (std::shared_ptr<Star::list> &image_s, double &image_fov) const;
     
     void record_current_plot ();
     void display_plot ();

@@ -92,13 +92,13 @@ TEST(Benchmark, ImageLabelClear) { // NOLINT(cert-err58-cpp,modernize-use-equals
 TEST(Benchmark, ImagePresentation) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
     Chomp ch;
     Benchmark input(ch, 15);
-    Star::list s;
+    std::shared_ptr<Star::list> s;
     double fov;
 
     input.present_image(s, fov);
     EXPECT_EQ(fov, input.fov);
-    EXPECT_EQ(s.size(), input.b->size());
-    for (const Star &s_i : s) {
+    EXPECT_EQ(s->size(), input.b->size());
+    for (const Star &s_i : *s) {
         EXPECT_EQ(s_i.get_label(), Star::NO_LABEL);
     }
 }
