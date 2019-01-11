@@ -8,8 +8,10 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
+
 #include "third-party/gmath/Matrix3x3.hpp"
 #include "third-party/gmath/Quaternion.hpp"
+
 #pragma GCC diagnostic pop
 
 #include "math/star.h"
@@ -37,25 +39,31 @@
 /// std::cout << Rotation::rotate(a, e) << " : " Rotation::rotate(a, f) << std::endl;
 /// @endcode
 class Rotation : public Quaternion {
-  public:
+public:
     Rotation (double w, double i, double j, double k);
+
     static Rotation wrap (const Quaternion &q);
-    
+
     /// Alias for a function that solves Wahba's problem (e.g. TRIAD, SVD, etc...).
     using wahba_function = Rotation (*) (const Star::list &, const Star::list &);
-  
-  public:
+
+public:
     friend std::ostream &operator<< (std::ostream &os, const Rotation &q);
-    
+
     static Star rotate (const Star &s, const Rotation &q);
+
     static Star slerp (const Star &s, const Vector3 &f, double t);
+
     static Star shake (const Star &s, double sigma);
-    
+
     static Rotation identity ();
+
     static Rotation chance ();
-    
+
     static Rotation triad (const Star::list &v, const Star::list &w);
+
     static Rotation svd (const Star::list &v, const Star::list &w);
+
     static Rotation q_method (const Star::list &v, const Star::list &w);
 };
 

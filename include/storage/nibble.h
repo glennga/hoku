@@ -55,6 +55,12 @@ public:
     /// Open and unique database connection object. This must be public to work with SQLiteCpp library.
     std::unique_ptr<SQLite::Database> conn;
 
+    // For the single value search with potential errors, we define an "either" struct.
+    struct either {
+        double result; // Result associated with the computation.
+        int error; // Error associated with the computation.
+    };
+
 public:
     Nibble ();
 
@@ -65,7 +71,7 @@ public:
     tuples_d search_table (const std::string &fields, const std::string &constraint, unsigned int expected,
                            int limit = NO_LIMIT);
 
-    double search_single (const std::string &fields, const std::string &constraint = "");
+    either search_single (const std::string &fields, const std::string &constraint = "");
 
     void select_table (const std::string &table);
 
@@ -80,8 +86,8 @@ public:
     int polish_table (const std::string &focus);
 
     static const int TABLE_NOT_CREATED;
-    static const double NO_RESULT_FOUND;
     static const int NO_LIMIT;
+    static const int NO_RESULT_FOUND_EITHER;
 
 public:
     /// Using the currently selected table, insert the set of values in order of the fields given.

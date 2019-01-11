@@ -75,14 +75,19 @@ TEST(Trio, SphericalAreaComputation) { // NOLINT(cert-err58-cpp,modernize-use-eq
     double epsilon = 0.00000000001;
     for (int i = 0; i < 30; i++) {
         std::array<Star, 3> t = {Star::chance(), Star::chance(), Star::chance()};
-        EXPECT_NEAR(Trio::spherical_area(t[0], t[1], t[2]), Trio::spherical_area(t[1], t[2], t[0]), epsilon);
-        EXPECT_NEAR(Trio::spherical_area(t[0], t[1], t[2]), Trio::spherical_area(t[2], t[1], t[0]), epsilon);
-        EXPECT_NEAR(Trio::spherical_area(t[0], t[1], t[2]), Trio::spherical_area(t[1], t[0], t[2]), epsilon);
-        EXPECT_NEAR(Trio::spherical_area(t[0], t[1], t[2]), Trio::spherical_area(t[2], t[0], t[1]), epsilon);
-        EXPECT_FALSE(std::isnan(Trio::spherical_area(t[0], t[1], t[2])));
+        EXPECT_NEAR(Trio::spherical_area(t[0], t[1], t[2]).result,
+                    Trio::spherical_area(t[1], t[2], t[0]).result, epsilon);
+        EXPECT_NEAR(Trio::spherical_area(t[0], t[1], t[2]).result,
+                    Trio::spherical_area(t[2], t[1], t[0]).result, epsilon);
+        EXPECT_NEAR(Trio::spherical_area(t[0], t[1], t[2]).result,
+                    Trio::spherical_area(t[1], t[0], t[2]).result, epsilon);
+        EXPECT_NEAR(Trio::spherical_area(t[0], t[1], t[2]).result,
+                    Trio::spherical_area(t[2], t[0], t[1]).result, epsilon);
+        EXPECT_FALSE(std::isnan(Trio::spherical_area(t[0], t[1], t[2]).result));
     }
 
-    EXPECT_DOUBLE_EQ(Trio::spherical_area(Star(1, 1, 1), Star(1, 1, 1), Star(2, 2, 2)), Trio::DUPLICATE_STARS_IN_TRIO);
+    EXPECT_EQ(Trio::spherical_area(Star(1, 1, 1), Star(1, 1, 1), Star(2, 2, 2)).error, 0);
+    EXPECT_DOUBLE_EQ(Trio::spherical_area(Star(1, 1, 1), Star(1, 1, 1), Star(2, 2, 2)).result, 0);
 }
 
 /// Check the planar_centroid method. Answers checked with WolframAlpha.
@@ -127,14 +132,18 @@ TEST(Trio, SphericalMomentComputation) { // NOLINT(cert-err58-cpp,modernize-use-
     for (int i = 0; i < 10; i++) {
         std::array<Star, 3> t = {Star::chance(), Star::chance(), Star::chance()};
 
-        EXPECT_NEAR(Trio::spherical_moment(t[0], t[1], t[2]), Trio::spherical_moment(t[1], t[2], t[0]), epsilon);
-        EXPECT_NEAR(Trio::spherical_moment(t[0], t[1], t[2]), Trio::spherical_moment(t[2], t[1], t[0]), epsilon);
-        EXPECT_NEAR(Trio::spherical_moment(t[0], t[1], t[2]), Trio::spherical_moment(t[1], t[0], t[2]), epsilon);
-        EXPECT_NEAR(Trio::spherical_moment(t[0], t[1], t[2]), Trio::spherical_moment(t[2], t[0], t[1]), epsilon);
+        EXPECT_NEAR(Trio::spherical_moment(t[0], t[1], t[2]).result,
+                    Trio::spherical_moment(t[1], t[2], t[0]).result, epsilon);
+        EXPECT_NEAR(Trio::spherical_moment(t[0], t[1], t[2]).result,
+                    Trio::spherical_moment(t[2], t[1], t[0]).result, epsilon);
+        EXPECT_NEAR(Trio::spherical_moment(t[0], t[1], t[2]).result,
+                    Trio::spherical_moment(t[1], t[0], t[2]).result, epsilon);
+        EXPECT_NEAR(Trio::spherical_moment(t[0], t[1], t[2]).result,
+                    Trio::spherical_moment(t[2], t[0], t[1]).result, epsilon);
     }
 
-    EXPECT_DOUBLE_EQ(Trio::spherical_moment(Star(1, 1, 1), Star(1, 1, 1), Star(2, 2, 2)),
-                     Trio::DUPLICATE_STARS_IN_TRIO);
+    EXPECT_EQ(Trio::spherical_moment(Star(1, 1, 1), Star(1, 1, 1), Star(2, 2, 2)).error, 0);
+    EXPECT_DOUBLE_EQ(Trio::spherical_moment(Star(1, 1, 1), Star(1, 1, 1), Star(2, 2, 2)).result, 0);
 }
 
 /// This is not a test. We just want to see the effect of shifting stars on the planar area and moment.
@@ -160,10 +169,10 @@ TEST(Trio, SphericalTriangleShifts) { // NOLINT(cert-err58-cpp,modernize-use-equ
         std::array<Star, 3> t_shaken = {Rotation::shake(t_original[0], 0.001), Rotation::shake(t_original[1], 0.001),
                                         Rotation::shake(t_original[2], 0.001)};
 
-        double a_original = Trio::spherical_area(t_original[0], t_original[1], t_original[2]);
-        double i_original = Trio::spherical_moment(t_original[0], t_original[1], t_original[2]);
-        double a_shaken = Trio::spherical_area(t_shaken[0], t_shaken[1], t_shaken[2]);
-        double i_shaken = Trio::spherical_moment(t_shaken[0], t_shaken[1], t_shaken[2]);
+        double a_original = Trio::spherical_area(t_original[0], t_original[1], t_original[2]).result;
+        double i_original = Trio::spherical_moment(t_original[0], t_original[1], t_original[2]).result;
+        double a_shaken = Trio::spherical_area(t_shaken[0], t_shaken[1], t_shaken[2]).result;
+        double i_shaken = Trio::spherical_moment(t_shaken[0], t_shaken[1], t_shaken[2]).result;
         RecordProperty("ShiftArea", std::to_string(fabs(a_original - a_shaken)));
         RecordProperty("ShiftMoment", std::to_string(fabs(i_original - i_shaken)));
     }

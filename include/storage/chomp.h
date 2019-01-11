@@ -44,6 +44,12 @@ class Chomp : public Nibble {
 public:
     using Nibble::tuples_d;
 
+    // For the single value search with potential errors, we define an "either" struct.
+    struct either_single {
+        double result; // Result associated with the computation.
+        int error; // Error associated with the computation.
+    };
+
     Chomp ();
 
     Chomp (const std::string &table_name, const std::string &focus);
@@ -66,13 +72,12 @@ public:
 
     Star query_hip (int label);
 
-    static const tuples_d RESULTANT_EMPTY;
     static const unsigned int BRIGHT_TABLE_LENGTH;
     static const unsigned int HIP_TABLE_LENGTH;
     static const int TABLE_EXISTS;
 
 #if !defined ENABLE_TESTING_ACCESS
-private:
+    private:
 #endif
     /// All stars in the HIP_BRIGHT table, from the 'load_all_stars' method.
     Star::list all_bright_stars;
@@ -86,7 +91,7 @@ private:
     /// String of the Nibble table name holding all of the stars in the Hipparcos.
     std::string hip_table;
 #if !defined ENABLE_TESTING_ACCESS
-private:
+    private:
 #endif
     static const double DOUBLE_EPSILON;
 

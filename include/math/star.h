@@ -78,12 +78,11 @@ public:
 
     static Star reset_label (const Star &s);
 
-    static const double INVALID_ELEMENT_ACCESSED;
     static const double NO_MAGNITUDE;
     static const int NO_LABEL;
 
 #if !defined ENABLE_TESTING_ACCESS
-private:
+    private:
 #endif
     /// Catalog specific ID for the given star.
     int label;

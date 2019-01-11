@@ -34,8 +34,6 @@ TEST(Star, OperatorGet) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
     EXPECT_DOUBLE_EQ(a[1], a.data[1]);
     EXPECT_DOUBLE_EQ(a[2], a.data[2]);
     EXPECT_EQ(a.get_label(), a.label);
-
-    EXPECT_DOUBLE_EQ(a[3], Star::INVALID_ELEMENT_ACCESSED);
 }
 
 /// Check that the get label method returns the correct label.

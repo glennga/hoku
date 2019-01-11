@@ -12,9 +12,6 @@
 #include "math/star.h"
 #include "math/random-draw.h"
 
-/// Returned when a user attempts to access an item using the [] operator for n > 1.
-const double Star::INVALID_ELEMENT_ACCESSED = 0;
-
 /// The default label of all stars.
 const int Star::NO_LABEL = 0;
 
@@ -61,9 +58,9 @@ std::ostream &operator<< (std::ostream &os, const Star &s) {
 /// Access method for the i, j, and k components of the star. Overloads the [] operator.
 ///
 /// @param n Index of {i, j, k} to return.
-/// @return INVALID_ELEMENT_ACCESSED if n > 2. Otherwise component at index n of {i, j, k}.
+/// @return The component at index n of {i, j, k}.
 double Star::operator[] (const unsigned int n) const {
-    return n > 2 ? INVALID_ELEMENT_ACCESSED : data[n];
+    return data[n];
 }
 
 /// Accessor method for catalog (Hipparcos) ID of the star.

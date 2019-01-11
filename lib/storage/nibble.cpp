@@ -9,11 +9,11 @@
 /// Returned when a table creation is not successful.
 const int Nibble::TABLE_NOT_CREATED = -1;
 
-/// Returned when the result of a search returns no tuples.
-const double Nibble::NO_RESULT_FOUND = 0;
-
 /// Used when a limit constraint should not be specified.
 const int Nibble::NO_LIMIT = -1;
+
+/// Returned when the result of a search returns no tuples.
+const int Nibble::NO_RESULT_FOUND_EITHER = 0;
 
 /// Constructor. This dynamically allocates a database connection object to nibble.db. If the database does not exist,
 /// it is created.
@@ -155,15 +155,15 @@ Nibble::tuples_d Nibble::search_table (const std::string &fields, const unsigned
 /// @param constraint The SQL string to be used with the WHERE clause.
 /// @return If there exists nothing returned from query, return NO_RESULT_FOUND. Otherwise,the first result returned
 /// from query.
-double Nibble::search_single (const std::string &fields, const std::string &constraint) {
+Nibble::either Nibble::search_single (const std::string &fields, const std::string &constraint) {
     std::string sql = "SELECT " + fields + " FROM " + table + (constraint.empty() ? "" : " WHERE " + constraint);
 
     SQLite::Statement query(*conn, sql);
     while (query.executeStep()) {
         // This should only execute once.
-        return query.getColumn(0).getDouble();
+        return either {query.getColumn(0).getDouble(), 0};
     }
-    return NO_RESULT_FOUND;
+    return either {0, NO_RESULT_FOUND_EITHER};
 }
 
 /// Create a table in the Nibble database with the given schema.

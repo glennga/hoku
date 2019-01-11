@@ -92,7 +92,7 @@ TEST(Benchmark, ImageLabelClear) { // NOLINT(cert-err58-cpp,modernize-use-equals
 TEST(Benchmark, ImagePresentation) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
     Chomp ch;
     Benchmark input(ch, 15);
-    std::shared_ptr<Star::list> s;
+    std::unique_ptr<Star::list> s;
     double fov;
 
     input.present_image(s, fov);

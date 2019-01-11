@@ -10,13 +10,10 @@
 #include "math/trio.h"
 
 /// Returned if we cannot compute a spherical area for a given trio.
-const double Trio::INVALID_TRIO_A = -1;
+const int Trio::INVALID_TRIO_A_EITHER = -1;
 
 /// Returned if we cannot compute a spherical moment for a given trio.
-const double Trio::INVALID_TRIO_M = -1;
-
-/// Returned if there exists duplicate stars for a given trio.
-const double Trio::DUPLICATE_STARS_IN_TRIO = 0;
+const int Trio::INVALID_TRIO_M_EITHER = -1;
 
 /// Private constructor. Sets the individual stars.
 ///
@@ -88,14 +85,14 @@ double Trio::planar_moment (const Vector3 &b_1, const Vector3 &b_2, const Vector
 /// @param b_1 Star B_1 of the trio.
 /// @param b_2 Star B_2 of the trio.
 /// @param b_3 Star B_3 of the trio.
-/// @return INVALID_TRIO_F if f is NaN or < 0. DUPLICATE_STARS_IN_TRIO if two stars are the same. The spherical
-/// area of {B_1, B_2, B_3} otherwise.
-double Trio::spherical_area (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &b_3) {
+/// @return INVALID_TRIO_A if f is NaN or < 0. 0 if two stars are the same. The spherical
+///     area of {B_1, B_2, B_3} otherwise.
+Trio::either Trio::spherical_area (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &b_3) {
     side_lengths ell = Trio(b_1, b_2, b_3).spherical_lengths();
 
     // If any of the stars are positioned in the same spot, this is a line. There exists no area.
     if (b_1 == b_2 || b_2 == b_3 || b_3 == b_1) {
-        return DUPLICATE_STARS_IN_TRIO;
+        return either {0, 0};
     }
 
     // Determine the inner component of the square root.
@@ -105,11 +102,11 @@ double Trio::spherical_area (const Vector3 &b_1, const Vector3 &b_2, const Vecto
 
     // F should a positive number. If this is not the case, then we don't proceed.
     if (f < 0 || std::isnan(f)) {
-        return INVALID_TRIO_A;
+        return either {0, INVALID_TRIO_A_EITHER};
     }
 
     // Find and return the excess.
-    return 4.0 * atan(sqrt(f));
+    return either {4.0 * atan(sqrt(f)), 0};
 }
 
 /// Determine the centroid of a **planar** triangle formed by the given three stars. It's use is appropriate for the
@@ -166,7 +163,7 @@ Trio Trio::cut_triangle (const Vector3 &c_1, const Vector3 &c_2, const Vector3 &
 double Trio::recurse_spherical_moment (const Vector3 &c, const int td_n, const int td_i) {
     if (td_n == td_i) {
         double theta = Vector3::Angle(c, this->planar_centroid());
-        return spherical_area(*this->b_1, *this->b_2, *this->b_3) * pow(theta, 2);
+        return spherical_area(*this->b_1, *this->b_2, *this->b_3).result * pow(theta, 2);
     }
     else {
         // Divide the triangle into four equal parts. Recurse for each of these new triangles.
@@ -188,14 +185,14 @@ double Trio::recurse_spherical_moment (const Vector3 &c, const int td_n, const i
 /// @param b_3 Star B_3 of the trio.
 /// @param td_h Maximum depth of moment calculation process. Larger td_h = more accurate, slower.
 /// @return INVALID_TRIO_M if the result is NaN or < 0. The spherical polar moment of {B_1, B_2, B_3}.
-double Trio::spherical_moment (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &b_3, const int td_h) {
+Trio::either Trio::spherical_moment (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &b_3, const int td_h) {
     Trio t(b_1, b_2, b_3);
 
     // We star at the root, where the current tree depth td_i = 0.
     double t_i = t.recurse_spherical_moment(t.planar_centroid(), td_h, 0);
 
     // Don't return NaN or negative values.
-    return (std::isnan(t_i) || t_i < 0) ? INVALID_TRIO_M : t_i;
+    return (std::isnan(t_i) || t_i < 0) ? either{0, INVALID_TRIO_M_EITHER} : either{t_i, 0};
 }
 
 /// Find the angle between two stars b_1 and b_2, using the central star as the new origin.

@@ -91,11 +91,12 @@ TEST(Nibble, SearchSingle) { // NOLINT(cert-err58-cpp,modernize-use-equals-delet
     Nibble nb;
     nb.select_table(ch.bright_table);
 
-    EXPECT_FLOAT_EQ(nb.search_single("i", "label = 88"), 0.658552173330720);
-    EXPECT_FLOAT_EQ(nb.search_single("j", "label = 88"), 0.003092250084512);
-    EXPECT_FLOAT_EQ(nb.search_single("k", "label = 88"), -0.752528719047187);
+    EXPECT_FLOAT_EQ(nb.search_single("i", "label = 88").result, 0.658552173330720);
+    EXPECT_FLOAT_EQ(nb.search_single("j", "label = 88").result, 0.003092250084512);
+    EXPECT_FLOAT_EQ(nb.search_single("k", "label = 88").result, -0.752528719047187);
+    EXPECT_EQ(nb.search_single("k", "label = -1").error, Nibble::NO_RESULT_FOUND_EITHER);
 
-    EXPECT_EQ(nb.search_single("COUNT(*)"), ch.bright_as_list().size());
+    EXPECT_EQ(nb.search_single("COUNT(*)").result, ch.bright_as_list().size());
 }
 
 /// Check that the table creation method works as intended (the table persists after closing connection.
@@ -171,7 +172,7 @@ TEST(Nibble, TablePolishSort) { // NOLINT(cert-err58-cpp,modernize-use-equals-de
     Nibble nb;
     nb.select_table(ch.bright_table);
     nb.polish_table("delta");
-    double a = nb.search_single("label", "rowid = 1");
+    double a = nb.search_single("label", "rowid = 1").result;
     EXPECT_EQ(a, 104382);
 
     // Delete new table and index. Rerun original BSC5 table generation.

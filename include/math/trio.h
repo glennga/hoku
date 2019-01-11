@@ -30,29 +30,34 @@ public:
     /// Ensure default constructor is **not** generated.
     Trio () = delete;
 
+    // For methods with potential errors, we define an "either" struct.
+    struct either {
+        double result; // Result associated with the computation.
+        int error; // Error associated with the computation.
+    };
+
 public:
     static double planar_area (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &b_3);
 
     static double planar_moment (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &b_3);
 
-    static double spherical_area (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &b_3);
+    static either spherical_area (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &b_3);
 
-    static double spherical_moment (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &b_3, int td_h = 3);
+    static either spherical_moment (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &b_3, int td_h = 3);
 
     static double dot_angle (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &central);
 
-    static const double INVALID_TRIO_A;
-    static const double INVALID_TRIO_M;
-    static const double DUPLICATE_STARS_IN_TRIO;
+    static const int INVALID_TRIO_A_EITHER;
+    static const int INVALID_TRIO_M_EITHER;
 
 #if !defined ENABLE_TESTING_ACCESS
-private:
+    private:
 #endif
     // Alias for the distances between each star.
     using side_lengths = std::array<double, 3>;
 
 #if !defined ENABLE_TESTING_ACCESS
-private:
+    private:
 #endif
 
     Trio (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &b_3);
@@ -70,7 +75,7 @@ private:
     static Trio cut_triangle (const Vector3 &c_1, const Vector3 &c_2, const Vector3 &c_3, int k);
 
 #if !defined ENABLE_TESTING_ACCESS
-private:
+    private:
 #endif
     /// Star one of the trio.
     std::shared_ptr<Vector3> b_1;
