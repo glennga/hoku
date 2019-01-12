@@ -32,26 +32,35 @@
 /// Rotation q = Angle(b, Angle::DEFAULT_PARAMETERS).align();
 /// @endcode
 class Angle : public Identification {
-  public:
+public:
     explicit Angle (const Benchmark &input, const Parameters &p);
-    
-    std::vector<labels_list> query (const Star::list &s);
-    Star::list reduce ();
-    Star::list identify ();
-    
+
+    labels_vector_either query (const Star::list &s) override;
+
+    stars_either reduce () override;
+
+    stars_either identify () override;
+
     static int generate_table (INIReader &cf, const std::string &id_name = "angle");
-    
-    static const Parameters DEFAULT_PARAMETERS;
-    static const Star::pair NO_CANDIDATE_PAIR_FOUND;
-    static const labels_list NO_CANDIDATES_FOUND;
-    
+
+    static const int NO_CANDIDATE_PAIR_FOUND_EITHER;
+    static const int NO_CANDIDATES_FOUND_EITHER;
+
     static const unsigned int QUERY_STAR_SET_SIZE;
 #if !defined ENABLE_TESTING_ACCESS
-  private:
+    private:
 #endif
-    labels_list query_for_pair (double theta);
-    Star::pair find_candidate_pair (const Star &b_i, const Star &b_j);
-    Star::list direct_match_test (const Star::list &big_p, const Star::list &r, const Star::list &b);
+    // For errors when querying for a star pair, we define an "either" struct.
+    struct pairs_either {
+        Star::pair result; // Result associated with the computation.
+        int error = 0; // Error associated with the computation.
+    };
+
+    labels_either query_for_pair (double theta);
+
+    pairs_either find_candidate_pair (const Star &b_i, const Star &b_j);
+
+    stars_either direct_match_test (const Star::list &big_p, const Star::list &r, const Star::list &b);
 };
 
 #endif /* HOKU_ANGLE_H */
