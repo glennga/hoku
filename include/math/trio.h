@@ -33,7 +33,7 @@ public:
     // For methods with potential errors, we define an "either" struct.
     struct either {
         double result; // Result associated with the computation.
-        int error; // Error associated with the computation.
+        int error = 0; // Error associated with the computation.
     };
 
 public:

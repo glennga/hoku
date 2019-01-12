@@ -115,7 +115,9 @@ public:
         return 0;
     }
 
-protected:
+#if !defined ENABLE_TESTING_ACCESS
+    protected:
+#endif
     /// Current table being operated on.
     std::string table;
 };
