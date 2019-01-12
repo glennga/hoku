@@ -12,28 +12,21 @@
 /// Exact number of query stars required for query experiment.
 const unsigned int Dot::QUERY_STAR_SET_SIZE = 3;
 
-/// Default parameters for the dot angle identification method.
-const Identification::Parameters Dot::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_QUERY,
-                                                            DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_4, DEFAULT_SQL_LIMIT,
-                                                            DEFAULT_NO_REDUCTION, DEFAULT_FAVOR_BRIGHT_STARS,
-                                                            DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_F, "DOT_20"};
-
 /// Returned when the reduction step does not pass in the query function.
-const Identification::labels_list Dot::NO_CANDIDATES_FOUND = {-1, -1};
+const int Dot::NO_CANDIDATES_FOUND_EITHER = -1;
 
 /// Returned when no candidate pair is found from a query.
-const Star::trio Dot::NO_CANDIDATE_TRIO_FOUND = {Star::wrap(Vector3::Zero()), Star::wrap(Vector3::Zero()),
-                                                 Star::wrap(Vector3::Zero())};
+const int Dot::NO_CANDIDATE_TRIO_FOUND_EITHER = -2;
 
 /// Constructor. Sets the benchmark data, fov, parameters, and current working table.
 ///
 /// @param input Working Benchmark instance. We are **only** copying the star set and the fov.
 DotAngle::DotAngle (const Benchmark &input, const Parameters &p) : Identification() {
     input.present_image(this->big_i, this->fov);
-    this->parameters = p;
+    this->parameters = std::make_unique<Identification::Parameters>(p);
 
-    this->parameters.nu = (p.nu == nullptr) ? std::make_shared<unsigned int>(0) : p.nu;
-    this->ch.select_table(parameters.table_name);
+    this->parameters->nu = (p.nu == nullptr) ? std::make_shared<unsigned int>(0) : p.nu;
+    this->ch.select_table(parameters->table_name);
 }
 
 /// Generate the separation table given the specified FOV and table name. This finds the angle of separation between
@@ -91,10 +84,10 @@ int Dot::generate_table (INIReader &cf) {
 ///
 /// @param theta Separation angle (degrees) to search with.
 /// @return NO_CANDIDATES_FOUND if no candidates found. Label list of the matching catalog IDs otherwise.
-Identification::labels_list Dot::query_for_trio (double theta_1, double theta_2, double phi) {
+Dot::labels_either Dot::query_for_trio (double theta_1, double theta_2, double phi) {
     // Noise is normally distributed. All queries within 3 sigma.
-    double epsilon_1 = 3.0 * this->parameters.sigma_1, epsilon_2 = 3.0 * this->parameters.sigma_2;
-    double epsilon_3 = 3.0 * parameters.sigma_3;
+    double epsilon_1 = 3.0 * this->parameters->sigma_1, epsilon_2 = 3.0 * this->parameters->sigma_2;
+    double epsilon_3 = 3.0 * parameters->sigma_3;
     std::vector<labels_list> big_r_ell;
     Nibble::tuples_d matches;
 
@@ -102,8 +95,8 @@ Identification::labels_list Dot::query_for_trio (double theta_1, double theta_2,
     matches = ch.simple_bound_query({"theta_1", "theta_2", "phi"}, "label_a, label_b, label_c",
                                     {theta_1 - epsilon_1, theta_2 - epsilon_2, phi - epsilon_3},
                                     {theta_1 + epsilon_1, theta_2 + epsilon_2, phi + epsilon_3},
-                                    this->parameters.sql_limit);
-    (*parameters.nu)++;
+                                    this->parameters->sql_limit);
+    (*parameters->nu)++;
 
     // Transform each tuple into a candidate list of labels.
     big_r_ell.reserve(matches.size());
@@ -112,16 +105,16 @@ Identification::labels_list Dot::query_for_trio (double theta_1, double theta_2,
     });
 
     // |R| = 1 restriction. Applied with the PASS_R_SET_CARDINALITY flag.
-    if (big_r_ell.empty() || (!this->parameters.no_reduction && big_r_ell.size() > 1)) {
-        return NO_CANDIDATES_FOUND;
+    if (big_r_ell.empty() || (!this->parameters->no_reduction && big_r_ell.size() > 1)) {
+        return labels_either{{}, NO_CANDIDATES_FOUND_EITHER};
     }
 
     // Favor bright stars if specified. Applied with the FAVOR_BRIGHT_STARS flag.
-    if (this->parameters.favor_bright_stars) {
+    if (this->parameters->favor_bright_stars) {
         sort_brightness(big_r_ell);
     }
 
-    return big_r_ell[0];
+    return labels_either{big_r_ell[0], 0};
 }
 
 /// Given a set of body (frame B) stars, find the matching inertial (frame R) stars and the correct mapping if one
@@ -132,23 +125,25 @@ Identification::labels_list Dot::query_for_trio (double theta_1, double theta_2,
 /// @param b_c Central star C in frame B to find the match for.
 /// @return NO_CANDIDATE_TRIO_FOUND if no matching pair is found. Otherwise, three inertial stars that match
 /// the given body in order [b_i, b_j, b_c].
-Star::trio Dot::find_candidate_trio (const Star &b_i, const Star &b_j, const Star &b_c) {
-    double theta_1 = (180.0 / M_PI) * Vector3::Angle(b_c, b_i), theta_2 = (180.0 / M_PI) * Vector3::Angle(b_c, b_j);
+Dot::trios_either Dot::find_candidate_trio (const Star &b_i, const Star &b_j, const Star &b_c) {
+    double theta_1 = (180.0 / M_PI) * Vector3::Angle(b_c.get_vector(), b_i.get_vector());
+    double theta_2 = (180.0 / M_PI) * Vector3::Angle(b_c.get_vector(), b_j.get_vector());
     double phi = Trio::dot_angle(b_i, b_j, b_c);
 
     // Ensure that condition 6d holds, and that all stars are within fov. Exit early if this is not met.
     if (theta_1 > theta_2 || !Star::within_angle({b_i, b_j, b_c}, this->fov)) {
-        return NO_CANDIDATE_TRIO_FOUND;
+        return trios_either{{}, NO_CANDIDATE_TRIO_FOUND_EITHER};
     }
 
     // If not candidate is found, break early.
-    labels_list big_r_ell = this->query_for_trio(theta_1, theta_2, phi);
-    if (std::equal(big_r_ell.begin(), big_r_ell.end(), NO_CONFIDENT_R.begin())) {
-        return NO_CANDIDATE_TRIO_FOUND;
+    labels_either big_r_ell = this->query_for_trio(theta_1, theta_2, phi);
+    if (big_r_ell.error == NO_CANDIDATES_FOUND_EITHER) {
+        return trios_either{{}, NO_CANDIDATE_TRIO_FOUND_EITHER};
     }
 
     // Otherwise, obtain and return the inertial vectors for the given candidates.
-    return {ch.query_hip(big_r_ell[0]), ch.query_hip(big_r_ell[1]), ch.query_hip(big_r_ell[2])};
+    return {Star::trio{ch.query_hip(big_r_ell.result[0]), ch.query_hip(big_r_ell.result[1]),
+                       ch.query_hip(big_r_ell.result[2])}, 0};
 }
 
 /// Find the 2 nearest neighbors to the given b_i star. This is a KNN approach, with K = 2 and
@@ -160,11 +155,11 @@ Star::trio Dot::find_closest (const Star &b_i) {
     std::vector<std::array<double, 2>> theta_big_i;
 
     // Find all possible distances between the central star and all of stars in the image.
-    theta_big_i.reserve(this->big_i.size());
-    for (unsigned int i = 0; i < this->big_i.size(); i++) {
-        if (this->big_i[i] != b_i) {
-            theta_big_i.emplace_back(std::array<double, 2> {Star::Angle(b_i, this->big_i[i]),
-                                                            static_cast<double>(i)});
+    theta_big_i.reserve(this->big_i->size());
+    for (unsigned int i = 0; i < this->big_i->size(); i++) {
+        if ((*this->big_i)[i] != b_i.get_vector()) {
+            theta_big_i.emplace_back(std::array<double, 2>{Star::Angle(b_i.get_vector(), (*this->big_i)[i]),
+                                                           static_cast<double>(i)});
         }
     }
 
@@ -175,7 +170,8 @@ Star::trio Dot::find_closest (const Star &b_i) {
     });
 
     // Return the two smallest.
-    return {this->big_i[theta_big_i[0][1]], this->big_i[theta_big_i[1][1]], b_i};
+    return {(*this->big_i)[static_cast<int>(theta_big_i[0][1])],
+            (*this->big_i)[static_cast<int>(theta_big_i[1][1])], b_i};
 }
 
 /// Reproduction of the Angle method's database querying. Input image is not used. We require the following be defined:
@@ -196,8 +192,8 @@ std::vector<Identification::labels_list> Dot::query (const Star::list &s) {
     double phi = Trio::dot_angle(s[0], s[1], s[2]);
 
     // Noise is normally distributed. All queries within 3 sigma.
-    double epsilon_1 = 3.0 * this->parameters.sigma_1, epsilon_2 = 3.0 * this->parameters.sigma_2;
-    double epsilon_3 = 3.0 * parameters.sigma_3;
+    double epsilon_1 = 3.0 * this->parameters->sigma_1, epsilon_2 = 3.0 * this->parameters->sigma_2;
+    double epsilon_3 = 3.0 * parameters->sigma_3;
     std::vector<labels_list> big_r_ell;
     Nibble::tuples_d matches;
 
@@ -211,7 +207,7 @@ std::vector<Identification::labels_list> Dot::query (const Star::list &s) {
     matches = ch.simple_bound_query({"theta_1", "theta_2", "phi"}, "label_a, label_b, label_c",
                                     {theta_1 - epsilon_1, theta_2 - epsilon_2, phi - epsilon_3},
                                     {theta_1 + epsilon_1, theta_2 + epsilon_2, phi + epsilon_3},
-                                    this->parameters.sql_limit);
+                                    this->parameters->sql_limit);
 
     // Transform candidate set tuples into labels list.
     big_r_ell.reserve(matches.size());
@@ -235,27 +231,28 @@ std::vector<Identification::labels_list> Dot::query (const Star::list &s) {
 ///
 /// @return EMPTY_BIG_R_ELL if there does not exist exactly one image star set. Otherwise, a single match configuration
 /// found by the query method.
-Star::list Dot::reduce () {
-    ch.select_table(parameters.table_name);
-    *parameters.nu = 0;
+Identification::stars_either Dot::reduce () {
+    ch.select_table(parameters->table_name);
+    *parameters->nu = 0;
 
-    for (const Star &c : big_i) {
+    for (const Star &c : *big_i) {
         Star::trio b = find_closest(c);
-        Star::trio big_r = find_candidate_trio(b[0], b[1], b[2]);
+        trios_either big_r = find_candidate_trio(b[0], b[1], b[2]);
 
         // Practical limit: exit early if we have iterated through too many comparisons without match.
-        if (*parameters.nu > parameters.nu_max) {
-            return NO_CONFIDENT_R;
+        if (*parameters->nu > parameters->nu_max) {
+            return {{}, NO_CONFIDENT_R_EITHER};
         }
 
         // The reduction step: |R| = 1.
-        if (std::equal(big_r.begin(), big_r.end(), NO_CANDIDATE_TRIO_FOUND.begin())) {
+        if (big_r.error == NO_CANDIDATE_TRIO_FOUND_EITHER) {
             continue;
         }
 
-        return {big_r[0], big_r[1], big_r[2]};
+        return stars_either{{big_r.result[0], big_r.result[1], big_r.result[2]}, 0};
     }
-    return NO_CONFIDENT_R;
+
+    return stars_either{{}, NO_CONFIDENT_R_EITHER};
 }
 
 /// Reproduction of the DotAngle method's process from beginning to the orientation determination. Input image is used.
@@ -275,34 +272,34 @@ Star::list Dot::reduce () {
 /// @return NO_CONFIDENT_A if an identification cannot be found exhaustively. EXCEEDED_NU_MAX if an
 /// identification cannot be found within a certain number of query picks. Otherwise, body stars b with the attached
 /// labels of the inertial pair r.
-Star::list Dot::identify () {
-    *parameters.nu = 0;
+Identification::stars_either Dot::identify () {
+    *parameters->nu = 0;
 
-    for (const Star &c : big_i) {
+    for (const Star &c : *big_i) {
         Star::trio b = find_closest(c);
         bool is_swapped = false;
 
         // Practical limit: exit early if we have iterated through too many comparisons without match.
-        if (*parameters.nu > parameters.nu_max) {
-            return EXCEEDED_NU_MAX;
+        if (*parameters->nu > parameters->nu_max) {
+            return stars_either{{}, Identification::EXCEEDED_NU_MAX_EITHER};
         }
 
         // Determine which stars map to the current 'b'. If this fails, swap b_i and b_j.
-        Star::trio r = find_candidate_trio(b[0], b[1], b[2]);
-        if (std::equal(r.begin(), r.end(), NO_CANDIDATE_TRIO_FOUND.begin())) {
+        trios_either r = find_candidate_trio(b[0], b[1], b[2]);
+        if (r.error == NO_CANDIDATE_TRIO_FOUND_EITHER) {
             r = find_candidate_trio(b[0], b[1], b[2]), is_swapped = true;
         }
 
         // If there exist no matches at this point, then repeat for another pair.
-        if (std::equal(r.begin(), r.end(), NO_CANDIDATE_TRIO_FOUND.begin())) {
+        if (r.error == NO_CANDIDATE_TRIO_FOUND_EITHER) {
             continue;
         }
 
         // Otherwise, attach the labels to the body and return this set.
-        return {Star::define_label(b[2], r[2].get_label()),
-                Star::define_label(b[(is_swapped) ? 1 : 0], r[0].get_label()),
-                Star::define_label(b[(is_swapped) ? 0 : 1], r[1].get_label())};
+        return stars_either{Star::list{Star::define_label(b[2], r.result[2].get_label()),
+                                       Star::define_label(b[(is_swapped) ? 1 : 0], r.result[0].get_label()),
+                                       Star::define_label(b[(is_swapped) ? 0 : 1], r.result[1].get_label())}, 0};
     }
 
-    return NO_CONFIDENT_A;
+    return stars_either{{}, NO_CONFIDENT_A_EITHER};
 }

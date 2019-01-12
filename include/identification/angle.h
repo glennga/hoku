@@ -35,7 +35,7 @@ class Angle : public Identification {
 public:
     explicit Angle (const Benchmark &input, const Parameters &p);
 
-    labels_vector_either query (const Star::list &s) override;
+    std::vector<Identification::labels_list> query (const Star::list &s) override;
 
     stars_either reduce () override;
 

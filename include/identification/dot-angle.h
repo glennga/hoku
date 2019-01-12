@@ -32,26 +32,36 @@
 /// Rotation q = Dot(b, Dot::DEFAULT_PARAMETERS).align();
 /// @endcode
 class DotAngle : public Identification {
-  public:
+public:
     explicit DotAngle (const Benchmark &input, const Parameters &p);
-    
-    std::vector<labels_list> query (const Star::list &s);
-    Star::list reduce ();
-    Star::list identify ();
-    
+
+    std::vector<Identification::labels_list> query (const Star::list &s) override;
+
+    stars_either reduce () override;
+
+    stars_either identify () override;
+
     static int generate_table (INIReader &cf);
-    
-    static const Parameters DEFAULT_PARAMETERS;
-    static const Star::trio NO_CANDIDATE_TRIO_FOUND;
-    static const labels_list NO_CANDIDATES_FOUND;
+
+    static const int NO_CANDIDATE_TRIO_FOUND_EITHER;
+    static const int NO_CANDIDATES_FOUND_EITHER;
+
     static const unsigned int QUERY_STAR_SET_SIZE;
 
 #if !defined ENABLE_TESTING_ACCESS
     private:
 #endif
+    // For errors when querying for a star trio, we define an "either" struct.
+    struct trios_either {
+        Star::trio result; // Result associated with the computation.
+        int error = 0; // Error associated with the computation.
+    };
+
     Star::trio find_closest (const Star &b_i);
-    labels_list query_for_trio (double theta_1, double theta_2, double phi);
-    Star::trio find_candidate_trio (const Star &b_i, const Star &b_j, const Star &b_c);
+
+    labels_either query_for_trio (double theta_1, double theta_2, double phi);
+
+    trios_either find_candidate_trio (const Star &b_i, const Star &b_j, const Star &b_c);
 };
 
 /// Alias for the DotAngle class. 'Dot' distinguishes the process I am testing here enough from the 5 other methods.

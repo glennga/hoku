@@ -24,8 +24,8 @@ public:
         this->big_i = std::make_unique<Star::list>(s), parameters = std::make_unique<Identification::Parameters>(p);
     }
 
-    Identification::labels_vector_either query (const Star::list &) override {
-        return labels_vector_either{};
+    std::vector<Identification::labels_list> query (const Star::list &) override {
+        return {};
     }
 
     Identification::stars_either reduce () override {

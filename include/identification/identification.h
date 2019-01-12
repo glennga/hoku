@@ -64,12 +64,6 @@ public:
         int error = 0; // Error associated with the computation.
     };
 
-    // For errors when querying, we define an "either" struct.
-    struct labels_vector_either {
-        std::vector<labels_list> result; // Result associated with the computation.
-        int error = 0; // Error associated with the computation.
-    };
-
     // For errors when reducing or identifying, we define an "either" struct.
     struct stars_either {
         Star::list result; // Result associated with the computation.
@@ -83,7 +77,7 @@ public:
 
     Star::list find_positive_overlay (const Star::list &big_p, const Rotation &q, std::vector<int> &i);
 
-    virtual labels_vector_either query (const Star::list &s) = 0;
+    virtual std::vector<labels_list> query (const Star::list &s) = 0;
 
     virtual stars_either reduce () = 0;
 

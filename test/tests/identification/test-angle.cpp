@@ -198,7 +198,7 @@ TEST(Angle, TrialCleanQuery) { // NOLINT(cert-err58-cpp,modernize-use-equals-del
     Angle a(Benchmark::black(), p);
     Star b = ch.query_hip(22667), c = ch.query_hip(27913);
 
-    std::vector<Identification::labels_list> d = a.query({b, c}).result;
+    std::vector<Identification::labels_list> d = a.query({b, c});
     EXPECT_THAT(d, Contains(Identification::labels_list{22667, 27913}));
 }
 

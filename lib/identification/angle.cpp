@@ -171,7 +171,7 @@ Identification::stars_either Angle::direct_match_test (const Star::list &big_p, 
 ///
 /// @param s Stars to query with. This must be of length = QUERY_STAR_SET_SIZE.
 /// @return Vector of likely matches found by the angle method.
-Identification::labels_vector_either Angle::query (const Star::list &s) {
+std::vector<Identification::labels_list> Angle::query (const Star::list &s) {
     if (s.size() != QUERY_STAR_SET_SIZE) {
         throw std::runtime_error(std::string("Input list does not have exactly two b."));
     }
@@ -189,7 +189,7 @@ Identification::labels_vector_either Angle::query (const Star::list &s) {
         big_r_ell.emplace_back(labels_list{static_cast<int>(r_t[0]), static_cast<int>(r_t[1])});
     }
 
-    return labels_vector_either {big_r_ell, 0};
+    return big_r_ell;
 }
 
 /// Reproduction of the Angle method's querying to candidate reduction step (i.e. none). Input image is used.
