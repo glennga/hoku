@@ -6,7 +6,14 @@ if [[ "$#" -ne 2 ]]; then
     exit 1
 fi
 
+# Ensure that PerformE exists before proceeding.
+if [[ ! -f ${HOKU_PROJECT_PATH}/bin/GenerateN ]]; then
+    echo "'PerformE' not found. Build the file 'src/perform-e.cpp'."
+    exit 1
+fi
+
 # Modify the CONFIG.ini file to run the experiments in parallel.
+cp ${HOKU_PROJECT_PATH}/CONFIG.ini ${HOKU_PROJECT_PATH}/CONFIG.ini.bak
 ORIGINAL_SAMPLE_LINE=$(grep "^samples =" ${HOKU_PROJECT_PATH}/CONFIG.ini)
 ORIGINAL_SAMPLES=$(echo ${ORIGINAL_SAMPLE_LINE} | grep -o -E '[0-9]+')
 PARALLEL_SAMPLES=$(echo $(($ORIGINAL_SAMPLES / $2)) | awk '{print int($1+0.5)}')
@@ -26,7 +33,8 @@ for m in "angle" "dot" "plane" "sphere" "pyramid" "composite"; do
 done
 
 # Put our CONFIG.ini file back to normal.
-sed -i "/samples/c $ORIGINAL_SAMPLE_LINE" ${HOKU_PROJECT_PATH}/CONFIG.ini
+echo Cleaning Up CONFIG.ini
+mv ${HOKU_PROJECT_PATH}/CONFIG.ini.bak ${HOKU_PROJECT_PATH}/CONFIG.ini
 
 # Prepare our master database.
 cp $(find TMP_RESULTS_DIR -name "lumberjack-*.db" | head -1) ${HOKU_PROJECT_PATH}/data/lumberjack.db
@@ -47,5 +55,5 @@ for f in ${TMP_RESULTS_DIR}/"lumberjack-*.db"; do
                                                      DETACH DATABASE A;"
 done
 echo "Database merging is finished."
-echo "Results can be found in 'data/lumberjack.db"
+echo "Results can be found in 'data/lumberjack.db."
 
