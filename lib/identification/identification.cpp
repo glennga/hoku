@@ -43,6 +43,7 @@ Identification::Parameters Identification::collect_parameters (INIReader &cf, co
     p.no_reduction = cf.GetBoolean("id-parameters", "nr", false);
     p.favor_bright_stars = cf.GetBoolean("id-parameters", "fbr", false);
     p.nu_max = static_cast<unsigned>(cf.GetInteger("id-parameters", "nu-m", static_cast<long> (50000)));
+    p.nu = std::make_shared<unsigned> (0);
 
     const std::array<std::string, 3> ws_id = {"TRIAD", "Q", "SVD"};
     const std::array<Rotation::wahba_function, 3> ws = {Rotation::triad, Rotation::q_method, Rotation::svd};

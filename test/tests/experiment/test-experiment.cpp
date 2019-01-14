@@ -16,85 +16,85 @@
 // Create an in-between matcher for Google Mock.
 using testing::PrintToString;
 
-MATCHER_P2(IsBetweenExperiment, a, b,
+MATCHER_P2(IsBetweenExperiment, a, b, // NOLINT(modernize-use-equals-delete)
            std::string(negation ? "isn't" : "is") + " between " + PrintToString(a) + " and " + PrintToString(b)) {
     return a <= arg && arg <= b;
 }
 
 /// Contents for all configuration files for all trials.
-const std::string ALL_INI = "[hardware]                  ; Description of hardware and time.\n"
-                            "fov = 20                    ; Field-of-view of camera.\n"
-                            "[general-experiment]        ; Testing parameters for all experiments.\n"
-                            "samples = 1                 ; Number of samples to retrieve for each trial.\n"
-                            "[query-sigma]               ; Estimated deviation for each identification method.\n"
-                            "angle-1 = 0.00000001        ; Standard deviation of theta^ij.\n"
-                            "dot-1 = 0.00000001          ; Standard deviation of theta^ic.\n"
-                            "dot-2 = 0.00000001          ; Standard deviation of theta^jc.\n"
-                            "dot-3 = 0.00000001          ; Standard deviation of phi^ijc.\n"
-                            "sphere-1 = 0.00000001       ; Standard deviation of spherical area (i, j, k).\n"
-                            "sphere-2 = 0.00000001       ; Standard deviation of spherical moment (i, j, k).\n"
-                            "plane-1 = 0.00000001        ; Standard deviation of planar area (i, j, k).\n"
-                            "plane-2 = 0.00000001        ; Standard deviation of planar moment (i, j, k).\n"
-                            "pyramid-1 = 0.00000001      ; Standard deviation of theta^ij.\n"
-                            "composite-1 = 0.00000001    ; Standard deviation of planar area (i, j, k).\n"
-                            "composite-2 = 0.00000001    ; Standard deviation of planar moment (i, j, k).\n"
-                            "[id-parameters]             ; Values used in 'Parameters' struct.\n"
-                            "so = 0.00001                ; Sigma overlay.\n"
-                            "sl = 500                    ; Tuple count returned restriction.\n"
-                            "nr = 1                      ; 'Pass R Set Cardinality' toggle.\n"
-                            "fbr = 0                     ; 'Favor Bright Stars' toggle.\n"
-                            "so = 0.00001                ; Sigma overlay (degrees).\n"
-                            "nu-m = 50000                ; Maximum number of query star comparisons (nu max).\n"
-                            "wbs = TRIAD                 ; Function used to solve Wabha (possible TRIAD, SVD, Q)\n"
-                            "[table-names]               ; Table names in Nibble database.\n"
-                            "hip = HIP                   ; All star entries in the Hipparcos catalog.\n"
-                            "bright = HIP_BRIGHT         ; All star entries in Hipparcos with m < 6.\n"
-                            "angle = ANGLE_20            ; Name of table used by Angle method.\n"
-                            "dot = DOT_20                ; Name of table used by Dot Angle method.\n"
-                            "sphere = SPHERE_20          ; Name of table used by Spherical Triangle method.\n"
-                            "plane = PLANE_20            ; Name of table used by Planar Triangle method.\n"
-                            "pyramid = PYRAMID_20        ; Name of table used by Pyramid method.\n"
-                            "composite = COMPOSITE_20    ; Name of table used by Composite Pyramid method.\n"
-                            "[table-focus]               ; *DO NOT MODIFY!* Field used for B-Tree index / K-Vector.\n"
-                            "angle = theta               ; Focus of Angle method.\n"
-                            "dot = theta_1               ; Focus of Dot Angle method.\n"
-                            "sphere = a                  ; Focus of Spherical Triangle method.\n"
-                            "plane = a                   ; Focus of Planar Triangle method.\n"
-                            "pyramid = theta             ; Focus of Pyramid method.\n"
-                            "composite = a               ; Focus of Composite Pyramid method.\n";
+const char *ALL_INI = "[hardware]                  ; Description of hardware and time.\n"
+                      "fov = 20                    ; Field-of-view of camera.\n"
+                      "[general-experiment]        ; Testing parameters for all experiments.\n"
+                      "samples = 1                 ; Number of samples to retrieve for each trial.\n"
+                      "[query-sigma]               ; Estimated deviation for each identification method.\n"
+                      "angle-1 = 0.00000001        ; Standard deviation of theta^ij.\n"
+                      "dot-1 = 0.00000001          ; Standard deviation of theta^ic.\n"
+                      "dot-2 = 0.00000001          ; Standard deviation of theta^jc.\n"
+                      "dot-3 = 0.00000001          ; Standard deviation of phi^ijc.\n"
+                      "sphere-1 = 0.00000001       ; Standard deviation of spherical area (i, j, k).\n"
+                      "sphere-2 = 0.00000001       ; Standard deviation of spherical moment (i, j, k).\n"
+                      "plane-1 = 0.00000001        ; Standard deviation of planar area (i, j, k).\n"
+                      "plane-2 = 0.00000001        ; Standard deviation of planar moment (i, j, k).\n"
+                      "pyramid-1 = 0.00000001      ; Standard deviation of theta^ij.\n"
+                      "composite-1 = 0.00000001    ; Standard deviation of planar area (i, j, k).\n"
+                      "composite-2 = 0.00000001    ; Standard deviation of planar moment (i, j, k).\n"
+                      "[id-parameters]             ; Values used in 'Parameters' struct.\n"
+                      "so = 0.00001                ; Sigma overlay.\n"
+                      "sl = 500                    ; Tuple count returned restriction.\n"
+                      "nr = 1                      ; 'Pass R Set Cardinality' toggle.\n"
+                      "fbr = 0                     ; 'Favor Bright Stars' toggle.\n"
+                      "so = 0.00001                ; Sigma overlay (degrees).\n"
+                      "nu-m = 50000                ; Maximum number of query star comparisons (nu max).\n"
+                      "wbs = TRIAD                 ; Function used to solve Wabha (possible TRIAD, SVD, Q)\n"
+                      "[table-names]               ; Table names in Nibble database.\n"
+                      "hip = HIP                   ; All star entries in the Hipparcos catalog.\n"
+                      "bright = HIP_BRIGHT         ; All star entries in Hipparcos with m < 6.\n"
+                      "angle = ANGLE_20            ; Name of table used by Angle method.\n"
+                      "dot = DOT_20                ; Name of table used by Dot Angle method.\n"
+                      "sphere = SPHERE_20          ; Name of table used by Spherical Triangle method.\n"
+                      "plane = PLANE_20            ; Name of table used by Planar Triangle method.\n"
+                      "pyramid = PYRAMID_20        ; Name of table used by Pyramid method.\n"
+                      "composite = COMPOSITE_20    ; Name of table used by Composite Pyramid method.\n"
+                      "[table-focus]               ; *DO NOT MODIFY!* Field used for B-Tree index / K-Vector.\n"
+                      "angle = theta               ; Focus of Angle method.\n"
+                      "dot = theta_1               ; Focus of Dot Angle method.\n"
+                      "sphere = a                  ; Focus of Spherical Triangle method.\n"
+                      "plane = a                   ; Focus of Planar Triangle method.\n"
+                      "pyramid = theta             ; Focus of Pyramid method.\n"
+                      "composite = a               ; Focus of Composite Pyramid method.\n";
 
 /// Contents of the configuration file for query trials.
-const std::string QUERY_INI = "[query-experiment]          ; Testing parameters for the query experiment.\n"
-                              "lu = QUERY                  ; Name of the Lumberjack table to log results to.\n"
-                              "ss-step = 10.0              ; Shift sigma multiplier for each variation.\n"
-                              "ss-iter = 5                 ; Number of shift sigma variations.\n";
+const char *QUERY_INI = "[query-experiment]          ; Testing parameters for the query experiment.\n"
+                        "lu = QUERY                  ; Name of the Lumberjack table to log results to.\n"
+                        "ss-step = 10.0              ; Shift sigma multiplier for each variation.\n"
+                        "ss-iter = 5                 ; Number of shift sigma variations.\n";
 
 /// Contents of the configuration file for reduction trials.
-const std::string REDUCTION_INI = "[reduction-experiment]      ; Testing parameters for the reduction experiment.\n"
-                                  "lu = REDUCTION              ; Name of the Lumberjack table to log results to.\n"
-                                  "ss-step = 10.0              ; Shift sigma multiplier for each variation.\n"
-                                  "ss-iter = 5                 ; Number of shift sigma variations.\n"
-                                  "es-min = 0                  ; Starting number of false stars to add to image.\n"
-                                  "es-step = 3                 ; Step to increment false star count with.\n"
-                                  "es-iter = 5                 ; Number of false star count variations.\n";
+const char *REDUCTION_INI = "[reduction-experiment]      ; Testing parameters for the reduction experiment.\n"
+                            "lu = REDUCTION              ; Name of the Lumberjack table to log results to.\n"
+                            "ss-step = 10.0              ; Shift sigma multiplier for each variation.\n"
+                            "ss-iter = 5                 ; Number of shift sigma variations.\n"
+                            "es-min = 0                  ; Starting number of false stars to add to image.\n"
+                            "es-step = 3                 ; Step to increment false star count with.\n"
+                            "es-iter = 5                 ; Number of false star count variations.\n";
 
 /// Contents of the configuration file for identification trials.
-const std::string IDENTIFICATION_INI = "[identification-experiment] ; Some comment...\n"
-                                       "lu = IDENTIFICATION         ; Name of the Lumberjack table to log results to.\n"
-                                       "ss-step = 10.0              ; Shift sigma multiplier for each variation.\n"
-                                       "ss-iter = 5                 ; Number of shift sigma variations.\n"
-                                       "es-min = 0                  ; Starting number of false stars to add to image.\n"
-                                       "es-step = 3                 ; Step to increment false star count with.\n"
-                                       "es-iter = 5                 ; Number of false star count variations.\n";
+const char *IDENTIFICATION_INI = "[identification-experiment] ; Some comment...\n"
+                                 "lu = IDENTIFICATION         ; Name of the Lumberjack table to log results to.\n"
+                                 "ss-step = 10.0              ; Shift sigma multiplier for each variation.\n"
+                                 "ss-iter = 5                 ; Number of shift sigma variations.\n"
+                                 "es-min = 0                  ; Starting number of false stars to add to image.\n"
+                                 "es-step = 3                 ; Step to increment false star count with.\n"
+                                 "es-iter = 5                 ; Number of false star count variations.\n";
 
 /// Contents of the configuration file for overlay trials.
-const std::string OVERLAY_INI = "[overlay-experiment] ; Some comment...\n"
-                                "lu = OVERLAY                ; Name of the Lumberjack table to log results to.\n"
-                                "ss-step = 10.0              ; Shift sigma multiplier for each variation.\n"
-                                "ss-iter = 5                 ; Number of shift sigma variations.\n"
-                                "es-min = 0                  ; Starting number of false stars to add to image.\n"
-                                "es-step = 3                 ; Step to increment false star count with.\n"
-                                "es-iter = 5                 ; Number of false star count variations.\n";
+const char *OVERLAY_INI = "[overlay-experiment] ; Some comment...\n"
+                          "lu = OVERLAY                ; Name of the Lumberjack table to log results to.\n"
+                          "ss-step = 10.0              ; Shift sigma multiplier for each variation.\n"
+                          "ss-iter = 5                 ; Number of shift sigma variations.\n"
+                          "es-min = 0                  ; Starting number of false stars to add to image.\n"
+                          "es-step = 3                 ; Step to increment false star count with.\n"
+                          "es-iter = 5                 ; Number of false star count variations.\n";
 
 /// Create the three objects required for an experiment: Chomp connection, Lumberjack connection, and the configuration
 /// file. Return these through the parameters.
@@ -108,15 +108,10 @@ const std::string OVERLAY_INI = "[overlay-experiment] ; Some comment...\n"
 void setup_experiment (std::shared_ptr<INIReader> &cf, std::shared_ptr<Chomp> &ch, std::shared_ptr<Lumberjack> &lu,
                        const std::string &trial, const std::string &m_c) {
     std::ostringstream l;
-    using clock = std::chrono::high_resolution_clock;
+    using clock = std::chrono::system_clock;
     l << clock::to_time_t(clock::now() - std::chrono::hours(24));
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-    std::string temp_path = std::getenv("TEMP");
-#else
-    std::string temp_path = "/tmp";
-#endif
-    std::ofstream f1(temp_path + "/TESTCONFIG.ini");
+    std::ofstream f1("/tmp/TESTCONFIG.ini");
     if (trial == "query") {
         f1 << ALL_INI << QUERY_INI;
     }
@@ -131,13 +126,13 @@ void setup_experiment (std::shared_ptr<INIReader> &cf, std::shared_ptr<Chomp> &c
     }
     f1.close();
 
-    cf = std::make_shared<INIReader>(temp_path + "/TESTCONFIG.ini");
+    cf = std::make_shared<INIReader>("/tmp/TESTCONFIG.ini");
     ch = std::make_shared<Chomp>();
     lu = std::make_shared<Lumberjack>((*cf).Get(trial + "-experiment", "lu", ""), m_c, l.str());
 }
 
 /// Ensure that the benchmark presentation is random, and that the specifications are met.
-TEST(Experiment, AllPresentBenchmark) {
+TEST(Experiment, AllPresentBenchmark) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
     Chomp ch;
     Star::list big_i, big_c, old_big_i = {Star::chance()};
     Star center, old_center = Star::chance();
@@ -169,15 +164,16 @@ TEST(Experiment, AllPresentBenchmark) {
 }
 
 /// Check that the correct number of stars are generated, and that this set is random.
-TEST(Experiment, QueryGenerateNStars) {
+TEST(Experiment, QueryGenerateNStars) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
     Chomp ch;
     Star center, old_center = Star::chance();
     std::array<double, 2> fov_p = {20, 18};
+    Star::list a;
 
     for (int p = 0; p < 2; p++) {
         for (unsigned int n = 0; n < 10; n++) {
             for (int i = 0; i < 100; i++) {
-                Star::list a = Experiment::Query::generate_n_stars(ch, n, center, fov_p[p]);
+                Experiment::Query::generate_n_stars(ch, n, a, center, fov_p[p]);
                 EXPECT_EQ(a.size(), n);
 
                 if (n > 1) {
@@ -193,7 +189,7 @@ TEST(Experiment, QueryGenerateNStars) {
 }
 
 /// Check that the check for set existence is correct.
-TEST(Experiment, QuerySetExistence) {
+TEST(Experiment, QuerySetExistence) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
     std::vector<Identification::labels_list> a = {{1, 2, 3},
                                                   {4, 5, 6},
                                                   {6, 7, 8}};
@@ -217,7 +213,7 @@ TEST(Experiment, QuerySetExistence) {
 }
 
 /// Check that the query experiment works for the angle method.
-TEST(Experiment, QueryTrialAngle) {
+TEST(Experiment, QueryTrialAngle) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
     std::shared_ptr<Lumberjack> lu;
     std::shared_ptr<INIReader> cf;
     std::shared_ptr<Chomp> ch;
@@ -251,19 +247,19 @@ TEST(Experiment, QueryTrialAngle) {
 }
 
 /// Check that lists are correctly identified.
-TEST(Experiment, ReductionPercentageCorrect) {
+TEST(Experiment, ReductionPercentageCorrect) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
     Star::list a = {Star(0, 1, 0, 1), Star(2, 0, 0, 2), Star(3, 0, 0, 3), Star(0, 0, 0, 4)};
     Star::list b = {Star(0, 1, 0, 1), Star(3, 0, 0, 3), Star(2, 0, 0, 2)};
     Star::list c = {Star(0, 1, 0, 1), Star(0, 10, 0, 3), Star(0, 10, 0, 2)};
     Star::list d = {Star(0, 1, 0, 1), Star(2, 0, 0, 2), Star(0, 0, 0, 5)};
 
-    EXPECT_FLOAT_EQ(Experiment::Reduction::percentage_correct(a, b), 1.0);
-    EXPECT_FLOAT_EQ(Experiment::Reduction::percentage_correct(a, c), 1.0 / 3.0);
-    EXPECT_FLOAT_EQ(Experiment::Reduction::percentage_correct(a, d), 2.0 / 3.0);
+    EXPECT_FLOAT_EQ(Experiment::Reduction::percentage_correct(a, Identification::stars_either{b, 0}), 1.0);
+    EXPECT_FLOAT_EQ(Experiment::Reduction::percentage_correct(a, Identification::stars_either{c, 0}), 1.0 / 3.0);
+    EXPECT_FLOAT_EQ(Experiment::Reduction::percentage_correct(a, Identification::stars_either{d, 0}), 2.0 / 3.0);
 }
 
 /// Check that the reduction experiment works for the angle method.
-TEST(Experiment, ReductionTrialAngle) {
+TEST(Experiment, ReductionTrialAngle) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
     std::shared_ptr<Lumberjack> lu;
     std::shared_ptr<INIReader> cf;
     std::shared_ptr<Chomp> ch;
@@ -275,7 +271,7 @@ TEST(Experiment, ReductionTrialAngle) {
     double count_b = a.size();
 
     Experiment::Reduction::trial<Angle>((*ch), (*lu), (*cf), "angle");
-    (*lu).flush_buffer();
+    lu->flush_buffer();
 
     Nibble::tuples_d b = (*lu).search_table("Sigma1, Sigma2, Sigma3, ShiftDeviation, FalseStars, QueryCount, "
                                             "TimeToResult, PercentageCorrect",
@@ -302,23 +298,23 @@ TEST(Experiment, ReductionTrialAngle) {
     transaction.commit();
 }
 
-TEST(Experiment, IdentificationPercentageCorrect) {
+TEST(Experiment, IdentificationPercentageCorrect) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
     Chomp ch;
     Star::list a = {ch.query_hip(26220), ch.query_hip(26221), ch.query_hip(26235), ch.query_hip(26224),
                     ch.query_hip(26427)};
 
     Star::list c = {ch.query_hip(26221), ch.query_hip(26235), ch.query_hip(26220)};
-    Star::list d = {ch.query_hip(26220), ch.query_hip(26221), ch.query_hip(262220)};
+    Star::list d = {ch.query_hip(26220), ch.query_hip(26221), ch.query_hip(1)};
     Star::list e = {ch.query_hip(1), ch.query_hip(2), ch.query_hip(3)};
 
-    EXPECT_FLOAT_EQ(1.0, Experiment::Map::percentage_correct(a, a, 20));
-    EXPECT_FLOAT_EQ(1.0, Experiment::Map::percentage_correct(a, c, 20));
-    EXPECT_FLOAT_EQ((2.0 / 3.0), Experiment::Map::percentage_correct(a, d, 20));
-    EXPECT_FLOAT_EQ(0.0, Experiment::Map::percentage_correct(a, e, 20));
+    EXPECT_FLOAT_EQ(1.0, Experiment::Map::percentage_correct(a, Identification::stars_either{a, 0}, 20));
+    EXPECT_FLOAT_EQ(1.0, Experiment::Map::percentage_correct(a, Identification::stars_either{c, 0}, 20));
+    EXPECT_FLOAT_EQ((2.0 / 3.0), Experiment::Map::percentage_correct(a, Identification::stars_either{d, 0}, 20));
+    EXPECT_FLOAT_EQ(0.0, Experiment::Map::percentage_correct(a, Identification::stars_either{e, 0}, 20));
 }
 
 /// Check that the map experiment works for the angle method.
-TEST(Experiment, IdentificationTrialAngle) {
+TEST(Experiment, IdentificationTrialAngle) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
     std::shared_ptr<Lumberjack> lu;
     std::shared_ptr<INIReader> cf;
     std::shared_ptr<Chomp> ch;
@@ -338,7 +334,7 @@ TEST(Experiment, IdentificationTrialAngle) {
                                             10);
     ASSERT_EQ(b.size(), count_b + 5 + 5);
 
-    for (const Nibble::tuple_d b_d : b) {
+    for (const Nibble::tuple_d &b_d : b) {
         EXPECT_EQ(b_d[0], (*cf).GetReal("query-sigma", "angle-1", 0));
         EXPECT_EQ(b_d[1], (*cf).GetReal("query-sigma", "angle-2", 0));
         EXPECT_EQ(b_d[2], (*cf).GetReal("query-sigma", "angle-3", 0));
@@ -361,7 +357,7 @@ TEST(Experiment, IdentificationTrialAngle) {
 }
 
 /// Check that the overlay experiment works.
-TEST(Experiment, OverlayTrial) {
+TEST(Experiment, OverlayTrial) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
     std::shared_ptr<Lumberjack> lu;
     std::shared_ptr<INIReader> cf;
     std::shared_ptr<Chomp> ch;
@@ -381,7 +377,7 @@ TEST(Experiment, OverlayTrial) {
                                             10);
     ASSERT_EQ(b.size(), count_b + 5 + 5);
 
-    for (const Nibble::tuple_d b_d : b) {
+    for (const Nibble::tuple_d &b_d : b) {
         EXPECT_EQ(b_d[0], (*cf).GetReal("id-parameters", "so", 0));
         EXPECT_THAT(b_d[1], IsBetweenExperiment(0, 1.0 / pow((*cf).GetReal("overlay-experiment", "ss-step", 0), 0)));
         EXPECT_THAT(b_d[2], IsBetweenExperiment((*cf).GetReal("overlay-experiment", "es-min", 0),
