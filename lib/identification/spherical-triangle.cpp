@@ -15,21 +15,16 @@ const int Sphere::DEFAULT_TD_H = 3;
 /// Exact number of query stars required for query experiment.
 const unsigned int Sphere::QUERY_STAR_SET_SIZE = 3;
 
-/// Default parameters for the spherical triangle identification method.
-const Identification::Parameters Sphere::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_QUERY,
-    DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_4, DEFAULT_SQL_LIMIT, DEFAULT_NO_REDUCTION, DEFAULT_FAVOR_BRIGHT_STARS,
-    DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_F, "SPHERE_20"};
-
 /// Constructor. Sets the benchmark data and fov. Sets the parameters and working table.
 ///
 /// @param input Working Benchmark instance. We are **only** copying the star set and the fov.
 /// @param parameters Parameters to use for identification.
 SphericalTriangle::SphericalTriangle (const Benchmark &input, const Parameters &parameters) : BaseTriangle() {
     input.present_image(this->big_i, this->fov);
-    this->parameters = parameters;
+    this->parameters = std::make_unique<Parameters>(parameters);
 
-    this->parameters.nu = (parameters.nu == nullptr) ? std::make_shared<unsigned int>(0) : parameters.nu;
-    ch.select_table(this->parameters.table_name);
+    this->parameters->nu = (parameters.nu == nullptr) ? std::make_shared<unsigned int>(0) : parameters.nu;
+    ch.select_table(this->parameters->table_name);
 }
 
 /// Generate the triangle table given the specified FOV and table name. This find the area and polar moment
@@ -39,9 +34,14 @@ SphericalTriangle::SphericalTriangle (const Benchmark &input, const Parameters &
 /// @param cf Configuration reader holding all parameters to use.
 /// @return TABLE_ALREADY_EXISTS if the table already exists. Otherwise, 0 when finished.
 int SphericalTriangle::generate_table (INIReader &cf) {
-    return generate_triangle_table(cf, "sphere", Trio::spherical_area,
+    // Handle the error in the following lambdas. We define -1 to be an "error" result.
+    return generate_triangle_table(cf, "sphere", [] (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &b_3) {
+                                       Trio::either a = Trio::spherical_area(b_1, b_2, b_3);
+                                       return (a.error == Trio::INVALID_TRIO_A_EITHER) ? -1 : a.result;
+                                   },
                                    [] (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &b_3) {
-                                       return Trio::spherical_moment(b_1, b_2, b_3, DEFAULT_TD_H);
+                                       Trio::either i = Trio::spherical_moment(b_1, b_2, b_3, DEFAULT_TD_H);
+                                       return (i.error == Trio::INVALID_TRIO_M_EITHER) ? -1 : i.result;
                                    });
 }
 
@@ -51,10 +51,14 @@ int SphericalTriangle::generate_table (INIReader &cf) {
 /// @param c Index trio of stars ('combination' of I) in body frame.
 /// @return NO_CANDIDATE_STARS_FOUND if stars are not within the fov or if no matches currently exist.
 /// Otherwise, vector of trios whose areas and moments are close.
-std::vector<Star::trio> Sphere::query_for_trios (const index_trio &c) {
-    return base_query_for_trios(c, Trio::spherical_area,
+Sphere::trio_vector_either Sphere::query_for_trios (const index_trio &c) {
+    return base_query_for_trios(c, [] (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &b_3) {
+                                    Trio::either a = Trio::spherical_area(b_1, b_2, b_3);
+                                    return (a.error == Trio::INVALID_TRIO_A_EITHER) ? -1 : a.result;
+                                },
                                 [] (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &b_3) {
-                                    return Trio::spherical_moment(b_1, b_2, b_3, DEFAULT_TD_H);
+                                    Trio::either i = Trio::spherical_moment(b_1, b_2, b_3, DEFAULT_TD_H);
+                                    return (i.error == Trio::INVALID_TRIO_M_EITHER) ? -1 : i.result;
                                 });
 }
 
@@ -73,8 +77,15 @@ std::vector<Identification::labels_list> Sphere::query (const Star::list &s) {
     if (s.size() != QUERY_STAR_SET_SIZE) {
         throw std::runtime_error(std::string("Input list does not have exactly three b."));
     }
-    
-    return e_query(Trio::spherical_area(s[0], s[1], s[2]), Trio::spherical_moment(s[0], s[1], s[2]));
+
+    Trio::either a = Trio::spherical_area(s[0], s[1], s[2]);
+    Trio::either i = Trio::spherical_moment(s[0], s[1], s[2]);
+
+    // If we have an invalid trio, then do not perform our query.
+    if (a.error == Trio::INVALID_TRIO_A_EITHER || i.error == Trio::INVALID_TRIO_M_EITHER) {
+        return {labels_list {}};
+    }
+    return e_query(a.result, i.result);
 }
 
 /// Find the **best** matching pair to the first three stars in our benchmark using the appropriate triangle table.
@@ -91,7 +102,7 @@ std::vector<Identification::labels_list> Sphere::query (const Star::list &s) {
 ///
 /// @return NO_CONFIDENT_R if we cannot query anything. Otherwise, a single match configuration found by the
 /// spherical triangle method.
-Star::list Sphere::reduce () {
+Sphere::stars_either Sphere::reduce () {
     return e_reduction();
 }
 
@@ -112,6 +123,6 @@ Star::list Sphere::reduce () {
 /// @return NO_CONFIDENT_A if an identification cannot be found exhaustively. EXCEEDED_NU_MAX if an
 /// identification cannot be found within a certain number of query picks. Otherwise, body stars b with the attached
 /// labels of the inertial pair r.
-Star::list Sphere::identify () {
+Sphere::stars_either Sphere::identify () {
     return e_identify();
 }
