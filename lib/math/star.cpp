@@ -4,13 +4,13 @@
 /// Source file for Star class, which represents three-dimensional star vectors.
 
 #define _USE_MATH_DEFINES
+
 #include <iomanip>
+#include <math/star.h>
+
 
 #include "math/star.h"
 #include "math/random-draw.h"
-
-/// Returned when a user attempts to access an item using the [] operator for n > 1.
-const double Star::INVALID_ELEMENT_ACCESSED = 0;
 
 /// The default label of all stars.
 const int Star::NO_LABEL = 0;
@@ -41,7 +41,7 @@ Star::Star (const double i, const double j, const double k, const int label, con
 /// @param m Magnitude to attach to vector.
 /// @return A Star object with the components in V, and the given label and m.
 Star Star::wrap (Vector3 v, int label, double m) {
-    return Star(v.data[0], v.data[1], v.data[2], label, m);
+    return {v.data[0], v.data[1], v.data[2], label, m};
 }
 
 /// Place all components of S into the given stream.
@@ -58,9 +58,9 @@ std::ostream &operator<< (std::ostream &os, const Star &s) {
 /// Access method for the i, j, and k components of the star. Overloads the [] operator.
 ///
 /// @param n Index of {i, j, k} to return.
-/// @return INVALID_ELEMENT_ACCESSED if n > 2. Otherwise component at index n of {i, j, k}.
+/// @return The component at index n of {i, j, k}.
 double Star::operator[] (const unsigned int n) const {
-    return n > 2 ? INVALID_ELEMENT_ACCESSED : data[n];
+    return data[n];
 }
 
 /// Accessor method for catalog (Hipparcos) ID of the star.
@@ -75,6 +75,13 @@ int Star::get_label () const {
 /// @return Apparent magnitude of the current star.
 double Star::get_magnitude () const {
     return this->m;
+}
+
+/// Return the current star as a Vector3. To please Clang-Tidy. (:
+///
+/// @return The current star as a Vector3 object.
+Vector3 Star::get_vector () const {
+    return {this->data[0], this->data[1], this->data[2]};
 }
 
 /// Generate a random star with normalized components. Using C++11 random functions.
@@ -93,7 +100,7 @@ Star Star::chance () {
 Star Star::chance (const int label) {
     Star s = chance();
     s.label = label;
-    
+
     return s;
 }
 
@@ -117,14 +124,14 @@ bool Star::within_angle (const list &s_l, const double theta) {
     if (s_l.size() < 2) {
         return true;
     }
-    
+
     // Fancy for loop wrapping... (: All distinct combination pairs of s_l.
     for (unsigned int i = 0, j = 1; i < s_l.size() - 1; j = (j < s_l.size() - 1) ? j + 1 : 1 + ++i) {
         if (!within_angle(s_l[i], s_l[j], theta)) {
             return false;
         }
     }
-    
+
     return true;
 }
 
@@ -134,7 +141,7 @@ bool Star::within_angle (const list &s_l, const double theta) {
 /// @param label New label to attach to the star.
 /// @return Same star with the given label.
 Star Star::define_label (const Star &s, int label) {
-    return Star(s.data[0], s.data[1], s.data[2], label, s.m);
+    return {s.data[0], s.data[1], s.data[2], label, s.m};
 }
 
 /// Return the given star with a catalog ID of NO_LABEL.

@@ -5,6 +5,7 @@
 /// (i.e. Stars).
 
 #define _USE_MATH_DEFINES
+
 #include <cmath>
 
 #include "math/mercator.h"
@@ -24,6 +25,6 @@
 Vector3 Mercator::transform_point (const double x, const double y, const double dpp) {
     double big_r = (1 / dpp) * 180 / M_PI;
     double lon = x / big_r, lat = (2.0 * atan(exp(y / big_r))) - M_PI / 2.0;
-    
+
     return Vector3::Normalized(Vector3(cos(lat) * cos(lon), cos(lat) * sin(lon), sin(lat)));
 }

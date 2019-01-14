@@ -31,23 +31,26 @@
 /// Rotation q = Plane(b, Plane::DEFAULT_PARAMETERS).align();
 /// @endcode
 class PlanarTriangle : public BaseTriangle {
-  public:
+public:
     using BaseTriangle::Parameters;
-    static const Parameters DEFAULT_PARAMETERS;
-    
+
     PlanarTriangle (const Benchmark &, const Parameters &);
-    
-    std::vector<labels_list> query (const Star::list &s);
-    Star::list reduce ();
-    Star::list identify ();
-    
+
+    std::vector<labels_list> query (const Star::list &s) override;
+
+    stars_either reduce () override;
+
+    stars_either identify () override;
+
     static int generate_table (INIReader &cf, const std::string &id_name = "plane");
+
     static const unsigned int QUERY_STAR_SET_SIZE;
 
 #if !defined ENABLE_TESTING_ACCESS
     private:
 #endif
-    std::vector<Star::trio> query_for_trios (const index_trio &);
+
+    trio_vector_either query_for_trios (const index_trio &) override;
 };
 
 /// Alias for the PlanarTriangle class. 'Plane' distinguishes the process I am testing here enough from the 5 other

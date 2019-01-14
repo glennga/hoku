@@ -11,13 +11,7 @@
 #include "experiment/lumberjack.h"
 
 /// The maximum size of our result buffer (dependent on SQLITE_MAX_VARIABLE_NUMBER). Flush above this limit.
-const int Lumberjack::MAXIMUM_BUFFER_SIZE = 50;
-
-/// String of the HOKU_PROJECT_PATH environment variable.
-const std::string Lumberjack::PROJECT_LOCATION = std::getenv("HOKU_PROJECT_PATH");
-
-// Path of the Lumberjack database file.
-const std::string Lumberjack::DATABASE_LOCATION = PROJECT_LOCATION + "/data/lumberjack.db";
+const unsigned long Lumberjack::MAXIMUM_BUFFER_SIZE = 50;
 
 /// Constructor. We open a connection to the Lumberjack database here, and we determine our expected result length.
 ///
@@ -27,17 +21,21 @@ const std::string Lumberjack::DATABASE_LOCATION = PROJECT_LOCATION + "/data/lumb
 Lumberjack::Lumberjack (const std::string &trial_table, const std::string &identifier_name,
                         const std::string &timestamp) {
     const int FLAGS = SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE;
-    conn = std::make_unique<SQLite::Database>(DATABASE_LOCATION, FLAGS);
+    conn = std::make_unique<SQLite::Database>(std::string(std::getenv("HOKU_PROJECT_PATH"))
+                                              + "data/lumberjack.db", FLAGS);
     result_buffer.reserve(MAXIMUM_BUFFER_SIZE);
-    
-    // We won't be changing our table from here.
-    select_table(trial_table, true);
+
+    // We won't be changing our table from here. Ensure it exists before proceeding.
+    if (!does_table_exist(trial_table)) {
+        throw std::runtime_error(std::string("Table " + trial_table + " does not exist."));
+    }
+    select_table(trial_table);
     this->identifier_name = identifier_name, this->timestamp = timestamp;
-    
+
     // Determine the length of every result into log_trial. The schema string will not be used.
     std::string schema;
     find_attributes(schema, trial_fields);
-    
+
     // Tuple length = number of commas + 1, subtract 2 as we don't expect the identifier name and the timestamp.
     expected_result_size = static_cast<unsigned int> (std::count(trial_fields.begin(), trial_fields.end(), ',')) - 1;
 }
@@ -55,8 +53,9 @@ Lumberjack::~Lumberjack () {
 int Lumberjack::create_table (const std::string &table_name, const std::string &fields) {
     const int FLAGS = SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE;
     Nibble nb;
-    
-    nb.conn = std::make_unique<SQLite::Database>(DATABASE_LOCATION, FLAGS);
+
+    nb.conn = std::make_unique<SQLite::Database>(std::string(std::getenv("HOKU_PROJECT_PATH"))
+                                                 + "data/lumberjack.db", FLAGS);
     return nb.create_table(table_name, fields);
 }
 
@@ -70,7 +69,7 @@ int Lumberjack::log_trial (const tuple_d &result) {
         throw std::runtime_error(std::string("Result is not of size: " + std::to_string(expected_result_size) + "."));
     }
     result_buffer.emplace_back(result);
-    
+
     // If we have reached our storage max, flush the buffer.
     return (result_buffer.size() >= MAXIMUM_BUFFER_SIZE) ? flush_buffer() : 0;
 }
@@ -83,10 +82,10 @@ int Lumberjack::flush_buffer () {
     if (result_buffer.empty()) {
         return 0;
     }
-    
+
     // Create bind statement with necessary amount of '?'.
     std::string sql = "INSERT INTO " + table + std::string(" (") + trial_fields + ") VALUES ";
-    
+
     // For each result in our buffer, prepare a statement.
     for (unsigned int i = 0; i < result_buffer.size(); i++) {
         sql.append("(?, ");
@@ -96,11 +95,11 @@ int Lumberjack::flush_buffer () {
         sql.append("?),");
     }
     sql.erase(sql.size() - 1);
-    
+
     // Bind all the fields to the results, and execute the insert.
     SQLite::Statement insert(*conn, sql);
     for (unsigned int i = 0; i < result_buffer.size(); i++) {
-        
+
         // Fields here are 1-indexed.
         insert.bind((i * (expected_result_size + 2)) + 1, this->identifier_name);
         insert.bind((i * (expected_result_size + 2)) + 2, this->timestamp);

@@ -119,7 +119,6 @@ int identify_fits (const std::string &id_method, const Star::list &s_i) {
     // Attach hyperparameters.
     Identification::Parameters p = Identification::DEFAULT_PARAMETERS;
     p.table_name = cf.Get("table-names", id_method, Identification::DEFAULT_TABLE_NAME);
-    p.nu = std::make_shared<unsigned int>(0);
     Identification::collect_parameters(p, cf, id_method);
     
     // Identify using the given ID method, and display the results through Python.

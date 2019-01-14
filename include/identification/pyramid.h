@@ -31,16 +31,17 @@
 /// Rotation q = Pyramid(b, Pyramid::DEFAULT_PARAMETERS).align();
 /// @endcode
 class Pyramid : public Identification {
-  public:
+public:
     Pyramid (const Benchmark &input, const Parameters &p);
-    
-    std::vector<labels_list> query (const Star::list &s);
-    Star::list reduce ();
-    Star::list identify ();
-    
+
+    std::vector<labels_list> query (const Star::list &s) override;
+
+    stars_either reduce () override;
+
+    stars_either identify () override;
+
     static int generate_table (INIReader &cf);
-    
-    static const Parameters DEFAULT_PARAMETERS;
+
     static const unsigned int QUERY_STAR_SET_SIZE;
 
 #if !defined ENABLE_TESTING_ACCESS
@@ -52,16 +53,25 @@ class Pyramid : public Identification {
 #if !defined ENABLE_TESTING_ACCESS
     protected:
 #endif
+    // For errors when querying for a star trio, we define an "either" struct.
+    struct trios_either {
+        Star::trio result; // Result associated with the computation.
+        int error = 0; // Error associated with the computation.
+    };
+
     Star::list common (const labels_list_list &big_r_ab_ell, const labels_list_list &big_r_ac_ell,
                        const Star::list &removed);
+
     Star::list common (const labels_list_list &big_r_ae_ell, const labels_list_list &big_r_be_ell,
                        const labels_list_list &big_r_ce_ell, const Star::list &removed);
+
     virtual bool verification (const Star::trio &r, const Star::trio &b);
-    virtual Star::trio find_catalog_stars (const Star::trio &);
-    Star::list identify_as_list (const Star::list &b);
-    
-    static const Star::trio NO_CONFIDENT_R_FOUND;
-    static const Star::list NO_COMMON_FOUND;
+
+    virtual trios_either find_catalog_stars (const Star::trio &);
+
+    stars_either identify_as_list (const Star::list &b);
+
+    static const int NO_CONFIDENT_R_FOUND_EITHER;
 
 #if !defined ENABLE_TESTING_ACCESS
     private:
@@ -72,7 +82,7 @@ class Pyramid : public Identification {
 #if !defined ENABLE_TESTING_ACCESS
     private:
 #endif
-    
+
     labels_list_list query_for_pairs (double);
 };
 

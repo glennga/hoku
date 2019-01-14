@@ -17,7 +17,7 @@
 /// std::cout << Star::wrap(Mercator::transform_point(1000, 1000, 1/5000.0) << std::endl;
 /// @endcode
 class Mercator {
-  public:
+public:
     static Vector3 transform_point (double x, double y, double dpp);
 };
 

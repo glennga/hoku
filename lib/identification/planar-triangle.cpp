@@ -12,20 +12,16 @@
 /// Exact number of query stars required for query experiment.
 const unsigned int Plane::QUERY_STAR_SET_SIZE = 3;
 
-/// Default parameters for the planar triangle identification method.
-const Identification::Parameters Plane::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_QUERY,
-    DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_4, DEFAULT_SQL_LIMIT, DEFAULT_NO_REDUCTION, DEFAULT_FAVOR_BRIGHT_STARS,
-    DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_F, "PLANE_20"};
-
 /// Constructor. Sets the benchmark data and fov. Sets the parameters, working table, and our index permutations.
 ///
 /// @param input Working Benchmark instance. We are **only** copying the star set and the fov.
 /// @param parameters Parameters to use for identification.
 PlanarTriangle::PlanarTriangle (const Benchmark &input, const Parameters &parameters) : BaseTriangle() {
     input.present_image(this->big_i, this->fov);
-    this->parameters = parameters;
-    
-    ch.select_table(this->parameters.table_name);
+    this->parameters = std::make_unique<Parameters>(parameters);
+
+    this->parameters->nu = (parameters.nu == nullptr) ? std::make_shared<unsigned int>(0) : parameters.nu;
+    ch.select_table(this->parameters->table_name);
 }
 
 /// Generate the triangle table given the specified FOV and table name. This find the area and polar moment
@@ -45,7 +41,7 @@ int PlanarTriangle::generate_table (INIReader &cf, const std::string &id_name) {
 /// @param c Index trio of stars ('combination' of I) in body frame.
 /// @return NO_CANDIDATE_STARS_FOUND if stars are not within the fov or if no matches currently exist.
 /// Otherwise, vector of trios whose areas and moments are close.
-std::vector<Star::trio> Plane::query_for_trios (const index_trio &c) {
+Plane::trio_vector_either Plane::query_for_trios (const index_trio &c) {
     return base_query_for_trios(c, Trio::planar_area, Trio::planar_moment);
 }
 
@@ -64,7 +60,7 @@ std::vector<Identification::labels_list> Plane::query (const Star::list &s) {
     if (s.size() != QUERY_STAR_SET_SIZE) {
         throw std::runtime_error(std::string("Input list does not have exactly three b."));
     }
-    
+
     return e_query(Trio::planar_area(s[0], s[1], s[2]), Trio::planar_moment(s[0], s[1], s[2]));
 }
 
@@ -82,7 +78,7 @@ std::vector<Identification::labels_list> Plane::query (const Star::list &s) {
 ///
 /// @return NO_CONFIDENT_R if we cannot query anything. Otherwise, a single match configuration found by the
 /// planar triangle method.
-Star::list Plane::reduce () {
+Plane::stars_either Plane::reduce () {
     return e_reduction();
 }
 
@@ -103,6 +99,6 @@ Star::list Plane::reduce () {
 /// @return NO_CONFIDENT_A if an identification cannot be found exhaustively. EXCEEDED_NU_MAX if an
 /// identification cannot be found within a certain number of query picks. Otherwise, body stars b with the attached
 /// labels of the inertial pair r.
-Star::list Plane::identify () {
+Plane::stars_either Plane::identify () {
     return e_identify();
 }

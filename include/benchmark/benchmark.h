@@ -36,64 +36,70 @@
 /// b.display_plot();
 /// @endcode
 class Benchmark {
-  public:
+public:
     /// Error model structure. Defines the type of error and the stars affected.
     struct ErrorModel {
         std::string model_name; ///< Name of the error being applied.
         std::string plot_color; ///< MatPlotLib color to label the affected points.
         Star::list affected; ///< List of stars affected by the error.
     };
-  
-  public:
+
+public:
     static const double DEFAULT_M_BAR;
     static const double NO_FOV;
 
     Benchmark (Chomp &ch, double fov, double m_bar = DEFAULT_M_BAR);
+
     Benchmark (Chomp &ch, const Vector3 &center, const Rotation &q, double fov, double m_bar = DEFAULT_M_BAR);
+
     Benchmark (const Star::list &s, const Vector3 &center, double fov);
+
     static const Benchmark black ();
+
     Star operator[] (unsigned int n) const;
-    
+
     void generate_stars (Chomp &ch, double m_bar = DEFAULT_M_BAR);
-    void present_image (Star::list &image_s, double &image_fov) const;
-    
+
+    void present_image (std::unique_ptr<Star::list> &image_s, double &image_fov) const;
+
     void record_current_plot ();
+
     void display_plot ();
-    
+
     void add_extra_light (unsigned int n, bool shuffle = true);
+
     void shift_light (unsigned int n, double sigma, bool shuffle = true);
+
     void remove_light (unsigned int n, double psi, bool shuffle = true);
+
     void barrel_light (double alpha);
 
 #if !defined ENABLE_TESTING_ACCESS
     private:
 #endif
+
     Star::list clean_stars () const;
+
     void shuffle ();
-    
-    static const std::string PROJECT_LOCATION;
-    static const std::string CURRENT_TMP;
-    static const std::string ERROR_TMP;
-    static const std::string PLOT_SCRIPT;
 
 #if !defined ENABLE_TESTING_ACCESS
     private:
 #endif
     /// Alias for the list (stack) of ErrorModels.
     using model_list = std::vector<ErrorModel>;
-    
+
     /// Current list of stars in image. All stars must be near the focus.
-    Star::list b;
-    
+    std::shared_ptr<Star::list> b;
+
     /// The focal point of the star list. Does not necessarily have to be a BSC5 star itself.
     Vector3 center;
-    
+
     /// All stars must be fov degrees from the focus.
     double fov;
-    
+
     /// Rotation applied to all stars. Moves stars from inertial to image.
     Rotation q_rb = Rotation::wrap(Quaternion());
-    
+
     /// List (stack) of ErrorModels, which also holds all changed stars.
     model_list error_models;
 };
