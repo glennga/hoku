@@ -1,0 +1,18 @@
+\begin{tikzpicture}
+    \begin{axis}[
+    ybar,
+    width=\linewidth, height=5cm,
+    ylabel={$a(h, b)$}, ylabel near ticks, ymin=0, ymax=1.3,
+    xtick={1, 2, 3}, xticklabels={$\ang{0}$, $\ang{0.000001}$, $\ang{0.001}$},
+    xlabel={$\sigma$ of Noise (degrees)}, xmin=0.5, xmax=3.5, xtick pos=left,
+    nodes near coords, every node near coord/.append style={rotate=90, anchor=west},
+    legend style={at={(0.5,-0.35)}, anchor=north,legend columns=-1},
+    bar width=7
+    ]
+        \addplot coordinates {(1, 0.999416666666667) (2, 0.999222222222222) (3, 0.354333333333333)};
+        \addplot coordinates {(1, 0.956083333333329) (2, 0.954444444444449) (3, 0.203166666666665)};
+        \addplot coordinates {(1, 1.0) (2, 1.0) (3, 0.0)};
+        \addplot coordinates {(1, 1.0) (2, 0.999833333333333) (3, 0.346333333333333)};
+        \legend{PYR, PYR-N, COM, COM-N}
+    \end{axis}
+\end{tikzpicture}

@@ -160,22 +160,23 @@ def e_plot(cur_i, att):
         x_space = sorted(list(map(lambda x: x[0], x_space)))
 
         # Construct the points to plot.
-        y_avg, y_std = [], []
-        for x_p in x_space:
+        y_avg, y_std, y_med, y_all = [], [], [], [[] for _ in x_space]
+        for i, x_p in enumerate(x_space):
             y_data = cur_i.execute('SELECT COALESCE ({}, 0) '.format(att['y_attribute']) +  # Grab our Y axis data.
                                    'FROM {} '.format(att['table_name']) +
                                    'WHERE IdentificationMethod = ? '
                                    'AND {} = ? '.format(att['x_attribute']) +
                                    ('' if 'constrain_that' not in att.keys() else 'AND ' + att['constrain_that']),
                                    (m, x_p)).fetchall()
+            y_all[i] = [x for x in y_data]
             y_data = list(map(lambda y: y[0], y_data))
 
             # Divide data into n sections. Apply AVG to each split of y data.
             y_data = np.split(np.array(y_data), params['split-n'])
             y_data = list(map(lambda y: np.mean(y), y_data))
 
-            # Collect averages and deviations for each partition of data.
-            y_avg.append(np.mean(y_data)), y_std.append(np.std(y_data))
+            # Collect averages, deviations, and medians for each partition of data.
+            y_avg.append(np.mean(y_data)), y_std.append(np.std(y_data)), y_med.append(np.median(y_data))
 
             # Display the results to console (X = ... | ID = ... | mu = ... +/- sigma)
             f_str = '| {:<20} | {:>12} = {:>5} | ID = {:>12} | mu = {:<7} +/- {:>7} |'
@@ -191,6 +192,16 @@ def e_plot(cur_i, att):
             attach_plot_info(att)
         elif att['plot_type'] in ['LINE', 'LINE_NOERR']:
             plots.append(plt.plot(x_space, y_avg))
+            attach_plot_info(att)
+        elif att['plot_type'] == 'BAR_QUART':
+            plots.append(plt.bar(np.arange(len(x_space)) + 0.1 * k - 0.2, [np.percentile(x, 50) for x in y_all], 0.1))
+            plt.vlines(np.arange(len(x_space)) + 0.1 * k - 0.2,
+                       [np.percentile(y_all[i], 25) for i in range(len(x_space))],
+                       [np.percentile(y_all[i], 75) for i in range(len(x_space))])
+            attach_plot_info(att)
+        elif att['plot_type'] == 'WHISKER':
+            plots.append(plt.boxplot(y_all, positions=np.arange(len(x_space)) + 0.1 * k - 0.2,
+                                     widths=[0.1 for _ in x_space], showfliers=False))
             attach_plot_info(att)
         else:
             plots.append(plt.errorbar(x_space, y_avg, yerr=y_std))

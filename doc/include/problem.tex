@@ -1,74 +1,155 @@
 \section{Attitude Determination}\label{sec:attitudeDetermination}
+
+This section serves to give a brief overview into what attitude is, what Wahba's problem is \& how to solve it, and what
+stellar based attitude determination entails.
+
+As an example, observer $A$ at the bottom of a mountain may describe the mountain itself as large and above itself.
+Another observer $B$ on a helicopter hovering over the same mountain may describe it as small and below itself.
+To find an attitude between $A$'s reference frame and $B$'s reference frame is to find some function $h(x_1, x_2, x_3,
+\ldots)$ that is able to produce $B$'s description of the mountain with $A$'s observations.
+
+\subsection{General Attitude Determination}\label{subsec:generalAttitudeDetermination}
+Attitude refers to the translation between how one system describes an object compared to how a different system
+describes the same object.
+These systems are referred to as \textit{reference frames}, and describe objects in terms of dimensions ($x_1, x_2, x_3,
+\ldots$).
+
+In the context of spacecraft attitude for star identification, there exist three reference frames: the
+\textit{body frame}, the \textit{sensor frame}, and the \textit{inertial frame}.
+The body frame itself is fixed to the structure of the spacecraft, the sensor frame is fixed to the star tracker,
+and the inertial frame refers to some non-accelerating frame in which stellar objects are recorded.
+All observations from the spacecraft exist in the sensor frame, but can easily be rotated to align with the body frame
+(the sensor itself is fixed to the spacecraft chassis).
+Consequently, the body frame is used interchangeably with the sensor frame.
+To describe the craft itself, an inertial frame is required for finding a practical attitude.
+A star observed in the inertial frame is more predictable than the same star observed in a tumbling spacecraft, aiding
+the usage of the attitude with orientation dependent processes.
+Using all three, the goal of attitude determination becomes finding some method of translation between the inertial
+frame and the body frame.
+
 \begin{figure}
     \centering{
-    \includegraphics[scale=0.23]{images/moving-coordinate-systems.PNG}
+    \input{include/floats/coordinate-systems}
     \caption{
-    Visual of two coordinate frames: the inertial frame $A$, and the body frame $B$~\cite{CoordinateSystem}.
-    The point $x$ is observed with vector $x_A$ in the $A$ frame, but the same point $x$ is observed with vector
-    $x_B$ in the $B$ frame.
-    By aligning several observations in both frames, a spacecraft orientation $x_{AB}$ in the $B$ frame can be
-    determined in the $A$ frame.
+    Visual of two coordinate frames: the inertial frame $\kFrame$, and the body frame $\iFrame$.
+    Observation $j$ is described with vector $\vv{I_j}$ in the $\iFrame$ body frame.
+    The same observation $j$ is described with vector $\vv{K_j}$ in the $\kFrame$ inertial frame.
+    By aligning several observations in both frames, a spacecraft orientation $A^{\nicefrac{\iFrame}{\kFrame}}$ can be
+    determined to take all points in $\kFrame$ to $\iFrame$.
     } \label{figure:coordinateSystem}
     }
 \end{figure}
 
-Attitude determination is the process of finding one's orientation in space.
-On Earth, "up" and "down" mean "up from the center of the Earth" and "down toward the center of the Earth".
-The direction toward the Earth can be determined using the Earth's gravitational presence.
-This makes attitude determination fairly straightforward, requiring no more than a 3-axis acceleration sensor.
-These are present inside most (if not all) modern cell phones.
+\begin{subequations}
+    ~\autoref{figure:coordinateSystem} describes an inertial frame $\kFrame$ with a right hand set of three orthogonal
+    vectors $\{\vv{u_1}, \vv{u_2}, \vv{u_3}\}$ and a body frame $\iFrame$ with another right hand set of three
+    orthogonal vectors $\{\vv{v_1}, \vv{v_2}, \vv{v_3}\}$~\cite{wie:spaceVehicleDynamics}.
+    A \textit{rotation matrix} $A$ can be assembled to describe the basis vectors of $\kFrame$ in terms of $\iFrame$:
+    \begin{align}
+        \begin{bmatrix}
+            \vv{v_1} \\
+            \vv{v_2}  \\
+            \vv{v_3}
+        \end{bmatrix} &=
+        \begin{bmatrix}
+            \vv{v_1} \cdot \vv{u_1} & \vv{v_1} \cdot \vv{u_2} & \vv{v_1} \cdot \vv{u_3} \\
+            \vv{v_2} \cdot \vv{u_1} & \vv{v_2} \cdot \vv{u_2} & \vv{v_2} \cdot \vv{u_3} \\
+            \vv{v_3} \cdot \vv{u_1} & \vv{v_3} \cdot \vv{u_2} & \vv{v_3} \cdot \vv{u_3}
+        \end{bmatrix}
+        \begin{bmatrix}
+            \vv{u_1} \\
+            \vv{u_2}  \\
+            \vv{u_3}
+        \end{bmatrix} \\
+        \begin{bmatrix}
+            \vv{v_1} \\
+            \vv{v_2}  \\
+            \vv{v_3}
+        \end{bmatrix} &=
+        A^{\nicefrac{\iFrame}{\kFrame}}
+        \begin{bmatrix}
+            \vv{u_1} \\
+            \vv{u_2}  \\
+            \vv{u_3}
+        \end{bmatrix}
+    \end{align}
+\end{subequations}
+The issue here is that this rotation matrix $A$ is not given and that we need to account for the noise associated with
+our measurements.
+This problem is known as \textit{Wahba's problem}, first posed by Gracie Wahba in
+1965~\cite{wahba:attitudeEstimationProblem}.
+Wahba's problem states that finding the optimal $A$ involves minimizing the loss function below:
+\begin{equation}
+    L(A) = \frac{1}{2} \sum_j^n \vv{w_j} \left\| \vv{I_j} - A\vv{K_j} \right\|^2
+\end{equation}
+where $\vv{w_j}$ represents a non negative weight associated with the noise between the observations $\vv{I_j}$
+in the body frame and $\vv{K_j}$ in the inertial frame.
 
-In space, distinguishing "up from Earth" from "down toward Earth" is different as the Earth's gravitational presence is
-severely diminished.
-This means that the acceleration sensors used here cannot be used to determine one's attitude in space, and
-spacecraft must use other objects to build an attitude from.
-The visual position of the Sun and the Earth's magnetic field are common choices for reference points, but the most
-popular are the visual positions of various stars in the sky.
-
-Once some known object is found by the sensor, these measurements exists in a \textit{body reference frame}.
-This reference frame reveals the position of objects with respect to the sensor, but is not fixed to any point.
-There exists a separate, fixed frame with which these known objects are recorded to prior to the start of the mission.
-This is known as an \textit{inertial reference frame}~\cite{Tappe}.
-~\autoref{figure:coordinateSystem} depicts the relation between both frames.
-Given sensor measurements to a set of points ($X_A, X'_A, X''_A, \ldots$) and inertial frame measurements to the same
-objects ($X_B, X'_B, X''_B, \ldots$), the goal of attitude determination involves finding the rotation $X_{AB}$ to
-take all points in the sensor frame to the inertial frame (or the inverse).
-In short, attitude determination involves taking inertial frame object observations in the body frame, and figuring out
-how the spacecraft is oriented in this inertial frame.
-
-From here, the problem becomes aligning vector observations in the body frame with another set of vectors in the
-inertial frame.
-This is an optimization problem known as \textit{Wahba's problem}~\cite{AttitudeEstimation}.
-A popular and simple method to extract an attitude from two vectors in both the inertial and body frame is the
-\textit{TRIAD method}.
-For all instances where Wahba's problem was present, the TRIAD method was used to extract an orientation.
+\begin{subequations}
+    For $n \!>\! 2$, Wahba's problem exists as an optimization problem.
+    In the $n\seq2$ case though, the \textit{TRIAD method} (short for TRIaxial Attitude Determination) exists as a
+    closed form solution~\cite{markley:attitudeDeterminationTwoVectors}.
+    This algorithm starts by constructing two sets of basis vectors: one attached to the body referential (two
+    observations in the body frame) $\left[ \vv{t_{1I}} \ \vv{t_{2I}} \ \vv{t_{3I}} \right]$ and another attached to
+    the inertial referential (two observations in the inertial frame) $\left[ \vv{t_{2I}} \ \vv{t_{2K}} \ \vv{t_{3K}}
+    \right]$~\cite{benet:swisscubeAttitudeDetermination,black:passiveAttitudeDetermination}.
+    This is known as the triad frame:
+    \begin{alignat}{4}
+        \vv{t_{1I}} &= \frac{\vv{v_1}}{\left| \vv{v_1} \right|} &\vv{t_{2I}} &{}={}&
+            \frac{\vv{u_1}}{\left| \vv{u_1} \right|} \ \ \ \ \ \ \  \\
+        \vv{t_{2I}} &= \frac{\vv{v_1} \times \vv{v_2}}{\left| \vv{v_1} \times \vv{v_2} \right|} \ \ \ \ \ \ \ \
+            &\vv{t_{2K}} &{}={}& \frac{\vv{u_1} \times \vv{u_2}}{\left| \vv{u_1} \times \vv{u_2} \right|} \\
+        \vv{t_{3I}} &= \vv{t_{1I}} \times \vv{t_{2I}} &\vv{t_{3K}} &{}={}& \vv{t_{2I}} \times \vv{t_{2K}}
+    \end{alignat}
+\end{subequations}
+Getting from frame $\kFrame$ to $\iFrame$ now simplifies to multiplication of the triad frame base change matrices:
+\begin{equation}
+    A =
+    \begin{bmatrix}
+        \vv{t_{1K}} & \vv{t_{2K}} & \vv{t_{3K}}
+    \end{bmatrix}
+    \begin{bmatrix}
+        \vv{t_{1I}} & \vv{t_{2I}} & \vv{t_{3I}}
+    \end{bmatrix}^T
+\end{equation}
+For all instances where a rotation between the inertial and body frames was required, the TRIAD algorithm was used.
 
 \subsection{Stellar Based Attitude Determination}\label{subsec:stellarBasedAttitudeDetermination}
-Relative to our solar system, the majority of bright stars ($m < 6.0$, or visible from the Earth without a telescope)
-\textit{do not visibly move}.
-Most of these stars exist hundreds of lightyears away from the solar system.
-Observing a tiny change in a star's position from Earth suggests a massive change in position relative to the star.
-For many LEO missions, the time it takes for these star positions to change is longer than the length of mission itself.
-For longer missions, only then will star dynamics have to be taken into account.
-This paper address spacecraft missions where all stars are virtually static in position.
+\begin{subequations}
+    Relative to our solar system, the majority of bright stars ($m \!<\! 6.0$, or visible from the Earth with the naked
+    eye) do not visibly move.
+    For simplicity, we make the assumption here that all stars in $\kFrame$ are fixed and exist in a inertial frame
+    known as the \textit{Earth centered inertial} frame, or ECI frame.
+    The star vectors themselves come from star catalogs, the majority of which use the ECI frame and record the
+    positions of stars as points lying on a sphere known as the celestial sphere~\cite{tappe:starTrackerDevelopment}.
+    Two pieces of information are given here: right ascension $\alpha$ (equivalent to latitude on Earth) and
+    declination $\delta$ (equivalent to longitude).
+    Representing some spherical point $(\alpha, \delta, r)$ in 3D Cartesian space involves the following:
+    \begin{align} \label{eq:sphereToCartesian}
+        x &= r \cos(\delta) \cos(\alpha) \\
+        y &= r \cos(\delta) \sin(\alpha) \\
+        z &= r \sin(\delta)
+    \end{align}
+    where both $\alpha$ and $\delta$ are in degrees, and $r$ represents some constant distance from Earth.
+    $\vv{K_j}$ represents a point obtained from a star catalog that lies in the ECI frame, $r$ units away from Earth.
+\end{subequations}
 
+Let $\vv{I_j}$ represent a 3D point projected from a 2D observation taken by the star tracker.
 A basic star tracker is composed of a camera, a computer for determining orientation, and a link back to the main
 computer.
-Once the star tracker on a lost-in-space spacecraft takes a picture, three main pieces of information are known:
-\begin{enumerate}
-    \item An 2D image of the sky.
-    \item Characteristics of the camera hardware (field-of-view, lens structure, \ldots).
-    \item All cataloged stars and their 3D positions in the catalog (inertial) frame.
-\end{enumerate}
-
 After taking the picture, the pixel positions of potential stars in the image are determined.
-This involves finding bright blobs in the image, and computing each blob's center of mass.
-To align these stars with the ones in the catalog, the image must be projected into three-dimensional.
-This is done using the items in (2) above, and can be a major source of error if these
-characteristics are not accurate.
-The result of this process are star vectors in the image (body) frame~\cite{Tappe}.
+This involves finding bright blobs in the image, and computing each blob's center of mass to get a point ($x, y$).
+Through some 2D to 3D transformation process involving the camera's hardware (i.e.\ field of view, focal point,
+etc\ldots), a 3D point is then obtained~\cite{tappe:starTrackerDevelopment}.
+%    To align these stars with the ones in the catalog, the inverse Mercator mapping is used [CITE ME]:
+%    \begin{align}
+%        x &= k \cos\left( \frac{x}{R}  \right) \cos\left(2 * \arctan\left(\exp\left(\frac{y}{R}\right)\right) -
+%            \frac{\pi}{2}\right) \\
+%        y &= k \cos\left( \frac{x}{R}  \right) \sin\left(2 * \arctan\left(\exp\left(\frac{y}{R}\right)\right) -
+%            \frac{\pi}{2}\right) \\
+%        z &= k \sin\left( \frac{x}{R}  \right)
+%    \end{align}
 
-By running these image star vectors through a star identification method, a map between the image frame stars and
-catalog frame stars is found.
-For a given image star $b$ and a catalog star $r$, a map $a$ describes an association ($b, r$) between both stars.
-This then reduces to Wahba's problem, and is solved using the TRIAD method to obtain a spacecraft attitude.
+The next issue is the focus of this paper: determining which observation from the star tracker frame $\iFrame$
+corresponds to which observation from the star catalog frame $\kFrame$.
+Once this correspondence is found, Wahba's problem is solved to obtain $A$ and this is returned to the main computer.

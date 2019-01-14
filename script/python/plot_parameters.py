@@ -86,7 +86,7 @@ params = {
         'sdse-nll': 1,  # Do not plot the legend.
 
         # Shift Deviation vs. CandidateSetSize plot parameters.
-        'sdcss-yll': [0, 15],  # Y-axis limits.
+        'sdcss-yll': [0, 20],  # Y-axis limits.
         'sdcss-xtl': [r'$0$', r'$10^{-4}$', r'$10^{-3}$', r'$10^{-2}$', r'$10^{-1}$'],  # X-axis tick labels.
         'sdcss-xal': 'Deviation of Noise (degrees)',  # X-axis label.
         'sdcss-yal': r'$S$',  # Y-axis label.
@@ -115,7 +115,6 @@ params = {
                      r'$10^{-2}$'],  # X-axis tick labels.
         'sdttr-xal': 'Deviation of Noise (degrees)',  # X-axis label.
         'sdttr-yal': r'Average $t$ (ms)',  # Y-axis label.
-        'sdttr-slya': 1,  # Y-axis is logarithmic.
         'sdttr-nll': 1,  # Do not plot the legend.
 
         # False Stars vs. PercentageCorrect plot parameters.
@@ -129,39 +128,39 @@ params = {
         'fsttr-xtl': ['0', '3', '6', '9', '12'],  # X-axis tick labels.
         'fsttr-xal': 'False Star Count',  # X-axis label.
         'fsttr-yal': r'Average $t$ (ms)',  # Y-axis label.
-        'fsttr-slya': 1,  # Y-axis is logarithmic.
         'fsttr-nll': 1,  # Do not plot the legend.
     },
 
     'identification-plot': {
         'll': ['Angle', 'Dot', 'Sphere', 'Plane', 'Pyramid', 'Composite'],  # Legend list.
+        # 'll': ['Dot', 'Pyramid', 'Composite'],  # Legend list.
 
         # Shift Deviation vs. PercentageCorrect plot parameters.
         'sdpc-yll': [0, 1.05],  # Y-axis limits
-        'sdpc-xtl': [r'$0$', r'$10^{-6}$', r'$10^{-5}$', r'$10^{-4}$', r'$10^{-3}$'],  # X-axis tick labels.
+        'sdpc-xtl': [r'$0$', r'$10^{-6}$', r'$10^{-5}$', r'$10^{-4}$', r'$10^{-3}$',
+                     r'$10^{-2}$'],  # X-axis tick labels.
         'sdpc-xal': 'Deviation of Noise (degrees)',  # X-axis label.
-        'sdpc-yal': r"Average $y''$",  # Y-axis label.
+        'sdpc-yal': r"Average $y'''$",  # Y-axis label.
         'sdpc-nll': 1,  # Do not plot the legend.
 
         # Shift Deviation vs. TimeToResult plot parameters.
-        'sdttr-xtl': [r'$0$', r'$10^{-6}$', r'$10^{-5}$', r'$10^{-4}$', r'$10^{-3}$'],  # X-axis tick labels.
+        'sdttr-xtl': [r'$0$', r'$10^{-6}$', r'$10^{-5}$', r'$10^{-4}$', r'$10^{-3}$',
+                      r'$10^{-2}$'],  # X-axis tick labels.
         'sdttr-xal': 'Deviation of Noise (degrees)',  # X-axis label.
         'sdttr-yal': r'Average $t$ (ms)',  # Y-axis label.
-        'sdttr-slya': 1,  # Y-axis is logarithmic.
         'sdttr-nll': 1,  # Do not plot the legend.
 
         # False Stars vs. PercentageCorrect plot parameters.
         'fspc-yll': [0, 1.05],  # Y-axis limits.
         'fspc-xtl': ['0', '3', '6', '9', '12'],  # X-axis tick labels.
         'fspc-xal': 'False Star Count',  # X-axis label.
-        'fspc-yal': r"Average $y''$",  # Y-axis label.
+        'fspc-yal': r"Average $y'''$",  # Y-axis label.
         'fspc-nll': 1,  # Do not plot the legend.
 
         # False Stars vs. TimeToResult plot parameters.
         'fsttr-xtl': ['0', '3', '6', '9', '12'],  # X-axis tick labels.
         'fsttr-xal': 'False Star Count',  # X-axis label.
         'fsttr-yal': r'Average $t$ (ms)',  # Y-axis label.
-        'fsttr-slya': 1,  # Y-axis is logarithmic.
         'fsttr-nll': 1,  # Do not plot the legend.
     }
 }
