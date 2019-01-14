@@ -68,7 +68,6 @@ public:
 
     static const index_trio STARTING_INDEX_TRIO;
 
-    static const int NO_CANDIDATE_TRIOS_FOUND_EITHER;
     static const int NO_CANDIDATE_STARS_FOUND_EITHER;
     static const int NO_CANDIDATE_STAR_SET_FOUND_EITHER;
 
