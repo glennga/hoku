@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Ensure that we have only 2 arguments passed.
-if [[ "$#" -ne 2 ]]; then
-    echo "Usage: find-sigma.sh [angle / dot / sphere / plane / pyramid / composite] [number of branches]"
+# Ensure that we have only 3 arguments passed.
+if [[ "$#" -ne 3 ]]; then
+    echo "Usage: find-sigma.sh [angle / dot / sphere / plane / pyramid / composite] [row blocks] [max spawn] "
     exit 1
 fi
 
@@ -19,8 +19,20 @@ if [[ "$1" != "angle" ]] && [[ "$1" != "dot" ]] && [[ "$1" != "sphere" ]] && [[ 
     exit 1
 fi
 
+# Ensure that the row block number is valid.
+if ! [[ $2 =~ '^[0-9]+$' ]] && (( $2 <= 0 )); then
+    echo "Blocks specified is not a positive integer."
+    exit 1
+fi
+
+# Ensure that the maximum spawned processes number is valid.
+if ! [[ $3 =~ '^[0-9]+$' ]] && (( $3 <= 0 )); then
+    echo "Maximum process spawn number is not a positive integer."
+    exit 1
+fi
+
 # We generate a random temporary folder to store our results before we assess the results of each.
-TMP_RESULTS_DIR=${HOKU_PROJECT_PATH}/data/$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 13 ; echo '')
+TMP_RESULTS_DIR=${HOKU_PROJECT_PATH}/data/$(openssl rand -base64 12)
 mkdir ${TMP_RESULTS_DIR}
 
 # Determine our table name in nibble.db and the number of rows associated with this table.
@@ -72,9 +84,10 @@ fi
 
 # Divide our query and perform accordingly. We output the results of each query to the temp directory.
 DIVIDED_QUERY_ROWS=$(($ROWS / $2))
-for r in `seq 1 $2`; do
-    LOWER_QUERY_BOUND=$(($(($r - 1)) * ${DIVIDED_QUERY_ROWS}))
-    UPPER_QUERY_BOUND=$(($r * ${DIVIDED_QUERY_ROWS}))
+NUMBER_SPAWNED_PROCESSES=0
+for r in `seq 1 ${DIVIDED_QUERY_ROWS}`; do
+    LOWER_QUERY_BOUND=$(($(($r - 1)) * $2))
+    UPPER_QUERY_BOUND=$(($r * $2))
     sqlite3 ${HOKU_PROJECT_PATH}/data/nibble.db "$QUERY_PART_ONE \
                                                  FROM ( \
                                                     $QUERY_PART_TWO \
@@ -86,10 +99,32 @@ for r in `seq 1 $2`; do
                                                     A.ROWID <> B.ROWID
                                                  )
                                                  WHERE $QUERY_PART_THREE;" >> ${TMP_RESULTS_DIR}/MIN-$1-${r}.result &
+
+    # Ensure that we never spawn more than $3 processes.
+    NUMBER_SPAWNED_PROCESSES=$((${NUMBER_SPAWNED_PROCESSES} + 1))
+    if (( $NUMBER_SPAWNED_PROCESSES > $3 )); then
+        wait
+        NUMBER_SPAWNED_PROCESSES=0
+    fi
 done
 
 # Wait for all spawned processes to finish.
 wait
 
-# I'm feeling a little lazy, so we are just going to output the results of each parallel run.
-find ${TMP_RESULTS_DIR} -type f -exec cat {} \;
+# Concatenate these results into one main file.
+cat ${TMP_RESULTS_DIR}/* >> ${TMP_RESULTS_DIR}/MIN-$1-sum.result
+
+# Determine the smallest values from here.
+echo "sigma_1: $(cut -f1 -d"," ${TMP_RESULTS_DIR}/MIN-$1-sum.result | sort -n | head -1)"
+echo "=============================="
+
+if [[ "$1" = "sphere" ]] || [[ "$1" = "plane" ]] || [[ "$1" = "composite" ]] || [[ "$1" = "dot" ]]; then
+    echo "sigma_2: $(cut -f2 -d"," ${TMP_RESULTS_DIR}/MIN-$1-sum.result | sort -n | head -1)"
+    echo "=============================="
+fi
+
+if [[ "$1" = "dot" ]]; then
+    echo "sigma_3: $(cut -f2 -d"," ${TMP_RESULTS_DIR}/MIN-$1-sum.result | sort -n | head -1)"
+    echo "=============================="
+fi
+
