@@ -13,57 +13,46 @@
 
 \section{Constellation Query Processing Strategies}\label{sec:starIdentificationMethods}
 Six different approaches to constellation query processing are described in this section.
-The majority of the literature does not include pseudocode for their queries, rather they specify descriptions of
-specific processes used by each strategy.
+The majority of the literature does not include pseudocode for their queries, rather they specify descriptions of specific processes used by each strategy.
 Each algorithm is composed of these processes, structured to follow a general processing workflow.
 %When the description did not specify a step in this flow, a simple or existing approach from another strategy was used.
 %Several deviations to the algorithms from the original literature were introduced from newer literature to evaluate
 %the effectiveness of these changes.
 
 \subsection{Unified Identification Strategy Framework}\label{subsec:unifiedIdentification}
-Each constellation query is presented with camera hardware information (for the 2D $\srightarrow$ 3D process),
-an image $I$ of size $n$ containing all the query points, as well as a set of known points $K$ residing in some
-database.
-All points in $I$ exist in the body coordinate system $\iFrame$, and all points in $K$ exist in the inertial
-coordinate system $\kFrame$.
-The goal of each constellation query is to find some 1:1 mapping between a subset of the image points $b$ and a subset
-of the database points $r$.
-This function is denoted as $h$ with domain $b$, range $r$, and codomain $K$.
+Each constellation query is presented with camera hardware information (for the 2D $\srightarrow$ 3D process), a set $\imageset$ of size $n$ containing all the query points, as well as a set of known points $\databaseset$ residing in some database.
+All points in $\imageset$ exist in the body coordinate system $\iFrame$, and all points in $\databaseset$ exist in the inertial coordinate system $\kFrame$.
+The goal of each constellation query is to find some 1:1 mapping between a subset of the image points $\imagesubset$ and a subset of $\databaseset$ points: $\candidateset$.
+This function is denoted as $\solutionmap$ with domain $\imagesubset$, range $\candidateset$, and codomain $\databaseset$.
 Identification of all query points in each image is not the focus.
 
-\begin{subequations}
-    Every algorithm starts with some combination from all possible $d$ combinations of $n$ points $C(n, d)$, where
-    $d$ is the size of the image subset specified by the specific identification strategy.
-    $b$ is selected using one of these combinations.
-    For a strategy that uses $d\seq2$ points to determine the mapping in an image of $n\seq 4$ points,
-    the combinations of $I$ are:
-    \begin{align}
-        C(4, 2) \text{ of } I &= \set{\set{\vv{I_1}, \vv{I_2}}, \set{\vv{I_1}, \vv{I_3}}, \ldots,
-        \set{\vv{I_3}, \vv{I_4}}} \\ 
-        C(4, 2) \text{ of } I &= \set{ b_1, b_2, \ldots, b_6 }
-    \end{align}
-\end{subequations}
+Every algorithm starts with some combination from all possible $d$ combinations of $n$ points, where $d$ is the size of the image subset specified by the specific identification strategy.
+The image subset $\imagesubset$ is selected using one of these combinations.
+For a strategy that uses $d\seq2$ points to determine the mapping in an image of $n\seq 4$ points, the 6 combinations of $\imageset$ are given as $\binom{\imageset}{d}$:
+\begin{equation}
+    \begin{aligned}
+	    \binom{\imageset}{d} = \{&
+	    	\set{\vv{\imageset[1]}, \vv{\imageset[2]}},
+	    	\set{\vv{\imageset[1]}, \vv{\imageset[3]}}, \\
+	       &\set{\vv{\imageset[1]}, \vv{\imageset[4]}}, \ldots,
+	        \set{\vv{\imageset[3]}, \vv{\imageset[4]}}
+	        \}
+    \end{aligned}
+\end{equation}
 
-\begin{subequations}
-    There exists a set $K^d$, composed of $d$ sized sets of all possible combinations (or permutations) of points
-    from $K$.
-    Using certain features of the image subset, the entire $K^d$ set is filtered to a set of database candidates $R$.
-    This is known as the $R$ retrieval step.
-    Referencing the same $d\seq 2$ identification strategy as before, an image subset $b \seq \set{\vv{I_1},
-    \vv{I_2}}$ may yield the candidates in~\autoref{eq:catalogCandidateExample}:
-    \begin{align}
-        \label{eq:catalogCandidateExample}
-        R &= \set{ \set{\vv{K_{104}}, \vv{K_{899}}}, \set{\vv{K_{7622}}, \vv{K_{7771}}}, \ldots) } \\
-        R &= \set{ r_1, r_2, \ldots }
-    \end{align}
-\end{subequations}
+There exists a set $\genericdatabase$ for some identification method $\texttt{X}$, composed of $d$ sized sets of all possible combinations or permutations of points from $\databaseset$.
+Using certain features of the image subset, the entire $\genericdatabase$ set is filtered to a set of database candidates $\databasesubset$.
+This is known as the \emph{candidate retrieval step}.
+Referencing the same $d\seq 2$ strategy as before, an image subset $\imagesubset \seq \set{\vv{\imageset[1]}, \vv{\imageset[2]}}$ may yield the candidates in~\autoref{eq:catalogCandidateExample}:
+\begin{equation}
+	\label{eq:catalogCandidateExample}
+    \databasesubset = \set{ \set{\vv{\databaseset[104]}, \vv{\databaseset[899]}}, \set{\vv{\databaseset[7622]}, \vv{\databaseset[7771]}}, \ldots) } 
+\end{equation}
 
-Through some filter process or restriction criteria for $R$ itself, a single set $r$ from the database candidates
-is eventually selected.
-This may require going through multiple database candidate sets and repeating the $R$ retrieval step.
-This is known as the database candidate $r$ selection step.
-For a process with the $R$ restriction criterion of $|R| \seq 1$, the following sequence
-of events may occur before finding a single $r$ set.
+Through some filter process for $\databasesubset$ and/or loop back to the $b$ selection step until $\abs{R} = 1$, a single set $\candidateset$ from the database candidates is  chosen.
+This is known as the \emph{candidate selection step}.
+For a process that only loops back to the $b$ selection step until the $|\databasesubset| \seq 1$ criterion holds true, the following sequence of events may occur.
+The notation $\databasesubset^{(t)}$ and $\imagesubset^{(t)}$ denotes distinct $\genericdatabase$ and $\imageset$ subsets here, as opposed to the notation $\databasesubset[j]$ and $\imagesubset[j]$ which denotes singular database candidates and single points in $\imageset$ respectively.
 %\begin{description}[noitemsep]
 %    \item[$t = 1:$] $\text{ query with } b^{(1)}, \text{ get } R^{(1)} = \{\vv{r_{11}}, \vv{r_{12}}, \ldots\}.$
 %    \item[$t = 2:$] $\abs{ R^{(1)} } \neq 1, \text{ criterion not met. }$
@@ -73,22 +62,45 @@ of events may occur before finding a single $r$ set.
 %    \item[$t = 6:$] $\text{ return } r, r \in R^{(2)} (\text{sole element in } R^{(2)} ).$
 %\end{description}
 \begin{align*}
-    &t = 1, \text{ retrieve with } b^{(1)}, \text{ get } R^{(1)} = \{\vv{r_{11}}, \vv{r_{12}}, \ldots\}. \\
-    &t = 2, \ \abs{ R^{(1)} } \neq 1, \text{ criterion not met. } \\
-    &t = 3, \text{ choose new image subset } b^{(2)}. \\
-    &t = 4, \text{ retrieve with } b^{(2)}, \text{ get } R^{(2)} = \{\vv{r_{21}}\}. \\
-    &t = 5, \ \abs{ R^{(2)} } = 1, \text{ criterion met. } \\
-    &t = 6, \text{ return } r, r \in R^{(2)} (\text{sole element in } R^{(2)} ).
+    &t = 1, \text{ retrieve with } \imagesubset^{(1)}, \text{ get } \databasesubset^{(1)} = \{\vv{\candidateset_{11}}, \vv{\candidateset_{12}}, \ldots\}. \\
+    &t = 2, \ \abs{ \databasesubset^{(1)} } \neq 1, \text{ criterion not met. } \\
+    &t = 3, \text{ choose new image subset } \imagesubset^{(2)}. \\
+    &t = 4, \text{ retrieve with } \imagesubset^{(2)}, \text{ get } \databasesubset^{(2)} = \{\vv{\candidateset_{21}}\}. \\
+    &t = 5, \ \abs{ \databasesubset^{(2)} } = 1, \text{ criterion met. } \\
+    &t = 6, \text{ return } \candidateset, \candidateset \in \databasesubset^{(2)} (\text{sole element in } \databasesubset^{(2)} ).
 \end{align*}
 
+\begin{algorithm}
+	\caption{Direct Match Testing} \label{algorithm:dmt}
+	\begin{algorithmic}[1]
+		\Function{FPO}{$\texttt{DB\_NEAR}$, $\imageset$, $A$}
+		\State $\texttt{IMG\_ROT} \gets$ points in $\imageset$ rotated by $A$
+		\State \textbf{return} \parbox[t]{0.8\linewidth}{\raggedright all points in $\texttt{DB\_NEAR}$ that overlap with some point in $\texttt{IMG\_ROT}$}
+		\EndFunction
+		\\
+        \Function{DMT}{$b, r, \imageset$}
+        \State $\texttt{DB\_NEAR} \gets $ all points in $\databaseset$ near $r$
+        \State $\texttt{DB\_MATCH} \gets \emptyset$
+        \For {$h \in $ all possible mappings between $b$ and $r$}
+        \State $A \gets $ \Call{TRIAD}{$h, \imagesubset, \candidateset$}
+        \State $\texttt{DB\_MATCH}_h \gets $ \Call{FPO}{$\texttt{DB\_NEAR}, \imageset, A$}
+        \EndFor
+        \If{there exists no largest set $\texttt{DB\_MATCH}_h \in \texttt{DB\_MATCH}$}
+        \State \textbf{return} an invalid function %\Comment Indicate non-confidence.
+        \Else
+        \State \textbf{return} $h \in H$ associated with largest set in $\texttt{DB\_MATCH}$
+        \EndIf
+        \EndFunction
+	\end{algorithmic}
+\end{algorithm}
+
 \newcommand{\smapsto}{\! \mapsto \!}
-From here, a injection $h \mid b \smapsto r$ is determined that maps each point found in the image subset to a single
-point in the database candidate set.
-For brevity, it is assumed that all functions in this paper have domain $b$ and codomain $K$.
+From here, a mapping $\solutionmap$ is determined that pairs each point found in the image subset to a single point in the database candidate set.
+For brevity, it is assumed that all functions in this paper have domain $\imagesubset$ and codomain $\databaseset$.
 If we are not confident in $h$ at this stage, another image subset is chosen and the process is repeated.
-If we are confident in $h$, then $b$ and $h$ are returned.
+Otherwise our function and current image subset is returned, ending the query.
 This process is detailed in~\autoref{figure:unifiedIdentificationFlowchart}.
-In the event all possible $b$ sets have been selected, $h$ with mapping $b \smapsto \emptyset$ is returned instead.
+In the event $\binom{\imageset}{d}$ has been exhausted, an error is raised and no map is returned.
 
 % Leaving this out for now. The flowchart should explain the process better.
 %\begin{algorithm}[ht] \setstretch{1.0}[H]
@@ -112,97 +124,76 @@ In the event all possible $b$ sets have been selected, $h$ with mapping $b \smap
 
 % Citation: https://digitalcommons.usu.edu/cgi/viewcontent.cgi?article=2723&context=etd AND Gottlieb.
 \subsection{Angle Strategy (ANG)}\label{subsec:angleMethod}
-\newcommand{\invalidBijection}{\If{$\forall \ \vv{b^\star}, \ \vv{b^\star} \in b \land h\left(\vv{b^\star}\right)
-\neq \emptyset$}}
+\newcommand{\invalidBijection}{\If{$\solutionmap$ is valid}}
 \begin{algorithm}
     \caption{Angle Identification Strategy} \label{algorithm:angleIdentification}
     \begin{algorithmic}[1]
-        \Function{FPO}{$P$, $I$, $A$}
-        \State $I' \gets$ points in $I$ rotated by $A$
-        \State $\bar{P} \gets $ \{$p \in P \ | \ \exists \ i \ (i \in I' \land \theta (i, p) < 3\sigma_o)$\}
-        \State \textbf{return} $\bar{P}$ \Comment Points in $P$ that \textit{overlay} with $I'$.
+    	\Function{RetrieveCandidates}{$b, \angdatabase$}
+    	\State \textbf{return} $\{ \candidateset \mid \candidateset \in \angdatabase \land P_\theta(\candidateset, \imagesubset) \}$
+    	\EndFunction
+        \\
+        \Function{Identify}{$b, R, \imageset$}
+        \State $r \gets R[1]$ \Comment Select our candidate.
+        \State \textbf{return} \Call{DMT}{$\imagesubset, r, \imageset$}
         \EndFunction
-%        \\
-        \Function{DMT}{$b, r, I$}
-        \State $H \gets $ $b \times r$ \Comment All possible pairings of $b$ and $r$.
-        \State $P \gets $ all points in database near $r$, $M \gets \emptyset$
-        \For {$h \in H$}
-        \State $A \gets $ \Call{TRIAD}{$h, b, r$}, $M_h \gets $ \Call{FPO}{$P, I, A$}
-        \EndFor
-        \If{$\forall \ M_h \left( M_h \in M \land \abs{M_h} = \abs{b} \right)$}
-        \State \textbf{return} $h \mid b \mapsto \emptyset $ \Comment Not confident in result.
-        \Else
-        \State \textbf{return} $h \in H$ associated with largest set in $M$
-        \EndIf
-        \EndFunction
-%        \\
-        \Function{Identify}{$I, K^2$}
-        \For{$i \gets 1 \text{\textbf{ to }} n$} \Comment Iterate through $C(n, 2)$. \label{algline:angleI}
+        \\
+        \Procedure{Query}{$\imageset, \angdatabase$}
+        \For{$i \gets 1 \text{\textbf{ to }} n$} \label{algline:angleI}
         \For{$j \gets i + 1 \text{\textbf{ to }} n - 1$} \label{algline:angleJ}
-        \State $b \gets \left(\vv{b_i}, \vv{b_j}\right)$, $R \gets \{ r \mid r \in K^2 \land P_\theta(r, b) \}$
-%        \State $R \gets $ catalog pairs that meet~\algeqref{eq:angleRequirement} with $b$
-        \If{$\lvert R \rvert = 1$}
-        \State $h \gets $ \Call{DMT}{$b, R_1, I$} % TODO: Maybe change this notation...
-        \invalidBijection
-        \State \textbf{return} $b, h$
+        \State $\imagesubset \gets \left(\vv{\imageset[i]}, \vv{\imageset[j]}\right)$ \Comment Pick $d=2$ points. 
+        \State $\databasesubset \gets $ \Call{RetrieveCandidates}{$b, \angdatabase$}
+        \If{$\abs{R} = 1$} \Comment Verify cardinality.
+        \State $h \gets \Call{Identify}{b, R, \imageset}$
+        \invalidBijection \Comment Confidence check.
+        \State \textbf{return} $\imagesubset, \solutionmap$
         \EndIf
         \EndIf
         \EndFor
         \EndFor
-        \EndFunction
+        \EndProcedure
     \end{algorithmic}
 \end{algorithm}
 
-The \textit{Angle} strategy is composed of a naive $b$ image subset decision, angular features of pairs first described
-by Gottlieb's Polygon Angular Matching strategy, and a direct-match test for identification.
+The \textit{Angle} strategy is composed of a naive $\imagesubset$ image subset decision, angular features of pairs first described by Gottlieb's Polygon Angular Matching strategy, and a direct-match test for identification.
 
-Given a set of query points from the image $I$, $d \seq 2$ points are selected to obtain the $b$ set.
-The selection order is governed by lines~\ref{algline:angleI} and~\ref{algline:angleJ}
-in~\autoref{algorithm:angleIdentification}.
-This fixes the point $\vv{b_1}$ in $b$ for $n$ image subset selections, while constantly changing $\vv{b_2}$ for every
-new $b$ choice.
+Given a set of query points from the image $\imageset$, $d \seq 2$ points are selected to obtain the $\imagesubset$ set.
+The selection order is governed by lines~\ref{algline:angleI} and~\ref{algline:angleJ} in~\autoref{algorithm:angleIdentification}.
+This fixes the point $\vv{\imagesubset[1]}$ in $\imagesubset$ for $n$ image subset selections, while constantly changing $\vv{\imagesubset[2]}$ for every new $\imagesubset$ choice.
 An example sequence of pairs is depicted below for $n \seq 3$ points.
 \begin{equation}
-    C(3, 2) \text{ of } I = \left(\set{\vv{I_1}, \vv{I_2}}, \set{\vv{I_1},\vv{I_3}}, \set{\vv{I_2},\vv{I_1}},
-    \ldots \right)
+    \binom{\imageset}{2} = \left(\set{\vv{\imageset[1]}, \vv{\imageset[2]}}, \set{\vv{\imageset[1]},\vv{\imageset[3]}}, \ldots \right)
 \end{equation}
 
-The $R$ retrieval step searches the $K^2$ set for pairs such that the angular separations of the database pairs
-are close to the separations of the image subset~\cite{bratt:analysisStarIdentification}.
-For the image subset, the origin of the separation calculation $\theta(b)$ is the focal point of the lens itself.
-For a database candidate set, the origin of this calculation $\theta(r)$ is the center of the Earth.
-To obtain $R$, the predicate $P_\theta(r, b)$ is used to filter the $K^2$ database:
+For the Angle strategy, $\genericdatabase$ of the unified framework refers to the $\angdatabase$ set: a set of all possible pairs of points in $\databaseset$.
+The candidate retrieval step searches the $\angdatabase$ set for pairs such that the angular separations of the database pairs are close to the separations of the image subset~\cite{bratt:analysisStarIdentification}.
+For the image subset, the origin of the separation calculation $\theta(\imagesubset)$ is the focal point of the lens itself.
+For a database candidate set, the origin of this calculation $\theta(\candidateset)$ is the center of the Earth.
+To obtain $\databasesubset$, the predicate $P_\theta(\candidateset, \imagesubset)$ is used to filter the $\angdatabase$ database, where $\candidateset \in \databasesubset$:
 \begin{equation}\label{eq:angleRequirement}
-    P_{\theta}(r, b) : \left\lvert \theta(r) - \theta(b)\right\rvert < 3 \sigma_\theta
+    P_{\theta}(\candidateset, \imagesubset) : \left\lvert \theta(\candidateset) - \theta(\imagesubset)\right\rvert < \epsilon_\theta
 \end{equation}
-where $\sigma_{\theta}$ represents the deviation of the uncertainty between the $\theta$ computation with star
+where $\epsilon_{\theta}$ represents the uncertainty between the $\theta$ computation with star
 sensor measurements and the same $\theta$ computation with points defined in the database.
-Assuming the noise follows a Gaussian distribution, it follows that 99.7\% of all true pairs will be within this range
-~\cite{coleAndCrassidis:sphericalTriangleMethod}.
-
-Once the database candidates are obtained, the $\abs{R} \seq 1$ criterion is imposed, repeating this process until only
-one candidate exists in $R$.
-This sole element $\vv{R_1}$ is then selected to be $r$.
+Once the database candidates are obtained, the $\abs{\databasesubset} \seq 1$ criterion is imposed, repeating this process until only one set exists in $\databasesubset$.
+This sole element $\vv{\databasesubset[1]}$ is then selected to be our candidate $r$.
 
 \begin{subequations}
-    To determine the most likely injection $h$, we follow Tappe's implementation of the strategy and perform a
-    \textit{direct match test} (DMT)~\cite{tappe:starTrackerDevelopment,needelman:stellarAttitudeAcquisition}.
-    Given an image pair $b$ and a database pair $r$ for, the following is proposed.
+    To determine the most likely mapping $h$, we follow Tappe's implementation of the strategy and perform a \textit{direct match test}, abbreviated henceforth as DMT~\cite{tappe:starTrackerDevelopment,needelman:stellarAttitudeAcquisition}.
+    Given an image pair $\imagesubset$ and a database pair $\candidateset$, the following is proposed:
     \begin{equation}
-        h_1 \mid h_1(b_1) = r_1, \ h_1(b_2) = r_2
+        \solutionmap_1 \mid \solutionmap_1(\imagesubset[1]) = \candidateset[1], \ \solutionmap_1(\imagesubset[2]) = \candidateset[2]
     \end{equation}
-    Wahba's problem is then solved using the TRIAD method to obtain a rotation $A_1$ between the image and database
-    coordinate systems.
+    Wahba's problem is then solved using the TRIAD method to obtain a rotation $A_1$ between the image and database coordinate systems.
+    The \Call{TRIAD}{} function accepts a mapping $\solutionmap$, an image subset $\imagesubset$, a candidate set $\candidateset$, and outputs a rotation matrix $A$.
     This process is repeated for the other possible permutation to obtain a second rotation $A_2$:
     \begin{equation}
-        h_2 \mid h_2(b_1) = r_2, \ h_2(b_2) = r_1
+        \solutionmap_2 \mid \solutionmap_2(\imagesubset[1]) = \candidateset[2], \ \solutionmap_2(\imagesubset[2]) = \candidateset[1]
     \end{equation}
 \end{subequations}
-The most likely attitude is determined by the \Call{FPO}{} method, which returns how many points from $I$ align with
-$K$ given rotation $A_1$ or $A_2$.
-The injection with the most aligned points is then returned.
-If all injections return sets of size $d \seq 2$, then we are not confident in any of our choices and
-return the function $h \mid \vv{b} \smapsto \emptyset$.
+The most likely attitude is determined by the \Call{FPO}{} (short for \textit{Find Positive Overlay}) method, which returns how many points from $\imageset$ align with $\databaseset$ given rotation $A_1$ or $A_2$.
+The mapping with the most aligned points is then returned, and our query is completed.
+If there exists no singular mapping which gives us a largest set, we return an invalid function to notify to our caller our of uncertainty and select another image subset $\imagesubset$.
+This process is detailed in~\autoref{algorithm:dmt}.
 
 %The \Call{FPO}{} method determines the number of stars from $I$ in the body frame $\iFrame$ align with $C$ in the
 %inertial frame $\kFrame$.
@@ -213,14 +204,10 @@ return the function $h \mid \vv{b} \smapsto \emptyset$.
 %$\sigma_o$ can also be thought of as an assumption of the noise associated with the rotation $q$.
 
 Accessing the database is the most expensive operation for all of the identification strategies.
-Consequently, the running time of this algorithm $T_{angle}$ can be described in terms of the number of queries and
-the number of elements that exist in $K^2$.
-There exist $2n^2$ database accesses at worst, requiring two database accesses ($R$ retrieval step and \Call{DMT}{}
-calls) for each combination of pairs in $I$.
-The $\log (m_2)$ term describes the number of comparisons until $r$ sets are found in our database and are able to
-be returned.
-Given a B+ tree indexed relation with $\abs{K^2} \seq m_2$ elements, no more than $\bigO \left( \log(m_2) \right)$
-comparisons are required~\cite{patel:advanceTreeStructures}.
+Consequently, the running time of this algorithm $T_\texttt{ANG}$ can be described in terms of the number of database accesses and the number of elements that exist in $\angdatabase$.
+There exist $2n^2$ database accesses at worst, requiring two database accesses (candidate retrieval step and \Call{DMT}{} calls) for each combination of pairs in $\imageset$.
+The $\log (m_\texttt{ANG})$ term describes the number of comparisons until $\candidateset$ sets are found in our database and are able to be returned.
+Given a B+ tree indexed relation with $\abs{\angdatabase}\seq m_\texttt{ANG}$ elements, no more than $\bigO \left( \log(m_\texttt{ANG}) \right)$ comparisons are required~\cite{patel:advanceTreeStructures}.
 %\begin{equation}\label{eq:complexityAnglePart1}
 %    T_{angle} = \bigO\left(C(n, 2) \cdot n \cdot \log(m_{angle}) \right)
 %\end{equation}
@@ -230,7 +217,7 @@ comparisons are required~\cite{patel:advanceTreeStructures}.
 %\end{equation}
 %~\autoref{eq:complexityAnglePart1} then simplifies to~\autoref{eq:complexityAngle}:
 \begin{equation}\label{eq:complexityAngle}
-    T_{angle} = \bigO\left( n^2 \cdot \log(m_2) \right)
+    T_{\texttt{ANG}} = \bigO\left( n^2 \cdot \log(m_\texttt{ANG}) \right)
 \end{equation}
 
 %All methods associated with the Angle method are written in~\autoref{algorithm:angleIdentification}.
@@ -239,71 +226,66 @@ comparisons are required~\cite{patel:advanceTreeStructures}.
 \begin{algorithm}
     \caption{Interior Angle Identification Strategy} \label{algorithm:interiorAngleIdentification}
     \begin{algorithmic}[1]
-        \Function{Identify}{$I, \bar{K^3}$}
-        \For{$c \gets 1 \text{\textbf{ to }} n$}  \Comment Iterate through all of $I$.
-        \State $\theta_I \gets \{\theta(\vv{b_c}, \vv{b_i}) \mid \vv{b_i} \in I\}$ \Comment $\theta$
-        (all points, $\vv{b_c}$).
-        \State $\vv{b_{c1}} \gets \vv{b_i}$ associated with smallest $\theta$ in $\theta_I$
-        \State $\vv{b_{c2}} \gets \vv{b_i}$ associated with 2nd smallest $\theta$ in $\theta_I$
-        \State $b \gets \left(\vv{b_c}, \vv{b_{c1}}, \vv{b_{c2}}\right)$, $R \gets \set{ r \mid r \in \bar{K^3} \land
-        P_{\theta, \phi}(r, b) }$
-        \If{$\lvert R \rvert = 1$}
+    	\Function{RetrieveCandidates}{$b, \intdatabase$}
+    	\State \textbf{return} $\set{ \candidateset \mid \candidateset \in \intdatabase \land P_{\theta, \phi}(\candidateset, \imagesubset) }$
+    	\EndFunction
+        \\
+        \Function{Identify}{$b, R$}
+        \State $r \gets R[1]$ \Comment Select our candidate.
+        \State \textbf{return} $\imagesubset, \solutionmap \mid \solutionmap(\imagesubset[1]) = \candidateset[1], \ \solutionmap(\imagesubset[2]) = \candidateset[2], \ \solutionmap(\imagesubset[3]) = \candidateset[3]$
+%        \State \textbf{return} $\imagesubset, \solutionmap \mid $ \parbox[h]{0.7\linewidth}{\raggedright $\solutionmap(\imagesubset[1]) = \candidateset[1], \ \solutionmap(\imagesubset[2]) = \candidateset[2], \newline \ \solutionmap(\imagesubset[3]) = \candidateset[3]$}
+        \EndFunction
+    	\\
+        \Procedure{Query}{$\imageset, \intdatabase$}
+        \For{$c \gets 1 \text{\textbf{ to }} n$} 
+        \State $\vv{\imagesubset[1]} \gets \imageset[c]$ \Comment Pick $d=3$ points.
+        \State $\vv{\imagesubset[2]} \gets $ closest star to $b[1]$
+        \State $\vv{\imagesubset[3]} \gets $ 2nd closest star to $b[1]$
+%        \State $\theta_\texttt{IMG\_C} \gets \{\theta(\vv{\imageset[c]}, \vv{\imageset[i]}) \mid \vv{\imageset[i]} \in \imageset\}$ 
+%        \State $\vv{\imagesubset[2]} \gets \vv{\imageset[i]}$ associated with smallest $\theta$ in $\theta_\texttt{IMG\_C}$
+%        \State $\vv{\imagesubset[3]} \gets \vv{\imageset[i]}$ associated with 2nd smallest $\theta$ in $\theta_\texttt{IMG\_C}$
+        \State $\databasesubset \gets $ \Call{RetrieveCandidates}{$b, \intdatabase$}
+        \If{$\abs{R} = 1$}\Comment Verify cardinality. 
 %        \State \textbf{return} $b, r, h: (\vv{b_c}, \vv{r_c}), (\vv{b_{c1}, \vv{r_{c1}}}), (\vv{b_{c2}, \vv{r_{c2}}})$
-        \State \textbf{return} $b, h \mid h(r_c) = b_{c}, \ h(r_{c1}) = b_{c1},$
-        \State \ \ \ \ \ \ \ \ \ \ \ \ \ \ \  $h(r_{c2}) = b_{c2}$
+        \State \textbf{return} \Call{Identify}{$b, R$} \Comment No confidence check.
         \EndIf
         \EndFor
-        \EndFunction
+        \EndProcedure
     \end{algorithmic}
 \end{algorithm}
 
-The \textit{Interior Angle} strategy is composed of Liebe's feature set (two interstar angles, an interior angle),
-Liebe's $b$ image subset decision, and a permutation store for identification.
+The \textit{Interior Angle} strategy is composed of Liebe's feature set (two interstar angles, an interior angle), Liebe's $\imagesubset$ image subset decision, and a permutation store for identification.
 
-Given a set of query points from the image $I$, a central point $\vv{b_c}$ is selected.
-A new central point selection does not involve generating permutations like the Angle strategy, rather it involves
-iterating through $I$ in a sequential manner.
-The two closest points the image to the central points are selected next, denoted as $\vv{b_{c1}}$ and $\vv{b_{c2}}$
-~\cite{liebe:starTrackersAttitudeDetermination}.
+Given a set of query points from the image $\imageset$, a central point $\vv{\imageset[c]}$ is selected.
+A new central point selection does not involve generating permutations like the Angle strategy, rather it involves iterating through $\imageset$ in a sequential manner.
+The two closest points the image to the central points are selected next, which compose stars $\imagesubset[1]$ and $\imagesubset[2]$ repsectively~\cite{liebe:starTrackersAttitudeDetermination}.
 
-The $R$ retrieval step searches the $\bar{K^3}$ set for trios such that the features of the database trios are
-close to the same features of the image subset~\cite{bratt:analysisStarIdentification}.
-Unlike the Angle strategy's $K^d$ set, $\bar{K^d}$ is defined to be all \textit{permutations} of size $d$ rather than
-combinations.
-These features are defined as the angular separation between the first closest point and the central point
-($\theta\left(\vv{b_{c1}}, \vv{b_c}\right)$ vs. $ \theta\left(\vv{r_{c1}}, \vv{r_c}\right)$), the
-angular separation between the second closest point and the central point, ($\theta\left(\vv{b_{c2}},
-\vv{b_c}\right) $ vs. $\theta\left(\vv{r_{c2}}, \vv{r_c}\right)$),
-and the angular separation between the two closest points with the central point as the origin instead of the Earth or
-focal point of the lens ($\phi(b) $ vs. $ \phi(r)$).
-To obtain $R$, the predicate $P_{\theta, \phi}(r, b)$ is used to filter $\bar{K^3}$:
+The candidate retrieval step searches the $\intdatabase$ set for trios such that the features of the database trios are close to the same features of the image subset~\cite{bratt:analysisStarIdentification}.
+Unlike the Angle strategy's $\angdatabase$ set, $\intdatabase$ is defined to be all \textit{permutations} of size $d\seq 3$ rather than combinations of size $d\seq 2$.
+These features are defined as the angular separation between the first closest point and the central point ($\theta\left(\vv{\imagesubset[1]}, \vv{\imagesubset[2]}\right)$ vs. $ \theta\left(\vv{\candidateset[1]}, \vv{\candidateset[2]}\right)$), the angular separation between the second closest point and the central point ($\theta\left(\vv{\imagesubset[1]}, \vv{\imagesubset[3]}\right) $ vs. $\theta\left(\vv{\candidateset[1]}, \vv{\candidateset[3]}\right)$), and the angular separation between the two closest points with the central point as the origin instead of the Earth or focal point of the lens ($\phi(\imagesubset) $ vs. $ \phi(\candidateset)$).
+To obtain $\databasesubset$, the predicate $P_{\theta, \phi}(\candidateset, \imageset)$ is used to filter $\intdatabase$:
 
 \begin{equation}
     \begin{aligned}
-        P_{\theta, \phi} (r, b): \left\lvert \theta(\vv{r_{c1}}, \vv{r_c}) - \theta(\vv{b_{c1}}, \vv{b_c})\right\rvert
-        &< 3 \sigma_{\theta} \ \land \\ \left\lvert \theta(\vv{r_{c2}}, \vv{r_c}) - \theta(\vv{b_{c2}}, 
-        \vv{b_c})\right\rvert &< 3 \sigma_{\theta} \ \land \\ \left\lvert \phi(r) - \phi(b)\right\rvert &< 3 
-        \sigma_\phi \ \land \\\theta(\vv{r_{c1}}, \vv{r_c}) &< \theta(\vv{r_{c2}}, \vv{r_c})
+        P_{\theta, \phi} (\candidateset, \imagesubset): \left\lvert \theta(\vv{\imagesubset[1]}, \vv{\imagesubset[2]}) - \theta(\vv{\candidateset[1]}, \vv{\candidateset[2]})\right\rvert
+        &< \epsilon_{\theta} \ \land \\ \left\lvert \theta(\vv{\imagesubset[1]}, \vv{\imagesubset[3]}) - \theta(\vv{\candidateset[1]}, 
+        \vv{\candidateset[3]})\right\rvert &< \epsilon_{\theta} \ \land \\ \left\lvert \phi(\imagesubset) - \phi(\candidateset)\right\rvert &<  
+        \epsilon_\phi \ \land \\\theta(\vv{\candidateset[1]}, \vv{\candidateset[2]}) &< \theta(\vv{\candidateset[1]}, \vv{\candidateset[3]})
     \end{aligned}
 \end{equation}
-where $\sigma_{\theta}$ and $\sigma_{\phi}$ represent the deviation of the uncertainty between the $\theta$ and $\phi$
-computations with the sensor measurements and the same $\theta$ and $\phi$ computations with points defined in the
-database.
+where $\epsilon_{\theta}$ and $\epsilon_{\phi}$ represent the uncertainty between the $\theta$ and $\phi$ computations with the sensor measurements and the same $\theta$ and $\phi$ computations with points defined in the database.
 
 %The original literature states that this should be repeated for all $b$ sets.
-%Given that complete identification of $I$ is not the goal, this method has been adjusted to query with one $b$ at a
-%time.
-After finding some $R$ that meets the same $R$ criterion as the Angle strategy, the injection:
+%Given that complete identification of $I$ is not the goal, this method has been adjusted to query with one $b$ at a time.
+After finding some $\databasesubset$ that meets the same $\databasesubset$ criterion as the Angle strategy, the function:
 \begin{equation}
-    h \mid h(b_1) = r_1, \ h(b_2) = r_2, \ h(b_3) = r_3
+    h \mid h(\imagesubset[1]) = \candidateset[1], \ h(\imagesubset[2]) = \candidateset[2], \ h(\imagesubset[3]) = \candidateset[3]
 \end{equation}
 is constructed and returned.
-RezaToloei's implementation imposes the last term in predicate $P_{\theta, \phi}(r, b)$ at $R$ retrieval
-time~\cite{toloei:compositeIdentification}, borrowing from Anderson (according to Spratling) by searching all
-permutations instead of combinations to remove the need for an optimal map determination
-procedure~\cite{anderson:autonomousStarSensing}.
-Storing permutations does increase the storage required for $\bar{K^3}$ though, which begs the question,
-``Does this extra space aid in accuracy or runtime?''.
+RezaToloei's implementation imposes the last term in predicate $P_{\theta, \phi}(\candidateset, \imagesubset)$ at candidate retrieval time~\cite{toloei:compositeIdentification}, borrowing from Anderson (according to Spratling) by searching all permutations instead of combinations to remove the need for an optimal map determination procedure~\cite{anderson:autonomousStarSensing}.
+It would be remiss to not point out that storing permutations instead of combinations results in a larger database to query, which begs the question, ``Does this sacrifice in space reduce the overall runtime?''.
+%Storing permutations is a more space-intensive solution though, which will result in a longer candidate retrieval time when compared to another $d\seq 3$ strategy like the Spherical Triangle.
+%Storing permutations does increase the storage required for $\bar{K^3}$ though, which begs the question, ``Does this extra space aid in accuracy or runtime?''.
 
 %The star trios in the catalog star candidates represent potential catalog maps for the image star trio $(b_i, b_j,
 %b_c)$.
@@ -318,12 +300,11 @@ Storing permutations does increase the storage required for $\bar{K^3}$ though, 
 %If a confident match is not found by the first central star, then the search process will be repeated until such a
 %match is found.
 
-The running time of this algorithm $T_{dot}$ is depicted below, again described in terms of the number of queries
-and the number of entries in $\bar{K^3}$:
+The running time of this algorithm $T_\texttt{INT}$ is depicted below, again described in terms of the number of queries and the number of entries in $\intdatabase$:
 \begin{equation}\label{eq:dotComplexity}
-    T_{dot} = O\left( n \cdot \log(\bar{m_3}) \right)
+    T_\texttt{INT} = O\left( n \cdot \log(m_\texttt{INT}) \right)
 \end{equation}
-where $\bar{m_3}$ is the cardinality of $\bar{K^3}$.
+where $m_\texttt{INT}$ is the cardinality of $\intdatabase$.
 
 %This entire method is described in~\autoref{algorithm:interiorAngleIdentification}.
 
@@ -331,249 +312,256 @@ where $\bar{m_3}$ is the cardinality of $\bar{K^3}$.
 \begin{algorithm}
     \caption{Triangle Identification Strategy} \label{algorithm:triangleIdentification}
     \begin{algorithmic}[1]
-        \Function{PartialMatch}{$R, \bar{R}$}
-        \ForAll {$\bar{r} \in \bar{R}$}
-        \LineComment $\bar{r}$ and $r$ share two points.
-        \If {$\exists \ r \ | \ (r \in R \land |r \cap \bar{r}| = 2)$}
-        \State $R_{new} \gets \bar{R} \cup \{\bar{r}\}$
-        \EndIf
-        \EndFor
-        \State \textbf{return} $R_{new}$
-        \EndFunction
+%        \Function{PartialMatch}{$R_1, R_2$}
+%        \State \textbf{return} 
+%%        \State $R_\texttt{MATCHES} \gets \emptyset$
+%%        \ForAll {$r_1 \in R_1$}
+%%        \If {a $r_2 \in R_2$ exists s.t. $r_1$ and $r_2$ share two stars}
+%%        \State $R_{\texttt{MATCHES}} \gets R_\texttt{MATCHES} \cup \{r_1\}$
+%%        \EndIf
+%%        \EndFor
+%%        \State \textbf{return} $R_\texttt{MATCHES}$
+%        \EndFunction
 %        \\
-        \Function{Pivot}{$\vv{b_i}, \vv{b_j}, \vv{b_k}, R$}
-        \State $b \gets (\vv{b_j}, \vv{b_j}, \vv{b_k})$, $\bar{R} \gets \set{ \bar{r} \mid \bar{r} \in K^3
-        \land P_{a, \tau}(\bar{r}, b) }$
-        \State $R' \gets $ \Call{PartialMatch}{$R, \bar{R}$}
-        \If{$\abs{R'} = 1 \lor \abs{R'} = 0 $}
-        \State \textbf{return} $R'$ \Comment $R'$ is either $\emptyset$ or a single $r$.
-        \Else
-        \State $\vv{\beta} \gets \text{an unused point in this pivot}$
-        \State \textbf{return} \Call{Pivot}{$\vv{b_i}, \vv{b_j}, \vv{\beta}, R'$}
+        \Function{Pivot}{$\vv{b}, R, \texttt{TRI\_DB}$}
+        \State $R_\texttt{THIS\_PIVOT} \gets \set{ r \mid r \in \texttt{TRI\_DB}
+        \land P_{a, \tau}(r, b) }$
+        \State $R_\texttt{MATCHES} \gets $ \parbox[t]{0.7\textwidth}{\raggedright all $r_1 \in R_\texttt{THIS\_PIVOT}$ s.t. $r_1$ shares 2 stars with \newline some $r_2 \in R$}
+        \If{$\abs{R_\texttt{MATCHES}} \leq 1$}
+        \State \textbf{return} $R_\texttt{MATCHES}$ 
+        \Else \Comment Recurse until solution / exhaust all other stars.
+        \State $b \gets \left( b[1], b[2], \text{an unused point in this pivot} \right)$
+        \State \textbf{return} \Call{Pivot}{$b, R_\texttt{MATCHES}, \texttt{TRI\_DB}$}
         \EndIf
         \EndFunction
-%        \\
-        \Function{Identify}{$I, K^3$}
-        \For{$i \gets 1 \text{\textbf{ to }} n$}  \Comment Iterate through $C(n, 3)$.
+        \\
+    	\Function{RetrieveCandidates}{$b, \texttt{TRI\_DB}$}
+    	\State $R \gets \set{ r \mid r \in \texttt{TRI\_DB} \land P_{a, \tau}(r, b) }$
+    	\If{$\abs{R} \neq 1$}
+    	\State \textbf{return} \Call{Pivot}{$b, R, \texttt{TRI\_DB}$}
+    	\Else
+    	\State \textbf{return} $R$
+    	\EndIf
+    	\EndFunction
+        \\
+        \Function{Identify}{$b, R, \imageset$}
+        \State $r \gets R[1]$ \Comment Select our candidate.
+        \State \textbf{return} \Call{DMT}{$\imagesubset, r, \imageset$}
+        \EndFunction
+        \\
+        \Procedure{Query}{$\imageset, \texttt{TRI\_DB}$} 
+        \LineComment $\texttt{TRI\_DB} \in \set{\plndatabase, \sphdatabase}$, algorithm used for both.
+        \For{$i \gets 1 \text{\textbf{ to }} n$}  
         \For{$j \gets i + 1 \text{\textbf{ to }} n - 1$}
         \For{$k \gets j + 1\text{\textbf{ to }} n - 2$}
-        \State $b \gets \left(\vv{b_i}, \vv{b_j}, \vv{b_k}\right)$
-        \State $R \gets \set{ r \mid r \in K^3
-        \land P{a, \tau}(r, b) }$
-        \If{$|R| \neq 1$} \Comment Pivot if necessary.
-        \State $R \gets $ \Call{Pivot}{$\vv{b_i}, \vv{b_j}, \vv{b_k}, R$}
-        \EndIf
-        \If{$R \neq \emptyset$} \Comment Verify the pivot's success.
-        \State $h \gets $ \Call{DMT}{$b, R_1, I$}
-        \invalidBijection
+        \LineComment Select $d=3$ image points.
+        \State $b \gets \left(\vv{\imageset[i]}, \vv{\imageset[j]}, \vv{\imageset[k]}\right)$ 
+        \State $R \gets $ \Call{RetrieveCandidates}{$b, \texttt{TRI\_DB}$}
+        \If{$\abs{R} = 1$} \Comment Verify cardinality.
+        \State $h \gets $ \Call{Identify}{$b, R, \imageset$}
+        \invalidBijection \Comment Confidence check.
         \State \textbf{return} $b, h$
         \EndIf
         \EndIf
         \EndFor
         \EndFor
         \EndFor
-        \EndFunction
+        \EndProcedure
     \end{algorithmic}
 \end{algorithm}
 
-The \textit{Spherical Triangle} strategy is composed of Cole and Crassidus's spherical area and moment features, a
-naive $b$ image subset decision, Cole and Crassidus's candidate selection process, and a direct-match test to create
-the image to database function.
+The \textit{Spherical Triangle} strategy is composed of Cole and Crassidus's spherical area and moment features, a naive $b$ image subset decision, Cole and Crassidus's candidate selection process, and a direct-match test to create the image to database function.
 
-Given a set of query points from the image $I$, $d \seq 3$ points are selected to obtain the $b$ set in the same
-straightforward manner as the Angle strategy.
+Given a set of query points from the image $\imageset$, $d \seq 3$ points are selected to obtain the $b$ set in the same straightforward manner as the Angle strategy.
 %Again, the $b$ selection is not specified here so we assume the naive approach with $C(n, 3)$ combinations.
-For $C(n, 3)$ combinations the point $\vv{b_1}$ is fixed in $b$ for $n^2$ image subset selections,
-the point $\vv{b_2}$ is fixed for $n$ selections, and the last point $\vv{b_3}$ is constantly changed for
-every new $b$ choice.
+For $\binom{\imageset}{3}$ combinations the point $\vv{b[1]}$ is fixed in $b$ for $n^2$ image subset selections, the point $\vv{b[2]}$ is fixed for $n$ selections, and the last point $\vv{b[3]}$ is constantly changed for every new $b$ choice.
 
-The $R$ retrieval step searches the $K^3$ set for trios such that the spherical area and moment of the database
-trios are close to the spherical area and moment of the image
-subset~\cite{coleAndCrassidis:sphericalTriangleMethod}.
+The Spherical Triangle strategy utilizes the $\sphdatabase$, which consists of all possible combinations of trios in $\databaseset$.
+The candidate retrieval step searches the $\sphdatabase$ set for trios such that the spherical area and moment of the database trios are close to the spherical area and moment of the image subset~\cite{coleAndCrassidis:sphericalTriangleMethod}.
 For the image subset, the spherical area and moment are represented as $a(b)$ and $\tau(b)$ respectively.
 For the database candidate set, these same features are represented as $a(r)$ and $\tau(r)$.
-To obtain $R$, the predicate $P_{a, \tau}(r, b)$ is used to filter $K^3$:
+To obtain $R$, the predicate $P_{a, \tau}(r, b)$ is used to filter $\sphdatabase$:
 \begin{equation}
     \begin{aligned}
-        P_{a, \tau}(r, b) : \abs{ a(r) - a(b)} &< 3\sigma_{a}
-        \ \land \\ \abs{\tau(r) - \tau(b)} &< 3\sigma_{\tau}
+        P_{a, \tau}(r, b) : \abs{ a(r) - a(b)} &< \epsilon_{a}
+        \ \land \\ \abs{\tau(r) - \tau(b)} &< \epsilon_{\tau}
     \end{aligned}
 \end{equation}
-where $\sigma_{a}$ and $\sigma_{\tau}$ represent the deviation of the uncertainty between the $a$ and $\tau$
-computations with the sensor measurements and the same $a$ and $\tau$ computations with point defined in the
-database.
+where $\epsilon_{a}$ and $\epsilon{\tau}$ represent the uncertainty between the $a$ and $\tau$ computations with the sensor measurements and the same $a$ and $\tau$ computations with point defined in the database.
 
-Unlike the previous two strategies, the $R$ criterion of $|R| \seq 1$ not being met does not lead to an immediate new
-selection of $b$.
-Instead, the candidate set itself is reduced by \textit{pivoting} until the criterion is met or pivots can no longer
-be performed.
-The pivoting procedure starts by searching the database again for a second set of database candidate sets $\bar{R}$ with
-a different image subset $\bar{b} \seq \left(\vv{b_i}, \vv{b_j}, \vv{\beta}\right)$.
-In $\bar{b}$, the first two points are held constant while the third point is swapped with another in $I$ that was not
-already used in this specific pivot.
-All trios in the initial search that do not match a trio in the second search by \textit{two points} (a partial
-match) are removed from the initial search candidate set~\cite{coleAndCrassidis:sphericalTriangleMethod}.
-A pivot uses at most $n - 3$ additional database accesses, but prevents wasting an $R$ set that may contain
-the correct $r$ set for the given $b$.
+Unlike the previous two strategies, the $R$ criterion of $|R| \seq 1$ not being met does not lead to an immediate new selection of $b$.
+Instead, the candidate set itself is reduced by \textit{pivoting} until the criterion is met or pivots can no longer be performed.
+The pivoting procedure starts by searching the database again for a second set of database candidate sets with a different image subset.
+In this new subset, the first two points are held constant while the third point is swapped with another in $\imageset$ that was not already used in this specific pivot.
+All trios in the initial search that do not match a trio in the second search by \textit{two points} (a partial match) are removed from the initial search candidate set~\cite{coleAndCrassidis:sphericalTriangleMethod}.
+A pivot uses at most $n - 3$ additional database accesses, but prevents wasting an $R$ set that may contain the correct $r$ set for the given $b$.
 
 \begin{algorithm}
     \caption{Pyramid Identification Strategy} \label{algorithm:pyramidIdentification}
     \begin{algorithmic}[1]
-        \Function{FC}{$T_1, T_2$}
-        \LineComment Flatten $T_1, T_2$ from set of sets to a set.
-        \State $\bar{T_1} \gets \emptyset, \bar{T_2} \gets \emptyset$
-        \ForAll{$i \in \set{1, 2}$}
-        \ForAll{$\vv{t} \in T_i$}
-        \State $\bar{T_i} \gets \bar{T_i} \cup \set{ \vv{t_1}, \vv{t_2} }$
-        \EndFor
-        \EndFor
-        \State \textbf{return} $\bar{T_1} \cap \bar{T_2}$
+%        \Function{Flatten}{$Q_1, Q_2$}
+%        \State \textbf{return} the union of all \emph{stars} in $Q_1$ and $Q_2$
+%        \LineComment Flatten $T_1, T_2$ from set of sets to a set.
+%        \State $\bar{T_1} \gets \emptyset, \bar{T_2} \gets \emptyset$
+%        \ForAll{$i \in \set{1, 2}$}
+%        \ForAll{$\vv{t} \in T_i$}
+%        \State $\bar{T_i} \gets \bar{T_i} \cup \set{ \vv{t_1}, \vv{t_2} }$
+%        \EndFor
+%        \EndFor
+%        \State \textbf{return} $\bar{T_1} \cap \bar{T_2}$
+%        \EndFunction
+%        \\
+        \Function{FindTriplet}{$B, \pyrdatabase$}
+        \State $Q[1] \gets \set{ r \mid r \in \pyrdatabase \land P_\theta \left(r, B[1]\right) }$
+        \State $Q[2] \gets \set{ r \mid r \in \pyrdatabase \land P_\theta \left(r, B[2]\right) }$
+        \State $Q[3] \gets \set{ r \mid r \in \pyrdatabase \land P_\theta \left(r, B[3]\right) }$
+        \State \textbf{return} $Q$
         \EndFunction
-        %        \\
-        \Function{FindT}{$\vv{b^1}, \vv{b^2}, \vv{b^3}, K^2$}
-        \LineComment $\abs{\vv{b^1}} = \abs{\vv{b^2}} = \abs{\vv{b^3}} = 1$, search with each pair.
-        \State $T_1 \gets \set{ r \mid r \in K^2 \land P_\theta \left(r, b^1\right) }$
-        \State $T_2 \gets \set{ r \mid r \in K^2 \land P_\theta \left(r, b^2\right) }$
-        \State $T_3 \gets \set{ r \mid r \in K^2 \land P_\theta \left(r, b^3\right) }$
-        \State \textbf{return}{$\left( T_1, T_2, T_3 \right)$}
+        \\
+        \Function {RetrieveCandidates}{$b, \pyrdatabase$}
+        \State $B \gets \left(\set{b[1], b[2]}, \set{b[1], b[3]}, \set{b[2], b[3]}\right)$
+        \State $Q \gets $ \Call{FindTriplet}{$B, \pyrdatabase$}
+%        \State $Q[1] \gets \set{ r \mid r \in \pyrdatabase \land P_\theta \left(r, \set{b[1], b[2]}\right) }$
+%        \State $Q[2] \gets \set{ r \mid r \in \pyrdatabase \land P_\theta \left(r, \set{b[1], b[3]}\right) }$
+%        \State $Q[3] \gets \set{ r \mid r \in \pyrdatabase \land P_\theta \left(r, \set{b[2], b[3]}\right) }$
+        \State \textbf{return} \parbox[t]{0.8\textwidth}{\raggedright all unique 3-permutations of all \emph{stars} in order \newline of $\{Q[1], Q[2]\}$, $\{Q[1], Q[3]\}$, $\{Q[2], Q[3]\}$}
+%        \State \textbf{return} \parbox[t]{0.8\textwidth}{\raggedright all unique permutations of \Call{Flatten}{$Q[1], Q[2]$}, \newline \Call{Flatten}{$Q[1], Q[3]$}, \Call{Flatten}{$Q[2], Q[3]$}}
+%        \State $R \gets \emptyset$
+%        \ForAll{$t_i \in$ \Call{FC}{$T_{ij}, T_{ik}$}}
+%        \ForAll{$t_j \in$ \Call{FC}{$T_{ij}, T_{jk}$}}
+%        \ForAll{$t_k \in$ \Call{FC}{$T_{ik}, T_{jk}$}}
+%        \State $R \gets R \cup \set{ \left(\vv{t_i}, \vv{t_j}, \vv{t_k}\right) }$
+%        \EndFor
+%        \EndFor
+%        \EndFor
+%        \State \textbf{return} $R$ \Comment Return all permutations from $T$ sets.
         \EndFunction
-        %        \\
-        \Function {Retrieve}{$b, K^2$}
-        \State $(T_{ij}, T_{ik}, T_{jk}) \gets$ \Call{FindT}{$\set{ \vv{b_i}, \vv{b_j} }, \set{ \vv{b_i}, \vv{b_k} }, $
-        \State \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
-        $\set{ \vv{b_j}, \vv{b_k} }, K^2$}, $R \gets \emptyset$
-        \ForAll{$t_i \in$ \Call{FC}{$T_{ij}, T_{ik}$}}
-        \ForAll{$t_j \in$ \Call{FC}{$T_{ij}, T_{jk}$}}
-        \ForAll{$t_k \in$ \Call{FC}{$T_{ik}, T_{jk}$}}
-        \State $R \gets R \cup \set{ \left(\vv{t_i}, \vv{t_j}, \vv{t_k}\right) }$
-        \EndFor
-        \EndFor
-        \EndFor
-        \State \textbf{return} $R$ \Comment Return all permutations from $T$ sets.
+        \\
+        \Function{ConfidenceCheck}{$\imageset, b, \pyrdatabase$}
+        \State $\beta \gets $ some point in $\imageset$ where $\beta \notin b$
+        \State $B \gets \left(\set{b[1], \beta}, \set{b[2], \beta}, \set{b[3], \beta}\right)$
+        \State $Q \gets $ \Call{FindTriplet}{$B, \pyrdatabase$}
+        \State \textbf{return} \parbox[t]{0.8\textwidth}{true if there is the only one sole common star  \newline in all $Q$ sets, false otherwise}
+%        \State \textbf{return} $\abs{\Call{Flatten}{Q[1], Q[3]} - \Call{Flatten}{Q[2], Q[3]}} = 1$
         \EndFunction
-        %        \\
-        \Function{Identify}{$I, K^2$}
-        \LineComment Iterate through $C(n, 3)$ while avoiding false points.
+        \\
+        \Function{Identify}{$b, R, \imageset, \pyrdatabase$}
+        \State \textbf{return} $\imagesubset, \solutionmap \mid \solutionmap(\imagesubset[1]) = \candidateset[1], \ \solutionmap(\imagesubset[2]) = \candidateset[2], \ \solutionmap(\imagesubset[3]) = \candidateset[3]$
+        \EndFunction
+        \\
+        \Procedure{Query}{$\imageset, \pyrdatabase$}
+%        \LineComment Iterate through $\binom{\imageset}{3}$ while avoiding false points.
         \For{$dj \gets 1 \text{\textbf{ to }} n - 2$} \label{algline:pyramidI}
         \For{$dk \gets 1 \text{\textbf{ to }} n - 1 - dj$} \label{algline:pyramidJ}
         \For{$i \gets 1 \text{\textbf{ to }} n - dj - dk$} \label{algline:pyramidK}
-        \State $j \gets i + dj$, $k \gets j + dk$
-        \State $b \gets \left(\vv{b_i}, \vv{b_j}, \vv{b_k}\right)$, $R \gets $\Call{Retreive}{$b, K^2$}
-        \If{$\abs{R} = 1$}
-        \LineComment Verification step below.
-        \State $\vv{\beta} \gets $ single point in $I$ where $\vv{\beta} \notin b$
-        \State $(T_{ij}, T_{ik}, T_{jk}) \gets$ \Call{FindT}{$\set{ \vv{b_i}, \vv{\beta} }, \set{ \vv{b_j},
-        \vv{\beta} },$
-        \State \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \  \ \ \ \ \ \ \ \ $\set{ \vv{b_k}, \vv{\beta} }, K^2$}
-        \State $T_\beta \gets $ \Call{FC}{$T_{i\beta}, T_{j\beta}$} $\cap$ \Call{FC}{$T_{j\beta}, T_{k\beta}$}
-        \If{ $\abs{T_\beta} = 1$}
-        \State \textbf{return} $b, h \mid h(b_1) = r_1, \ h(b_2) = r_2$
-        \State \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $h(b_3) = r_3$
+        \State $j \gets i + dj$ \Comment Select $d\seq 3$ image points.
+        \State $k \gets j + dk$ 
+        \State $b \gets \left(\vv{\imageset[i]}, \vv{\imageset[j]}, \vv{\imageset[k]}\right)$
+        \State $R \gets $ \Call{RetrieveCandidates}{$b, \pyrdatabase$}
+        \If{$\abs{R} = 1$} \Comment Verify cardinality.
+		\If{\Call{ConfidenceCheck}{$\imageset, b, \pyrdatabase$}}
+%        \State $Q \gets $ \Call{FindTriplet}{}
+%        \State $(T_{ij}, T_{ik}, T_{jk}) \gets$ \Call{FindT}{$\set{ \vv{b_i}, \vv{\beta} }, \set{ \vv{b_j},
+%        \vv{\beta} },$
+%        \State \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \  \ \ \ \ \ \ \ \ $\set{ \vv{b_k}, \vv{\beta} }, K^2$}
+        
+%        \State \textbf{return} $\imagesubset, \solutionmap \mid $ \parbox[h]{0.5\linewidth}{\raggedright $\solutionmap(\imagesubset[1]) = \candidateset[1], \ \solutionmap(\imagesubset[2]) = \candidateset[2], \newline \ \solutionmap(\imagesubset[3]) = \candidateset[3]$}
+        \State \textbf{return} \Call{Identify}{$b, R$} 
         %        \State \textbf{return} $b, r, h: \vv{b_1} \mapsto \vv{r_1}, \vv{b_2} \mapsto \vv{r_2},$
         \EndIf
         \EndIf
         \EndFor
         \EndFor
         \EndFor
-        \EndFunction
+        \EndProcedure
     \end{algorithmic}
 \end{algorithm}
 
 \begin{subequations}
     The \Call{DMT}{} process is used to complete the constellation query here.
-    Given an image trio and a database trio, a injection is proposed:
+    Given an image trio and a database trio, the following map is proposed:
     \begin{equation}
-        h_1 \mid h_1(b_1) = r_1, \ h_1(r_2) = r_2, \ h_1(b_3) = r_3
+        h_1 \mid h_1(b[1]) = r[1], \ h_1(b[2]) = r[2], \ h_1(b[3]) = r[3]
     \end{equation} \label{eq:trianglePossibleMaps}
-    The TRIAD method only uses two vector observations from each coordinate system, meaning that the $(b_3, r_3)$
-    pairing is disregarded as the first rotation $A_1$ is computed.
-    This process is repeated for all 5 other possible injections to get $A_2, A_3, \dots, A_6$.
+    The TRIAD method only uses two vector observations from each coordinate system, meaning that the $(b[3], r[3])$ pairing is disregarded as the first rotation $A_1$ is computed.
+    This process is repeated for all 5 other possible maps to get $A_2, A_3, \dots, A_6$.
     \begin{align}
-        h_2 &\mid h_2(b_1) = r_1, \ h_2(r_2) = r_3, \ h_2(b_3) = r_2 \\
-        h_3 &\mid h_3(b_1) = r_2, \ h_3(r_2) = r_1, \ h_3(b_3) = r_3 \\
-        h_4 &\mid h_4(b_1) = r_2, \ h_4(r_2) = r_3, \ h_4(b_3) = r_1 \\
-        h_5 &\mid h_5(b_1) = r_3, \ h_5(r_2) = r_1, \ h_5(b_3) = r_2 \\
-        h_6 &\mid h_6(b_1) = r_3, \ h_6(r_2) = r_2, \ h_6(b_3) = r_1
+        h_2 &\mid h_2(b[1]) = r[1], \ h_2(b[2]) = r[3], \ h_2(b[3]) = r[2] \\
+        h_3 &\mid h_3(b[1]) = r[2], \ h_3(b[2]) = r[1], \ h_3(b[3]) = r[3] \\
+        h_4 &\mid h_4(b[1]) = r[2], \ h_4(b[2]) = r[3], \ h_4(b[3]) = r[1] \\
+        h_5 &\mid h_5(b[1]) = r[3], \ h_5(b[2]) = r[1], \ h_5(b[3]) = r[2] \\
+        h_6 &\mid h_6(b[1]) = r[3], \ h_6(b[2]) = r[2], \ h_6(b[3]) = r[1]
     \end{align}
 \end{subequations}
-For all six attitudes, the injection yielding the most aligned points is returned.
+For all six attitudes, the mapping yielding the most aligned points is returned.
 
-The running time of this algorithm $T_{sphere}$ is depicted in~\autoref{eq:sphereComplexity}, in terms of the number
-of queries and the number of entries in the $K^3$ database.
-At most, this requires $2n^4$ database accesses: $n^3$ for each combination of trios in $I$, $n - 3$ potential database
-accesses for each pivot, and an additional $n^4$ queries with each \Call{DMT}{} call.
+The running time of this algorithm $T_\texttt{SPH}$ is depicted in~\autoref{eq:sphereComplexity}, in terms of the number of queries and the number of entries in the $\sphdatabase$ database.
+At most, this requires $2n^4$ database accesses: $n^3$ for each combination of trios in $\imageset$, $n - 3$ potential database accesses for each pivot, and an additional $n^4$ queries with each \Call{DMT}{} call.
 \begin{equation}\label{eq:sphereComplexity}
-    T_{sphere} = \bigO\left( n^4 \cdot \log (m_3) \right)
+    T_{sphere} = \bigO\left( n^4 \cdot \log (m_\texttt{SPH}) \right)
 \end{equation}
-where $m_3$ is the cardinality of $K^3$.
+where $m_\texttt{SPH}$ is the cardinality of $\sphdatabase$.
 
 %This entire method is described in~\autoref{algorithm:triangleIdentification}.
 
 \subsection{Planar Triangle Strategy (PLN)}\label{subsec:coleAndCrassidus'sPlanarTriangleMethod}
-The \textit{Planar Triangle} strategy is identical to their Spherical Triangle strategy, with the exception that each
-image trio is represented as a planar triangle instead of a spherical one.
+The \textit{Planar Triangle} strategy is identical to their Spherical Triangle strategy, with the exception that each image trio is represented as a planar triangle instead of a spherical one.
 This results in the computation of a planar area and moment as opposed to a spherical area and moment.
 
 \subsection{Pyramid Strategy (PYR)}\label{subsec:pyramidMethod}
-The \textit{Pyramid} strategy is composed of Mortari's $b$ image subset decision, a custom voting based identification
-process for trios, and a voting based verification step.
+The \textit{Pyramid} strategy is composed of Mortari's $b$ image subset decision, a custom voting based identification process for trios, and a voting based verification step.
 
-Given a set of query points from the image $I$, $d \seq 3$ points are selected to obtain the $b$ set.
-The selection order is governed by lines~\ref{algline:pyramidI},~\ref{algline:pyramidJ}, and~\ref{algline:pyramidK}
-in~\autoref{algorithm:pyramidIdentification}.
-As opposed to the selection order of the Angle and triangle strategies, the $\vv{b_1}$ point in $b$ is no longer fixed
-for $n$ or $n^2$ image subset selections.
+Given a set of query points from the image $\imageset$, $d \seq 3$ points are selected to obtain the $b$ set.
+The selection order is governed by lines~\ref{algline:pyramidI},~\ref{algline:pyramidJ}, and~\ref{algline:pyramidK} in~\autoref{algorithm:pyramidIdentification}.
+As opposed to the selection order of the Angle and triangle strategies, the $\vv{b[1]}$ point in $b$ is no longer fixed for $n$ or $n^2$ image subset selections.
 This is meant to avoid the persistence of misleading points for more than a few combinations
 ~\cite{mortari:pyramidIdentification}.
 An example sequence of trios is depicted below for $n \seq 5$ points.
 \begin{equation}
+    \binom{\imageset}{3} = 
     \begin{aligned}
-        C(5, 3) \text{ of } I = ( &\set{\vv{I_1}, \vv{I_2}, \vv{I_3}}, \set{\vv{I_2}, \vv{I_3}, \vv{I_4}}, \\
-        &\set{\vv{I_3}, \vv{I_4}, \vv{I_5}}, \set{\vv{I_1}, \vv{I_2}, \vv{I_4} }\ldots )
+    	( &\set{\vv{\imageset[1]}, \vv{\imageset[2]}, \vv{\imageset[3]}}, \\
+    	&\set{\vv{\imageset[2]}, \vv{\imageset[3]}, \vv{\imageset[4]}}, \\
+        &\set{\vv{\imageset[3]}, \vv{\imageset[4]}, \vv{\imageset[5]}}, \\
+        &\set{\vv{\imageset[1]}, \vv{\imageset[2]}, \vv{\imageset[4]} }\ldots )
     \end{aligned}
 \end{equation}
 
+\begin{subequations}
 %The literature states that a unique and identifiable trio is to be found after the query step using $\theta$,
 %but does not specify how nor is source code provided.
-The approach developed here was inspired by the two point voting algorithm, which accumulates "votes" for some point by
-determining the angle between the same point and two other points~\cite{tichy:preliminaryTestsCommericalImagers}.
-We start by retrieving pairs from $K^2$ such that the angular separations of the database pairs are
-close to the angular separation of the image pair $\set{\vv{b_i}, \vv{b_j}}$.
-This is repeated for the other two permutations $\set{\vv{b_i}, \vv{b_k}}$ and $\set{ b_j, \vv{b_k} }$ to obtain
-the sets $T_{ij}, T_{ik}$ and $T_{jk}$ respectively.
-These sets are then flattened from sets of pairs to just a single set of points (\Call{FC}{}
-in~\autoref{algorithm:pyramidIdentification}) and the difference of two flattened sets identify candidates for that
-point.
-For the sets of pairs $T_{ij}, T_{jk}$ found by searching $K^2$ with $P_\theta$ and $\set{\vv{b_i}, \vv{b_j}},
-\set{\vv{b_j}, \vv{b_k}}$, the common point between each $b$ set is $\vv{b_j}$.
-An example of finding database candidates for $b_j$ with this method is given below:
+The approach developed here was inspired by the two point voting algorithm, which accumulates "votes" for some point by determining the angle between the same point and two other points~\cite{tichy:preliminaryTestsCommericalImagers}.
+We start by retrieving pairs from $\pyrdatabase$, an identical set to $\angdatabase$, such that the angular separations of the database pairs are close to the angular separation of the image pair $\set{\vv{b[1]}, \vv{b[2]}}$.
+This is repeated for the other two permutations $\set{\vv{b[1]}, \vv{b[3]}}$ and $\set{ b[2], \vv{b[3]} }$ to obtain the sets $Q[1], Q[2]$ and $Q[3]$ respectively.
+Candidates for each image point are then found by taking the difference of the stars in two $Q$ sets.
+For the sets of pairs $Q[1], Q[2]$ found by searching $\pyrdatabase$ with $P_\theta$ and $\set{\vv{b[1]}, \vv{b[2]}}, \set{\vv{b[1]}, \vv{b[3]}}$, the common point between each $b$ set is $\vv{b[1]}$.
+An example of finding database candidates for $b[1]$ with this method is given below:
 \begin{equation}
     \begin{aligned}
-        T_{ij} \gets& \set{ \set{\vv{K_{1123}}, \vv{K_{9001}}}, \set{\vv{K_{8234}}, \vv{K_{33}}} } \\
-        T_{jk} \gets& \set{ \set{\vv{K_{612}}, \vv{K_{1123}}}, \set{\vv{K_{33}}, \vv{K_{345}}} } \\
-        T_j =& \  \Call{FC}{T_{ij}, T_{jk}} = \set{\vv{K_{1123}}, \vv{K_{33}}}
+        Q[1] \gets& \set{ \set{\vv{\databaseset_{1123}}, \vv{\databaseset_{9001}}}, \set{\vv{\databaseset_{8234}}, \vv{\databaseset_{33}}} } \\
+        Q[2] \gets& \set{ \set{\vv{\databaseset_{612}}, \vv{\databaseset_{1123}}}, \set{\vv{\databaseset_{33}}, \vv{\databaseset_{345}}} } 
     \end{aligned}
 \end{equation}
-$R$ is found by repeating the process above for $T_i$ and $T_k$, and generating all possible sequences.
-This is depicted in the \Call{Retrieve}{} function in~\autoref{algorithm:pyramidIdentification}.
-
-After finding some $R$ where $\abs{T_i} \seq \abs{T_j} \seq \abs{T_k} \seq 1$ (same criterion as Angle and
-Interior Angle), a verification step is performed.
-A different point from the image $\vv{\beta}$ is selected and the $R$ retrieval step is performed for each distinct trio
-combination of $b$ and $\vv{\beta}$.
-If $\abs{T_\beta} \neq 1$, then verification step has failed and another image subset is selected.
-Otherwise, the injection with mapping $h(b_1) = r_1 \ h(b_2) = r_2 \ h(b_3) = r_3$ is returned.
-Like the Interior Angle strategy, an optimal map determination procedure is not required to find $h$.
-Instead, each individual point is identified at $R$ retrieval time.
-
-The running time of this algorithm $T_{pyramid}$ is depicted below in terms of the number of queries and the number
-of elements in $K^2$.
-At most, this requires $6n^3$ database accesses: $3n^3$ accesses for each $T$ retrieval with an additional
-$3n^3$ accesses for each verification step.
-\begin{equation}
-    T_{pyramid} = \bigO \left( n^3 \cdot \log( m_2 ) \right)
+\begin{equation}  
+	\text{database candidates for } b[1] = \set{\databaseset_{1123}, \databaseset_{33}} 
 \end{equation}
-where $m_2$ is the cardinality the $K^2$.
+\end{subequations}
+$R$ is found by repeating the process above for $b[2]$ and $b[3]$, and generating all possible permutations.
+This is depicted in the \Call{RetrieveCandidates}{} function in~\autoref{algorithm:pyramidIdentification}.
+
+After finding some $R$ where $\abs{R} = 1$, a confidence check step is performed.
+A different point from the image $\vv{\beta}$ is selected and the candidate retrieval step is performed for each distinct trio combination of $b$ and $\vv{\beta}$.
+Confidence is established if and only if there exists one common star across all $Q$ sets.
+Only then do we return a mapping $h(b_1) = r_1 \ h(b_2) = r_2 \ h(b_3) = r_3$.
+Like the Interior Angle strategy, an optimal map determination procedure is not required to find $h$.
+Instead, each individual point is identified at candidate retrieval time.
+
+The running time of this algorithm $T_\texttt{PYR}$ is depicted below in terms of the number of queries and the number of elements in $\pyrdatabase$.
+At most, this requires $6n^3$ database accesses: $3n^3$ accesses for each $Q$ retrieval with an additional $3n^3$ accesses for each confidence checking step.
+\begin{equation}
+    T_{\texttt{PYR}} = \bigO \left( n^3 \cdot \log( m_\texttt{PYR} ) \right)
+\end{equation}
+where $m_\texttt{PYR}$ is the cardinality the $\pyrdatabase$.
 
 %This entire method is specified in~\autoref{algorithm:pyramidIdentification}.
 
@@ -610,26 +598,21 @@ where $m_2$ is the cardinality the $K^2$.
 %\end{algorithm}
 
 \subsection{Composite Pyramid Strategy (COM)}\label{subsec:compositePyramidMethod}
-The \textit{Composite Pyramid} strategy is composed of Mortari's $b$ image subset decision, Cole and Crassidus's
-spherical area and moment features, and a voting based verification step.
+The \textit{Composite Pyramid} strategy is composed of Mortari's $b$ image subset decision, Cole and Crassidus's spherical area and moment features, and a voting based verification step.
 
-Given a set of query points from the image $I$, $d \seq 3$ points are selected in same manner as the Pyramid strategy
-to obtain the $b$ set.
-From here, the process to obtain the $R$ set is the same as the triangle strategies: use $P_{a, \tau}(r, b)$ and $b$ to
-select all candidates from $K^3$.
-If the current $R$ set meets the same $\abs{R} \seq 1$ criterion, then a similar verification step to the Pyramid
-strategy is performed with the Planar Triangle features.
-Once this test has passed, the \Call{DMT}{} method is used to construct the injection $h$ to potentially return.
-The Pyramid strategy did not need this call as an implicit injection was formed through its $R$ retrieval process.
+Given a set of query points from the image $\imageset$, $d \seq 3$ points are selected in same manner as the Pyramid strategy to obtain the $b$ set.
+From here, the process to obtain the $R$ set is the same as the triangle strategies: use $P_{a, \tau}(r, b)$ and $b$ to select all candidates from $\comdatabase$.
+Note that $\comdatabase$ is equivalent to $\sphdatabase$ here.
+If the current $R$ set meets the same $\abs{R} \seq 1$ criterion, then a similar confidence check to the Pyramid strategy is performed with the Planar Triangle features.
+Once this test has passed, the \Call{DMT}{} method is used to construct the function $h$ to potentially return.
+The Pyramid strategy did not need this call as an implicit mapping was formed through its candidate retrieval process.
 
-The running time of this algorithm $T_{composite}$ is depicted below in terms of number of queries and the number
-of elements in $K^3$.
-At most, this requires $5n^3$ database accesses: $n^3$ for each $T$ retrieval, an additional $3n^3$ accesses for each
-verification step, and an additional $n^3$ accesses for each \Call{DMT}{} call.
+The running time of this algorithm $T_{\texttt{COM}}$ is depicted below in terms of number of queries and the number of elements in $\comdatabase$.
+At most, this requires $5n^3$ database accesses: $n^3$ for each $Q$ retrieval, an additional $3n^3$ accesses for each confidence check, and an additional $n^3$ accesses for each \Call{DMT}{} call.
 \begin{equation}
-    T_{composite} = \bigO (n^3 \cdot \log(m_3))
+    T_{\texttt{COM}} = \bigO (n^3 \cdot \log(m_\texttt{COM}))
 \end{equation}
-where $m_3$ is the cardinality of $K^3$.
+where $m_\texttt{COM}$ is the cardinality of $\comdatabase$.
 
 %This entire method is specified in~\autoref{algorithm:compositePyramid}.
 

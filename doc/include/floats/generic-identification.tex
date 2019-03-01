@@ -18,29 +18,29 @@ fill=green!30, inner sep=-12pt]
 \begin{tikzpicture}[node distance=1.2cm]
     \node[scale=1](getImage)[terminal]{Get Camera Image};
     \node[scale=1](pickQueryStars) [process, left of=getImage, xshift = -2.2cm] {Pick $d$ Image Points};
-    \node[scale=1](searchCatalog)[process, below of=pickQueryStars, yshift=-0.4cm] {Retrieve from Database};
-    \node[scale=1](confidentInCatalog)[decision, below of=searchCatalog, yshift=-0.4cm] {$\lvert R \rvert > 0$?};
-    \node[scale=1](filterCandidates)[process, below of=confidentInCatalog, yshift=-0.4cm] {Select Candidate};
-    \node[scale=1](confidentAfterFilter)[decision, below of=filterCandidates, yshift=-0.4cm] {Confident?};
-    \node[scale=1](findMap)[process, below of=confidentAfterFilter, yshift=-0.4cm]{Identify};
+    \node[scale=1](searchCatalog)[process, below of=pickQueryStars, yshift=-0.4cm] {Retrieve Candidates};
+    \node[scale=1](confidentInCatalog)[decision, below of=searchCatalog, yshift=-0.4cm] {Is $\lvert R\rvert = 1$?};
+    \node[scale=1](filterCandidates)[process, below of=confidentInCatalog, yshift=-0.4cm] {Select Candidate $R[1]$};
+%    \node[scale=1](confidentAfterFilter)[decision, below of=filterCandidates, yshift=-0.4cm] {Confident?};
+    \node[scale=1](findMap)[process, below of=filterCandidates, yshift=-0.4cm]{Identify};
     \node[scale=1](confidentInMap)[decision, below of=findMap, yshift=-0.4cm] {Confident?};
-    \node[scale=1](returnMap)[terminal, right of=confidentInMap, xshift = 2.2cm] {Return $b, h$};
+    \node[scale=1](returnMap)[terminal, right of=confidentInMap, xshift = 2.2cm] {Return Mapping $\solutionmap$, Image Subset $\imagesubset$};
 
-    \draw[->,>=stealth](getImage) -- node[scale=1.3, yshift=-0.3cm]{$I$}(pickQueryStars);
-    \draw[->,>=stealth] (pickQueryStars) -- node[scale=1.3, xshift=0.5cm]{$b$}(searchCatalog);
-    \draw[->, >=stealth] (searchCatalog) -- node[scale=1.3, xshift=0.5cm, yshift=-0.15cm]{$R$}(confidentInCatalog);
+    \draw[->,>=stealth](getImage) -- node[scale=1.3, yshift=-0.3cm]{$\imageset$}(pickQueryStars);
+    \draw[->,>=stealth] (pickQueryStars) -- node[scale=1.3, xshift=0.5cm]{$\imagesubset$}(searchCatalog);
+    \draw[->, >=stealth] (searchCatalog) -- node[scale=1.3, xshift=0.5cm, yshift=-0.15cm]{$\databasesubset$}(confidentInCatalog);
     \draw[->, >=stealth] (confidentInCatalog) -- node[anchor=east, yshift=0.1cm]{Yes}(filterCandidates);
     \draw[->, >=stealth] (filterCandidates) --
-    node[scale=1.3, xshift=0.5cm, yshift=-0.15cm]{$r$}(confidentAfterFilter);
-    \draw[->, >=stealth] (confidentAfterFilter) -- node[anchor=east, yshift=0.1cm]{Yes} (findMap);
+    node[scale=1.3, xshift=0.5cm, yshift=0cm]{$\candidateset$}(findMap);
+%    \draw[->, >=stealth] (confidentAfterFilter) -- node[anchor=east, yshift=0.1cm]{Yes} (findMap);
     \draw[->, >=stealth] (findMap) --
-    node[scale=1.3, xshift=1cm, yshift=-0.15cm]{$h: b \rightarrow K$} (confidentInMap);
+    node[scale=1.3, xshift=0.5cm, yshift=-0.15cm]{$\solutionmap$} (confidentInMap);
     \draw[->, >=stealth] (confidentInMap) -- node[xshift=0cm, yshift=0.25cm]{Yes} (returnMap);
 
     \draw[->, >=stealth] (confidentInCatalog.west) -- ++(-1.4cm, 0cm) node[anchor=south, xshift=0.5cm]{No}
     |- (pickQueryStars.west);
-    \draw[->, >=stealth] (confidentAfterFilter.west) -- ++(-1.4cm, 0cm) node[anchor=south, xshift=0.5cm]{No}
-    |- (pickQueryStars.west);
+%    \draw[->, >=stealth] (confidentAfterFilter.west) -- ++(-1.4cm, 0cm) node[anchor=south, xshift=0.5cm]{No}
+%    |- (pickQueryStars.west);
     \draw[->, >=stealth] (confidentInMap.west) -- ++(-1.4cm, 0cm) node[anchor=south, xshift=0.5cm]{No}
     |- (pickQueryStars.west);
 \end{tikzpicture}
