@@ -1,34 +1,37 @@
+\newcommand{\imageset}{\texttt{IMG}}
+\newcommand{\databaseset}{\texttt{DB}}
+\newcommand{\imagesubset}{b}
+\newcommand{\databasesubset}{R}
+\newcommand{\candidateset}{r}
+\newcommand{\solutionmap}{h}
+
+\newcommand{\genericdatabase}{\texttt{X\_DB}}
+\newcommand{\angdatabase}{\texttt{ANG\_DB}}
+\newcommand{\dotdatabase}{\texttt{DOT\_DB}}
+\newcommand{\intdatabase}{\texttt{INT\_DB}}
+\newcommand{\sphdatabase}{\texttt{SPH\_DB}}
+\newcommand{\plndatabase}{\texttt{PLN\_DB}}
+\newcommand{\pyrdatabase}{\texttt{PYR\_DB}}
+\newcommand{\comdatabase}{\texttt{COM\_DB}}
+
 \section{Introduction}\label{sec:introduction}
-With the advent of commercial space industry, we are seeing an increasing number of spacecrafts, both manned and
-unmanned, launched into space.
-One important function on a spacecraft is the ability to determine its orientation in space using the images captured
-by a camera on the spacecraft -- this is known as the \textit{Lost-in-space} problem.
+With the advent of commercial space industry, we are seeing an increasing number of spacecrafts, both manned and unmanned, launched into space.
+One important function on a spacecraft is the ability to determine its orientation in space using the images captured by a camera on the spacecraft -- this is known as the \textit{Lost-in-space} problem.
 For example, consider the design of low Earth orbit (LEO) spacecrafts.
-In order for the spacecraft to point a payload, direct its thrusters, or orient its solar panels, an accurate
-\textit{attitude} (another term for orientation) must be known.
-There are a few known landmarks in space where some attitude can be extracted (e.g.\ the Earth, the Sun), but most
-attitude determination systems instead use multiple stars within the field of view of a camera to determine their
-orientation.
+In order for the spacecraft to point a payload, direct its thrusters, or orient its solar panels, an accurate \textit{attitude} (another term for orientation) must be known.
+There are a few known landmarks in space where some attitude can be extracted (e.g.\ the Earth, the Sun), but most attitude determination systems instead use multiple stars within the field of view of a camera to determine their orientation.
 
-The images capture a rectangular region of space -- think of an image of the sky at night from an Earth-centric
-perspective.
-Each image is essentially a collection of bright spots (celestial objects) and their location in the image coordinate
-system.
-To find the attitude of the spacecraft, we first have to match the pattern of celestial objects in the image to a
-database of known celestial objects.
+The images capture a rectangular region of space -- think of an image of the sky at night from an Earth-centric perspective.
+Each image is essentially a collection of bright spots (celestial objects) and their location in the image coordinate system.
+To find the attitude of the spacecraft, we first have to match the pattern of celestial objects in the image to a database of known celestial objects.
 We refer to such database queries as \textit{Constellation Queries}:
-Given a set of query points in the image coordinate system, find the set of points, i.e.\ constellations, in a
-database of known points (in a standard coordinate system) that best matches a subset of the query points.
+Given a set of query points in the image coordinate system, find the set of points, i.e.\ constellations, in a database of known points (in a standard coordinate system) that best matches a subset of the query points.
 
-Hypothetically, if we could transform the query points and database points to a common coordinate system, then
-constellation queries would be a simple database lookup for each query point.
+Hypothetically, if we could transform the query points and database points to a common coordinate system, then constellation queries would be a simple database lookup for each query point.
 Unfortunately, evaluating constellation queries are complicated by several issues.
-First the query points and the points in the database are in two different coordinate system (also known
-as reference frames) and the transformation between the two coordinate system is not known a priori.
+First the query points and the points in the database are in two different coordinate system (also known as reference frames) and the transformation between the two coordinate system is not known a priori.
 In fact, attitude determination \emph{is} finding the transformation between the two coordinate system.
-Second, the query points are affected by transient celestial objects (e.g.\ meteors) resulting in spurious
-points in the image, obstructions resulting in missing points, and camera characteristics resulting in
-deviations of the query points true position.
+Second, the query points are affected by transient celestial objects (e.g.\ meteors) resulting in spurious points in the image, obstructions resulting in missing points, and camera characteristics resulting in deviations of the query points true position.
 
 %Ancient mariners could look up at the night sky, point out which stars they were looking at, and navigate across the
 %globe without the use of maps.
@@ -65,54 +68,36 @@ deviations of the query points true position.
 %Using all three, the goal of attitude determination becomes finding some method of translation between the inertial
 %frame and the body frame.
 
-Let $\kFrame$ describe an inertial coordinate system for $K$, the objects in the database, and $\iFrame$ describe a
-body coordinate system for $I$, the set of objects in the query image.
-For simplicity, we make the assumption here that all stars in $\kFrame$ are fixed and exist in an inertial frame known
-as the \textit{Earth centered inertial} (ECI) frame.
-The star vectors themselves come from astronomical catalogs, recorded as points lying on the celestial
-sphere~\cite{tappe:starTrackerDevelopment}.
-Two pieces of information are given here: right ascension $\alpha$ (equivalent to latitude on Earth) and
-declination $\delta$ (equivalent to longitude).
-The vector $\vv{K_j}$ represents a point $\left( \alpha, \delta \right)$ lying on the surface of a sphere with constant radius,
-in 3D Cartesian space.
-Let $\vv{I_j}$ represent a 3D point projected from a 2D observation taken by the star tracker.
-A basic star tracker is composed of a camera, a computer for determining orientation, and a link back to the main
-computer.
+Let $\kFrame$ describe an inertial coordinate system for $\databaseset$, our reference objects, and $\iFrame$ describe a body coordinate system for $\imageset$, the set of objects in the query image.
+For simplicity, we make the assumption here that all stars in $\kFrame$ are fixed and exist in an inertial frame known as the \textit{Earth centered inertial} (ECI) frame.
+The star vectors themselves come from astronomical catalogs, recorded as points lying on the celestial sphere~\cite{tappe:starTrackerDevelopment}.
+Two pieces of information are given here: right ascension $\alpha$ (equivalent to latitude on Earth) and declination $\delta$ (equivalent to longitude).
+The vector $\vv{\databaseset[j]}$ represents a point $\left( \alpha, \delta \right)$ lying on the surface of a sphere with constant radius, in 3D Cartesian space.
+Let $\vv{\imageset[j]}$ represent a 3D point projected from a 2D observation taken by the star tracker.
+A basic star tracker is composed of a camera, a computer for determining orientation, and a link back to the main computer.
 After taking the picture, the pixel positions of potential stars in the image are determined.
 This involves finding bright blobs in the image, and computing each blob's center of mass to get a point ($x, y$).
-Through some projection process involving the camera's lens structure (e.g.\ the
-inverse Mercator projection~\cite{weisstein:mercator}), $\vv{I_j}$ is then obtained~\cite{tappe:starTrackerDevelopment}.
+Through some projection process involving the camera's lens structure (e.g.\ the inverse Mercator projection~\cite{weisstein:mercator}), $\vv{\imageset[j]}$ is then obtained~\cite{tappe:starTrackerDevelopment}.
 
 Let the matrix $A$ represent the transformation from $\kFrame$ to $\iFrame$.
 In 1965, Gracie Wahba first formulated the attitude determination
 problem as finding an $A$ that minimizes the loss function~\cite{wahba:attitudeEstimationProblem}:
 \begin{equation}
-    L(A) = \frac{1}{2} \sum_j^n \vv{w_j} \left\| \vv{I_j} - A\vv{K_j} \right\|^2
+    L(A) = \frac{1}{2} \sum_j^n \vv{w_j} \left\| \vv{\imageset[j]} - A \times \vv{\databaseset[j]} \right\|^2
 \end{equation}
-where $\vv{w_j}$ represents a nonnegative weight associated with the noise between the query points $\vv{I_j}$ in the
-body frame and the matching points $\vv{K_j}$ from the database in the inertial frame.
-The \textit{TRIAD method} (short for TRIaxial Attitude Determination) is typically used as a closed form
-solution~\cite{markley:attitudeDeterminationTwoVectors} to Wahba's problem after the evaluating the constellation query
-to retrieve the matching set of points from the database.
-Hence, constellation queries do not deal with finding the transformation matrix $A$, but focus on finding the sets of
-points, i.e.\ constellations, in a database of known points (in a standard coordinate system) that best matches a set
-of query points (in the image coordinate system) in the query image.
+where $\vv{w_j}$ represents a nonnegative weight associated with the noise between the query points $\vv{\imageset[j]}$ in the body frame and the matching points $\vv{\databaseset[j]}$ in the inertial frame.
+The \textit{TRIAD method} (short for TRIaxial Attitude Determination) is typically used as a closed form solution~\cite{markley:attitudeDeterminationTwoVectors} to Wahba's problem after the evaluating the constellation query to retrieve the matching set of points from the database.
+Hence, constellation queries do not deal with finding the transformation matrix $A$, but focus on finding the sets of points, i.e.\ constellations, in a database of known points (in a standard coordinate system) that best matches a set of query points (in the image coordinate system) in the query image.
 
-This paper is an empirical survey of six existing constellation query processing strategies in the literature and in
-the industry.
-The six strategies are: the Angle strategy, the Interior Angle strategy, the Spherical Triangle strategy,
-the Planar Triangle strategy, the Pyramid strategy, and the Composite Pyramid strategy.
+This paper is an empirical survey of six existing constellation query processing strategies in the literature and in the industry.
+The six strategies are: the Angle strategy, the Interior Angle strategy, the Spherical Triangle strategy, the Planar Triangle strategy, the Pyramid strategy, and the Composite Pyramid strategy.
 Our contributions are as follows:
 \begin{itemize}
     \item Development of a unified framework for describing six existing constellation query processing strategies.
     \item Implementation of all six existing constellation query processing algorithms / strategies.
-    \item Extensive empirical evaluation of the six constellation query processing algorithms using the
-        Hipparcos database and synthetic query images.
+    \item Extensive empirical evaluation of the six constellation query processing algorithms using the Hipparcos database and synthetic query images.
 \end{itemize}
-To the best of our knowledge, no systematic survey exists for these constellation query processing algorithms,
-no attempts have been made to study them in a unified framework, and no empirical evaluation of these algorithms have
-been done even though many of these algorithms have been deployed in spacecrafts and satellites
-(SAS-3, HTSE, ISC~\cite{gottlieb:spacecraftAttitudeDetermination,mortari:pyramidIdentification}).
+To the best of our knowledge, no systematic survey exists for these constellation query processing algorithms, no attempts have been made to study them in a unified framework, and no empirical evaluation of these algorithms have been done even though many of these algorithms have been deployed in spacecrafts and satellites (SAS-3, HTSE, ISC~\cite{gottlieb:spacecraftAttitudeDetermination,mortari:pyramidIdentification}).
 
 %Our analysis focuses on a hardware-independent comparison of constellation query processing strategies and does not
 %address the preprocessing of an image to identifying blobs.
