@@ -85,15 +85,11 @@ cd hoku/bin
 ./GenerateN angle 
 ```
 
-To generate the complete `nibble.db`, enter the following:
+To generate the complete `nibble.db` use the `script/generate-all-n.sh` script:
 ```cmd
-cd hoku/bin
-./GenerateN hip
-./Generate angle
-./Generate sphere
-./Generate plane
-./Generate pyramid
-./Generate composite
+cd hoku
+chmod +x ./script/generate-all-n.sh
+./script/generate-all-n.sh
 ```
 
 ## Running Experiments
@@ -112,15 +108,20 @@ There exist six different identification methods implemented here:
 6. Toloei's Composite Pyramid Method (`composite`)
 
 The program `PerformE` will execute all combinations of the experiments and identification methods above. The first 
-argument is the identification method, and the second is the type of experiment. To execute the query experiment for
-Gottlieb's Angle method, enter the following:
+argument is the identification method, the second is the type of experiment, and third optional argument is the name
+of the database to record to. To execute the query experiment for Gottlieb's Angle method, enter the following:
 ```cmd
 cd hoku/bin
 ./PerformE angle query
 ```
+The results will be logged in the Lumberjack database (`lumberjack.db`) by default, stored in tables according to 
+the experiments and grouped by the experiment timestamp. 
 
-The results will be logged in the Lumberjack database (`lumberjack.db`), stored in tables according to the experiments 
-and grouped by the experiment timestamp. To view the results of these experiments, use the visualize script. 
+To run experiments for all methods, use the `script/trial-all-methods.sh` script. This 
+
+
+
+To view the results of these experiments, use the visualize script. 
 
 TODO: Finish the `visualize_results.py` portion.
 

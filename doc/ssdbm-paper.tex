@@ -1,0 +1,91 @@
+\documentclass[sigconf]{acmart}
+
+\usepackage{graphicx} \usepackage{balance} \usepackage{hyperref} \usepackage[all]{nowidow} \usepackage{float}
+\usepackage{tikz} \usepackage{tikz-3dplot} \usepackage{nicefrac} \usepackage{algorithm} \usepackage{subcaption}
+\usepackage[noend]{algpseudocode} \usepackage{array} \usepackage{pgfplots} \usepackage{booktabs} \usepackage{siunitx}
+\usepackage{enumitem} \usepackage[utf8]{inputenc} \usepackage{amsmath} \usepackage{amssymb} \usepackage{filecontents}
+\usepackage{amsfonts}
+
+\newcommand{\vv}[1]{#1} % Not doing anything special for vectors right now...
+\newcommand{\seq}{\!=\!}
+\newcommand{\iFrame}{\mathcal{I}}
+\newcommand{\kFrame}{\mathcal{K}}
+\everypar{\looseness=-1}
+
+\copyrightyear{2019}
+\acmYear{2019}
+\setcopyright{acmlicensed}
+\acmConference[Santa Cruz '19]{Santa Cruz '19: 31st International Conference on Scientific and Statistical Database Management}{July 23--25, 2019}{Santa Cruz, CA}
+\acmBooktitle{Santa Cruz '19: 31st International Conference on Scientific and Statistical Database Management, July 23--25, 2019, Santa Cruz, CA}
+
+
+\begin{document}
+	\title{An Experimental Survey of Evaluation Strategies for Constellation Queries}
+
+    \author{Glenn Galvizo}
+    \email{glennga@hawaii.edu}
+    \affiliation{%
+        \institution{University of Hawaii at Manoa}
+        \city{Honolulu}
+        \state{Hawaii}
+    }
+
+    \author{Lipyeow Lim}
+    \email{lipyeow@hawaii.edu}
+    \affiliation{%
+        \institution{University of Hawaii at Manoa}
+        \city{Honolulu}
+        \state{Hawaii}
+    }
+    
+	\input{include/abstract}
+	
+	\begin{CCSXML}
+		<ccs2012>
+		<concept>
+		<concept_id>10002951.10003317</concept_id>
+		<concept_desc>Information systems~Information retrieval</concept_desc>
+		<concept_significance>500</concept_significance>
+		</concept>
+		<concept>
+		<concept_id>10002951.10003317.10003325</concept_id>
+		<concept_desc>Information systems~Information retrieval query processing</concept_desc>
+		<concept_significance>500</concept_significance>
+		</concept>
+		<concept>
+		<concept_id>10002951.10003317.10003359.10003362</concept_id>
+		<concept_desc>Information systems~Retrieval effectiveness</concept_desc>
+		<concept_significance>500</concept_significance>
+		</concept>
+		<concept>
+		<concept_id>10002951.10003317.10003359.10003363</concept_id>
+		<concept_desc>Information systems~Retrieval efficiency</concept_desc>
+		<concept_significance>500</concept_significance>
+		</concept>
+		</ccs2012>
+	\end{CCSXML}
+	
+	\ccsdesc[500]{Information systems~Information retrieval}
+	\ccsdesc[500]{Information systems~Information retrieval query processing}
+	\ccsdesc[500]{Information systems~Retrieval effectiveness}
+	\ccsdesc[500]{Information systems~Retrieval efficiency}
+	
+	\maketitle
+
+    \keywords{
+        information retrieval, performance analysis, query processing
+    }
+
+	\input{include/background}
+	\input{include/related}
+	\input{include/existing}
+	\input{include/evaluation}
+	\input{include/conclusion}
+    \input{include/acknowledgements}
+    \balance
+
+%	\nocite{*}
+	\bibliographystyle{ACM-Reference-Format}
+	\bibliography{include/references}
+
+\end{document}
