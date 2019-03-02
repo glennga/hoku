@@ -14,7 +14,7 @@ The main areas of interest here are the accuracy of each step, and the time to p
 The astronomical catalog used to populate $\databaseset$ is the Hipparcos Input Catalogue~\cite{perryman:hipparcosCatalogue}.
 Entries that do not have a $\left( \alpha, \delta \right)$ associated with it were not recorded, giving $117{,}956$ total point.
 Out of this entire set, only $4{,}560$ are visible from Earth with the naked eye (apparent magnitude $m$ less than 6.0).
-An additional constraint that all points in each pair or trio recorded in $\angdatabase, \intdatabase, \ldots$ be within 20 degrees of each other was placed to shorten each algorithm's candidate retrieval running time.
+An additional constraint that all points in each pair or trio recorded in $\angdatabase$, $\intdatabase$, $\ldots$ be within 20 degrees of each other was placed to shorten each algorithm's candidate retrieval running time.
 A field-of-view between 10 to 20 degrees is common for most astronomy based CCD cameras~\cite{mortari:pyramidIdentification}.
 All sets $\angdatabase, \intdatabase, \ldots$ construct combinations and permutations using the $4{,}560$ elements and this field of view constraint.
 A constant radius was attached to each recorded $\left(\alpha, \delta \right)$, and was converted from this spherical frame to a 3D Cartesian frame to construct the point $[ x \ y \ z ]$ for $\databaseset$.

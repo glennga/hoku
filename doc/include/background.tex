@@ -80,7 +80,7 @@ This involves finding bright blobs in the image, and computing each blob's cente
 Through some projection process involving the camera's lens structure (e.g.\ the inverse Mercator projection~\cite{weisstein:mercator}), $\vv{\imageset[j]}$ is then obtained~\cite{tappe:starTrackerDevelopment}.
 
 Let the matrix $A$ represent the transformation from $\kFrame$ to $\iFrame$.
-In 1965, Gracie Wahba first formulated the attitude determination
+In 1965, Grace Wahba first formulated the attitude determination
 problem as finding an $A$ that minimizes the loss function~\cite{wahba:attitudeEstimationProblem}:
 \begin{equation}
     L(A) = \frac{1}{2} \sum_j^n \vv{w_j} \left\| \vv{\imageset[j]} - A \times \vv{\databaseset[j]} \right\|^2
