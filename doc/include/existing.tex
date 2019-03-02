@@ -509,7 +509,7 @@ The \textit{Planar Triangle} strategy is identical to their Spherical Triangle s
 This results in the computation of a planar area and moment as opposed to a spherical area and moment.
 
 \subsection{Pyramid Strategy (PYR)}\label{subsec:pyramidMethod}
-The \textit{Pyramid} strategy is composed of Mortari's $b$ image subset decision, a custom voting based identification process for trios, and a voting based verification step.
+The \textit{Pyramid} strategy is composed of Mortari's $b$ image subset decision, a custom voting based identification process for trios, and a voting based confidence check.
 
 Given a set of query points from the image $\imageset$, $d \seq 3$ points are selected to obtain the $b$ set.
 The selection order is governed by lines~\ref{algline:pyramidI},~\ref{algline:pyramidJ}, and~\ref{algline:pyramidK} in~\autoref{algorithm:pyramidIdentification}.
@@ -598,7 +598,7 @@ where $m_\texttt{PYR}$ is the cardinality the $\pyrdatabase$.
 %\end{algorithm}
 
 \subsection{Composite Pyramid Strategy (COM)}\label{subsec:compositePyramidMethod}
-The \textit{Composite Pyramid} strategy is composed of Mortari's $b$ image subset decision, Cole and Crassidus's spherical area and moment features, and a voting based verification step.
+The \textit{Composite Pyramid} strategy is composed of Mortari's $b$ image subset decision, Cole and Crassidus's spherical area and moment features, and a voting based confidence check.
 
 Given a set of query points from the image $\imageset$, $d \seq 3$ points are selected in same manner as the Pyramid strategy to obtain the $b$ set.
 From here, the process to obtain the $R$ set is the same as the triangle strategies: use $P_{a, \tau}(r, b)$ and $b$ to select all candidates from $\comdatabase$.
