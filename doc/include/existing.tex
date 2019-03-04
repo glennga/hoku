@@ -40,7 +40,7 @@ For a strategy that uses $d\seq2$ points to determine the mapping in an image of
     \end{aligned}
 \end{equation}
 
-There exists a set $\genericdatabase$ for some identification method $\texttt{X}$, composed of $d$ sized sets of all possible combinations or permutations of points from $\databaseset$.
+Each identification method $\texttt{X}$ is also presented a set $\genericdatabase$, composed of $d$ sized sets of all possible combinations or permutations of points from $\databaseset$.
 Using certain features of the image subset, the entire $\genericdatabase$ set is filtered to a set of database candidates $\databasesubset$.
 This is known as the \emph{candidate retrieval step}.
 Referencing the same $d\seq 2$ strategy as before, an image subset $\imagesubset \seq \set{\vv{\imageset[1]}, \vv{\imageset[2]}}$ may yield the candidates in~\autoref{eq:catalogCandidateExample}:
@@ -78,7 +78,7 @@ The notation $\databasesubset^{(t)}$ and $\imagesubset^{(t)}$ denotes distinct $
 		\State \textbf{return} \parbox[t]{0.8\linewidth}{\raggedright all points in $\texttt{DB\_NEAR}$ that overlap with some point in $\texttt{IMG\_ROT}$}
 		\EndFunction
 		\\
-        \Function{DMT}{$b, r, \imageset$}
+        \Function{DMT}{$b, r, \imageset, \databaseset$}
         \State $\texttt{DB\_NEAR} \gets $ all points in $\databaseset$ near $r$
         \State $\texttt{DB\_MATCH} \gets \emptyset$
         \For {$h \in $ all possible mappings between $b$ and $r$}
@@ -132,18 +132,18 @@ In the event $\binom{\imageset}{d}$ has been exhausted, an error is raised and n
     	\State \textbf{return} $\{ \candidateset \mid \candidateset \in \angdatabase \land P_\theta(\candidateset, \imagesubset) \}$
     	\EndFunction
         \\
-        \Function{Identify}{$b, R, \imageset$}
+        \Function{Identify}{$b, R, \imageset, \databaseset$}
         \State $r \gets R[1]$ \Comment Select our candidate.
-        \State \textbf{return} \Call{DMT}{$\imagesubset, r, \imageset$}
+        \State \textbf{return} \Call{DMT}{$\imagesubset, r, \imageset, \databaseset$}
         \EndFunction
         \\
-        \Procedure{Query}{$\imageset, \angdatabase$}
+        \Procedure{Query}{$\imageset, \angdatabase, \databaseset$}
         \For{$i \gets 1 \text{\textbf{ to }} n$} \label{algline:angleI}
         \For{$j \gets i + 1 \text{\textbf{ to }} n - 1$} \label{algline:angleJ}
         \State $\imagesubset \gets \left(\vv{\imageset[i]}, \vv{\imageset[j]}\right)$ \Comment Pick $d=2$ points. 
         \State $\databasesubset \gets $ \Call{RetrieveCandidates}{$b, \angdatabase$}
         \If{$\abs{R} = 1$} \Comment Verify cardinality.
-        \State $h \gets \Call{Identify}{b, R, \imageset}$
+        \State $h \gets \Call{Identify}{b, R, \imageset, \databaseset}$
         \invalidBijection \Comment Confidence check.
         \State \textbf{return} $\imagesubset, \solutionmap$
         \EndIf
@@ -344,12 +344,12 @@ where $m_\texttt{INT}$ is the cardinality of $\intdatabase$.
     	\EndIf
     	\EndFunction
         \\
-        \Function{Identify}{$b, R, \imageset$}
+        \Function{Identify}{$b, R, \imageset, \databaseset$}
         \State $r \gets R[1]$ \Comment Select our candidate.
-        \State \textbf{return} \Call{DMT}{$\imagesubset, r, \imageset$}
+        \State \textbf{return} \Call{DMT}{$\imagesubset, r, \imageset, \databaseset$}
         \EndFunction
         \\
-        \Procedure{Query}{$\imageset, \texttt{TRI\_DB}$} 
+        \Procedure{Query}{$\imageset, \texttt{TRI\_DB}, \databaseset$} 
         \LineComment $\texttt{TRI\_DB} \in \set{\plndatabase, \sphdatabase}$, algorithm used for both.
         \For{$i \gets 1 \text{\textbf{ to }} n$}  
         \For{$j \gets i + 1 \text{\textbf{ to }} n - 1$}
@@ -358,7 +358,7 @@ where $m_\texttt{INT}$ is the cardinality of $\intdatabase$.
         \State $b \gets \left(\vv{\imageset[i]}, \vv{\imageset[j]}, \vv{\imageset[k]}\right)$ 
         \State $R \gets $ \Call{RetrieveCandidates}{$b, \texttt{TRI\_DB}$}
         \If{$\abs{R} = 1$} \Comment Verify cardinality.
-        \State $h \gets $ \Call{Identify}{$b, R, \imageset$}
+        \State $h \gets $ \Call{Identify}{$b, R, \imageset, \databaseset$}
         \invalidBijection \Comment Confidence check.
         \State \textbf{return} $b, h$
         \EndIf

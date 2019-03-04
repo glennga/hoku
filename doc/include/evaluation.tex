@@ -212,7 +212,7 @@ Strategies with triangular features are more likely on average to have more inst
 %The Pyramid method's query step is less accurate than other identification methods.
 %Although small, this error will propagate to the next steps and will result in more catalog accesses and/or a lower average accuracy.
 
-\subsection{Candidate Selection Step}\label{subsec:candidateSelectionStep}
+%\subsection{Candidate Selection Step}\label{subsec:candidateSelectionStep}
 \begin{figure}
     \centering{
     \input{include/floats/pivot}
@@ -229,9 +229,9 @@ Strategies with triangular features are more likely on average to have more inst
 %import numpy as np
 %m_1, m_2, s_1, s_2, n_1, n_2 = 52.71, 47.18, 56.794658219949106, 47.01765577951369, 1946, 1957
 %z = (m_2 - m_1) / np.sqrt( ((s_1 * s_1) / n_1) + ((s_2 * s_2) / n_2) )
-As seen previously, identification strategies with triangular features have the most number of instances where $\abs{R} \seq 1$ given an image with no noise.
+As seen previously, identification strategies with triangular features have the most instances where $\abs{R} \seq 1$ given an image with no noise.
 ~\autoref{fig:rPivot} displays the average number of database accesses for these same strategies where the first image set $b$ selection does not meet the $R$ criterion given an image with Gaussian noise.
-We note that the average number of database accesses is higher in strategies that use the pivoting processes, as opposed to those that do not.
+The average number of database accesses is higher in strategies that use the pivoting processes, as opposed to those that do not.
 Given the null hypothesis that the difference between the Planar Triangle strategy's number of database accesses and the Composite Pyramid strategy's number of database accesses is not significant, $z \seq 3.3, p\!<\!0.0001$ is obtained with a two-tailed two sample $Z$ test.
 With the data collected here, we find that the pivoting process results in more database accesses on average.
 This increased number of accesses results in a $6.70\si{ms}$ difference on average between the two.
@@ -337,8 +337,8 @@ This suggests that the Angle strategy's long running time stems from the $\abs{R
 %import numpy as np
 %m_1, m_2, s_1, s_2, n_1, n_2 = 160.675, 170.7905, 0.53808, 0.52922, 2000, 2000
 %z = (m_2 - m_1) / np.sqrt( ((s_1 * s_1) / n_1) + ((s_2 * s_2) / n_2) )
-The fastest strategy in the no noise case appears to be the Interior Angle strategy, with the second fastest strategy running 10.11\si{ms} slower.
-There exists $0 / 2{,}000$ runs where the Interior Angle strategy runs above the Pyramid strategy's average running time ($170.79\si{ms}$) and the Interior Angle strategy has the fastest recorded identification run of $135\si{ms}$.
+The fastest strategy in the no noise case appears to be the Interior Angle strategy, with the second fastest strategy running 10.11 \si{ms} slower.
+There exists $0 / 2{,}000$ runs where the Interior Angle strategy runs above the Pyramid strategy's average running time ($170.79$ $\si{ms}$) and the Interior Angle strategy has the fastest recorded identification run of $135\si{ms}$.
 The Interior Angle strategy is the fastest identification strategy given no noise.
 
 \subsubsection{Which strategy is the fastest given varying levels of Gaussian noise?}
@@ -441,7 +441,7 @@ The Spherical Triangle strategy has the slowest growing \texttt{ACC} response to
 
 \subsubsection{Which strategy is the fastest given varying amounts of false points?}
 In~\autoref{fig:falseNoise}, the plot on the left depicts the end to end running time of each strategy given varying amounts of spikes (i.e.\ false points).
-As the number of spikes increases from 0 to 12, the Angle strategy again experiences the largest response of $1{,}234.15\si{ms}$.
+As the number of spikes increases from 0 to 12, the Angle strategy again experiences the largest response of $1{,}234.15$ $\si{ms}$.
 The next fastest strategy is the Composite Pyramid strategy, a factor of 2.50 times faster than the Angle strategy.
 The difference between the 1st and 2nd slowest strategies is 2.98 times less than the Gaussian noise case.
 On average, it takes 114.23 database accesses to obtain a map and only 54.85 accesses to obtain $r$.

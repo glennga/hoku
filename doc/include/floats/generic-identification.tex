@@ -16,8 +16,9 @@ fill=green!30, inner sep=-12pt]
 \tikzstyle{line} = [draw, -latex']
 
 \begin{tikzpicture}[node distance=1.2cm]
-    \node[scale=1](getImage)[terminal]{Get Camera Image};
-    \node[scale=1](pickQueryStars) [process, left of=getImage, xshift = -2.2cm] {Pick $d$ Image Points};
+    \node[scale=1](start)[]{};
+    \node[scale=1](getImage)[terminal, below of=start, yshift=0.3cm]{Given Image, Databases};
+    \node[scale=1](pickQueryStars) [process, left of=start, xshift = -2.2cm] {Pick $d$ Image Points};
     \node[scale=1](searchCatalog)[process, below of=pickQueryStars, yshift=-0.4cm] {Retrieve Candidates};
     \node[scale=1](confidentInCatalog)[decision, below of=searchCatalog, yshift=-0.4cm] {Is $\lvert R\rvert = 1$?};
     \node[scale=1](filterCandidates)[process, below of=confidentInCatalog, yshift=-0.4cm] {Select Candidate $R[1]$};
@@ -26,7 +27,7 @@ fill=green!30, inner sep=-12pt]
     \node[scale=1](confidentInMap)[decision, below of=findMap, yshift=-0.4cm] {Confident?};
     \node[scale=1](returnMap)[terminal, right of=confidentInMap, xshift = 2.2cm] {Return Mapping $\solutionmap$, Image Subset $\imagesubset$};
 
-    \draw[->,>=stealth](getImage) -- node[scale=1.3, yshift=-0.3cm]{$\imageset$}(pickQueryStars);
+    \draw[->,>=stealth](getImage.north) |- node[scale=1.3, yshift=0.2cm, xshift=-0.6cm]{$\imageset, \databaseset, \genericdatabase$}(pickQueryStars.east);
     \draw[->,>=stealth] (pickQueryStars) -- node[scale=1.3, xshift=0.5cm]{$\imagesubset$}(searchCatalog);
     \draw[->, >=stealth] (searchCatalog) -- node[scale=1.3, xshift=0.5cm, yshift=-0.15cm]{$\databasesubset$}(confidentInCatalog);
     \draw[->, >=stealth] (confidentInCatalog) -- node[anchor=east, yshift=0.1cm]{Yes}(filterCandidates);
