@@ -9,7 +9,7 @@ The Angle strategy is the simplest of the six and has the fastest query step, bu
 The Interior Angle strategy is the fastest running strategy under no noise, but its accuracy is the most sensitive to varying Gaussian noise and it has the slowest query step.
 The Spherical Triangle strategy's accuracy is the least sensitive to varying Gaussian noise, but is the most sensitive to varying amounts of false stars.
 The Planar Triangle is on average faster than the Spherical Triangle strategy, but is also very sensitive to varying amounts of false stars.
-The Pyramid strategy is the fastest strategy given varying amounts of Gaussian noise \& false stars and is also the most accurate given varying amounts of spikes, but is not able to achieve $100\%$ average accuracy due to its candidate retrieval.
-The Composite Pyramid strategy does not suffer from this inaccuracy problem, but does not achieve the same consistent performance of the Pyramid or the triangle strategies due to the number of filters implemented.
+The Pyramid strategy is the fastest strategy given varying amounts of Gaussian noise \& false stars and is also the most accurate given varying amounts of spikes.
+The Composite Pyramid strategy attempts to simplify the candidate retrieval process of the Pyramid method, but does not achieve the same consistent performance of the Pyramid or the triangle strategies due to the number of filters implemented.
 
 Overall, the Pyramid strategy handles both Gaussian noise and false stars the best in a reasonable amount of time.
