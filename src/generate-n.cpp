@@ -157,7 +157,9 @@ int main (int argc, char *argv[]) {
     };
 
     /// INIReader to hold configuration associated with table generation.
-    INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
+    std::string project_path = std::string(dirname(const_cast<char *>(__FILE__))) + "/../../";
+    INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
+                 project_path + "CONFIG.ini");
 
     // Validate our input.
     if (argc < 2 || argc > 3) {

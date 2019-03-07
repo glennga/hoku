@@ -34,8 +34,8 @@ if (WIN32)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -m64")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64")
 else ()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -ldl")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ldl")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 endif ()
 
 #

@@ -30,16 +30,6 @@ To get started, clone this repository:
 git clone https://github.com/glennga/hoku.git
 ```
 
-Build the necessary directories and create the `HOKU_PROJECT_PATH` variable by running the first build script. Execute
-the `first-build.sh` script. 
-```cmd
-cd hoku 
-chmod +x script/first-build.sh
-
-# You must execute this script from the top level directory of Hoku!
-sudo script/first-build.sh
-```
-
 Generate the executables. The output will reside in the `bin` folder. 
 ```cmd
 # Create the Makefiles.

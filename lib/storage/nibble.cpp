@@ -4,6 +4,8 @@
 /// Source file for Nibble class, which facilitate the retrieval and storage of various lookup tables.
 
 #include <algorithm>
+#include <libgen.h>
+
 #include "storage/nibble.h"
 
 /// Returned when a table creation is not successful.
@@ -18,9 +20,13 @@ const int Nibble::NO_RESULT_FOUND_EITHER = 0;
 /// Constructor. This dynamically allocates a database connection object to nibble.db. If the database does not exist,
 /// it is created.
 Nibble::Nibble () {
+    // Determine the name of our nibble database using the config file.
+    std::string project_path = std::string(dirname(const_cast<char *>(__FILE__))) + "/../../";
+    INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
+                 project_path + "CONFIG.ini");
+
     const int FLAGS = SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE;
-    this->conn = std::make_unique<SQLite::Database>(std::string(std::getenv("HOKU_PROJECT_PATH")) +
-                                                    "/data/nibble.db", FLAGS);
+    this->conn = std::make_unique<SQLite::Database>(project_path + cf.Get("database-names", "nibble", ""), FLAGS);
 }
 
 /// Overloaded constructor. If a table name is specified, we load this table into memory. Note that ONLY this table

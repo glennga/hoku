@@ -28,6 +28,7 @@
 #include <algorithm>
 #include <iostream>
 #include <sstream>
+#include <libgen.h>
 
 #include "identification/angle.h"
 #include "identification/dot-angle.h"
@@ -164,7 +165,8 @@ int main (int argc, char *argv[]) {
     l << clock::to_time_t(clock::now() - std::chrono::hours(24));
 
     /// INIReader to hold configuration associated with experiments.
-    INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
+    INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
+                 std::string(dirname(const_cast<char *>(__FILE__))) + "/../../CONFIG.ini");
 
     // Verify the arguments.
     if (argc != 3) {

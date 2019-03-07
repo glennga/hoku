@@ -9,6 +9,7 @@
 
 #include <memory>
 #include "third-party/sqlite-cpp/SQLiteCpp.h"
+#include "third-party/inih/INIReader.h"
 
 #include "math/star.h"
 
@@ -16,8 +17,6 @@
 ///
 /// The nibble class is used with all identification implementations. A group is stars are linked with certain
 /// attributes. Inside this namespace includes the building blocks to generate entire tables, then search these tables.
-///
-/// The environment variable HOKU_PROJECT_PATH must point to top level of this project.
 ///
 /// @example
 /// @code{.cpp}

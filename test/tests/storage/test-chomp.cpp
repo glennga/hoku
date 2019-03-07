@@ -9,6 +9,7 @@
 
 #include "gmock/gmock.h"
 #include <fstream>
+#include <libgen.h>
 
 #include "storage/chomp.h"
 
@@ -24,7 +25,8 @@ MATCHER_P2(IsBetweenChomp, a, b, // NOLINT(modernize-use-equals-delete)
 /// Check that the constructor correctly sets the right fields, and generates the HIP and BRIGHT tables.
 /// 'load_tables' is tested here as well.
 TEST(Chomp, ConstructorNoArguments) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
-    INIReader cf(std::string(std::getenv("HOKU_PROJECT_PATH")) + std::string("/CONFIG.ini"));
+    INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
+                 std::string(dirname(const_cast<char *>(__FILE__))) + "/../../../CONFIG.ini");
     std::string hip = cf.Get("table-names", "hip", "");
     std::string bright = cf.Get("table-names", "bright", "");
 
@@ -51,7 +53,8 @@ TEST(Chomp, ConstructorNoArguments) { // NOLINT(cert-err58-cpp,modernize-use-equ
 /// Check that the in-memory instance constructor provides Chomp query functionality, and the table can be queried.
 /// Components checked with Matlab's sph2cart.
 TEST(Chomp, ConstructorInMemory) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
-    INIReader cf(std::string(std::getenv("HOKU_PROJECT_PATH")) + std::string("/CONFIG.ini"));
+    INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
+                 std::string(dirname(const_cast<char *>(__FILE__))) + "/../../../CONFIG.ini");
     std::string hip = cf.Get("table-names", "hip", "");
     std::string bright = cf.Get("table-names", "bright", "");
     Chomp ch(bright, "label");
@@ -135,7 +138,8 @@ TEST(Chomp, StarTableYearDifference) { // NOLINT(cert-err58-cpp,modernize-use-eq
 /// Check that the both the bright stars table and the hip table are present after running the generators.
 TEST(Chomp, StarTableTableExistence) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
     Chomp ch;
-    INIReader cf(std::string(std::getenv("HOKU_PROJECT_PATH")) + std::string("/CONFIG.ini"));
+    INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
+                 std::string(dirname(const_cast<char *>(__FILE__))) + "/../../../CONFIG.ini");
     ch.bright_table = cf.Get("table-names", "bright", "");
     ch.hip_table = cf.Get("table-names", "hip", "");
     ch.generate_table(cf, true);
@@ -199,6 +203,8 @@ TEST(Chomp, NearbyBrightStars) { // NOLINT(cert-err58-cpp,modernize-use-equals-d
     Chomp ch;
     Star focus = Star::chance();
     std::vector<Star> nearby = ch.nearby_bright_stars(focus, 7.5, 30);
+
+    ASSERT_GT(nearby.size(), 9);
     for (int q = 0; q < 10; q++) {
         EXPECT_TRUE(Star::within_angle(nearby[q], focus, 7.5));
     }

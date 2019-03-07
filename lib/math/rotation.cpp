@@ -50,8 +50,8 @@ Star Rotation::rotate (const Star &s, const Rotation &q) {
 
 /// Rotate a star away toward another star, given the interpolation parameter.
 ///
-/// @param s Star to push away from f.
-/// @param f Star to be pushed away from.
+/// @param s Star to push toward f.
+/// @param f Star to be pushed toward.
 /// @param t Interpolation parameter.
 /// @return The star S "pushed away" from f.
 Star Rotation::slerp (const Star &s, const Vector3 &f, const double t) {

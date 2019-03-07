@@ -102,23 +102,17 @@ TEST(Trio, CommonPlanarCentroidComputation) { // NOLINT(cert-err58-cpp,modernize
 
 /// Check that the triangle cutting method works as intended.
 TEST(Trio, CutTriangle) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
-    auto p_area = [] (const Trio &t) -> double {
-        return Trio::planar_area(*t.b_1, *t.b_2, *t.b_3);
-    };
     auto p_perimeter = [] (const Trio &t) -> double {
         Trio::side_lengths a = t.planar_lengths();
         return a[0] + a[1] + a[2];
     };
 
-    for (unsigned int i = 0; i < 20; i++) {
+    for (unsigned int i = 0; i < 100; i++) {
         Trio t(Star::chance(), Star::chance(), Star::chance());
         Trio t_1 = Trio::cut_triangle(*t.b_1, *t.b_2, *t.b_3, 0);
         Trio t_2 = Trio::cut_triangle(*t.b_1, *t.b_2, *t.b_3, 1);
         Trio t_3 = Trio::cut_triangle(*t.b_1, *t.b_2, *t.b_3, 2);
         Trio t_4 = Trio::cut_triangle(*t.b_1, *t.b_2, *t.b_3, 3);
-
-        // Individual areas should **be less** than the total sum. Unit sphere work moves point in Cartesian space.
-        EXPECT_LT(p_area(t), p_area(t_1) + p_area(t_2) + p_area(t_3) + p_area(t_4));
 
         // Individual perimeters should **be less** than the total sum.
         EXPECT_LT(p_perimeter(t), p_perimeter(t_1) + p_perimeter(t_2) + p_perimeter(t_3));

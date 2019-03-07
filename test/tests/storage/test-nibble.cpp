@@ -7,13 +7,18 @@
 #define ENABLE_TESTING_ACCESS
 
 #include <fstream>
+#include <libgen.h>
 #include "gtest/gtest.h"
 
 #include "storage/chomp.h"
 
 /// Check that Nibble database is present after creating a Nibble instance.
 TEST(Nibble, FileExistence) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
-    std::ifstream nibble(std::string(std::getenv("HOKU_PROJECT_PATH")) + "/data/nibble.db");
+    std::string project_path = std::string(dirname(const_cast<char *>(__FILE__))) + "/../../../";
+    INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
+                 project_path + "CONFIG.ini");
+
+    std::ifstream nibble(project_path + std::string(cf.Get("database-names", "nibble", "")));
     ASSERT_TRUE(nibble.good());
 }
 

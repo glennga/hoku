@@ -14,6 +14,7 @@
 #include <sstream>
 #include <fstream>
 #include <algorithm>
+#include <libgen.h>
 
 #include "math/mercator.h"
 #include "identification/angle.h"
@@ -24,7 +25,8 @@
 #include "identification/composite-pyramid.h"
 
 /// INIReader to hold configuration associated with experiments.
-INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
+INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
+             std::string(dirname(const_cast<char *>(__FILE__))) + "/../../CONFIG.ini");
 
 /// Holds all of the table names used with 'identifier_hash'.
 namespace NBHA {
@@ -40,12 +42,9 @@ namespace NBHA {
 /// @return A pointer to the pipe containing the output from our centroid determination script.
 std::shared_ptr<FILE> parse_fits (const std::string &image) {
     // Run the FITS -> CSV centroid script.
-    std::string script_path = std::string(std::getenv("HOKU_PROJECT_PATH")) + "/script/python/find_centroids.py";
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-    std::string cmd = std::string("python -E \"") + script_path + "\" \"" + image + "\"";
-#else
+    std::string script_path = std::string(__FILE__) + "../../../script/python/find_centroids.py";
     std::string cmd = std::string("python3 \"") + script_path + "\" " + image;
-#endif
+
     std::shared_ptr<FILE> centroids_pipe(popen(cmd.c_str(), "r"), pclose);
     if (!centroids_pipe) {
         throw std::runtime_error(std::string("'python/find_centroids.py' exited with an error. Double check the file"

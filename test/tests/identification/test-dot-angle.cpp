@@ -42,7 +42,8 @@ TEST(DotAngle, Constructor) { // NOLINT(cert-err58-cpp,modernize-use-equals-dele
 
 /// Check the existence and the structure of the DotAngle table.
 TEST(DotAngle, TableExistenceStructure) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
-    INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
+    INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
+                 std::string(dirname(const_cast<char *>(__FILE__))) + "/../../../CONFIG.ini");
     Dot::generate_table(cf);
     Nibble nb;
     
@@ -59,7 +60,8 @@ TEST(DotAngle, TableExistenceStructure) { // NOLINT(cert-err58-cpp,modernize-use
 
 /// Check that the entries in the DotAngle table are correct.
 TEST(DotAngle, TableCorrectEntries) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
-    INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
+    INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
+                 std::string(dirname(const_cast<char *>(__FILE__))) + "/../../../CONFIG.ini");
     Dot::generate_table(cf);
     Chomp ch;
     ch.select_table(cf.Get("table-names", "dot", ""));
@@ -82,7 +84,8 @@ TEST(DotAngle, TableCorrectEntries) { // NOLINT(cert-err58-cpp,modernize-use-equ
 
 ///// No test is performed here. This is just to see how long the entire table will load into memory.
 //TEST(DotAngle, ChompInMemory) {
-//    INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
+//    INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
+//      std::string(__FILE__) + "../../../../CONFIG.ini");
 //    Chomp ch(cf.Get("table-names", "dot", ""), cf.Get("table-focus", "dot", ""));
 //}
 

@@ -11,6 +11,7 @@
 #include <iostream>
 #include <iterator>
 #include <sstream>
+#include <libgen.h>
 
 #include "storage/chomp.h"
 
@@ -30,7 +31,9 @@ const double Chomp::DOUBLE_EPSILON = std::numeric_limits<double>::epsilon();
 /// it is created. We then proceed to load all stars into RAM from both tables.
 Chomp::Chomp () : Nibble() {
     // Parse the table names.
-    INIReader cf(std::string(std::getenv("HOKU_PROJECT_PATH")) + std::string("/CONFIG.ini"));
+    std::string project_path = std::string(dirname(const_cast<char *>(__FILE__))) + "/../../";
+    INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
+                 project_path + "CONFIG.ini");
     this->bright_table = cf.Get("table-names", "bright", "");
     this->hip_table = cf.Get("table-names", "hip", "");
     
@@ -46,10 +49,12 @@ Chomp::Chomp () : Nibble() {
 /// @param table_name Name of the table to load into memory.
 /// @param focus Name of the focus column to polish table with.
 Chomp::Chomp (const std::string &table_name, const std::string &focus) : Nibble(table_name, focus) {
+    std::string project_path = std::string(dirname(const_cast<char *>(__FILE__))) + "/../../";
     Chomp ch_t;
     
     // Parse the table names (for consistency).
-    INIReader cf(std::string(std::getenv("HOKU_PROJECT_PATH")) + std::string("/CONFIG.ini"));
+    INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
+                 project_path + "CONFIG.ini");
     this->bright_table = cf.Get("table-names", "bright", "");
     this->hip_table = cf.Get("table-names", "hip", "");
     
@@ -126,7 +131,9 @@ double Chomp::year_difference (INIReader &cf) {
 /// @param m_flag If true, generate restrict the magnitude of each entry and insert only bright stars.
 /// @return TABLE_EXISTS if the bright stars table already exists. 0 otherwise.
 int Chomp::generate_table (INIReader &cf, bool m_flag) {
-    std::ifstream catalog(std::string(std::getenv("HOKU_PROJECT_PATH")) + "/data/hip2.dat");
+    std::string project_path = std::string(dirname(const_cast<char *>(__FILE__))) + "/../../";
+    std::ifstream catalog(project_path + cf.Get("database-names", "hip2", ""));
+
     if (!catalog.is_open()) {
         throw std::runtime_error(std::string("Catalog file cannot be opened."));
     }

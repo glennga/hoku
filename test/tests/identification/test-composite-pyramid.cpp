@@ -5,6 +5,7 @@
 
 #define ENABLE_TESTING_ACCESS
 
+#include <libgen.h>
 #include "gmock/gmock.h"
 
 #include "identification/composite-pyramid.h"
@@ -40,7 +41,8 @@ TEST(CompositePyramid, Constructor) { // NOLINT(cert-err58-cpp,modernize-use-equ
 
 /// Check the existence and the structure of the Composite table.
 TEST(CompositePyramid, ExistenceStructure) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
-    INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
+    INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
+                 std::string(dirname(const_cast<char *>(__FILE__))) + "/../../../CONFIG.ini");
     Composite::generate_table(cf);
     Nibble nb;
 
@@ -57,7 +59,8 @@ TEST(CompositePyramid, ExistenceStructure) { // NOLINT(cert-err58-cpp,modernize-
 
 /// Check that the entries in the Composite table are correct.
 TEST(CompositePyramid, TableCorrectEntries) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
-    INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
+    INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
+                 std::string(dirname(const_cast<char *>(__FILE__))) + "/../../../CONFIG.ini");
     Composite::generate_table(cf);
     Chomp ch;
     ch.select_table(cf.Get("table-names", "composite", ""));
@@ -80,7 +83,8 @@ TEST(CompositePyramid, TableCorrectEntries) { // NOLINT(cert-err58-cpp,modernize
 
 ///// No test is performed here. This is just to see how long the entire table will load into memory.
 //TEST(CompositePyramid, ChompInMemory) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
-//    INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
+//        INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
+//                 std::string(dirname(const_cast<char *>(__FILE__))) + "/../../../CONFIG.ini");
 //    Chomp ch(cf.Get("table-names", "composite", ""), cf.Get("table-focus", "composite", ""));
 //}
 

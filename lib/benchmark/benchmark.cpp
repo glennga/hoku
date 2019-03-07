@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <fstream>
 #include <sstream>
+#include <libgen.h>
 
 #include "benchmark/benchmark.h"
 #include "math/random-draw.h"
@@ -160,8 +161,8 @@ void Benchmark::display_plot () {
     std::string params =
             " q=on fov=" + std::to_string(this->fov);
 
-    std::string cmd = "python3 " + std::string(std::getenv("HOKU_PROJECT_PATH")) +
-                      "/script/python/draw_image.py " + params;
+    std::string cmd = "python3 " + std::string(dirname(const_cast<char *>(__FILE__)))
+            + "/../../script/python/draw_image.py " + params;
 
     // Record the current instance, and let Python work its magic!
     this->record_current_plot();
@@ -287,16 +288,20 @@ void Benchmark::shift_light (const unsigned int n, const double sigma, bool shuf
 /// @param alpha Distortion parameter associated with the barrel. Smaller alpha -> stars moved away from image center.
 void Benchmark::barrel_light (double alpha) {
     // TODO: Finish this method. Need to visually check output.
-    ErrorModel barreled_light = {"Barreled Light", "y", {}};
-
-    std::transform(this->b->begin(), this->b->end(), this->b->begin(), [this, alpha] (const Star &s) -> Star {
-        // Determine the distance our current star must be from the center.
-        double u = (180.0 / M_PI) * Star::Angle(s.get_vector(), this->center);
-        double d = u * (1 - alpha * u * u);
-
-        return Rotation::slerp(s, this->center, d);
-    });
-
-    // Append to our error models.
-    this->error_models.push_back(barreled_light);
+//    ErrorModel barreled_light = {"Barreled Light", "y", {}};
+//
+//    barreled_light.affected.resize(this->b->size());
+//    std::transform(this->b->begin(), this->b->end(), this->b->begin(),
+//            [this, alpha, &barreled_light] (const Star &s) -> Star {
+////        // Determine the distance our current star must be from the center.
+////        double r = Star::Angle(s.get_vector(), this->center);
+////        double t = ((1.0 - alpha) * r);
+//
+//        Star modified = Rotation::slerp(s, this->center, alpha);
+//        barreled_light.affected.emplace_back(modified);
+//        return modified;
+//    });
+//
+//    // Append to our error models.
+//    this->error_models.push_back(barreled_light);
 }

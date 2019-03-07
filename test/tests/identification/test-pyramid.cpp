@@ -5,6 +5,8 @@
 
 #define ENABLE_TESTING_ACCESS
 
+#include <libgen.h>
+
 #include "identification/pyramid.h"
 #include "gmock/gmock.h"
 
@@ -38,7 +40,8 @@ TEST(Pyramid, Constructor) { // NOLINT(cert-err58-cpp,modernize-use-equals-delet
 
 /// Check the existence and the structure of the Pyramid table.
 TEST(Pyramid, TableExistenceStructure) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
-    INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
+    INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
+                 std::string(dirname(const_cast<char *>(__FILE__))) + "/../../../CONFIG.ini");
     Pyramid::generate_table(cf);
     Nibble nb;
 
@@ -55,7 +58,8 @@ TEST(Pyramid, TableExistenceStructure) { // NOLINT(cert-err58-cpp,modernize-use-
 
 /// Check that the entries in the Pyramid table are correct.
 TEST(Pyramid, TableCorrectEntries) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
-    INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
+    INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
+                 std::string(dirname(const_cast<char *>(__FILE__))) + "/../../../CONFIG.ini");
     Pyramid::generate_table(cf);
     Chomp ch;
     ch.select_table(cf.Get("table-names", "pyramid", ""));

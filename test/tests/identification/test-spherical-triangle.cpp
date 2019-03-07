@@ -5,6 +5,7 @@
 
 #define ENABLE_TESTING_ACCESS
 
+#include <libgen.h>
 #include "gmock/gmock.h"
 
 #include "identification/spherical-triangle.h"
@@ -39,7 +40,8 @@ TEST(SphericalTriangle, Constructor) { // NOLINT(cert-err58-cpp,modernize-use-eq
 
 /// Check the existence and the structure of the SphericalTriangle table.
 TEST(SphericalTriangle, TableExistenceStructure) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
-    INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
+    INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
+                 std::string(dirname(const_cast<char *>(__FILE__))) + "/../../../CONFIG.ini");
     Sphere::generate_table(cf);
     Nibble nb;
     
@@ -56,7 +58,8 @@ TEST(SphericalTriangle, TableExistenceStructure) { // NOLINT(cert-err58-cpp,mode
 
 /// Check that the entries in the SphericalTriangle table are correct.
 TEST(SphericalTriangle, TableCorrectEntries) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
-    INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
+    INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
+                 std::string(dirname(const_cast<char *>(__FILE__))) + "/../../../CONFIG.ini");
     Sphere::generate_table(cf);
     Chomp ch;
     ch.select_table(cf.Get("table-names", "sphere", ""));
@@ -79,7 +82,8 @@ TEST(SphericalTriangle, TableCorrectEntries) { // NOLINT(cert-err58-cpp,moderniz
 
 ///// No test is performed here. This is just to see how long the entire table will load into memory.
 //TEST(SphericalTriangle, ChompInMemory) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
-//    INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
+//        INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
+//                 std::string(dirname(const_cast<char *>(__FILE__))) + "/../../../CONFIG.ini");
 //    Chomp ch(cf.Get("table-names", "sphere", ""), cf.Get("table-focus", "sphere", ""));
 //}
 

@@ -8,8 +8,6 @@
 #ifndef HOKU_CHOMP_H
 #define HOKU_CHOMP_H
 
-#include "third-party/inih/INIReader.h"
-
 #include "storage/nibble.h"
 
 /// @brief Class for accessing the Hipparcos catalog.
@@ -17,10 +15,6 @@
 /// The chomp class is used with nearly all identification implementations. Like Nibble, a group of stars are linked
 /// with certain attributes. Unlike Nibble, the data structure and methods are extended beyond that of a basic lookup
 /// table.
-///
-/// Like Nibble, the following must hold true:
-/// The environment variable HOKU_PROJECT_PATH must point to top level of this project.
-/// The file %HOKU_PROJECT_PATH%/data/hip2.dat must exist.
 ///
 /// @example
 /// @code{.cpp}
