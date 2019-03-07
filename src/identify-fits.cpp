@@ -26,7 +26,7 @@
 
 /// INIReader to hold configuration associated with experiments.
 INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
-             std::string(dirname(const_cast<char *>(__FILE__))) + "/../../CONFIG.ini");
+             std::string(dirname(const_cast<char *>(__FILE__))) + "/../CONFIG.ini");
 
 /// Holds all of the table names used with 'identifier_hash'.
 namespace NBHA {

@@ -25,6 +25,7 @@
 
 #include <iostream>
 #include <algorithm>
+#include <libgen.h>
 
 #include "identification/angle.h"
 #include "identification/dot-angle.h"
@@ -157,7 +158,7 @@ int main (int argc, char *argv[]) {
     };
 
     /// INIReader to hold configuration associated with table generation.
-    std::string project_path = std::string(dirname(const_cast<char *>(__FILE__))) + "/../../";
+    std::string project_path = std::string(dirname(const_cast<char *>(__FILE__))) + "/../";
     INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
                  project_path + "CONFIG.ini");
 

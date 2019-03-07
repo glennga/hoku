@@ -47,7 +47,7 @@ namespace EHA {
     /// @param experiment_in Input given by the user, to identify the type of experiment table.
     /// @return Index of the name space below. 3 is given if the given input is not in the name space.
     int experiment_to_hash (const std::string &experiment_in) {
-        std::string experiment_in_upper;
+        std::string experiment_in_upper = experiment_in;
         std::transform(experiment_in.begin(), experiment_in.end(), experiment_in_upper.begin(), ::toupper);
 
         std::array<std::string, 4> space = {"QUERY", "REDUCTION", "IDENTIFICATION", "OVERLAY"};
@@ -67,7 +67,7 @@ namespace EHA {
         }
 
         // Extract the uppercase and lowercase versions of our name.
-        std::string experiment_in_upper, experiment_in_lower;
+        std::string experiment_in_upper = experiment_in, experiment_in_lower = experiment_in;
         std::transform(experiment_in.begin(), experiment_in.end(), experiment_in_upper.begin(), ::toupper);
         std::transform(experiment_in.begin(), experiment_in.end(), experiment_in_lower.begin(), ::tolower);
 
@@ -165,8 +165,12 @@ int main (int argc, char *argv[]) {
     l << clock::to_time_t(clock::now() - std::chrono::hours(24));
 
     /// INIReader to hold configuration associated with experiments.
-    INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
-                 std::string(dirname(const_cast<char *>(__FILE__))) + "/../../CONFIG.ini");
+    std::string config_file_path = std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
+                                   std::string(dirname(const_cast<char *>(__FILE__))) + "/../CONFIG.ini";
+    INIReader cf(config_file_path);
+    if (cf.ParseError() < 0) {
+        std::cout << "Unable to read the CONFIG file at: " << config_file_path << std::endl;
+    }
 
     // Verify the arguments.
     if (argc != 3) {
