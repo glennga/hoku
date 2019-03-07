@@ -203,7 +203,7 @@ Pyramid::trios_either Pyramid::find_catalog_stars (const Star::trio &b) {
     Star::list big_t_k = common(big_r_ik_ell, big_r_jk_ell, removed);
 
     // |R| = 1 restriction. If these lists do not contain exactly one element, break.
-    if ((big_t_i.size() != 1 && big_t_j.size() != 1 && big_t_k.size() != 1) && !this->parameters->no_reduction) {
+    if ((big_t_i.size() != 1 || big_t_j.size() != 1 || big_t_k.size() != 1) && !this->parameters->no_reduction) {
         return trios_either{{}, NO_CONFIDENT_R_FOUND_EITHER};
     }
 
