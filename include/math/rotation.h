@@ -41,7 +41,6 @@
 class Rotation : public Quaternion {
 public:
     Rotation (double w, double i, double j, double k);
-
     static Rotation wrap (const Quaternion &q);
 
     /// Alias for a function that solves Wahba's problem (e.g. TRIAD, SVD, etc...).
@@ -51,20 +50,13 @@ public:
     friend std::ostream &operator<< (std::ostream &os, const Rotation &q);
 
     static Star rotate (const Star &s, const Rotation &q);
-
     static Star slerp (const Star &s, const Vector3 &f, double t);
-
     static Star shake (const Star &s, double sigma);
 
     static Rotation identity ();
-
     static Rotation chance ();
 
     static Rotation triad (const Star::list &v, const Star::list &w);
-
-    static Rotation svd (const Star::list &v, const Star::list &w);
-
-    static Rotation q_method (const Star::list &v, const Star::list &w);
 };
 
 #endif /* HOKU_ROTATION_H */
