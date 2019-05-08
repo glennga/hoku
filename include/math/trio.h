@@ -6,6 +6,8 @@
 #ifndef HOKU_TRIO_H
 #define HOKU_TRIO_H
 
+#include <memory>
+
 #include "math/star.h"
 
 /// @brief Feature class for planar and spherical triangle star identification procedures.
@@ -32,7 +34,7 @@ public:
 
     // For methods with potential errors, we define an "either" struct.
     struct either {
-        double result; // Result associated with the computation.
+        double result = 0; // Result associated with the computation.
         int error = 0; // Error associated with the computation.
     };
 
