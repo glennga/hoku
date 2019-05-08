@@ -1,5 +1,7 @@
 #!/bin/bash
 
+HOKU_PROJECT_PATH="$(dirname "$0")/../"
+
 # Ensure that GenerateN exists before proceeding.
 if [[ ! -f $HOKU_PROJECT_PATH/bin/GenerateN ]]; then
     echo "'GenerateN' not found. Build the file 'src/generate-n.cpp'."
