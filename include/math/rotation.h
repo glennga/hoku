@@ -22,7 +22,6 @@ public:
     Rotation (double w, double i, double j, double k);
     static Rotation wrap (const Quaternion &q);
 
-    /// Alias for a function that solves Wahba's problem (e.g. TRIAD, SVD, etc...).
     using wahba_function = Rotation (*) (const Star::list &, const Star::list &);
 
 public:

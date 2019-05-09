@@ -3,8 +3,6 @@
 ///
 /// Source file for all RandomDraw class unit tests.
 
-#define ENABLE_TESTING_ACCESS
-
 #include <array>
 #include "math/random-draw.h"
 #include "gmock/gmock.h"

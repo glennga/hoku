@@ -3,8 +3,6 @@
 ///
 /// Source file for all Rotation class unit tests.
 
-#define ENABLE_TESTING_ACCESS
-
 #define _USE_MATH_DEFINES
 
 #include <cmath>

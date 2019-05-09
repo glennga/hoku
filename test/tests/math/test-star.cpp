@@ -3,8 +3,6 @@
 ///
 /// Source file for all Star class unit tests.
 
-#define ENABLE_TESTING_ACCESS
-
 #define _USE_MATH_DEFINES
 
 #include <cmath>
@@ -28,7 +26,6 @@ TEST(Star, OperatorGet) {
     EXPECT_DOUBLE_EQ(a[0], a.data[0]);
     EXPECT_DOUBLE_EQ(a[1], a.data[1]);
     EXPECT_DOUBLE_EQ(a[2], a.data[2]);
-    EXPECT_EQ(a.get_label(), a.label);
 }
 TEST(Star, GetterLabel) { 
     EXPECT_EQ(Star(1, 1, 1).get_label(), Star::NO_LABEL);
@@ -75,7 +72,7 @@ TEST(Star, EqualitySame) {
     EXPECT_EQ(b, c);
 }
 TEST(Star, ChanceUnit) { EXPECT_DOUBLE_EQ(Vector3::Magnitude(Star::chance().get_vector()), 1.0); }
-TEST(Star, ChanceLabel) { EXPECT_EQ(Star::chance(-100).label, -100); }
+TEST(Star, ChanceLabel) { EXPECT_EQ(Star::chance(-100).get_label(), -100); }
 TEST(Star, ChanceDuplicate) {
     Star a = Star::chance(), b = Star::chance();
     EXPECT_FALSE(a.get_vector() == b.get_vector());

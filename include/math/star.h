@@ -50,9 +50,7 @@ public:
     static const double NO_MAGNITUDE;
     static const int NO_LABEL;
 
-#if !defined ENABLE_TESTING_ACCESS
 private:
-#endif
     int label;
     double m;
 };

@@ -30,17 +30,10 @@ public:
     static const int INVALID_TRIO_A_EITHER;
     static const int INVALID_TRIO_M_EITHER;
 
-#if !defined ENABLE_TESTING_ACCESS
-    private:
-#endif
-    using side_lengths = std::array<double, 3>;
-
-#if !defined ENABLE_TESTING_ACCESS
-    private:
-#endif
-
+private:
     Trio (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &b_3);
 
+    using side_lengths = std::array<double, 3>;
     side_lengths planar_lengths () const;
     side_lengths spherical_lengths () const;
     static double semi_perimeter (double a, double b, double c);
@@ -49,9 +42,6 @@ public:
     double recurse_spherical_moment (const Vector3 &c, int td_n, int td_i);
     static Trio cut_triangle (const Vector3 &c_1, const Vector3 &c_2, const Vector3 &c_3, int k);
 
-#if !defined ENABLE_TESTING_ACCESS
-    private:
-#endif
     std::shared_ptr<Vector3> b_1;
     std::shared_ptr<Vector3> b_2;
     std::shared_ptr<Vector3> b_3;
