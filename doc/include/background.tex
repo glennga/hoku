@@ -86,7 +86,7 @@ problem as finding an $A$ that minimizes the loss function~\cite{wahba:attitudeE
     L(A) = \frac{1}{2} \sum_j^n \vv{w_j} \left\| \vv{\imageset[j]} - A \times \vv{\databaseset[j]} \right\|^2
 \end{equation}
 where $\vv{w_j}$ represents a nonnegative weight associated with the noise between the query points $\vv{\imageset[j]}$ in the body frame and the matching points $\vv{\databaseset[j]}$ in the inertial frame.
-The \textit{TRIAD method} (short for TRIaxial Attitude Determination) is typically used as a closed form solution~\cite{markley:attitudeDeterminationTwoVectors} to Wahba's problem after the evaluating the constellation query to retrieve the matching set of points from the database.
+The \textit{TRIAD method} (short for TRIaxial Attitude Determination) is typically used as a closed form solution~\cite{markley:attitudeDeterminationTwoVectors} to Wahba's problem after evaluating the constellation query to retrieve the matching set of points from the database.
 Hence, constellation queries do not deal with finding the transformation matrix $A$, but focus on finding the sets of points, i.e.\ constellations, in a database of known points (in a standard coordinate system) that best matches a set of query points (in the image coordinate system) in the query image.
 
 This paper is an empirical survey of six existing constellation query processing strategies in the literature and in the industry.

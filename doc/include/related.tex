@@ -76,11 +76,11 @@ The naive approach to searching for matching features in a subgraph isomorphism 
 %Early star identification strategies focused on reducing the size of the relation to be searched, rather than the search
 %process itself.
 In 1996, Quine (according to Spratling) was the first to reduce the database search time from linear to log time using a binary search tree~\cite{quine:fastAutonomousStarAcquistion}.
-The following year Mortari's "Search-Less Algorithm" was introduced, which utilizes $k$-vectors to search a relation independent of its size~\cite{mortari:kVectorApproach}.
+The following year Mortari's "Search-Less Algorithm" was introduced, which utilizes $k$-vectors to retrieve multiple nearby stars at once, rather than one at a time~\cite{mortari:kVectorApproach}.
 
 \newcommand{\srightarrow}{\! \rightarrow \!}
 \nsubparagraph{Mapping}
-To identify a point in an image is to pair it with some point in a database.
+Identification is a process that pairs point(s) in an image to star(s) in a database.
 Gottlieb's strategy used a voting approach to remove the ambiguity after identifying a single point pair~\cite{gottlieb:spacecraftAttitudeDetermination}, which was later generalized by Kolomenkin to vote for every point in the image~\cite{kolomenkin:geometricVoting}.
 The direct match test was proposed by Needleman (according to Tappe), which determines the likelihood of a map based on how many points from each frame align with the attitude formed by the map~\cite{needelman:stellarAttitudeAcquisition}.
 In an effort to avoid the mapping processes above, Anderson (according to Spratling) proposed the use of storing permutations of point subsets instead of combinations at the expense of storage~\cite{anderson:autonomousStarSensing}.
