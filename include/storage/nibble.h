@@ -9,96 +9,46 @@
 
 #include <memory>
 #include "third-party/sqlite-cpp/SQLiteCpp.h"
-#include "third-party/inih/INIReader.h"
 
 #include "math/star.h"
 
 /// @brief Class for interacting with `nibble.db` through SQLite.
-///
-/// The nibble class is used with all identification implementations. A group is stars are linked with certain
-/// attributes. Inside this namespace includes the building blocks to generate entire tables, then search these tables.
-///
-/// @example
-/// @code{.cpp}
-/// Nibble nb;
-///
-/// // Create the table 'TEST(int U, int B)'.
-/// nb.create_table("TEST", "int U, int B");
-///
-/// // Table 'TEST' is selected from call above. Insert (10, 11) into table.
-/// nb.insert_into_table("U, B", {10, 11});
-///
-/// // Sort the table by "U" and create an index for "U".
-/// nb.polish_table("U");
-///
-/// // Change our working table from "TEST" to "BRIGHT".
-/// nb.select_table("BRIGHT");
-///
-/// // Search the 'BRIGHT' table star 3's right ascension and declination. Expecting 2 floats, limit results by 1 row.
-/// Nibble::tuples_d a = nb.search_table("label = 3", "alpha, delta", 2, 1);
-/// for (const tuple_d &i : a) {
-///     for (const double &b : i) { std::cout << b << std::endl; }
-/// }
-/// @endcode
 class Nibble {
 public:
-    /// Alias for a SQL row of results or input, provided the results are floating numbers.
     using tuple_d = std::vector<double>;
-
-    /// Alias for a set of results (tuples), provided the results are floating numbers.
     using tuples_d = std::vector<tuple_d>;
-
-    /// Alias for a SQL row of input, provided the results are integers.
     using tuple_i = std::vector<int>;
 
-    /// Open and unique database connection object. This must be public to work with SQLiteCpp library.
-    std::unique_ptr<SQLite::Database> conn;
-
-    // For the single value search with potential errors, we define an "either" struct.
-    struct either {
-        double result; // Result associated with the computation.
-        int error; // Error associated with the computation.
+    struct Either {
+        double result;
+        int error;
     };
 
+    std::unique_ptr<SQLite::Database> conn; // This must be public to work with SQLiteCpp library.
+
 public:
-    Nibble ();
+    explicit Nibble (const std::string &database_name);
 
-    explicit Nibble (const std::string &table_name, const std::string &focus = "");
-
-    tuples_d search_table (const std::string &fields, unsigned int expected, int = NO_LIMIT);
-
-    tuples_d search_table (const std::string &fields, const std::string &constraint, unsigned int expected,
-                           int limit = NO_LIMIT);
-
-    either search_single (const std::string &fields, const std::string &constraint = "");
+    tuples_d search_table (const std::string &fields, unsigned int expected);
+    tuples_d search_table (const std::string &fields, const std::string &constraint, unsigned int expected);
+    Either search_single (const std::string &fields, const std::string &constraint = "");
 
     void select_table (const std::string &table);
-
     bool does_table_exist (const std::string &table);
-
     int create_table (const std::string &table, const std::string &schema);
 
     int find_attributes (std::string &schema, std::string &fields);
+    int sort_and_index (const std::string &focus);
 
-    int sort_table (const std::string &focus);
-
-    int polish_table (const std::string &focus);
-
-    static const int TABLE_NOT_CREATED;
-    static const int NO_LIMIT;
+    static const int TABLE_NOT_CREATED_RET;
     static const int NO_RESULT_FOUND_EITHER;
 
 public:
-    /// Using the currently selected table, insert the set of values in order of the fields given.
-    ///
     /// @tparam T Type of input vector. Should be tuple_i or tuple_d.
-    /// @param fields The fields corresponding to vector of in_values.
-    /// @param in_values Vector of values to insert to table.
-    /// @return 0 when finished.
     template<typename T>
     int insert_into_table (const std::string &fields, const T &in_values) {
         // Create bind statement with necessary amount of '?'.
-        std::string sql = "INSERT INTO " + table + " (" + fields + ") VALUES (";
+        std::string sql = "INSERT INTO " + current_table + " (" + fields + ") VALUES (";
         for (unsigned int a = 0; a < in_values.size() - 1; a++) {
             sql.append("?, ");
         }
@@ -114,11 +64,8 @@ public:
         return 0;
     }
 
-#if !defined ENABLE_TESTING_ACCESS
-    protected:
-#endif
-    /// Current table being operated on.
-    std::string table;
+protected:
+    std::string current_table;
 };
 
 #endif /* HOKU_NIBBLE_H */

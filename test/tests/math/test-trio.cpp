@@ -16,6 +16,7 @@ TEST(Trio, PlanarAreaComputation) {
     Vector3 b = Vector3::Cross(a_1 - a_2, a_1 - a_3);
     EXPECT_NEAR(Vector3::Magnitude(b) * 0.5, Trio::planar_area(a_1, a_2, a_3), 0.00000000001);
 }
+
 TEST(Trio, SphericalAreaComputation) {
     double epsilon = 0.00000000001;
     for (int i = 0; i < 30; i++) {
@@ -34,6 +35,7 @@ TEST(Trio, SphericalAreaComputation) {
     EXPECT_EQ(Trio::spherical_area(Star(1, 1, 1), Star(1, 1, 1), Star(2, 2, 2)).error, 0);
     EXPECT_DOUBLE_EQ(Trio::spherical_area(Star(1, 1, 1), Star(1, 1, 1), Star(2, 2, 2)).result, 0);
 }
+
 TEST(Trio, SphericalMomentComputation) {
     double epsilon = 0.0000000001;
     for (int i = 0; i < 10; i++) {
@@ -52,6 +54,7 @@ TEST(Trio, SphericalMomentComputation) {
     EXPECT_EQ(Trio::spherical_moment(Star(1, 1, 1), Star(1, 1, 1), Star(2, 2, 2)).error, 0);
     EXPECT_DOUBLE_EQ(Trio::spherical_moment(Star(1, 1, 1), Star(1, 1, 1), Star(2, 2, 2)).result, 0);
 }
+
 TEST(Trio, PlanarTriangleShifts) {
     for (int i = 0; i < 100; i++) {
         std::array<Star, 3> t_original = {Star(1 - 0.001, 0, 0), Star(0, 1 - 0.001, 0), Star(0, 0, 1 - 0.001)};
@@ -66,6 +69,7 @@ TEST(Trio, PlanarTriangleShifts) {
         RecordProperty("ShiftMoment", std::to_string(fabs(i_original - i_shaken)));
     }
 }
+
 TEST(Trio, SphericalTriangleShifts) {
     for (int i = 0; i < 100; i++) {
         std::array<Star, 3> t_original = {Star(1 - 0.001, 0, 0), Star(0, 1 - 0.001, 0), Star(0, 0, 1 - 0.001)};
@@ -80,6 +84,7 @@ TEST(Trio, SphericalTriangleShifts) {
         RecordProperty("ShiftMoment", std::to_string(fabs(i_original - i_shaken)));
     }
 }
+
 TEST(Trio, DotAngle) {
     EXPECT_FLOAT_EQ(0, Trio::dot_angle(Vector3::Forward(), Vector3::Forward(), Vector3::Backward()));
     EXPECT_FLOAT_EQ(180.0, Trio::dot_angle(Vector3::Forward(), Vector3::Normalized(

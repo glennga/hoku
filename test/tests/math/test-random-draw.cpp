@@ -9,6 +9,7 @@
 
 using testing::PrintToString;
 using testing::Not;
+
 MATCHER_P2(IsBetweenRandomDraw, a, b,
            std::string(negation ? "isn't" : "is") + " between " + PrintToString(a) + " and " + PrintToString(b)) {
     return a <= arg && arg <= b;
@@ -26,6 +27,7 @@ TEST(RandomDraw, DrawReal) {
     EXPECT_NE(a[0], a[1]);
     EXPECT_NE(b[0], b[1]);
 }
+
 TEST(RandomDraw, DrawNormalClustered) {
     std::array<double, 20> a = {};
     double mu = 0, sigma = 0;
@@ -47,6 +49,7 @@ TEST(RandomDraw, DrawNormalClustered) {
 
     EXPECT_NE(a[0], a[1]);
 }
+
 TEST(RandomDraw, DrawNormalNotClustered) {
     std::array<double, 20> a = {};
     double mu = 0, sigma = 0;
@@ -68,6 +71,7 @@ TEST(RandomDraw, DrawNormalNotClustered) {
 
     EXPECT_NE(a[0], a[1]);
 }
+
 TEST(RandomDraw, DrawInteger) {
     std::array<int, 10> a = {}, b = {};
 

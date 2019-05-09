@@ -18,10 +18,10 @@ Trio::Trio (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &b_3) { // Pri
     this->b_3 = std::make_shared<Vector3>(b_3);
 }
 
-Trio::side_lengths Trio::planar_lengths () const { // Order: A, B, C.
+Trio::lengths Trio::planar_lengths () const { // Order: A, B, C.
     return {Vector3::Magnitude(*b_1 - *b_2), Vector3::Magnitude(*b_2 - *b_3), Vector3::Magnitude(*b_3 - *b_1)};
 }
-Trio::side_lengths Trio::spherical_lengths () const { // Order: A, B, C.
+Trio::lengths Trio::spherical_lengths () const { // Order: A, B, C.
     static auto compute_length = [] (const Vector3 &beta_1, const Vector3 &beta_2) -> double {
         return acos(Vector3::Dot(beta_1, beta_2) / (Vector3::Magnitude(beta_1) * Vector3::Magnitude(beta_2)));
     };
@@ -30,13 +30,13 @@ Trio::side_lengths Trio::spherical_lengths () const { // Order: A, B, C.
 double Trio::semi_perimeter (const double a, const double b, const double c) { return 0.5 * (a + b + c); }
 
 double Trio::planar_area (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &b_3) {
-    side_lengths ell = Trio(b_1, b_2, b_3).planar_lengths();
+    lengths ell = Trio(b_1, b_2, b_3).planar_lengths();
     double s = semi_perimeter(ell[0], ell[1], ell[2]);
 
     return sqrt(s * (s - ell[0]) * (s - ell[1]) * (s - ell[2]));
 }
 double Trio::planar_moment (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &b_3) {
-    side_lengths ell = Trio(b_1, b_2, b_3).planar_lengths();
+    lengths ell = Trio(b_1, b_2, b_3).planar_lengths();
     return planar_area(b_1, b_2, b_3) * (pow(ell[0], 2) + pow(ell[1], 2) + pow(ell[2], 2)) / 36.0;
 }
 
@@ -47,11 +47,11 @@ double Trio::planar_moment (const Vector3 &b_1, const Vector3 &b_2, const Vector
 ///
 /// @return INVALID_TRIO_A if f is NaN or < 0. 0 if two stars are the same. The spherical
 ///     area of {B_1, B_2, B_3} otherwise.
-Trio::either Trio::spherical_area (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &b_3) {
-    side_lengths ell = Trio(b_1, b_2, b_3).spherical_lengths();
+Trio::Either Trio::spherical_area (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &b_3) {
+    lengths ell = Trio(b_1, b_2, b_3).spherical_lengths();
 
     // If any of the stars are positioned in the same spot, this is a line. There exists no area.
-    if (b_1 == b_2 || b_2 == b_3 || b_3 == b_1) return either{0, 0};
+    if (b_1 == b_2 || b_2 == b_3 || b_3 == b_1) return Either{0, 0};
 
     // Determine the inner component of the square root.
     double s = semi_perimeter(ell[0], ell[1], ell[2]);
@@ -59,10 +59,10 @@ Trio::either Trio::spherical_area (const Vector3 &b_1, const Vector3 &b_2, const
     f *= tan(0.5 * (s - ell[1])) * tan(0.5 * (s - ell[2]));
 
     // F should a positive number. If this is not the case, then we don't proceed.
-    if (f < 0 || std::isnan(f)) return either{0, INVALID_TRIO_A_EITHER};
+    if (f < 0 || std::isnan(f)) return Either{0, INVALID_TRIO_A_EITHER};
 
     // Find and return the excess.
-    return either{4.0 * atan(sqrt(f)), 0};
+    return Either{4.0 * atan(sqrt(f)), 0};
 }
 
 /// Determine the centroid of a **planar** triangle formed by the given three stars. It's use is appropriate for the
@@ -124,12 +124,12 @@ double Trio::recurse_spherical_moment (const Vector3 &c, const int td_n, const i
 ///
 /// @param td_h Maximum depth of moment calculation process. Larger td_h = more accurate, slower.
 /// @return INVALID_TRIO_M if the result is NaN or < 0. The spherical polar moment of {B_1, B_2, B_3}.
-Trio::either Trio::spherical_moment (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &b_3, const int td_h) {
+Trio::Either Trio::spherical_moment (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &b_3, const int td_h) {
     Trio t(b_1, b_2, b_3);
 
     // We star at the root, where the current tree depth td_i = 0.
     double t_i = t.recurse_spherical_moment(t.planar_centroid(), td_h, 0);
-    return (std::isnan(t_i) || t_i < 0) ? either{0, INVALID_TRIO_M_EITHER} : either{t_i, 0};
+    return (std::isnan(t_i) || t_i < 0) ? Either{0, INVALID_TRIO_M_EITHER} : Either{t_i, 0};
 }
 
 double Trio::dot_angle (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &central) {

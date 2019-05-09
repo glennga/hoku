@@ -15,6 +15,7 @@ TEST(Rotation, OperatorStream) {
     s << Rotation(8, 1, 1, 1);
     EXPECT_EQ(s.str(), "(8.0000000000000000:1.0000000000000000:1.0000000000000000:1.0000000000000000)");
 }
+
 TEST(Rotation, QuaternionDoubleCoverProperty) {
     Rotation a = Rotation::chance();
     Rotation b = Rotation::wrap(-a);
@@ -22,11 +23,13 @@ TEST(Rotation, QuaternionDoubleCoverProperty) {
     Star d = Rotation::rotate(c, a), e = Rotation::rotate(c, b);
     EXPECT_EQ(d, e);
 }
+
 TEST(Rotation, QuaternionUnitProperty) {
     Rotation a = Rotation::chance();
     double b = Quaternion::Norm(a);
     EXPECT_DOUBLE_EQ(b, 1);
 }
+
 TEST(Rotation, Identity) {
     Star a = Star::chance();
     Star b = Rotation::rotate(a, Rotation::identity());
@@ -43,13 +46,14 @@ TEST(Rotation, Identity) {
 ///        -2.7755575615628914e-17+-0.7080355444092732i+-0.6348947648122054j+0.30918328781989235k
 ///
 /// Using equations found here: https://math.stackexchange.com/a/535223
-TEST(Rotation, LogicRotate) { 
+TEST(Rotation, LogicRotate) {
     Quaternion a(Vector3(-0.36903856465565266, 0.42001639743793967, -0.25953877766867561), 0.78742389255495682);
     Star b(-0.051796588649074424, -0.69343284143642703, -0.71865708639219672);
     Star c(-0.7080355444092732, -0.6348947648122054, 0.30918328781989235);
     Star d = Rotation::rotate(b, Rotation::wrap(a));
     EXPECT_EQ(d, c);
 }
+
 TEST(Rotation, Slerp) {
     for (unsigned int i = 0; i < 20; i++) {
         Star a = Star::chance(), b = Star::chance();
@@ -64,6 +68,7 @@ TEST(Rotation, Slerp) {
                   Vector3::Angle(b.get_vector(), Rotation::slerp(a, b, 0.2).get_vector()));
     }
 }
+
 TEST(Rotation, Shake) {
     Star a = Star::chance(), b = Rotation::shake(a, 0);
     Star c = Rotation::shake(a, 30);
@@ -71,6 +76,7 @@ TEST(Rotation, Shake) {
     EXPECT_FALSE(a.get_vector() == c.get_vector());
     EXPECT_GT((180.0 / M_PI) * Vector3::Angle(a.get_vector(), c.get_vector()), 1.0);
 }
+
 TEST(Rotation, ShakeDeviation) {
     static auto sd = [] (const std::vector<double> &samples) -> double {
         int size = samples.size();
@@ -98,10 +104,12 @@ TEST(Rotation, ShakeDeviation) {
         EXPECT_NEAR(sd(theta_std), s, s);
     }
 }
+
 TEST(Rotation, Chance) {
     EXPECT_NE(Rotation::chance(), Rotation::chance());
     EXPECT_EQ(Quaternion::Norm(Rotation::chance()), 1.0);
 }
+
 TEST(Rotation, TRIADSimple) {
     Star::list a = {Star(1, 0, 0), Star(0, 1, 0)};
     Star::list b = {Star(0, 0, 1), Star(0, 1, 0)};
@@ -110,6 +118,7 @@ TEST(Rotation, TRIADSimple) {
     EXPECT_LT((180.0 / M_PI) * Vector3::Angle(d.get_vector(), a[0]), 0.000000001);
     EXPECT_LT((180.0 / M_PI) * Vector3::Angle(e.get_vector(), a[1]), 0.000000001);
 }
+
 TEST(Rotation, TRIADChance) {
     Rotation a = Rotation::chance();
     Star::list b = {Star::chance(), Star::chance()};
@@ -119,6 +128,7 @@ TEST(Rotation, TRIADChance) {
     EXPECT_LT((180.0 / M_PI) * Vector3::Angle(e.get_vector(), b[0]), 0.000001);
     EXPECT_LT((180.0 / M_PI) * Vector3::Angle(f.get_vector(), b[1]), 0.000001);
 }
+
 TEST(Rotation, TRIADMultipleStars) {
     Rotation a = Rotation::chance();
     std::vector<Star> b, c;
