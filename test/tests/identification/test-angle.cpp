@@ -37,7 +37,8 @@ TEST(Angle, Constructor) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
 
 /// Check the existence and the structure of the Angle table.
 TEST(Angle, TableExistenceStructure) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
-    INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
+    INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
+                 std::string(dirname(const_cast<char *>(__FILE__))) + "/../../../CONFIG.ini");
     Angle::generate_table(cf, "angle");
     Nibble nb;
 
@@ -54,7 +55,8 @@ TEST(Angle, TableExistenceStructure) { // NOLINT(cert-err58-cpp,modernize-use-eq
 
 /// Check that the entries in the Angle table are correct.
 TEST(Angle, TableCorrectEntries) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
-    INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
+    INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
+                 std::string(dirname(const_cast<char *>(__FILE__))) + "/../../../CONFIG.ini");
     Angle::generate_table(cf, "angle");
     Chomp ch;
     ch.select_table(cf.Get("table-names", "angle", ""));

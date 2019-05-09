@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <chrono>
 #include <thread>
+#include <libgen.h>
 
 #include "math/random-draw.h"
 #include "experiment/lumberjack.h"
@@ -20,9 +21,13 @@ const unsigned long Lumberjack::MAXIMUM_BUFFER_SIZE = 50;
 /// @param timestamp Time associated with the beginning of each experiment (not trial).
 Lumberjack::Lumberjack (const std::string &trial_table, const std::string &identifier_name,
                         const std::string &timestamp) {
+    // Parse the project path.
+    std::string project_path = std::string(dirname(const_cast<char *>(__FILE__))) + "/../../";
+    INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
+                 project_path + "CONFIG.ini");
+
     const int FLAGS = SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE;
-    conn = std::make_unique<SQLite::Database>(std::string(std::getenv("HOKU_PROJECT_PATH"))
-                                              + "data/lumberjack.db", FLAGS);
+    conn = std::make_unique<SQLite::Database>(project_path + cf.Get("database-names", "lumberjack", ""), FLAGS);
     result_buffer.reserve(MAXIMUM_BUFFER_SIZE);
 
     // We won't be changing our table from here. Ensure it exists before proceeding.
@@ -52,10 +57,12 @@ Lumberjack::~Lumberjack () {
 /// @return TABLE_NOT_CREATED if a table already exists. 0 otherwise.
 int Lumberjack::create_table (const std::string &table_name, const std::string &fields) {
     const int FLAGS = SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE;
+    std::string project_path = std::string(dirname(const_cast<char *>(__FILE__))) + "/../../";
+    INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
+                 project_path + "CONFIG.ini");
     Nibble nb;
 
-    nb.conn = std::make_unique<SQLite::Database>(std::string(std::getenv("HOKU_PROJECT_PATH"))
-                                                 + "data/lumberjack.db", FLAGS);
+    nb.conn = std::make_unique<SQLite::Database>(project_path + cf.Get("database-names", "lumberjack", ""), FLAGS);
     return nb.create_table(table_name, fields);
 }
 

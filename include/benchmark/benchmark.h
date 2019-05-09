@@ -15,9 +15,6 @@
 /// The benchmark class is used for all star identification implementation testing. To imitate real data from a star
 /// detector, we search for all stars in a section of the sky and apply various error models to this set.
 ///
-/// The environment variable HOKU_PROJECT_PATH must point to top level of this project.
-/// The following Python script must exist: %HOKU_PROJECT_PATH%/lib/benchmark/generate_plot.py
-///
 /// @example
 /// @code{.cpp}
 /// // Find all bright stars around a random star within 7.5 degrees of it. Rotate all stars by same random rotation.

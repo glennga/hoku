@@ -1,9 +1,7 @@
 /// @file generate-n.cpp
 /// @author Glenn Galvizo
 ///
-/// Source file for the Nibble database generator. This populates all of the tables required for testing. This would
-/// a really long time to run all at once, so we call the binary produced by this with an argument of which table to
-/// produce.
+/// Source file for the Nibble database generator. This populates all of the tables required for testing.
 ///
 /// @code{.cpp}
 /// - hip -> Produce the hip stars table from the Hipparcos catalog.
@@ -14,17 +12,12 @@
 /// - pyramid -> Produce table for Pyramid method.
 /// - composite -> Produce table for CompositePyramid method.
 ///
-/// - x k -> Produce K-Vector table for the given method (invalid for bright and hip).
 /// - x d -> Delete all tables for the given method.
-/// @endcode
-/// @example
-/// @code{.cpp}
-/// # Produce the table for the Angle method. After this is done, produce the K-Vector table.
-/// GenerateN angle k
 /// @endcode
 
 #include <iostream>
 #include <algorithm>
+#include <libgen.h>
 
 #include "identification/angle.h"
 #include "identification/dot-angle.h"
@@ -56,7 +49,7 @@ void remove_table (const std::string &choice, INIReader &cf) {
 /// @param cf Configuration file reader to use.
 void generate_table (const std::string &choice, INIReader &cf) {
     static auto display_result = [] (const int r) -> void {
-        std::cout << ((r == Nibble::TABLE_NOT_CREATED) ?
+        std::cout << ((r == Nibble::TABLE_NOT_CREATED_RET) ?
                       "\nTable already exists." : "\nTable was created successfully.") << std::endl;
     };
 
@@ -103,9 +96,9 @@ void generate_kvec_table (const std::string &choice, INIReader &cf) {
 
         // Polish the table.
         ch.select_table(cf.Get("table-names", method, ""));
-        ch.polish_table(cf.Get("table-focus", method, ""));
+        ch.sort_and_index(cf.Get("table-focus", method, ""));
 
-        std::string response = (ch.create_k_vector(cf.Get("table-focus", method, "")) == Nibble::TABLE_NOT_CREATED)
+        std::string response = (ch.create_k_vector(cf.Get("table-focus", method, "")) == Nibble::TABLE_NOT_CREATED_RET)
                                ? "K-Vector table already exists." : "K-Vector table was created successfully.";
         std::cout << response << std::endl;
     };
@@ -123,31 +116,6 @@ void generate_kvec_table (const std::string &choice, INIReader &cf) {
     return create_and_polish(upper_choice);
 }
 
-/// Select the desired table generation methods given the first argument. In the second argument, indicate whether you
-/// want to build a K-Vector table for this first table as well, or delete all tables associated with the first
-/// argument.
-///
-/// @code{.cpp}
-/// - hip -> Produce the hip stars from the Hipparcos catalog.
-/// - angle -> Produce table for Angle method.
-/// - dot -> Produce table for DotAngle method.
-/// - sphere -> Produce table for SphericalTriangle method.
-/// - plane -> Produce table for PlanarTriangle method.
-/// - pyramid -> Produce table for Pyramid method.
-/// - composite -> Produce table for CompositePyramid method.
-///
-/// - x k -> Produce K-Vector table for the given method (invalid for bright and hip).
-/// - x d -> Delete all tables for the given method.
-/// @endcode
-/// @example
-/// @code{.cpp}
-/// # Produce the table for the Angle method. After this is done, produce the K-Vector table.
-/// GenerateN angle k
-/// @endcode
-///
-/// @param argc Argument count. Domain is [2, 3].
-/// @param argv Argument vector. argv[1] is our selected table. argv[2] is our additional operation specification.
-/// @return -1 if the arguments are incorrect. 0 otherwise.
 int main (int argc, char *argv[]) {
     auto is_valid_arg = [] (const char *arg, const std::vector<std::string> &input_space) -> bool {
         std::string a = std::string(arg);
@@ -157,7 +125,9 @@ int main (int argc, char *argv[]) {
     };
 
     /// INIReader to hold configuration associated with table generation.
-    INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
+    std::string project_path = std::string(dirname(const_cast<char *>(__FILE__))) + "/../";
+    INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
+                 project_path + "hoku.cfg");
 
     // Validate our input.
     if (argc < 2 || argc > 3) {

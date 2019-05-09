@@ -6,13 +6,15 @@
 #define ENABLE_TESTING_ACCESS
 
 #include <chrono>
+#include <libgen.h>
 #include "experiment/lumberjack.h"
 #include "experiment/experiment.h"
 #include "gmock/gmock.h"
 
 /// Verify that all trial schemas and fields are correct.
 TEST(Lumberjack, TablesExistenceStructure) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
-    INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
+    INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
+                 std::string(dirname(const_cast<char *>(__FILE__))) + "/../../../CONFIG.ini");
 
     EXPECT_NO_THROW(Lumberjack::create_table( // NOLINT(cppcoreguidelines-avoid-goto)
             cf.Get("query-experiment", "lu", ""), Experiment::Query::SCHEMA););
@@ -25,8 +27,8 @@ TEST(Lumberjack, TablesExistenceStructure) { // NOLINT(cert-err58-cpp,modernize-
 
     Nibble nb;
     std::string schema, fields;
-    nb.conn = std::make_unique<SQLite::Database>(std::getenv("HOKU_PROJECT_PATH") + std::string("/data/lumberjack.db"),
-                                                 SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+    nb.conn = std::make_unique<SQLite::Database>(std::string(dirname(const_cast<char *>(__FILE__))) + "/../../../" +
+            cf.Get("database-names", "lumberjack", ""), SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
 
     EXPECT_NO_THROW(nb.select_table(cf.Get("query-experiment", "lu", ""));); // NOLINT(cppcoreguidelines-avoid-goto)
     nb.find_attributes(schema, fields);
@@ -61,7 +63,8 @@ TEST(Lumberjack, ConstructionConstructor) { // NOLINT(cert-err58-cpp,modernize-u
     std::ostringstream l;
     using clock = std::chrono::system_clock;
     l << clock::to_time_t(clock::now() - std::chrono::hours(24));
-    INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
+    INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
+                 std::string(dirname(const_cast<char *>(__FILE__))) + "/../../../CONFIG.ini");
 
     Lumberjack lu(cf.Get("query-experiment", "lu", ""), "Angle", l.str());
     EXPECT_EQ(lu.table, cf.Get("query-experiment", "lu", ""));
@@ -76,7 +79,8 @@ TEST(Lumberjack, ConstructionDestructor) { // NOLINT(cert-err58-cpp,modernize-us
     std::ostringstream l;
     using clock = std::chrono::system_clock;
     l << clock::to_time_t(clock::now() - std::chrono::hours(24));
-    INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
+    INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
+                 std::string(dirname(const_cast<char *>(__FILE__))) + "/../../../CONFIG.ini");
 
     // Lu gets destroyed when exiting.
     std::unique_ptr<Lumberjack> lu_p = std::make_unique<Lumberjack>(cf.Get("query-experiment", "lu", ""), "Angle",
@@ -98,7 +102,8 @@ TEST(Lumberjack, LogFunction) { // NOLINT(cert-err58-cpp,modernize-use-equals-de
     std::ostringstream l;
     using clock = std::chrono::system_clock;
     l << clock::to_time_t(clock::now() - std::chrono::hours(24));
-    INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
+    INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
+                 std::string(dirname(const_cast<char *>(__FILE__))) + "/../../../CONFIG.ini");
 
     Lumberjack lu(cf.Get("query-experiment", "lu", ""), "Angle", l.str());
     lu.log_trial(Nibble::tuple_d{-1, -1, -1, -1, -1, -1, -1});
@@ -122,7 +127,8 @@ TEST(Lumberjack, LogFunctionFlush) { // NOLINT(cert-err58-cpp,modernize-use-equa
     std::ostringstream l;
     using clock = std::chrono::system_clock;
     l << clock::to_time_t(clock::now() - std::chrono::hours(24));
-    INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
+    INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
+                 std::string(dirname(const_cast<char *>(__FILE__))) + "/../../../CONFIG.ini");
 
     Lumberjack lu(cf.Get("query-experiment", "lu", ""), "Angle", l.str());
     lu.log_trial(Nibble::tuple_d{-1, -1, -1, -1, -1, -1, -1});
