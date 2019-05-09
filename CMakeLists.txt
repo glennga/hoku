@@ -21,7 +21,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib)
-set(HOKU_MATH_LIBS Mercator Rotation Trio Star RandomDraw)
+set(HOKU_MATH_LIBS Rotation Trio Star RandomDraw)
 set(HOKU_STORAGE_LIBS Chomp Nibble SQLiteCpp Sqlite3)
 set(HOKU_BENCHMARK Benchmark)
 set(HOKU_IDENTIFY_LIBS CompositePyramid Pyramid PlanarTriangle SphericalTriangle DotAngle Angle BaseTriangle

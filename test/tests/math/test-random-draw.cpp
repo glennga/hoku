@@ -9,17 +9,14 @@
 #include "math/random-draw.h"
 #include "gmock/gmock.h"
 
-// Create an in-between matcher for Google Mock.
 using testing::PrintToString;
 using testing::Not;
-
-MATCHER_P2(IsBetweenRandomDraw, a, b, // NOLINT(modernize-use-equals-delete)
+MATCHER_P2(IsBetweenRandomDraw, a, b,
            std::string(negation ? "isn't" : "is") + " between " + PrintToString(a) + " and " + PrintToString(b)) {
     return a <= arg && arg <= b;
 }
 
-/// Check that real numbers are unique, and that they exist between their defined bounds.
-TEST(RandomDraw, DrawReal) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
+TEST(RandomDraw, DrawReal) {
     std::array<double, 10> a = {}, b = {};
 
     for (unsigned int i = 0; i < 10; i++) {
@@ -31,9 +28,7 @@ TEST(RandomDraw, DrawReal) { // NOLINT(cert-err58-cpp,modernize-use-equals-delet
     EXPECT_NE(a[0], a[1]);
     EXPECT_NE(b[0], b[1]);
 }
-
-/// Check that the generated normal numbers are unique, and that they are somewhat clustered.
-TEST(RandomDraw, DrawNormalClustered) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
+TEST(RandomDraw, DrawNormalClustered) {
     std::array<double, 20> a = {};
     double mu = 0, sigma = 0;
     for (unsigned int i = 0; i < 20; i++) {
@@ -54,9 +49,7 @@ TEST(RandomDraw, DrawNormalClustered) { // NOLINT(cert-err58-cpp,modernize-use-e
 
     EXPECT_NE(a[0], a[1]);
 }
-
-/// Check that the generated normal numbers are unique, and that they are not clustered.
-TEST(RandomDraw, DrawNormalNotClustered) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
+TEST(RandomDraw, DrawNormalNotClustered) {
     std::array<double, 20> a = {};
     double mu = 0, sigma = 0;
     for (unsigned int i = 0; i < 20; i++) {
@@ -77,9 +70,7 @@ TEST(RandomDraw, DrawNormalNotClustered) { // NOLINT(cert-err58-cpp,modernize-us
 
     EXPECT_NE(a[0], a[1]);
 }
-
-/// Check that the integer numbers are unique, and that they exist between their defined boundaries.
-TEST(RandomDraw, DrawInteger) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
+TEST(RandomDraw, DrawInteger) {
     std::array<int, 10> a = {}, b = {};
 
     for (unsigned int i = 0; i < 10; i++) {

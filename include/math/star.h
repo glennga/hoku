@@ -1,7 +1,8 @@
 /// @file star.h
 /// @author Glenn Galvizo
 ///
-/// Header file for Star class, which represents three-dimensional star vectors.
+/// Header file for Star class, which represents three-dimensional star vectors. This is the basis for all of the Hoku
+/// research.
 
 #ifndef HOKU_STAR_H
 #define HOKU_STAR_H
@@ -18,9 +19,6 @@
 #pragma GCC diagnostic pop
 
 /// @brief Class for 3D vector representation of stars.
-///
-/// The star class is really a wrapper for 3D vectors, with additional methods for the attachment of labels and
-/// magnitudes.  This is the basis for all of the Hoku research.
 class Star : public Vector3 {
 public:
     using list = std::vector<Star>;

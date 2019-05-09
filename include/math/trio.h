@@ -11,9 +11,6 @@
 #include "math/star.h"
 
 /// @brief Feature class for planar and spherical triangle star identification procedures.
-///
-/// The trio class is used with the planar and spherical star identification procedures. Given three vectors, one
-/// can find the area and polar moment of the formed planar or spherical triangle.
 class Trio {
 public:
     Trio () = delete;
@@ -47,6 +44,7 @@ public:
     side_lengths planar_lengths () const;
     side_lengths spherical_lengths () const;
     static double semi_perimeter (double a, double b, double c);
+
     Vector3 planar_centroid () const;
     double recurse_spherical_moment (const Vector3 &c, int td_n, int td_i);
     static Trio cut_triangle (const Vector3 &c_1, const Vector3 &c_2, const Vector3 &c_3, int k);
