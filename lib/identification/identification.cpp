@@ -9,76 +9,45 @@
 #include "benchmark/benchmark.h"
 #include "identification/identification.h"
 
-/// Default sigma query for all identification methods.
-const double Identification::DEFAULT_SIGMA_QUERY = std::numeric_limits<double>::epsilon() * 10000;
+/// Error returned when no candidates are found from a query.
+const int Identification::NO_CONFIDENT_R_EITHER = -3;
 
-/// Default SQL limit for all identification methods.
-const unsigned int Identification::DEFAULT_SQL_LIMIT = 500;
+/// Error returned when there exists no confident identity from an identification trial.
+const int Identification::NO_CONFIDENT_A_EITHER = -2;
 
-/// Default no reduction flag for all identification methods.
-const bool Identification::DEFAULT_NO_REDUCTION = false;
-
-/// Default favor bright stars flag for all identification methods.
-const bool Identification::DEFAULT_FAVOR_BRIGHT_STARS = false;
-
-/// Default sigma overlay (for matching) for all identification methods.
-const double Identification::DEFAULT_SIGMA_4 = std::numeric_limits<double>::epsilon() * 10000;
-
-/// Default nu max (comparison counts) for all identification methods.
-const unsigned int Identification::DEFAULT_NU_MAX = 50000;
-
-/// Default pointer to nu (comparison count) for all identification methods.
-const std::shared_ptr<unsigned int> Identification::DEFAULT_NU = nullptr;
-
-/// Default solution to Wahba's problem for all identification methods.
-const Rotation::wahba_function Identification::DEFAULT_F = Rotation::triad;
-
-/// Default table name for all identification methods.
-const char *Identification::DEFAULT_TABLE_NAME = "NO_TABLE";
-
-/// Returned when no candidates are found from a query.
-const Star::list Identification::NO_CONFIDENT_R = {Star::wrap(Vector3::Zero(), -2)};
-
-/// Returned when there exists no confident identity from an identification trial.
-const Star::list Identification::NO_CONFIDENT_A = {Star::wrap(Vector3::Zero(), -1)};
-
-/// Returned when we count past our defined max nu from a crown or identification trial.
-const Star::list Identification::EXCEEDED_NU_MAX = {Star::wrap(Vector3::Zero())};
+/// Error returned when we count past our defined max nu from an identification trial.
+const int Identification::EXCEEDED_NU_MAX_EITHER = -1;
 
 /// Indicates that a table already exists upon a table creation attempt.
 const int Identification::TABLE_ALREADY_EXISTS = -1;
 
-/// Default parameters for a general identification object.
-const Identification::Parameters Identification::DEFAULT_PARAMETERS = {DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_QUERY,
-    DEFAULT_SIGMA_QUERY, DEFAULT_SIGMA_4, DEFAULT_SQL_LIMIT, DEFAULT_NO_REDUCTION, DEFAULT_FAVOR_BRIGHT_STARS,
-    DEFAULT_NU_MAX, DEFAULT_NU, DEFAULT_F, DEFAULT_TABLE_NAME};
-
 /// Constructor. We set our field-of-view to the default here.
 Identification::Identification () {
-    this->parameters = DEFAULT_PARAMETERS;
+    this->parameters = std::make_unique<Identification::Parameters>(Identification::Parameters());
+
     this->fov = Benchmark::NO_FOV;
 }
 
-/// Given the reference to a Parameter struct and a configuration file reader, insert all the appropriate parameters
-/// into the Parameter struct.
+/// Given a configuration file reader, return all the appropriate parameters into a Parameter struct.
 ///
-/// @param p Reference to the Parameter struct to update.
-/// @param cf Reference to the configuration file reader to collect parameters from.
+/// @param cf Reference to the configuration file reader to use.
 /// @param identifier Name of the identifier to collect the query sigmas from.
-void Identification::collect_parameters (Parameters &p, INIReader &cf, const std::string &identifier) {
+Identification::Parameters Identification::collect_parameters (INIReader &cf, const std::string &identifier) {
+    Parameters p;
     p.sigma_1 = cf.GetReal("query-sigma", identifier + "-1", 0);
     p.sigma_2 = cf.GetReal("query-sigma", identifier + "-2", 0);
     p.sigma_3 = cf.GetReal("query-sigma", identifier + "-3", 0);
-    p.sigma_4 = cf.GetReal("id-parameters", "so", DEFAULT_SIGMA_4);
-    p.table_name = cf.Get("table-names", identifier, DEFAULT_TABLE_NAME);
-    p.sql_limit = static_cast<unsigned>(cf.GetInteger("id-parameters", "sl", static_cast<long>(DEFAULT_SQL_LIMIT)));
-    p.no_reduction = cf.GetBoolean("id-parameters", "nr", DEFAULT_NO_REDUCTION);
-    p.favor_bright_stars = cf.GetBoolean("id-parameters", "fbr", DEFAULT_FAVOR_BRIGHT_STARS);
-    p.nu_max = static_cast<unsigned>(cf.GetInteger("id-parameters", "nu-m", static_cast<long> (DEFAULT_NU_MAX)));
-    
+    p.sigma_4 = cf.GetReal("id-parameters", "so", std::numeric_limits<double>::epsilon() * 10000);
+    p.table_name = cf.Get("table-names", identifier, "DEFAULT_TABLE_NAME");
+    p.sql_limit = static_cast<unsigned>(cf.GetInteger("id-parameters", "sl", static_cast<long>(500)));
+    p.no_reduction = cf.GetBoolean("id-parameters", "nr", false);
+    p.favor_bright_stars = cf.GetBoolean("id-parameters", "fbr", false);
+    p.nu_max = static_cast<unsigned>(cf.GetInteger("id-parameters", "nu-m", static_cast<long> (50000)));
+    p.nu = std::make_shared<unsigned> (0);
+
     const std::array<std::string, 3> ws_id = {"TRIAD", "Q", "SVD"};
     const std::array<Rotation::wahba_function, 3> ws = {Rotation::triad, Rotation::q_method, Rotation::svd};
-    
+
     // Determine the Wahba solver. This is case-insensitive.
     std::string wabha_solver = cf.Get("id-parameters", "wbs", "TRIAD");
     for (unsigned int i = 0; i < ws_id.size(); i++) {
@@ -87,9 +56,11 @@ void Identification::collect_parameters (Parameters &p, INIReader &cf, const std
                                                                   return std::tolower(a) == std::tolower(b);
                                                               })) {
             p.f = ws[i];
-            return;
+            break;
         }
     }
+
+    return p;
 }
 
 /// Overloaded FPO implementation. Rotate every point with the given rotation and check if the angle of separation
@@ -100,23 +71,25 @@ void Identification::collect_parameters (Parameters &p, INIReader &cf, const std
 /// @param q The rotation to apply to all stars.
 /// @param i Reference to the index vector to record which stars were saved.
 /// @return Set of matching stars found in candidates and the body sets.
-Star::list Identification::find_positive_overlay(const Star::list &big_p, const Rotation &q, std::vector<int> &i) {
-    double epsilon = 3.0 * this->parameters.sigma_4;
+Star::list Identification::find_positive_overlay (const Star::list &big_p, const Rotation &q, std::vector<int> &i) {
+    double epsilon = 3.0 * this->parameters->sigma_4;
     Star::list big_p_c = big_p;
     Star::list m;
 
     // Clear our index vector.
     i.clear();
-    i.reserve(this->big_i.size()), m.reserve(big_i.size());
+    i.reserve(this->big_i->size()), m.reserve(big_i->size());
 
     std::shuffle(big_p_c.begin(), big_p_c.end(), RandomDraw::mersenne_twister);
-    std::for_each(big_p_c.begin(), big_p_c.end(), [&](const Star &p_i) -> void {
+    std::for_each(big_p_c.begin(), big_p_c.end(), [&] (const Star &p_i) -> void {
         Star r_prime = Rotation::rotate(p_i, q);
 
-        for (unsigned int j = 0; j < big_i.size(); j++) {
-            if (Star::within_angle(r_prime, big_i[j], epsilon)) {
+        for (unsigned int j = 0; j < big_i->size(); j++) {
+            if (Star::within_angle(r_prime, (*big_i)[j], epsilon)) {
                 // Add this match to the list by noting the candidate star's catalog ID.
-                m.emplace_back(Star(big_i[j][0], big_i[j][1], big_i[j][2], p_i.get_label())), i.emplace_back(j);
+                m.emplace_back(Star((*big_i)[j][0], (*big_i)[j][1], (*big_i)[j][2], p_i.get_label())),
+                        i.emplace_back(j);
+
                 break;
             }
         }
@@ -132,22 +105,22 @@ Star::list Identification::find_positive_overlay(const Star::list &big_p, const 
 /// @param q The rotation to apply to all stars.
 /// @return Set of matching stars found in candidates and the body sets.
 Star::list Identification::find_positive_overlay (const Star::list &big_p, const Rotation &q) {
-    double epsilon = 3.0 * this->parameters.sigma_4;
+    double epsilon = 3.0 * this->parameters->sigma_4;
     Star::list big_p_c = big_p;
     Star::list m;
 
     std::shuffle(big_p_c.begin(), big_p_c.end(), RandomDraw::mersenne_twister);
     std::for_each(big_p_c.begin(), big_p_c.end(), [&] (const Star &p_i) -> void {
-       Star r_prime = Rotation::rotate(p_i, q);
+        Star r_prime = Rotation::rotate(p_i, q);
 
-       for (const Star &i_i : big_i) {
-           if (Star::within_angle(r_prime, i_i, epsilon)) {
-               m.emplace_back(Star(i_i[0], i_i[1], i_i[2], r_prime.get_label()));
+        for (const Star &i_i : *big_i) {
+            if (Star::within_angle(r_prime, i_i, epsilon)) {
+                m.emplace_back(Star(i_i[0], i_i[1], i_i[2], r_prime.get_label()));
 
-               // Break early, we have found our match.
-               break;
-           }
-       }
+                // Break early, we have found our match.
+                break;
+            }
+        }
     });
 
     return m;
@@ -175,16 +148,16 @@ void Identification::sort_brightness (std::vector<labels_list> &big_r_ell) {
 /// @return The rotation from the R set to the B set.
 Rotation Identification::align () {
     // Perform the identification procedure.
-    Star::list b_d = identify(), inertial;
-    
+    Star::list b_d = identify().result, inertial;
+
     // 'b_d' contains a list of labeled image stars. Determine the matching catalog stars.
     inertial.reserve(b_d.size());
     for (const Star &s : b_d) {
         inertial.push_back(ch.query_hip(s.get_label()));
     }
-    
+
     // Return the result of applying the Wahba solver with the image and catalog stars.
-    return parameters.f(b_d, inertial);
+    return parameters->f(b_d, inertial);
 }
 
 /// Extends the identification process by attempting to identify all stars in the image.
@@ -192,14 +165,14 @@ Rotation Identification::align () {
 /// @return List of all identified stars.
 Star::list Identification::identify_all () {
     // Perform the identification procedure.
-    Star::list b_d = identify(), inertial;
-    
+    Star::list b_d = identify().result, inertial;
+
     // 'b_d' contains a list of labeled image stars. Determine the matching catalog stars.
     inertial.reserve(b_d.size());
     for (const Star &s : b_d) {
         inertial.push_back(ch.query_hip(s.get_label()));
     }
-    
+
     // Return the result of applying the Wahba solver and finding all matches with this.
-    return find_positive_overlay(inertial, parameters.f(b_d, inertial));
+    return find_positive_overlay(inertial, parameters->f(b_d, inertial));
 }

@@ -41,8 +41,8 @@ For a strategy that uses $d\seq2$ points to determine the mapping in an image of
 \end{equation}
 
 Each identification method $\texttt{X}$ is also presented a set $\genericdatabase$, composed of $d$ sized sets of all possible combinations or permutations of points from $\databaseset$.
-Using certain features of the image subset, the entire $\genericdatabase$ set is filtered to a set of database candidates $\databasesubset$.
-This is known as the \emph{candidate retrieval step}.
+Using certain features of the image subset, the entire $\genericdatabase$ set is filtered to a set of candidates $\databasesubset$.
+This is known as the \emph{candidate retrieval step}, which seeks out sets from our database that 
 Referencing the same $d\seq 2$ strategy as before, an image subset $\imagesubset \seq \set{\vv{\imageset[1]}, \vv{\imageset[2]}}$ may yield the candidates in~\autoref{eq:catalogCandidateExample}:
 \begin{equation}
 	\label{eq:catalogCandidateExample}
@@ -95,11 +95,28 @@ The notation $\databasesubset^{(t)}$ and $\imagesubset^{(t)}$ denotes distinct $
 \end{algorithm}
 
 \newcommand{\smapsto}{\! \mapsto \!}
-From here, a mapping $\solutionmap$ is determined that pairs each point found in the image subset to a single point in the database candidate set.
-For brevity, it is assumed that all functions in this paper have domain $\imagesubset$ and codomain $\databaseset$.
+\begin{subequations}
+	From here, a mapping $\solutionmap$ is determined that pairs each point found in the image subset to a single point in the database candidate set.
+	For brevity, it is assumed that all functions in this paper have domain $\imagesubset$ and codomain $\databaseset$.
+	Most (but not all) of the following queries utilize Tappe's implementation of the strategy and perform a \textit{direct match test}, abbreviated henceforth as DMT~\cite{tappe:starTrackerDevelopment,needelman:stellarAttitudeAcquisition}.
+    Given an image pair $\imagesubset$ and a database pair $\candidateset$, the following is proposed:
+    \begin{equation}
+        \solutionmap_1 \mid \solutionmap_1(\imagesubset[1]) = \candidateset[1], \ \solutionmap_1(\imagesubset[2]) = \candidateset[2]
+    \end{equation}
+    Wahba's problem is then solved using the TRIAD method to obtain a rotation $A_1$ between the image and database coordinate systems.
+    The \Call{TRIAD}{} function accepts a mapping $\solutionmap$, an image subset $\imagesubset$, a candidate set $\candidateset$, and outputs a rotation matrix $A$.
+    This process is repeated for the other possible permutation to obtain a second rotation $A_2$:
+    \begin{equation}
+        \solutionmap_2 \mid \solutionmap_2(\imagesubset[1]) = \candidateset[2], \ \solutionmap_2(\imagesubset[2]) = \candidateset[1]
+    \end{equation}
+\end{subequations}
+The most likely attitude is determined by the \Call{FPO}{} (short for \textit{Find Positive Overlay}) method, which returns how many points from $\imageset$ align with $\databaseset$ given rotation $A_1$ or $A_2$.
+The mapping with the most aligned points is then returned, and our query is completed.
+If there exists no singular mapping which gives us a largest set, we signal our lack of confidence to our caller by returning an invalid function.
+This process is detailed in~\autoref{algorithm:dmt}.
+
 If we are not confident in $h$ at this stage, another image subset is chosen and the process is repeated.
-Otherwise our function and current image subset is returned, ending the query.
-This process is detailed in~\autoref{figure:unifiedIdentificationFlowchart}.
+This entire flow is detailed in~\autoref{figure:unifiedIdentificationFlowchart}.
 In the event $\binom{\imageset}{d}$ has been exhausted, an error is raised and no map is returned.
 
 % Leaving this out for now. The flowchart should explain the process better.
@@ -176,24 +193,7 @@ where $\epsilon_{\theta}$ represents the uncertainty between the $\theta$ comput
 sensor measurements and the same $\theta$ computation with points defined in the database.
 Once the database candidates are obtained, the $\abs{\databasesubset} \seq 1$ criterion is imposed, repeating this process until only one set exists in $\databasesubset$.
 This sole element $\vv{\databasesubset[1]}$ is then selected to be our candidate $r$.
-
-\begin{subequations}
-    To determine the most likely mapping $h$, we follow Tappe's implementation of the strategy and perform a \textit{direct match test}, abbreviated henceforth as DMT~\cite{tappe:starTrackerDevelopment,needelman:stellarAttitudeAcquisition}.
-    Given an image pair $\imagesubset$ and a database pair $\candidateset$, the following is proposed:
-    \begin{equation}
-        \solutionmap_1 \mid \solutionmap_1(\imagesubset[1]) = \candidateset[1], \ \solutionmap_1(\imagesubset[2]) = \candidateset[2]
-    \end{equation}
-    Wahba's problem is then solved using the TRIAD method to obtain a rotation $A_1$ between the image and database coordinate systems.
-    The \Call{TRIAD}{} function accepts a mapping $\solutionmap$, an image subset $\imagesubset$, a candidate set $\candidateset$, and outputs a rotation matrix $A$.
-    This process is repeated for the other possible permutation to obtain a second rotation $A_2$:
-    \begin{equation}
-        \solutionmap_2 \mid \solutionmap_2(\imagesubset[1]) = \candidateset[2], \ \solutionmap_2(\imagesubset[2]) = \candidateset[1]
-    \end{equation}
-\end{subequations}
-The most likely attitude is determined by the \Call{FPO}{} (short for \textit{Find Positive Overlay}) method, which returns how many points from $\imageset$ align with $\databaseset$ given rotation $A_1$ or $A_2$.
-The mapping with the most aligned points is then returned, and our query is completed.
-If there exists no singular mapping which gives us a largest set, we return an invalid function to notify to our caller our of uncertainty and select another image subset $\imagesubset$.
-This process is detailed in~\autoref{algorithm:dmt}.
+To determine the most likely mapping $h$, we perform \Call{$DMT$}{} with $b$ and $r$ to either get a map between every element in $b$ to $r$, or an invalid map signaling us to repeat the query for another image set and candidate.
 
 %The \Call{FPO}{} method determines the number of stars from $I$ in the body frame $\iFrame$ align with $C$ in the
 %inertial frame $\kFrame$.

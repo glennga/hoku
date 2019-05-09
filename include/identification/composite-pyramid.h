@@ -31,23 +31,26 @@
 /// Rotation q = Composite(b, Composite::DEFAULT_PARAMETERS).align();
 /// @endcode
 class CompositePyramid : public Pyramid {
-  public:
+public:
     CompositePyramid (const Benchmark &input, const Parameters &p);
-    
+
     std::vector<labels_list> query (const Star::list &s) override;
-    Star::list reduce () override;
+
+    stars_either reduce () override;
+
     static int generate_table (INIReader &cf);
-    
-    static const Parameters DEFAULT_PARAMETERS;
-  
-  public:
+
+public:
 
 #if !defined ENABLE_TESTING_ACCESS
-    private:
+private:
 #endif
+
     labels_list_list query_for_trios (double, double);
+
     bool verification (const Star::trio &r, const Star::trio &b) override;
-    Star::trio find_catalog_stars (const Star::trio &) override;
+
+    trios_either find_catalog_stars (const Star::trio &) override;
 };
 
 /// Alias for the CompositePyramid class. 'Composite' distinguishes the process I am testing here enough from the 5

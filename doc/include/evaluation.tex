@@ -14,8 +14,9 @@ The main areas of interest here are the accuracy of each step, and the time to p
 The astronomical catalog used to populate $\databaseset$ is the Hipparcos Input Catalogue~\cite{perryman:hipparcosCatalogue}.
 Entries that do not have a $\left( \alpha, \delta \right)$ associated with it were not recorded, giving $117{,}956$ total point.
 Out of this entire set, only $4{,}560$ are visible from Earth with the naked eye (apparent magnitude $m$ less than 6.0).
-An additional constraint that all points in each pair or trio recorded in $\angdatabase$, $\intdatabase$, $\ldots$ be within 20 degrees of each other was placed to shorten each algorithm's candidate retrieval running time.
-A field-of-view between 10 to 20 degrees is common for most astronomy based CCD cameras~\cite{mortari:pyramidIdentification}.
+An additional constraint that all stars in each pair or trio recorded in $\angdatabase$, $\intdatabase$, $\ldots$ be within 20 degrees of each other was applied.
+Both constraints were placed to reduce the size of the resulting databases, shortening each algorithm's candidate retrieval running time. 
+Most astronomy based CCD cameras are (a) able to capture stars with $m < 6.0$ and (b) possess a field-of-view between 10 to 20 degrees~\cite{mortari:pyramidIdentification}.
 All sets $\angdatabase, \intdatabase, \ldots$ construct combinations and permutations using the $4{,}560$ elements and this field of view constraint.
 A constant radius was attached to each recorded $\left(\alpha, \delta \right)$, and was converted from this spherical frame to a 3D Cartesian frame to construct the point $[ x \ y \ z ]$ for $\databaseset$.
 %~\autoref{eq:sphereToCartesian} was used with
@@ -60,14 +61,17 @@ Given a point $\texttt{STAR}\!\in\!\imageset$, noise is applied to obtain the di
     If this is not met, then the process is repeated for this point.
 \end{subequations}
 
-The second type of noise exists as falsely identified sources of light, or spikes in the image.
+The second type of noise exists as falsely identified sources of light (i.e.\ false positives), or spikes in the image.
 This involves generating $v$ in the same manner that was done for the Gaussian noise process, and normalizing this to get $\texttt{STAR\_FALSE}$.
 If the constraint that $\texttt{STAR\_FALSE}$ be near the image center is not met, this process is repeated until such a point is found.
 This is repeated for a set number of spikes $\omega$.
 
-\nsubparagraph{Hardware}
+\nsubparagraph{Hardware and Implementation}
 All trials were performed on an Intel i7-7700 CPU, 3.60GHz with 8 GB RAM\@.
 Each algorithm was implemented in C++14, and compiled without optimization (at \texttt{-O0}).
+SQLite, an embedded SQL database engine, was used to hold all of the aforementioned relations in this paper.
+Each relation was contained in a single database file on disk, B-tree indexed by their appropriate search field(s) (i.e.\ the angle between a pair of stars).
+All queries involve the execution of a single \texttt{SELECT} statement on this file for each candidate retrieval step, with the exception of the Pyramid method which requires three.
 The exact implementation is available at the following link: \url{https://github.com/glennga/hoku}.
 
 \subsection{Candidate Retrieval Step}\label{subsec:catalogQueryStep}
@@ -147,7 +151,7 @@ Out of $2{,}000$ candidate retrievals, the Angle strategy will have had to perfo
 The Pyramid strategy only has 499 of these additional retrieval instances, which is a factor of 3.94 less.
 The most likely reason for this lies with the selection of the $\epsilon_\theta$ parameter, and the fact that only one feature is used to search $\angdatabase$.
 If $\epsilon_\theta$ was chosen to be smaller, there would have been more instances where the criterion was met- but this comes at the cost of being less flexible with Gaussian noise.
-Strategies that use trios instead of pairs have the advantage of being able to create utilize more features of the image set $b$ and distinguish it better, compared to only using $\theta(b, r)$ as the sole feature.
+Strategies that use trios instead of pairs are able to utilize more features of the image set $b$ and distinguish it better, compared to only using $\theta(b, r)$ as the sole feature.
 
 %import numpy as np
 %p_1, p_2, n_1, n_2 = (1501 / 2000), ((1994 + 1991 + 1984) / 6000), 2000, 6000
@@ -419,7 +423,7 @@ These strategies have the parameters $\epsilon_a \seq 3\cdot 10^{-9}$ and $\epsi
 %$\ang{0.01}$.
 %Given the current set of query $\sigma$, the Interior Angle is the most accurate method on average.
 
-Ranking each strategy based their $h$ accuracy is not particularly insightful here given the heavy dependence on $\epsilon$ parameters, so instead we analyze the rate of change involved with varying levels of noise.
+Ranking each strategy based on their $h$ accuracy is not particularly insightful here given the heavy dependence on $\epsilon$ parameters, so instead we analyze the rate of change involved with varying levels of noise.
 The right plot in~\autoref{fig:gaussianNoise} depicts the trend line for all strategies where $h$ accuracy (denoted as \texttt{ACC}) is displayed against the amount of Gaussian noise.
 It has been observed that the accuracy of each strategy remains near 100\% until it decreases exponentially to zero:
 \begin{equation}

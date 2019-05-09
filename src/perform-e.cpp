@@ -28,6 +28,7 @@
 #include <algorithm>
 #include <iostream>
 #include <sstream>
+#include <libgen.h>
 
 #include "identification/angle.h"
 #include "identification/dot-angle.h"
@@ -36,9 +37,6 @@
 #include "identification/pyramid.h"
 #include "identification/composite-pyramid.h"
 #include "experiment/experiment.h"
-
-/// INIReader to hold configuration associated with experiments.
-INIReader cf(std::getenv("HOKU_PROJECT_PATH") + std::string("/CONFIG.ini"));
 
 /// @brief Namespace containing all table 'hashes' for experimentation.
 ///
@@ -49,24 +47,33 @@ namespace EHA {
     /// @param experiment_in Input given by the user, to identify the type of experiment table.
     /// @return Index of the name space below. 3 is given if the given input is not in the name space.
     int experiment_to_hash (const std::string &experiment_in) {
-        std::array<std::string, 4> space = {"query", "reduction", "identification", "overlay"};
-        return static_cast<int> (std::distance(space.begin(), std::find(space.begin(), space.end(), experiment_in)));
+        std::string experiment_in_upper = experiment_in;
+        std::transform(experiment_in.begin(), experiment_in.end(), experiment_in_upper.begin(), ::toupper);
+
+        std::array<std::string, 4> space = {"QUERY", "REDUCTION", "IDENTIFICATION", "OVERLAY"};
+        return static_cast<int> (std::distance(space.begin(), std::find(space.begin(), space.end(),
+                                                                        experiment_in_upper)));
     }
-    
+
     /// Convert the given user argument specifying the experiment name, to its appropriate table name in Lumberjack.
     ///
     /// @param experiment_in Input given by the user, to identify the type of experiment table.
     /// @return Name of the table to log to in the Lumberjack database.
-    std::string experiment_to_experiment_table (const std::string &experiment_in) {
-        switch (experiment_to_hash(experiment_in)) {
-            case 0: return cf.Get("query-experiment", "lu", "QUERY");
-            case 1: return cf.Get("reduction-experiment", "lu", "REDUCTION");
-            case 2: return cf.Get("identification-experiment", "lu", "IDENTIFICATION");
-            case 3: return cf.Get("overlay-experiment", "lu", "OVERLAY");
-            default: throw std::runtime_error(std::string("Experiment name is not in the space of trial names."));
+    /// @param cf Configuration file reader holding the *.ini information.
+    std::string experiment_to_experiment_table (const std::string &experiment_in, INIReader &cf) {
+        int d = experiment_to_hash(experiment_in);
+        if (d < 0 || d > 5) {
+            throw std::runtime_error(std::string("Experiment name is not in the space of trial names."));
         }
+
+        // Extract the uppercase and lowercase versions of our name.
+        std::string experiment_in_upper = experiment_in, experiment_in_lower = experiment_in;
+        std::transform(experiment_in.begin(), experiment_in.end(), experiment_in_upper.begin(), ::toupper);
+        std::transform(experiment_in.begin(), experiment_in.end(), experiment_in_lower.begin(), ::tolower);
+
+        return cf.Get(experiment_in_lower + "-experiment", "lu", experiment_in_upper);
     }
-    
+
     /// Convert the given user argument specifying the identifier name, to its appropriate hash.
     ///
     /// @param identifier_in Input given by the user, to identify the type of experiment table.
@@ -80,18 +87,16 @@ namespace EHA {
 /// Create the appropriate lumberjack table.
 ///
 /// @param experiment_in Input given by the user, to identify the type of experiment table to create.
+/// @param cf Configuration file reader holding the *.ini information.
 /// @return TABLE_NOT_CREATED if the table already exists. Otherwise, 0 if successful.
-int create_lumberjack_table (const std::string &experiment_in) {
-    std::string table = EHA::experiment_to_experiment_table(experiment_in);
+int create_lumberjack_table (const std::string &experiment_in, INIReader &cf) {
     Chomp ch;
-    
-    switch (EHA::experiment_to_hash(experiment_in)) {
-        case 0: return Lumberjack::create_table(table, Experiment::Query::SCHEMA);
-        case 1: return Lumberjack::create_table(table, Experiment::Reduction::SCHEMA);
-        case 2: return Lumberjack::create_table(table, Experiment::Map::SCHEMA);
-        case 3: return Lumberjack::create_table(table, Experiment::Overlay::SCHEMA);
-        default: throw std::runtime_error(std::string("Experiment name is not in the space of trial names."));
-    }
+
+    // Using convention (query, reduction, map, overlay) in EHA. Create the appropriate table.
+    std::array<std::string, 4> schema_space = {Experiment::Query::SCHEMA, Experiment::Reduction::SCHEMA,
+                                               Experiment::Map::SCHEMA, Experiment::Overlay::SCHEMA};
+    return Lumberjack::create_table(EHA::experiment_to_experiment_table(experiment_in, cf),
+                                    schema_space[EHA::experiment_to_hash(experiment_in)]);
 }
 
 /// Run the specified trial! Select the appropriate header and trial function given the identification choice.
@@ -99,43 +104,35 @@ int create_lumberjack_table (const std::string &experiment_in) {
 /// @param lu Open Lumberjack connection, used to log the results of each trial.
 /// @param identifier_in Input given by the user, to identify the type of experiment table to log to.
 /// @param experiment_in Input given by the user, to identify the type of identifier to use for the experiment.
-void perform_trial (Lumberjack &lu, const std::string &identifier_in, const std::string &experiment_in) {
+/// @param cf Configuration file reader holding the *.ini information.
+void perform_trial (Lumberjack &lu, const std::string &identifier_in, const std::string &experiment_in,
+                    INIReader &cf) {
 //    Chomp ch(cf.Get("table-names", identifier_in, ""), cf.Get("table-focus", identifier_in, ""));
     Chomp ch;
-    
-    switch ((EHA::identifier_to_hash(identifier_in) * 4) + EHA::experiment_to_hash(experiment_in)) {
-        case 0: return Experiment::Query::trial<Angle>(ch, lu, cf, identifier_in);
-        case 1: return Experiment::Reduction::trial<Angle>(ch, lu, cf, identifier_in);
-        case 2: return Experiment::Map::trial<Angle>(ch, lu, cf, identifier_in);
-        case 3: return Experiment::Overlay::trial<Angle>(ch, lu, cf, identifier_in);
-        
-        case 4: return Experiment::Query::trial<Dot>(ch, lu, cf, identifier_in);
-        case 5: return Experiment::Reduction::trial<Dot>(ch, lu, cf, identifier_in);
-        case 6: return Experiment::Map::trial<Dot>(ch, lu, cf, identifier_in);
-        case 7: return Experiment::Overlay::trial<Dot>(ch, lu, cf, identifier_in);
-    
-        case 8: return Experiment::Query::trial<Sphere>(ch, lu, cf, identifier_in);
-        case 9: return Experiment::Reduction::trial<Sphere>(ch, lu, cf, identifier_in);
-        case 10: return Experiment::Map::trial<Sphere>(ch, lu, cf, identifier_in);
-        case 11: return Experiment::Overlay::trial<Sphere>(ch, lu, cf, identifier_in);
-    
-        case 12: return Experiment::Query::trial<Plane>(ch, lu, cf, identifier_in);
-        case 13: return Experiment::Reduction::trial<Plane>(ch, lu, cf, identifier_in);
-        case 14: return Experiment::Map::trial<Plane>(ch, lu, cf, identifier_in);
-        case 15: return Experiment::Overlay::trial<Plane>(ch, lu, cf, identifier_in);
-    
-        case 16: return Experiment::Query::trial<Pyramid>(ch, lu, cf, identifier_in);
-        case 17: return Experiment::Reduction::trial<Pyramid>(ch, lu, cf, identifier_in);
-        case 18: return Experiment::Map::trial<Pyramid>(ch, lu, cf, identifier_in);
-        case 19: return Experiment::Overlay::trial<Pyramid>(ch, lu, cf, identifier_in);
-    
-        case 20: return Experiment::Query::trial<Composite>(ch, lu, cf, identifier_in);
-        case 21: return Experiment::Reduction::trial<Composite>(ch, lu, cf, identifier_in);
-        case 22: return Experiment::Map::trial<Composite>(ch, lu, cf, identifier_in);
-        case 23: return Experiment::Overlay::trial<Composite>(ch, lu, cf, identifier_in);
-    
-        default: throw std::runtime_error(std::string("Choices not in appropriate spaces or test does not exist."));
-    }
+
+    // Can't really think of a better way to do this than just listing it out. So... yeah.
+    std::array<void (*) (Chomp &, Lumberjack &, INIReader &, const std::string &), 24> experiment_space = {
+            Experiment::Query::trial<Angle>, Experiment::Reduction::trial<Angle>,
+            Experiment::Map::trial<Angle>, Experiment::Overlay::trial<Angle>,
+
+            Experiment::Query::trial<Dot>, Experiment::Reduction::trial<Dot>,
+            Experiment::Map::trial<Dot>, Experiment::Overlay::trial<Dot>,
+
+            Experiment::Query::trial<Sphere>, Experiment::Reduction::trial<Sphere>,
+            Experiment::Map::trial<Sphere>, Experiment::Overlay::trial<Sphere>,
+
+            Experiment::Query::trial<Plane>, Experiment::Reduction::trial<Plane>,
+            Experiment::Map::trial<Plane>, Experiment::Overlay::trial<Plane>,
+
+            Experiment::Query::trial<Pyramid>, Experiment::Reduction::trial<Pyramid>,
+            Experiment::Map::trial<Pyramid>, Experiment::Overlay::trial<Pyramid>,
+
+            Experiment::Query::trial<Composite>, Experiment::Reduction::trial<Composite>,
+            Experiment::Map::trial<Composite>, Experiment::Overlay::trial<Composite>
+    };
+
+    int d = (EHA::identifier_to_hash(identifier_in) * 4) + EHA::experiment_to_hash(experiment_in);
+    experiment_space[d](ch, lu, cf, identifier_in);
 }
 
 /// Select the desired identification method given the first argument. In the second argument, indicate the type of
@@ -162,11 +159,19 @@ void perform_trial (Lumberjack &lu, const std::string &identifier_in, const std:
 int main (int argc, char *argv[]) {
     std::ios::sync_with_stdio(false);
     std::ostringstream l;
-    
+
     /// Determine the timestamp.
-    using clock = std::chrono::high_resolution_clock;
+    using clock = std::chrono::system_clock;
     l << clock::to_time_t(clock::now() - std::chrono::hours(24));
-    
+
+    /// INIReader to hold configuration associated with experiments.
+    std::string config_file_path = std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
+                                   std::string(dirname(const_cast<char *>(__FILE__))) + "/../CONFIG.ini";
+    INIReader cf(config_file_path);
+    if (cf.ParseError() < 0) {
+        std::cout << "Unable to read the CONFIG file at: " << config_file_path << std::endl;
+    }
+
     // Verify the arguments.
     if (argc != 3) {
         std::cout << "Usage: RunTrial [IdentificationChoice] [TrialChoice]" << std::endl;
@@ -176,29 +181,31 @@ int main (int argc, char *argv[]) {
         // Verify that the arguments are within their appropriate spaces.
         auto is_valid_arg = [] (const char *arg, const std::vector<std::string> &input_space) -> bool {
             std::string a = std::string(arg);
+
+            std::transform(a.begin(), a.end(), a.begin(), ::tolower);
             return std::find(input_space.begin(), input_space.end(), a) != input_space.end();
         };
-        
+
         if (!is_valid_arg(argv[1], {"angle", "dot", "sphere", "plane", "pyramid", "composite"})
             || !is_valid_arg(argv[2], {"query", "reduction", "identification", "overlay"})) {
             std::cout << "Usage: RunTrial ['angle', ... , 'composite'] ['query', ... , 'identification']" << std::endl;
             return -1;
         }
     }
-    
+
     // Attempt to connect to the Lumberjack database.
     std::string identification = std::string(argv[1]), identifier_name = std::string(argv[1]);
     std::string trial_name = std::string(argv[2]);
     try {
-        Lumberjack lu(EHA::experiment_to_experiment_table(trial_name), identification, l.str());
+        Lumberjack lu(EHA::experiment_to_experiment_table(trial_name, cf), identification, l.str());
     }
     catch (const std::exception &e) {
-        create_lumberjack_table(trial_name);
+        create_lumberjack_table(trial_name, cf);
     }
-    
+
     // Capitalize our trial name. Perform our trial.
     identification[0] = static_cast<char> (toupper(identification[0]));
-    Lumberjack lu(EHA::experiment_to_experiment_table(trial_name), identification, l.str());
-    perform_trial(lu, identifier_name, trial_name);
+    Lumberjack lu(EHA::experiment_to_experiment_table(trial_name, cf), identification, l.str());
+    perform_trial(lu, identifier_name, trial_name, cf);
     return 0;
 }

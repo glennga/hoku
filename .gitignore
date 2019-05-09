@@ -6,8 +6,10 @@ build/
 *.tmp
 *.out
 *__pycache__*
+*.DS_Store
 
 # Latex files to ignore.
+*.texpadtmp
 *.pdf
 *.aux
 *.nav
