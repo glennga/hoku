@@ -41,8 +41,8 @@ For a strategy that uses $d\seq2$ points to determine the mapping in an image of
 \end{equation}
 
 Each identification method $\texttt{X}$ is also presented a set $\genericdatabase$, composed of $d$ sized sets of all possible combinations or permutations of points from $\databaseset$.
-Using certain features of the image subset, the entire $\genericdatabase$ set is filtered to a set of candidates $\databasesubset$.
-This is known as the \emph{candidate retrieval step}, which seeks out sets from our database that 
+Using certain features of the image subset, the entire $\genericdatabase$ set is filtered to a set of star sets $\databasesubset$.
+This is known as the \emph{candidate retrieval step}.
 Referencing the same $d\seq 2$ strategy as before, an image subset $\imagesubset \seq \set{\vv{\imageset[1]}, \vv{\imageset[2]}}$ may yield the candidates in~\autoref{eq:catalogCandidateExample}:
 \begin{equation}
 	\label{eq:catalogCandidateExample}
@@ -51,6 +51,7 @@ Referencing the same $d\seq 2$ strategy as before, an image subset $\imagesubset
 
 Through some filter process for $\databasesubset$ and/or loop back to the $b$ selection step until $\abs{R} = 1$, a single set $\candidateset$ from the database candidates is  chosen.
 This is known as the \emph{candidate selection step}.
+The candidate selected here refers to a database star set that is likely to align with the current image subset.
 For a process that only loops back to the $b$ selection step until the $|\databasesubset| \seq 1$ criterion holds true, the following sequence of events may occur.
 The notation $\databasesubset^{(t)}$ and $\imagesubset^{(t)}$ denotes distinct $\genericdatabase$ and $\imageset$ subsets here, as opposed to the notation $\databasesubset[j]$ and $\imagesubset[j]$ which denotes singular database candidates and single points in $\imageset$ respectively.
 %\begin{description}[noitemsep]
