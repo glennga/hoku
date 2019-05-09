@@ -18,31 +18,23 @@ Trio::Trio (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &b_3) { // Pri
     this->b_3 = std::make_shared<Vector3>(b_3);
 }
 
-/// Compute the planar side lengths of the triangle, in order a, b, c.
-Trio::side_lengths Trio::planar_lengths () const {
+Trio::side_lengths Trio::planar_lengths () const { // Order: A, B, C.
     return {Vector3::Magnitude(*b_1 - *b_2), Vector3::Magnitude(*b_2 - *b_3), Vector3::Magnitude(*b_3 - *b_1)};
 }
-
-/// Compute the spherical side lengths of the triangle, in order a, b, c and in **radians**.
-Trio::side_lengths Trio::spherical_lengths () const {
+Trio::side_lengths Trio::spherical_lengths () const { // Order: A, B, C.
     static auto compute_length = [] (const Vector3 &beta_1, const Vector3 &beta_2) -> double {
         return acos(Vector3::Dot(beta_1, beta_2) / (Vector3::Magnitude(beta_1) * Vector3::Magnitude(beta_2)));
     };
     return {compute_length(*b_1, *b_2), compute_length(*b_2, *b_3), compute_length(*b_3, *b_1)};
 }
-
-/// Find the triangle's semi perimeter (perimeter * 0.5) given the side lengths.
 double Trio::semi_perimeter (const double a, const double b, const double c) { return 0.5 * (a + b + c); }
 
-/// Treat the space between the trio as a planar triangle. Find the area of this triangle using Heron's formula.
 double Trio::planar_area (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &b_3) {
     side_lengths ell = Trio(b_1, b_2, b_3).planar_lengths();
     double s = semi_perimeter(ell[0], ell[1], ell[2]);
 
     return sqrt(s * (s - ell[0]) * (s - ell[1]) * (s - ell[2]));
 }
-
-/// Treat the space between the trio as a planar triangle. Find the polar moment of this triangle.
 double Trio::planar_moment (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &b_3) {
     side_lengths ell = Trio(b_1, b_2, b_3).planar_lengths();
     return planar_area(b_1, b_2, b_3) * (pow(ell[0], 2) + pow(ell[1], 2) + pow(ell[2], 2)) / 36.0;
@@ -140,7 +132,6 @@ Trio::either Trio::spherical_moment (const Vector3 &b_1, const Vector3 &b_2, con
     return (std::isnan(t_i) || t_i < 0) ? either{0, INVALID_TRIO_M_EITHER} : either{t_i, 0};
 }
 
-/// Find the angle between two stars b_1 and b_2, using the central star as the new origin.
 double Trio::dot_angle (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &central) {
     // Move the origin of b_1 and b_2 to the newly defined center. Normalize these.
     return (180.0 / M_PI) * Vector3::Angle(Vector3::Normalized(b_1 - central), Vector3::Normalized(b_2 - central));

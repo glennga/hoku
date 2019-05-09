@@ -12,8 +12,6 @@
 #include "math/rotation.h"
 
 Rotation::Rotation (const double w, const double i, const double j, const double k) : Quaternion(i, j, k, w) { }
-
-/// Wrap the given GMath quaternion inside a Rotation object.
 Rotation Rotation::wrap (const Quaternion &q) { return {q.data[3], q.data[0], q.data[1], q.data[2]}; }
 
 std::ostream &operator<< (std::ostream &os, const Rotation &q) {
