@@ -1,3 +1,5 @@
+#include <utility>
+
 /// @file benchmark.h
 /// @author Glenn Galvizo
 ///
@@ -11,94 +13,67 @@
 #include "storage/chomp.h"
 
 /// @brief Class to represent an image of stars.
-///
-/// The benchmark class is used for all star identification implementation testing. To imitate real data from a star
-/// detector, we search for all stars in a section of the sky and apply various error models to this set.
-///
-/// @example
-/// @code{.cpp}
-/// // Find all bright stars around a random star within 7.5 degrees of it. Rotate all stars by same random rotation.
-/// Benchmark b(15, Star::chance(), Rotation::chance());
-///
-/// // Generate 1 random blob of size 2 degrees in diameter. Remove any stars in set above that fall in this blob.
-/// b.remove_light(1, 2);
-///
-/// // Shift a random star (Brownian shift) with sigma = 0.3 in terms of Cartesian position.
-/// b.shift_light(1, 0.3);
-///
-/// // Append 2 extra stars to the data-set above.
-/// b.add_extra_light(2);
-///
-/// // View our plot as a 3D projection.
-/// b.display_plot();
-/// @endcode
 class Benchmark {
 public:
-    /// Error model structure. Defines the type of error and the stars affected.
-    struct ErrorModel {
-        std::string model_name; ///< Name of the error being applied.
-        std::string plot_color; ///< MatPlotLib color to label the affected points.
-        Star::list affected; ///< List of stars affected by the error.
-    };
+    class Builder;
 
-public:
-    static const double DEFAULT_M_BAR;
+    static const double NO_M_BAR;
     static const double NO_FOV;
-
-    Benchmark (Chomp &ch, double fov, double m_bar = DEFAULT_M_BAR);
-
-    Benchmark (Chomp &ch, const Vector3 &center, const Rotation &q, double fov, double m_bar = DEFAULT_M_BAR);
-
-    Benchmark (const Star::list &s, const Vector3 &center, double fov);
-
-    static const Benchmark black ();
+    static const unsigned int NO_N;
 
     Star operator[] (unsigned int n) const;
 
-    void generate_stars (Chomp &ch, double m_bar = DEFAULT_M_BAR);
+    void add_extra_light (unsigned int n);
+    void shift_light (unsigned int n, double sigma);
+    void remove_light (unsigned int n, double psi);
 
-    void present_image (std::unique_ptr<Star::list> &image_s, double &image_fov) const;
+    std::shared_ptr<Star::list> get_image ();
+    std::shared_ptr<Star::list> get_answers ();
+    std::shared_ptr<Star::list> get_inertial ();
+    Vector3 get_center ();
+    double get_fov ();
 
-    void record_current_plot ();
 
-    void display_plot ();
-
-    void add_extra_light (unsigned int n, bool shuffle = true);
-
-    void shift_light (unsigned int n, double sigma, bool shuffle = true);
-
-    void remove_light (unsigned int n, double psi, bool shuffle = true);
-
-    void barrel_light (double alpha);
-
-#if !defined ENABLE_TESTING_ACCESS
-    private:
-#endif
-
-    Star::list clean_stars () const;
-
+private:
     void shuffle ();
 
-#if !defined ENABLE_TESTING_ACCESS
-    private:
-#endif
-    /// Alias for the list (stack) of ErrorModels.
-    using model_list = std::vector<ErrorModel>;
+    explicit Benchmark (const std::shared_ptr<Chomp> &ch, double fov, unsigned int n = NO_N, double m_bar = NO_M_BAR);
+    void generate_stars (const std::shared_ptr<Chomp> &ch, unsigned int n = NO_N, double m_bar = NO_M_BAR);
 
-    /// Current list of stars in image. All stars must be near the focus.
+private:
+    Rotation q_rb = Rotation(0, 0, 0, 0);
+    std::shared_ptr<Star::list> b_answers;
     std::shared_ptr<Star::list> b;
-
-    /// The focal point of the star list. Does not necessarily have to be a BSC5 star itself.
+    std::shared_ptr<Star::list> r;
     Vector3 center;
-
-    /// All stars must be fov degrees from the focus.
     double fov;
+};
 
-    /// Rotation applied to all stars. Moves stars from inertial to image.
-    Rotation q_rb = Rotation::wrap(Quaternion());
+class Benchmark::Builder {
+public:
+    Builder &using_chomp (const std::shared_ptr<Chomp> &cho) {
+        this->ch = cho;
+        return *this;
+    }
+    Builder &limited_by_n_stars (unsigned int num) {
+        this->n = num;
+        return *this;
+    }
+    Builder &limited_by_m (double m) {
+        this->m_bar = m;
+        return *this;
+    }
+    Builder &limited_by_fov (double num) {
+        this->fov = num;
+        return *this;
+    }
+    Benchmark build () { return Benchmark(ch, fov, n, m_bar); }
 
-    /// List (stack) of ErrorModels, which also holds all changed stars.
-    model_list error_models;
+private:
+    std::shared_ptr<Chomp> ch;
+    double m_bar = NO_M_BAR;
+    double fov = NO_FOV;
+    unsigned int n = NO_N;
 };
 
 #endif /* HOKU_BENCHMARK_H */
