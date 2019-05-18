@@ -6,13 +6,13 @@ source ${HOKU_PROJECT_PATH}/hoku/hoku.cfg
 
 for table in "HIP" "ANGLE" "DOT" "SPHERE" "PLANE" "PYRAMID" "COMPOSITE"; do
     python3 ${HOKU_PROJECT_PATH}/hoku/hoku.gn \
-        ${DATABASE_LOCATION} \
-        ${CATALOG_LOCATION} \
-        ${HIP_NAME} \
-        ${BRIGHT_NAME} \
-        ${CURRENT_TIME} \
-        ${MAGNITUDE_LIMIT} \
-        ${FOV_LIMIT} \
-        ${table} \
-        ${TABLE_NAMES[${table}]}
+        -db ${DATABASE_LOCATION} \
+        -cat ${CATALOG_LOCATION} \
+        -hip ${HIP_NAME} \
+        -bright ${BRIGHT_NAME} \
+        -t ${CURRENT_TIME} \
+        -m ${MAGNITUDE_LIMIT} \
+        -fov ${FOV_LIMIT} \
+        -table ${table} \
+        -tablename ${TABLE_NAMES[${table}]}
 done

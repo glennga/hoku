@@ -10,6 +10,7 @@
 #define HOKU_IDENTIFICATION_H
 
 #include <memory>
+#include <algorithm>
 
 #include "benchmark/benchmark.h"
 #include "storage/chomp.h"

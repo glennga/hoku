@@ -78,12 +78,12 @@ namespace Experiment {
                     .build();
             std::shared_ptr<T> identifier = Identification::Builder<T>()
                     .using_chomp(ch)
-                    .given_image(std::make_shared<be>)
+                    .given_image(std::make_shared<Benchmark>(be))
                     .using_epsilon_1(ep->epsilon_1)
                     .using_epsilon_2(ep->epsilon_2)
                     .using_epsilon_3(ep->epsilon_3)
                     .using_epsilon_4(ep->epsilon_4)
-                    .limit_n_comparison(ep->n_limit)
+                    .limit_n_comparisons(ep->n_limit)
                     .identified_by(ep->identifier)
                     .with_table(ep->reference_table)
                     .build();
@@ -115,7 +115,7 @@ namespace Experiment {
 
                         lu->log_trial({ep->epsilon_1, ep->epsilon_2, ep->epsilon_3, ep->epsilon_4,
                                        (i == 0) ? error : 0.0, (i == 1) ? error : 0.0, (i == 2) ? error : 0.0,
-                                        identifier.get_nu(),
+                                        identifier->get_nu(),
                                        static_cast<double>(t.count()),
                                        percentage_correct(w, *be.get_answers(), be.get_fov()),
                                        (w.error == Identification::NO_CONFIDENT_A_EITHER) ? 0.0 : 1.0
