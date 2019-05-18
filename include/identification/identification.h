@@ -32,6 +32,11 @@ public:
         int error = 0;
     };
 
+    Identification (const std::shared_ptr<Benchmark> &be, const std::shared_ptr<Chomp> &ch, double epsilon_1,
+                    double epsilon_2, double epsilon_3, double epsilon_4, unsigned int nu_max,
+                    const std::string &identifier, const std::string &table_name);
+    virtual ~Identification () = default;
+
 public:
     virtual std::vector<labels_list> query () = 0;
     virtual StarsEither reduce () = 0;
@@ -43,10 +48,6 @@ public:
     static const int NO_CONFIDENT_A_EITHER;
     static const int NO_CONFIDENT_R_EITHER;
     static const int EXCEEDED_NU_MAX_EITHER;
-
-    Identification (const std::shared_ptr<Benchmark> &be, const std::shared_ptr<Chomp> &ch, double epsilon_1,
-                    double epsilon_2, double epsilon_3, double epsilon_4, unsigned int nu_max,
-                    const std::string &identifier, const std::string &table_name);
 
 protected:
     double epsilon_1, epsilon_2, epsilon_3, epsilon_4;
@@ -99,7 +100,9 @@ public:
         return *this;
     }
     std::shared_ptr<T> build () {
-        return std::make_shared<T>(be, ch, epsilon_1, epsilon_2, epsilon_3, epsilon_4, nu_max, identifier, table_name);
+        return std::make_shared<T>(
+                be, ch, epsilon_1, epsilon_2, epsilon_3, epsilon_4, nu_max, identifier, table_name
+        );
     }
 
 private:

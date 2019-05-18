@@ -4,7 +4,7 @@ set -e
 HOKU_PROJECT_PATH="$(dirname "$0")/../"
 source ${HOKU_PROJECT_PATH}/hoku/hoku.cfg
 
-for i in 0 1 2 3 4 5; do
+for i in 0 1 2 3 4 5 6; do
     python3 ${HOKU_PROJECT_PATH}/hoku/hoku.gn \
         -db ${DATABASE_LOCATION} \
         -cat ${CATALOG_LOCATION} \

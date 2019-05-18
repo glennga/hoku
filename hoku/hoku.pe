@@ -1,2 +1,62 @@
 #!/usr/bin/env python3
+from argparse import Namespace
 
+
+QUERY_SCHEMA = """
+    IdentificationMethod TEXT,
+    Timestamp TEXT,
+    Epsilon1 FLOAT,
+    Epsilon2 FLOAT,
+    Epsilon3 FLOAT,
+    CandidateSetSize FLOAT,
+    RunningTime FLOAT,
+    SExistence INT
+"""
+REDUCTION_SCHEMA = """
+    IdentificationMethod TEXT,
+    Timestamp TEXT,
+    Epsilon1 FLOAT,
+    Epsilon2 FLOAT,
+    Epsilon3 FLOAT,
+    ShiftDeviation FLOAT,
+    FalseStars INT,
+    RemovedBlobs INT,
+    QueryCount INT,
+    TimeToResult FLOAT,
+    PercentageCorrect FLOAT
+"""
+IDENTIFICATION_SCHEMA = """
+    IdentificationMethod TEXT,
+    Timestamp TEXT,
+    Epsilon1 FLOAT,
+    Epsilon2 FLOAT,
+    Epsilon3 FLOAT,
+    Epsilon4 FLOAT,
+    ShiftDeviation FLOAT,
+    FalseStars INT,
+    RemovedBlobs INT,
+    QueryCount INT,
+    TimeToResult FLOAT,
+    PercentageCorrect FLOAT,
+    IsErrorOut INT
+"""
+
+
+def get_arguments() -> Namespace:
+    from argparse import ArgumentParser
+
+    parser = ArgumentParser(description='Perform experiments for Hoku research.')
+    list(map(lambda a: parser.add_argument(a[0], help=a[1], type=a[2], choices=a[3]), [
+        ['-db', 'Location of the nibble database.', str, None],
+        ['-hip', 'Name of the HIP table.', str, None],
+        ['-bright', 'Name of the BRIGHT table.', str, None],
+        ['-']
+        ['-m', 'Magnitude to restrict BRIGHT table with.', float, None],
+        ['-fov', 'Field-of-view restriction for strategy-specific relations.', float, None],
+        ['-table', 'Type of table to generate.', str,
+         ['HIP', 'ANGLE', 'DOT', 'SPHERE', 'PLANE', 'PYRAMID', 'COMPOSITE']
+         ],
+        ['-tablename', 'Name of the table to generate.', str, None]
+    ]))
+
+    return parser.parse_args()

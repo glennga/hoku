@@ -99,7 +99,7 @@ void connect_to_lumberjack (char *argv[], std::ostringstream &l) {
     }
 }
 
-int main (int argc, char *argv[]) {
+int main (int, char *argv[]) {
     std::ios::sync_with_stdio(false); // Determine the timestamp.
     std::ostringstream l;
     l << std::chrono::system_clock::to_time_t(std::chrono::system_clock::now() - std::chrono::hours(24));

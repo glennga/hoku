@@ -11,7 +11,7 @@
 #include "identification.h"
 
 /// @brief Star identification class using dot product angles.
-class DotAngle : public Identification {
+class DotAngle final : public Identification {
 public:
     std::vector<Identification::labels_list> query () override;
     StarsEither reduce () override;

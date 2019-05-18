@@ -34,11 +34,11 @@ TableGenerator table_generator_factory (const std::string &choice) {
         return 0;
     };
     table_function_map["ANGLE"] = Angle::generate_table;
-//    table_function_map["DOT"] = Dot::generate_table;
-//    table_function_map["SPHERE"] = Sphere::generate_table;
-//    table_function_map["PLANE"] = Plane::generate_table;
-//    table_function_map["PYRAMID"] = Pyramid::generate_table;
-//    table_function_map["COMPOSITE"] = Composite::generate_table;
+    table_function_map["DOT"] = Dot::generate_table;
+    table_function_map["SPHERE"] = Sphere::generate_table;
+    table_function_map["PLANE"] = Plane::generate_table;
+    table_function_map["PYRAMID"] = Pyramid::generate_table;
+    table_function_map["COMPOSITE"] = Composite::generate_table;
 
     std::string upper_choice = choice;  // Convert our choice to upper case.
     std::transform(choice.begin(), choice.end(), upper_choice.begin(), ::toupper);

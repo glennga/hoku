@@ -11,7 +11,7 @@
 #include "base-triangle.h"
 
 /// @brief Star identification class using planar triangles.
-class PlanarTriangle : public BaseTriangle {
+class PlanarTriangle final : public BaseTriangle {
 public:
     std::vector<labels_list> query () override;
     StarsEither reduce () override;
@@ -22,6 +22,7 @@ public:
     static const unsigned int QUERY_STAR_SET_SIZE;
 
     using BaseTriangle::BaseTriangle;
+    ~PlanarTriangle () final = default;
 
 private:
     TrioVectorEither query_for_trios (const index_trio &) override;

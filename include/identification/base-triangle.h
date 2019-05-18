@@ -15,12 +15,15 @@
 class BaseTriangle : public Identification {
     friend class CompositePyramid;
 
-    using Identification::Identification;
+public:
+    ~BaseTriangle () override = default;
 
 protected:
     using index_trio = std::array<int, 3>;
     using area_function = double (*) (const Vector3 &, const Vector3 &, const Vector3 &);
     using moment_function =  double (*) (const Vector3 &, const Vector3 &, const Vector3 &);
+    using Identification::Identification;
+
 
     template<typename T>
     T ptop (std::deque<T> &p) {

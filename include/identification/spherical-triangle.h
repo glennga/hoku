@@ -11,7 +11,7 @@
 #include "base-triangle.h"
 
 /// @brief Star identification class using spherical triangles.
-class SphericalTriangle : public BaseTriangle {
+class SphericalTriangle final : public BaseTriangle {
 public:
     std::vector<labels_list> query () override;
     StarsEither reduce () override;
@@ -23,6 +23,7 @@ public:
     static const unsigned int QUERY_STAR_SET_SIZE;
 
     using BaseTriangle::BaseTriangle;
+    ~SphericalTriangle () final = default;
 
 private:
     TrioVectorEither query_for_trios (const index_trio &) override;

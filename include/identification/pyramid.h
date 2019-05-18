@@ -22,6 +22,7 @@ public:
     static const unsigned int QUERY_STAR_SET_SIZE;
 
     using Identification::Identification;
+    ~Pyramid () override = default;
 
 protected:
     /// Alias for a list of catalog ID lists (STL vector of vectors of integers).

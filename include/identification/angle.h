@@ -12,7 +12,7 @@
 #include "identification.h"
 
 /// @brief Star identification class using angles.
-class Angle : public Identification {
+class Angle final : public Identification {
 public:
     std::vector<Identification::labels_list> query () override;
     StarsEither reduce () override;
@@ -25,6 +25,7 @@ public:
     static const unsigned int QUERY_STAR_SET_SIZE;
 
     using Identification::Identification;
+    ~Angle () final = default;
 
 private:
     struct PairsEither {

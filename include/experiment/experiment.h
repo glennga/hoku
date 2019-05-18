@@ -32,40 +32,24 @@ namespace Experiment {
 
     /// @brief Namespace that holds all parameters and functions to conduct the query experiment with.
     namespace Query {
-        /// Schema comma separated string that corresponds to the creation of the query table.
-        const char *const SCHEMA = "IdentificationMethod TEXT, Timestamp TEXT, Sigma1 FLOAT, Sigma2 FLOAT, "
-                                   "Sigma3 FLOAT, ShiftDeviation FLOAT, CandidateSetSize FLOAT, RunningTime FLOAT, "
-                                   "SExistence INT";
-
         template<class T>
-        void trial (const std::shared_ptr<Chomp> &ch, const std::shared_ptr<Lumberjack> &lu,
-                    const std::shared_ptr<Experiment::Parameters> &ep) {
+        void trial (const std::shared_ptr<Chomp> &, const std::shared_ptr<Lumberjack> &,
+                    const std::shared_ptr<Experiment::Parameters> &) {
             throw std::runtime_error("Not implemented.");
         }
     }
 
     /// @brief Namespace that holds all parameters and functions to conduct the reduction experiment with.
     namespace Reduction {
-        /// Schema header that corresponds to the log file for all reduction trials.
-        const char *const SCHEMA = "IdentificationMethod TEXT, Timestamp TEXT, Sigma1 FLOAT, Sigma2 FLOAT, "
-                                   "Sigma3 FLOAT, ShiftDeviation FLOAT, FalseStars INT, QueryCount INT, "
-                                   "TimeToResult FLOAT, PercentageCorrect FLOAT";
-
         template<class T>
-        void trial (const std::shared_ptr<Chomp> &ch, const std::shared_ptr<Lumberjack> &lu,
-                    const std::shared_ptr<Experiment::Parameters> &ep) {
+        void trial (const std::shared_ptr<Chomp> &, const std::shared_ptr<Lumberjack> &,
+                    const std::shared_ptr<Experiment::Parameters> &) {
             throw std::runtime_error("Not implemented.");
         }
     }
 
     /// @brief Namespace that holds all parameters and functions to conduct the identification experiment with.
     namespace Map {
-        /// Schema header that corresponds to the log file for all identification trials.
-        const char *const SCHEMA = "IdentificationMethod TEXT, Timestamp TEXT, Epsilon1 FLOAT, Epsilon2 FLOAT, "
-                                   "Epsilon3 FLOAT, Epsilon4 FLOAT, ShiftDeviation FLOAT, FalseStars INT, "
-                                   "RemovedBlobs INT, QueryCount INT, TimeToResult FLOAT, PercentageCorrect FLOAT, "
-                                   "IsErrorOut INT";
-
         double percentage_correct (const Identification::StarsEither &b, const Star::list &answers, double fov);
 
         template<class T>
@@ -115,7 +99,7 @@ namespace Experiment {
 
                         lu->log_trial({ep->epsilon_1, ep->epsilon_2, ep->epsilon_3, ep->epsilon_4,
                                        (i == 0) ? error : 0.0, (i == 1) ? error : 0.0, (i == 2) ? error : 0.0,
-                                        identifier->get_nu(),
+                                       static_cast<double>(identifier->get_nu()),
                                        static_cast<double>(t.count()),
                                        percentage_correct(w, *be.get_answers(), be.get_fov()),
                                        (w.error == Identification::NO_CONFIDENT_A_EITHER) ? 0.0 : 1.0
