@@ -40,12 +40,11 @@ int Angle::generate_table (const std::shared_ptr<Chomp> &ch, const double fov, c
                                         static_cast<double> (all_stars[j].get_label()),
                                         theta
                         });
-
         }
     }
 
     transaction.commit();
-    return ch->sort_and_index(table_name);
+    return ch->sort_and_index("theta");
 }
 
 Identification::LabelsEither Angle::query_for_pair (const double theta) {

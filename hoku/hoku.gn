@@ -41,8 +41,8 @@ if __name__ == '__main__':
             arguments.hip,
             arguments.bright,
             arguments.t,
-            arguments.m,
-            arguments.fov,
+            str(arguments.m),
+            str(arguments.fov),
             arguments.table,
             arguments.tablename
         ])

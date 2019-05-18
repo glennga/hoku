@@ -64,7 +64,7 @@ int BaseTriangle::generate_triangle_table (const std::shared_ptr<Chomp> &ch, con
         transaction.commit();
     }
 
-    return ch->sort_and_index(table_name);
+    return ch->sort_and_index("a, i");
 }
 
 std::vector<BaseTriangle::labels_list> BaseTriangle::query_for_trio (const double a, const double i) {

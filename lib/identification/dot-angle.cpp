@@ -59,7 +59,7 @@ int Dot::generate_table (const std::shared_ptr<Chomp> &ch, double fov, const std
         }
         transaction.commit();
     }
-    return ch->sort_and_index(table_name);
+    return ch->sort_and_index("theta_1, theta_2, phi");
 }
 
 Dot::LabelsEither Dot::query_for_trio (double theta_1, double theta_2, double phi) {
