@@ -1,45 +1,46 @@
 #!/usr/bin/env python3
 from argparse import Namespace
 
-
-QUERY_SCHEMA = """
-    IdentificationMethod TEXT,
-    Timestamp TEXT,
-    Epsilon1 FLOAT,
-    Epsilon2 FLOAT,
-    Epsilon3 FLOAT,
-    CandidateSetSize FLOAT,
-    RunningTime FLOAT,
-    SExistence INT
-"""
-REDUCTION_SCHEMA = """
-    IdentificationMethod TEXT,
-    Timestamp TEXT,
-    Epsilon1 FLOAT,
-    Epsilon2 FLOAT,
-    Epsilon3 FLOAT,
-    ShiftDeviation FLOAT,
-    FalseStars INT,
-    RemovedBlobs INT,
-    QueryCount INT,
-    TimeToResult FLOAT,
-    PercentageCorrect FLOAT
-"""
-IDENTIFICATION_SCHEMA = """
-    IdentificationMethod TEXT,
-    Timestamp TEXT,
-    Epsilon1 FLOAT,
-    Epsilon2 FLOAT,
-    Epsilon3 FLOAT,
-    Epsilon4 FLOAT,
-    ShiftDeviation FLOAT,
-    FalseStars INT,
-    RemovedBlobs INT,
-    QueryCount INT,
-    TimeToResult FLOAT,
-    PercentageCorrect FLOAT,
-    IsErrorOut INT
-"""
+SCHEMAS = {
+    "QUERY": """
+        IdentificationMethod TEXT,
+        Timestamp TEXT,
+        Epsilon1 FLOAT,
+        Epsilon2 FLOAT,
+        Epsilon3 FLOAT,
+        CandidateSetSize FLOAT,
+        RunningTime FLOAT,
+        SExistence INT
+    """,
+    "REDUCTION": """
+        IdentificationMethod TEXT,
+        Timestamp TEXT,
+        Epsilon1 FLOAT,
+        Epsilon2 FLOAT,
+        Epsilon3 FLOAT,
+        ShiftDeviation FLOAT,
+        FalseStars INT,
+        RemovedBlobs INT,
+        QueryCount INT,
+        TimeToResult FLOAT,
+        PercentageCorrect FLOAT
+    """,
+    "IDENTIFICATION": """
+        IdentificationMethod TEXT,
+        Timestamp TEXT,
+        Epsilon1 FLOAT,
+        Epsilon2 FLOAT,
+        Epsilon3 FLOAT,
+        Epsilon4 FLOAT,
+        ShiftDeviation FLOAT,
+        FalseStars INT,
+        RemovedBlobs INT,
+        QueryCount INT,
+        TimeToResult FLOAT,
+        PercentageCorrect FLOAT,
+        IsErrorOut INT
+    """
+}
 
 
 def get_arguments() -> Namespace:
@@ -47,16 +48,74 @@ def get_arguments() -> Namespace:
 
     parser = ArgumentParser(description='Perform experiments for Hoku research.')
     list(map(lambda a: parser.add_argument(a[0], help=a[1], type=a[2], choices=a[3]), [
-        ['-db', 'Location of the nibble database.', str, None],
+        ['-refdb', 'Location of the nibble database.', str, None],
+        ['-recdb', 'Location of the lumberjack database.', str, None],
         ['-hip', 'Name of the HIP table.', str, None],
         ['-bright', 'Name of the BRIGHT table.', str, None],
-        ['-']
-        ['-m', 'Magnitude to restrict BRIGHT table with.', float, None],
-        ['-fov', 'Field-of-view restriction for strategy-specific relations.', float, None],
-        ['-table', 'Type of table to generate.', str,
-         ['HIP', 'ANGLE', 'DOT', 'SPHERE', 'PLANE', 'PYRAMID', 'COMPOSITE']
+        ['-rtable', 'Name of the reference table to use.', str, None],
+        ['-etable', 'Name of the experiment table in lumberjack to use.', str, None],
+        ['-strategy', 'Name of the strategy to use.', str,
+         ['ANGLE', 'DOT', 'PLANE', 'SPHERE', 'PYRAMID', 'COMPOSITE']
          ],
-        ['-tablename', 'Name of the table to generate.', str, None]
+        ['-prefix', 'Prefix (identifier) to attach to the method.', str, None],
+        ['-ep1', 'Value of epsilon 1.', float, None],
+        ['-ep2', 'Value of epsilon 2.', float, None],
+        ['-ep3', 'Value of epsilon 3.', float, None],
+        ['-ep4', 'Value of epsilon 4.', float, None],
+        ['-nlimit', 'Number of stars to restrict image to (-1 = no limit).', int, None],
+        ['-mlimit', 'Magnitude to restrict image by.', float, None],
+        ['-nulimit', 'Maximum number of query star subset selections.', int, None],
+        ['-exper', 'Name of the simulation to perform.', str, ['QUERY', 'REDUCTION', 'MAP']],
+        ['-samples', 'Number of simulations to perform.', int, None],
+        ['-ssiter', 'Number of different shift simulations.', int, None],
+        ['-ssstep', 'Step size (in degrees) of shift per iter.', float, None],
+        ['-esmin', 'Minimum number of false positives.', int, None],
+        ['-esiter', 'Number of different false positive simulations.', int, None],
+        ['-esstep', 'Step size (of false positives) per iter.', int, None],
+        ['-rmiter', 'Number of different false negative simulations.', int, None],
+        ['-rmstep', 'Step size (of removed blobs) per iter.', int, None],
+        ['-rmsigma', 'Size of removed blob.', float, None]
     ]))
 
     return parser.parse_args()
+
+
+if __name__ == '__main__':
+    from os.path import abspath
+    from subprocess import call
+    from pathlib import Path
+
+    if not Path(abspath(__file__).replace('/hoku.gn', '') + '/../bin/PerformE').is_file():
+        print("hoku/bin/PerformE does not exist. Run CMake + make before this.")
+
+    else:
+        arguments = get_arguments()
+        call([
+            abspath(__file__).replace('/hoku.gn', '') + '/../bin/PerformE',
+            arguments.refdb,
+            arguments.recdb,
+            arguments.hip,
+            arguments.bright,
+            arguments.rtable,
+            arguments.etable,
+            SCHEMAS[arguments.exper],
+            arguments.strategy,
+            arguments.prefix,
+            arguments.ep1,
+            arguments.ep2,
+            arguments.ep3,
+            arguments.ep4,
+            arguments.nlimit,
+            arguments.mlimit,
+            arguments.nulimit,
+            arguments.exper,
+            arguments.samples,
+            arguments.ssiter,
+            arguments.ssstep,
+            arguments.esmin,
+            arguments.esiter,
+            arguments.esstep,
+            arguments.rmiter,
+            arguments.rmstep,
+            arguments.rmsigma
+        ])

@@ -35,16 +35,17 @@ enum PerformEArguments {
     EPSILON_4 = 13,
     N_LIMIT = 14,
     M_LIMIT = 15,
-    EXPERIMENT_NAME = 16,
-    SAMPLES = 17,
-    SHIFT_STAR_ITER = 18,
-    SHIFT_STAR_STEP = 19,
-    EXTRA_STAR_MIN = 20,
-    EXTRA_STAR_ITER = 21,
-    EXTRA_STAR_STEP = 22,
-    REMOVE_STAR_ITER = 23,
-    REMOVE_STAR_STEP = 24,
-    REMOVE_STAR_SIGMA = 25
+    NU_LIMIT = 16,
+    EXPERIMENT_NAME = 17,
+    SAMPLES = 18,
+    SHIFT_STAR_ITER = 19,
+    SHIFT_STAR_STEP = 20,
+    EXTRA_STAR_MIN = 21,
+    EXTRA_STAR_ITER = 22,
+    EXTRA_STAR_STEP = 23,
+    REMOVE_STAR_ITER = 24,
+    REMOVE_STAR_STEP = 25,
+    REMOVE_STAR_SIGMA = 26
 };
 
 using ExperimentFunction = void (*) (
@@ -134,6 +135,7 @@ int main (int, char *argv[]) {
                             )
                             .limited_by_n(std::stoi(argv[PerformEArguments::N_LIMIT]))
                             .limited_by_m(std::stod(argv[PerformEArguments::M_LIMIT]))
+                            .limited_by_nu(std::stoi(argv[PerformEArguments::NU_LIMIT]))
                             .repeated_for_n_times(std::stoi(argv[PerformEArguments::SAMPLES]))
                             .with_n_shift_star_trials(std::stoi(argv[PerformEArguments::SHIFT_STAR_ITER]))
                             .with_n_extra_star_trials(std::stoi(argv[PerformEArguments::EXTRA_STAR_ITER]))

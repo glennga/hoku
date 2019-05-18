@@ -21,7 +21,7 @@ namespace Experiment {
         std::string identifier, reference_table;
         double epsilon_1, epsilon_2, epsilon_3, epsilon_4;
         double m_bar;
-        unsigned int n_limit;
+        unsigned int n_limit, nu_limit;
 
         unsigned int samples, extra_star_min, extra_star_step, remove_star_step;
         unsigned int shift_star_iter, extra_star_iter, remove_star_iter;
@@ -67,7 +67,7 @@ namespace Experiment {
                     .using_epsilon_2(ep->epsilon_2)
                     .using_epsilon_3(ep->epsilon_3)
                     .using_epsilon_4(ep->epsilon_4)
-                    .limit_n_comparisons(ep->n_limit)
+                    .limit_n_comparisons(ep->nu_limit)
                     .identified_by(ep->identifier)
                     .with_table(ep->reference_table)
                     .build();
@@ -131,6 +131,10 @@ public:
     }
     ParametersBuilder &limited_by_m (const double m) {
         p.m_bar = m;
+        return *this;
+    }
+    ParametersBuilder &limited_by_nu (const unsigned int nu) {
+        p.nu_limit = nu;
         return *this;
     }
     ParametersBuilder &repeated_for_n_times (const unsigned int samples) {

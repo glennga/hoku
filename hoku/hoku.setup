@@ -4,15 +4,15 @@ set -e
 HOKU_PROJECT_PATH="$(dirname "$0")/../"
 source ${HOKU_PROJECT_PATH}/hoku/hoku.cfg
 
-for i in 0 1 2 3 4 5 6; do
+for i in 0 1 2 3 4 5; do
     python3 ${HOKU_PROJECT_PATH}/hoku/hoku.gn \
-        -db ${DATABASE_LOCATION} \
+        -db ${REFERENCE_DB} \
         -cat ${CATALOG_LOCATION} \
-        -hip ${HIP_NAME} \
-        -bright ${BRIGHT_NAME} \
+        -hip ${HIP_TABLE} \
+        -bright ${BRIGHT_TABLE} \
         -t ${CURRENT_TIME} \
         -m ${MAGNITUDE_LIMIT} \
         -fov ${FOV_LIMIT} \
-        -table ${TABLES[$i]} \
-        -tablename ${TABLE_NAMES[$i]}
+        -table ${TABLE_NF[$i]} \
+        -tablename ${TABLE_NF[$i]}
 done
