@@ -16,7 +16,7 @@
 // Create an in-between matcher for Google Mock.
 using testing::PrintToString;
 
-MATCHER_P2(IsBetweenExperiment, a, b, // NOLINT(modernize-use-equals-delete)
+MATCHER_P2(IsBetweenExperiment, a, b, // NOLINT(hicpp-use-equals-delete)
            std::string(negation ? "isn't" : "is") + " between " + PrintToString(a) + " and " + PrintToString(b)) {
     return a <= arg && arg <= b;
 }
@@ -132,7 +132,7 @@ void setup_experiment (std::shared_ptr<INIReader> &cf, std::shared_ptr<Chomp> &c
 }
 
 /// Ensure that the benchmark presentation is random, and that the specifications are met.
-TEST(Experiment, AllPresentBenchmark) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
+TEST(Experiment, AllPresentBenchmark) {
     Chomp ch;
     Star::list big_i, big_c, old_big_i = {Star::chance()};
     Star center, old_center = Star::chance();
@@ -164,7 +164,7 @@ TEST(Experiment, AllPresentBenchmark) { // NOLINT(cert-err58-cpp,modernize-use-e
 }
 
 /// Check that the correct number of stars are generated, and that this set is random.
-TEST(Experiment, QueryGenerateNStars) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
+TEST(Experiment, QueryGenerateNStars) {
     Chomp ch;
     Star center, old_center = Star::chance();
     std::array<double, 2> fov_p = {20, 18};
@@ -189,7 +189,7 @@ TEST(Experiment, QueryGenerateNStars) { // NOLINT(cert-err58-cpp,modernize-use-e
 }
 
 /// Check that the check for set existence is correct.
-TEST(Experiment, QuerySetExistence) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
+TEST(Experiment, QuerySetExistence) {
     std::vector<Identification::labels_list> a = {{1, 2, 3},
                                                   {4, 5, 6},
                                                   {6, 7, 8}};
@@ -213,7 +213,7 @@ TEST(Experiment, QuerySetExistence) { // NOLINT(cert-err58-cpp,modernize-use-equ
 }
 
 /// Check that the query experiment works for the angle method.
-TEST(Experiment, QueryTrialAngle) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
+TEST(Experiment, QueryTrialAngle) {
     std::shared_ptr<Lumberjack> lu;
     std::shared_ptr<INIReader> cf;
     std::shared_ptr<Chomp> ch;
@@ -247,7 +247,7 @@ TEST(Experiment, QueryTrialAngle) { // NOLINT(cert-err58-cpp,modernize-use-equal
 }
 
 /// Check that lists are correctly identified.
-TEST(Experiment, ReductionPercentageCorrect) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
+TEST(Experiment, ReductionPercentageCorrect) {
     Star::list a = {Star(0, 1, 0, 1), Star(2, 0, 0, 2), Star(3, 0, 0, 3), Star(0, 0, 0, 4)};
     Star::list b = {Star(0, 1, 0, 1), Star(3, 0, 0, 3), Star(2, 0, 0, 2)};
     Star::list c = {Star(0, 1, 0, 1), Star(0, 10, 0, 3), Star(0, 10, 0, 2)};
@@ -259,7 +259,7 @@ TEST(Experiment, ReductionPercentageCorrect) { // NOLINT(cert-err58-cpp,moderniz
 }
 
 /// Check that the reduction experiment works for the angle method.
-TEST(Experiment, ReductionTrialAngle) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
+TEST(Experiment, ReductionTrialAngle) {
     std::shared_ptr<Lumberjack> lu;
     std::shared_ptr<INIReader> cf;
     std::shared_ptr<Chomp> ch;
@@ -298,7 +298,7 @@ TEST(Experiment, ReductionTrialAngle) { // NOLINT(cert-err58-cpp,modernize-use-e
     transaction.commit();
 }
 
-TEST(Experiment, IdentificationPercentageCorrect) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
+TEST(Experiment, IdentificationPercentageCorrect) {
     Chomp ch;
     Star::list a = {ch.query_hip(26220), ch.query_hip(26221), ch.query_hip(26235), ch.query_hip(26224),
                     ch.query_hip(26427)};
@@ -314,7 +314,7 @@ TEST(Experiment, IdentificationPercentageCorrect) { // NOLINT(cert-err58-cpp,mod
 }
 
 /// Check that the map experiment works for the angle method.
-TEST(Experiment, IdentificationTrialAngle) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
+TEST(Experiment, IdentificationTrialAngle) {
     std::shared_ptr<Lumberjack> lu;
     std::shared_ptr<INIReader> cf;
     std::shared_ptr<Chomp> ch;
@@ -357,7 +357,7 @@ TEST(Experiment, IdentificationTrialAngle) { // NOLINT(cert-err58-cpp,modernize-
 }
 
 /// Check that the overlay experiment works.
-TEST(Experiment, OverlayTrial) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
+TEST(Experiment, OverlayTrial) {
     std::shared_ptr<Lumberjack> lu;
     std::shared_ptr<INIReader> cf;
     std::shared_ptr<Chomp> ch;

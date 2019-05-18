@@ -17,9 +17,8 @@ const double Benchmark::NO_M_BAR = 30.0;
 const unsigned int Benchmark::NO_N = -1;
 
 Benchmark::Benchmark (const std::shared_ptr<Chomp>& ch, const double fov, const unsigned int n, const double m_bar) {
-    this->center = Star::chance().get_vector();
-    this->q_rb = Rotation::chance();
-    this->fov = fov;
+    this->b = std::make_shared<Star::list>(), this->b_answers = std::make_shared<Star::list>();
+    this->r = std::make_shared<Star::list>(), this->fov = fov;
     this->generate_stars(ch, n, m_bar);
 }
 
@@ -32,11 +31,12 @@ void Benchmark::shuffle () {
 }
 
 /// Obtain a set of stars around the current focus vector. This is the 'clean' star set, meaning that all stars in
-/// 'stars' accurately represent what is found in the catalog. Uses C++11 random library to shuffle.
+/// 'stars' accurately represent what is found in the catalog. This is also used to reset a benchmark.
 void Benchmark::generate_stars (const std::shared_ptr<Chomp>& ch, const unsigned int n, const double m_bar) {
     auto expected = static_cast<unsigned int>(300); // Not too worried about this number.
-    this->b = std::make_shared<Star::list>(), this->b_answers = std::make_shared<Star::list>();
-    this->r = std::make_shared<Star::list>();
+    this->b->clear(), this->b_answers->clear(), this->r->clear();
+    this->center = Star::chance().get_vector();
+    this->q_rb = Rotation::chance();
 
     // Find nearby stars. Rotate these stars and the center.
     Star::list candidates = ch->nearby_hip_stars(this->center, fov / 2.0, expected);

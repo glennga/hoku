@@ -2,19 +2,18 @@
 
 # Ensure that we have only 2 arguments passed.
 if [[ "$#" -ne 2 ]]; then
-    echo "Usage: trial-all-methods.sh [experiment] [threads per method]"
+    echo "Usage: hoku.run [experiment] [threads per method]"
     exit 1
 fi
 
-# Determine the path of this project, and of our config file.
-HOKU_PROJECT_PATH="$(dirname "$0")/../"
-HOKU_CONFIG_PATH=${HOKU_CONFIG_INI-${HOKU_PROJECT_PATH}/CONFIG.ini}
-
 # Ensure that PerformE exists before proceeding.
+HOKU_PROJECT_PATH="$(dirname "$0")/../"
 if [[ ! -f ${HOKU_PROJECT_PATH}/bin/PerformE ]]; then
     echo "'PerformE' not found. Build the file 'src/perform-e.cpp'."
     exit 1
 fi
+
+source hoku.cfg
 
 # Modify the CONFIG.ini file to run the experiments in parallel.
 cp ${HOKU_CONFIG_PATH} ${HOKU_CONFIG_PATH}.bak

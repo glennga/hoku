@@ -88,9 +88,15 @@ int Chomp::generate_tables (const std::string &catalog_path, const std::string &
         SQLite::Transaction transaction(*conn);
         if (this->create_table(
                 (is_bright) ? bright_table : hip_table,
-                "alpha FLOAT, delta FLOAT, i FLOAT, j FLOAT, k FLOAT, m FLOAT, label INT") == TABLE_NOT_CREATED_RET) {
+                "alpha FLOAT, "
+                "delta FLOAT, "
+                "i FLOAT, "
+                "j FLOAT, "
+                "k FLOAT, "
+                "m FLOAT, "
+                "label INT"
+        ) == TABLE_NOT_CREATED_RET)
             return TABLE_EXISTS;
-        }
 
         // We skip the header here.
         for (int i = 0; i < 5; i++) {
@@ -150,14 +156,27 @@ Star::list Chomp::nearby_hip_stars (const Vector3 &focus, const double fov, cons
 
 void Chomp::load_all_stars () {
     // Reserve space for our tables. Note that we assume our HIP and BRIGHT tables have already been generated.
-    SQLite::Statement query_b_ell(*conn, "SELECT COUNT(*) FROM " + bright_table);
+    SQLite::Statement query_b_ell(
+            *conn,
+            "SELECT COUNT(*) "
+            "FROM " + bright_table
+    );
     while (query_b_ell.executeStep()) this->all_bright_stars.reserve(query_b_ell.getColumn(0).getInt());
-    SQLite::Statement query_h_ell(*conn, "SELECT COUNT(*) FROM " + hip_table);
+    SQLite::Statement query_h_ell(
+            *conn,
+            "SELECT COUNT(*) "
+            "FROM " + hip_table
+    );
     while (query_h_ell.executeStep()) this->all_hip_stars.reserve(query_h_ell.getColumn(0).getInt());
 
     // Select all for bright stars, and load this into RAM.
     select_table(bright_table);
-    SQLite::Statement query_b(*conn, "SELECT i, j, k, label, m FROM " + bright_table);
+    SQLite::Statement query_b(
+            *conn,
+            "SELECT i, j, k, label, m "
+            "FROM " + bright_table
+    );
+
     while (query_b.executeStep()) {
         this->all_bright_stars.emplace_back(
                 Star(query_b.getColumn(0).getDouble(), query_b.getColumn(1).getDouble(),
@@ -167,7 +186,11 @@ void Chomp::load_all_stars () {
 
     // Select all for general stars stars, and load this into RAM.
     select_table(hip_table);
-    SQLite::Statement query_h(*conn, "SELECT i, j, k, label, m FROM " + hip_table);
+    SQLite::Statement query_h(
+            *conn,
+            "SELECT i, j, k, label, m "
+            "FROM " + hip_table
+    );
     while (query_h.executeStep()) {
         this->all_hip_stars.emplace_back(
                 Star(query_h.getColumn(0).getDouble(), query_h.getColumn(1).getDouble(),
