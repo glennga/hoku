@@ -105,7 +105,6 @@ namespace Experiment {
                                        percentage_correct(w, *be.get_answers(), be.get_fov()),
                                        (w.error == Identification::NO_CONFIDENT_A_EITHER) ? 0.0 : 1.0
                         }), t.reset();
-                        std::cout << "hello" << std::endl;
                     }
                 }
             }
