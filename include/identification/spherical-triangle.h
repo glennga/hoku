@@ -19,6 +19,9 @@ public:
 
     static int generate_table (const std::shared_ptr<Chomp> &ch, double fov, const std::string &table_name);
 
+    static double spherical_area (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &b_3);
+    static double spherical_moment (const Vector3 &b_1, const Vector3 &b_2, const Vector3 &b_3);
+
     static const int DEFAULT_TD_H;
     static const unsigned int QUERY_STAR_SET_SIZE;
 

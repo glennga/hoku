@@ -14,9 +14,9 @@
 
 const double Benchmark::NO_FOV = -1;
 const double Benchmark::NO_M_BAR = 30.0;
-const unsigned int Benchmark::NO_N = -1;
+const int Benchmark::NO_N = -1;
 
-Benchmark::Benchmark (const std::shared_ptr<Chomp>& ch, const double fov, const unsigned int n, const double m_bar) {
+Benchmark::Benchmark (const std::shared_ptr<Chomp>& ch, const double fov, const int n, const double m_bar) {
     this->b = std::make_shared<Star::list>(), this->b_answers = std::make_shared<Star::list>();
     this->r = std::make_shared<Star::list>(), this->fov = fov;
     this->generate_stars(ch, n, m_bar);
@@ -32,24 +32,29 @@ void Benchmark::shuffle () {
 
 /// Obtain a set of stars around the current focus vector. This is the 'clean' star set, meaning that all stars in
 /// 'stars' accurately represent what is found in the catalog. This is also used to reset a benchmark.
-void Benchmark::generate_stars (const std::shared_ptr<Chomp>& ch, const unsigned int n, const double m_bar) {
+void Benchmark::generate_stars (const std::shared_ptr<Chomp>& ch, const int n, const double m_bar) {
     auto expected = static_cast<unsigned int>(300); // Not too worried about this number.
     this->b->clear(), this->b_answers->clear(), this->r->clear();
-    this->center = Star::chance().get_vector();
-    this->q_rb = Rotation::chance();
 
-    // Find nearby stars. Rotate these stars and the center.
-    Star::list candidates = ch->nearby_hip_stars(this->center, fov / 2.0, expected);
-    std::for_each(candidates.begin(), candidates.end(), [this, &m_bar] (const Star &s) -> void {
-        if (s.get_magnitude() <= m_bar) {
-            Star rotated = Rotation::rotate(s, this->q_rb);
+    do {
+        this->center = Star::chance().get_vector();
+        this->q_rb = Rotation::chance();
 
-            this->b_answers->push_back(rotated);
-            this->b->push_back(Star::reset_label(rotated));
-            this->r->push_back(s);
-        }
-    });
-    this->center = Rotation::rotate(Star::wrap(this->center), this->q_rb).get_vector();
+        // Find nearby stars. Rotate these stars and the center.
+        Star::list candidates = ch->nearby_hip_stars(this->center, fov / 2.0, expected);
+
+        std::for_each(candidates.begin(), candidates.end(), [this, &m_bar] (const Star &s) -> void {
+            if (s.get_magnitude() <= m_bar) {
+                Star rotated = Rotation::rotate(s, this->q_rb);
+
+                this->b_answers->push_back(rotated);
+                this->b->push_back(Star::reset_label(rotated));
+                this->r->push_back(s);
+            }
+        });
+        this->center = Rotation::rotate(Star::wrap(this->center), this->q_rb).get_vector();
+
+    } while (this->b->size() <= 4);
 
     if (n != NO_N && this->b->size() > n) { this->r->resize(n), this->b->resize(n), this->b_answers->resize(n); }
     this->shuffle();

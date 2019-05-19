@@ -20,7 +20,7 @@ namespace Experiment {
     struct Parameters { // Make your life easier, use the builder. (:
         std::string identifier, reference_table;
         double epsilon_1, epsilon_2, epsilon_3, epsilon_4;
-        double m_bar;
+        double m_bar, image_fov;
         unsigned int n_limit, nu_limit;
 
         unsigned int samples, extra_star_min, extra_star_step, remove_star_step;
@@ -59,6 +59,7 @@ namespace Experiment {
                     .using_chomp(ch)
                     .limited_by_m(ep->m_bar)
                     .limited_by_n_stars(ep->n_limit)
+                    .limited_by_fov(ep->image_fov)
                     .build();
             std::shared_ptr<T> identifier = Identification::Builder<T>()
                     .using_chomp(ch)
@@ -75,7 +76,7 @@ namespace Experiment {
 
             std::array<unsigned int, 3> iters = {ep->shift_star_iter, ep->extra_star_iter, ep->remove_star_iter};
             std::array<std::function<double(int j)>, 3> errors = {
-                    [&] (int j) { return ((j == 0) ? 0 : 1.0 / pow(ep->shift_star_step, j - 1)); },
+                    [&] (int j) { return ((j == 0) ? 0 : j * ep->shift_star_step); },
                     [&] (int j) { return ep->extra_star_min + j * ep->extra_star_step; },
                     [&] (int j) { return ep->remove_star_step * j; }
             };
@@ -104,6 +105,7 @@ namespace Experiment {
                                        percentage_correct(w, *be.get_answers(), be.get_fov()),
                                        (w.error == Identification::NO_CONFIDENT_A_EITHER) ? 0.0 : 1.0
                         }), t.reset();
+                        std::cout << "hello" << std::endl;
                     }
                 }
             }
@@ -123,6 +125,10 @@ public:
     }
     ParametersBuilder &with_epsilon (const double e1, const double e2, const double e3, const double e4) {
         p.epsilon_1 = e1, p.epsilon_2 = e2, p.epsilon_3 = e3, p.epsilon_4 = e4;
+        return *this;
+    }
+    ParametersBuilder &with_image_of_size (const double fov) {
+        p.image_fov = fov;
         return *this;
     }
     ParametersBuilder &limited_by_n (const unsigned int n) {

@@ -7,23 +7,25 @@ source ${HOKU_PROJECT_PATH}/hoku/hoku.cfg
 #for exper in "QUERY" "REDUCTION" "MAP"; do
 for i in 0 1 2 3 4 5; do
     python3 ${HOKU_PROJECT_PATH}/hoku/hoku.pe \
+        -pnum ${PARALLEL} \
         -refdb ${REFERENCE_DB} \
         -recdb ${RECORD_DB} \
         -hip ${HIP_TABLE} \
         -bright ${BRIGHT_TABLE} \
         -rtable ${TABLE_NF[$i]} \
         -etable "MAP" \
-        -strategy ${STRATEGIES[$1]} \
+        -strategy ${STRATEGIES[$i]} \
         -prefix ${TABLE_NF[$i]} \
-        -ep1 ${EPSILON_1} \
-        -ep2 ${EPSILON_2} \
-        -ep3 ${EPSILON_3} \
+        -ep1 ${EPSILON_1[$i]} \
+        -ep2 ${EPSILON_2[$i]} \
+        -ep3 ${EPSILON_3[$i]} \
         -ep4 ${EPSILON_4} \
-        -nlimit ${N_LIMIT} \
+        -nlimit -1 \
         -mlimit ${M_LIMIT} \
         -nulimit ${NU_LIMIT} \
         -exper "MAP" \
         -samples ${SAMPLES} \
+        -imfov ${IMAGE_FOV} \
         -ssiter ${SHIFT_STAR_ITER} \
         -ssstep ${SHIFT_STAR_STEP} \
         -esmin ${EXTRA_STAR_MIN} \

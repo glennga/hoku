@@ -79,6 +79,7 @@ std::vector<BaseTriangle::labels_list> BaseTriangle::query_for_trio (const doubl
             {a + epsilon_1, i + epsilon_2},
             500
     );
+    if (matches.empty()) return {};
 
     // Next, transform this set into candidate set labels.
     big_r_ell.reserve(matches.size());
@@ -155,9 +156,11 @@ BaseTriangle::TriosEither BaseTriangle::pivot (const index_trio &c) {
                 big_r_1->begin(), big_r_1->end(),
                 [&big_r] (const Star::trio &r_1) {
                     for (const Star::trio &r : big_r.result) {
-                        if (static_cast<int>(r[0] == r_1[0] || r[0] == r_1[1] || r[0] == r_1[2])
-                            + static_cast<int>(r[1] == r_1[0] || r[1] == r_1[1] || r[1] == r_1[2])
-                            + static_cast<int>(r[2] == r_1[0] || r[2] == r_1[1] || r[2] == r_1[2]) >= 2)
+                        bool rr_0 = r[0] == r_1[0] || r[0] == r_1[1] || r[0] == r_1[2];
+                        bool rr_1 = r[1] == r_1[0] || r[1] == r_1[1] || r[1] == r_1[2];
+                        bool rr_2 = r[2] == r_1[0] || r[2] == r_1[1] || r[2] == r_1[2];
+
+                        if ((rr_0 ? 1 : 0) + (rr_1 ? 1 : 0) + (rr_2 ? 1 : 0) >= 2)
                             return false;
                     }
 
@@ -235,6 +238,7 @@ BaseTriangle::StarsEither BaseTriangle::e_reduction () {
             for (int k = j + 1; k < static_cast<signed> (be->get_image()->size()); k++) {
                 initialize_pivot({i, j, k});
                 TriosEither p = pivot({i, j, k});
+                big_r_1 = nullptr;
 
                 // Practical limit: exit early if we have iterated through too many comparisons without match.
                 if (nu > nu_max) return StarsEither{{}, EXCEEDED_NU_MAX_EITHER};
@@ -260,6 +264,7 @@ BaseTriangle::StarsEither BaseTriangle::e_identify () {
             for (int k = j + 1; k < static_cast<signed> (be->get_image()->size()); k++) {
                 initialize_pivot({i, j, k}); // Find matches of current body trio to catalog. Pivot if necessary.
                 TriosEither r = pivot({i, j, k});
+                big_r_1 = nullptr;
 
                 // Practical limit: exit early if we have iterated through too many comparisons without match.
                 if (nu > nu_max) return StarsEither{{}, EXCEEDED_NU_MAX_EITHER};

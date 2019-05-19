@@ -38,14 +38,15 @@ enum PerformEArguments {
     NU_LIMIT = 16,
     EXPERIMENT_NAME = 17,
     SAMPLES = 18,
-    SHIFT_STAR_ITER = 19,
-    SHIFT_STAR_STEP = 20,
-    EXTRA_STAR_MIN = 21,
-    EXTRA_STAR_ITER = 22,
-    EXTRA_STAR_STEP = 23,
-    REMOVE_STAR_ITER = 24,
-    REMOVE_STAR_STEP = 25,
-    REMOVE_STAR_SIGMA = 26
+    IMAGE_FOV = 19,
+    SHIFT_STAR_ITER = 20,
+    SHIFT_STAR_STEP = 21,
+    EXTRA_STAR_MIN = 22,
+    EXTRA_STAR_ITER = 23,
+    EXTRA_STAR_STEP = 24,
+    REMOVE_STAR_ITER = 25,
+    REMOVE_STAR_STEP = 26,
+    REMOVE_STAR_SIGMA = 27
 };
 
 using ExperimentFunction = void (*) (
@@ -60,7 +61,7 @@ ExperimentFunction generic_experiment_factory (const std::string &experiment_nam
     experiment_map["REDUCTION"] = Experiment::Reduction::trial<T>;
     experiment_map["MAP"] = Experiment::Map::trial<T>;
 
-    std::string upper_experiment_name;
+    std::string upper_experiment_name = experiment_name;
     std::transform(experiment_name.begin(), experiment_name.end(), upper_experiment_name.begin(), ::toupper);
 
     if (experiment_map.find(upper_experiment_name) == experiment_map.end())
@@ -70,7 +71,7 @@ ExperimentFunction generic_experiment_factory (const std::string &experiment_nam
 }
 
 ExperimentFunction experiment_factory (const std::string &experiment_name, const std::string &strategy) {
-    std::string upper_strategy;
+    std::string upper_strategy = strategy;
     std::transform(strategy.begin(), strategy.end(), upper_strategy.begin(), ::toupper);
 
     if (upper_strategy == "ANGLE") return generic_experiment_factory<Angle>(experiment_name);
@@ -127,6 +128,7 @@ int main (int, char *argv[]) {
                     Experiment::ParametersBuilder()
                             .prefixed_by(argv[PerformEArguments::IDENTIFICATION_PREFIX])
                             .using_reference_table(argv[PerformEArguments::REFERENCE_TABLE])
+                            .with_image_of_size(std::stod(argv[PerformEArguments::IMAGE_FOV]))
                             .with_epsilon(
                                     std::stod(argv[PerformEArguments::EPSILON_1]),
                                     std::stod(argv[PerformEArguments::EPSILON_2]),

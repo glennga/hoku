@@ -56,17 +56,19 @@ Identification::LabelsEither Angle::query_for_pair (const double theta) {
             {"theta"},
             "label_a, label_b",
             {theta - epsilon_1},
-            {theta + epsilon_2},
+            {theta + epsilon_1},
             500
     );
     nu++;
 
-    // Create the candidate label list.
-    for (const Nibble::tuple_d &candidate : big_r_ell_tuples) {
-        big_r_ell.emplace_back(labels_list{static_cast<int>(candidate[0]), static_cast<int>(candidate[1])});
+    if (big_r_ell_tuples.empty()) return LabelsEither{{}, NO_CANDIDATES_FOUND_EITHER};
+    else {
+        // Create the candidate label list.
+        for (const Nibble::tuple_d &candidate : big_r_ell_tuples) {
+            big_r_ell.emplace_back(labels_list{static_cast<int>(candidate[0]), static_cast<int>(candidate[1])});
+        }
+        return LabelsEither{big_r_ell[0], 0};
     }
-
-    return LabelsEither{big_r_ell[0], 0};
 }
 
 Angle::PairsEither Angle::find_candidate_pair (const Star &b_i, const Star &b_j) {

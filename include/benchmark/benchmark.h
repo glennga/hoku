@@ -19,11 +19,11 @@ public:
 
     static const double NO_M_BAR;
     static const double NO_FOV;
-    static const unsigned int NO_N;
+    static const int NO_N;
 
     Star operator[] (unsigned int n) const;
 
-    void generate_stars (const std::shared_ptr<Chomp> &ch, unsigned int n = NO_N, double m_bar = NO_M_BAR);
+    void generate_stars (const std::shared_ptr<Chomp> &ch, int n = NO_N, double m_bar = NO_M_BAR);
     void add_extra_light (unsigned int n);
     void shift_light (unsigned int n, double sigma);
     void remove_light (unsigned int n, double psi);
@@ -38,7 +38,7 @@ public:
 private:
     void shuffle ();
 
-    explicit Benchmark (const std::shared_ptr<Chomp> &ch, double fov, unsigned int n = NO_N, double m_bar = NO_M_BAR);
+    explicit Benchmark (const std::shared_ptr<Chomp> &ch, double fov, int n = NO_N, double m_bar = NO_M_BAR);
 
 private:
     Rotation q_rb = Rotation(0, 0, 0, 0);
@@ -55,7 +55,7 @@ public:
         this->ch = cho;
         return *this;
     }
-    Builder &limited_by_n_stars (unsigned int num) {
+    Builder &limited_by_n_stars (int num) {
         this->n = num;
         return *this;
     }
@@ -73,7 +73,7 @@ private:
     std::shared_ptr<Chomp> ch;
     double m_bar = NO_M_BAR;
     double fov = NO_FOV;
-    unsigned int n = NO_N;
+    int n = NO_N;
 };
 
 #endif /* HOKU_BENCHMARK_H */
