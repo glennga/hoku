@@ -139,10 +139,12 @@ bool Pyramid::verification (const Star::trio &r, const Star::trio &b) {
 
     // If there isn't exactly one star, exit here.
     if (big_t_e.size() != 1 || big_t_e.empty()) {
+        std::cout << "[PYRAMID] Verification failed." << std::endl;
         return false;
     }
 
     // If this star is near our R set in the catalog, then this test has passed.
+    std::cout << "[PYRAMID] Verification passed." << std::endl;
     return Star::within_angle({r[0], r[1], r[2], big_t_e[0]}, be->get_fov());
 }
 
@@ -150,6 +152,7 @@ bool Pyramid::verification (const Star::trio &r, const Star::trio &b) {
 /// Two verification steps occur: the singular element test and the fourth star test. If these are not met, then the
 /// error trio is returned.
 Pyramid::TriosEither Pyramid::find_catalog_stars (const Star::trio &b) {
+    std::cout << "[PYRAMID] Finding catalog stars." << std::endl;
     auto find_pairs = [this, &b] (const int m, const int n) -> labels_list_list {
         return this->query_for_pairs((180.0 / M_PI) * Vector3::Angle(b[m], b[n]));
     };
@@ -252,12 +255,14 @@ Pyramid::StarsEither Pyramid::identify () {
 
                 // Run this through the verification step.
                 if (!verification(r.result, b)) continue;
-                else
+                else {
+                    std::cout << "[PYRAMID] Match found!" << std::endl;
                     return StarsEither{Star::list{
                             Star::define_label(be->get_image()->at(i), r.result[0].get_label()),
                             Star::define_label(be->get_image()->at(j), r.result[1].get_label()),
                             Star::define_label(be->get_image()->at(k), r.result[2].get_label())
                     }, 0};
+                }
             }
         }
     }

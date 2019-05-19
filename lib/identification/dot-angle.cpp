@@ -204,16 +204,21 @@ Identification::StarsEither Dot::identify () {
         bool is_swapped = false;
 
         // Practical limit: exit early if we have iterated through too many comparisons without match.
-        if (nu > nu_max) return StarsEither{{}, NO_CONFIDENT_R_EITHER};
+        if (nu > nu_max) return StarsEither{{}, EXCEEDED_NU_MAX_EITHER};
 
         // Determine which stars map to the current 'b'. If this fails, swap b_i and b_j.
+        std::cout << "[DOT] Finding candidate trio with central star [" << c << "]" << std::endl;
         TriosEither r = find_candidate_trio(b[0], b[1], b[2]);
-        if (r.error == NO_CANDIDATE_TRIO_FOUND_EITHER) r = find_candidate_trio(b[0], b[1], b[2]), is_swapped = true;
+        if (r.error == NO_CANDIDATE_TRIO_FOUND_EITHER) {
+            std::cout << "[DOT] Reversing candidate trio." << std::endl;
+            r = find_candidate_trio(b[0], b[1], b[2]), is_swapped = true;
+        }
 
         // If there exist no matches at this point, then repeat for another pair.
         if (r.error == NO_CANDIDATE_TRIO_FOUND_EITHER) continue;
 
         // Otherwise, attach the labels to the body and return this set.
+        std::cout << "[DOT] Match found!" << std::endl;
         return StarsEither{Star::list{
                 Star::define_label(b[2], r.result[2].get_label()),
                 Star::define_label(b[(is_swapped) ? 1 : 0], r.result[0].get_label()),

@@ -42,4 +42,7 @@ std::vector<Identification::labels_list> Sphere::query () {
 }
 
 Sphere::StarsEither Sphere::reduce () { return e_reduction(); }
-Sphere::StarsEither Sphere::identify () { return e_identify(); }
+Sphere::StarsEither Sphere::identify () {
+    std::cout << "[SPHERE] Starting spherical identification." << std::endl;
+    return e_identify();
+}

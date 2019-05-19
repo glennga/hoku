@@ -34,9 +34,9 @@ void Benchmark::shuffle () {
 /// 'stars' accurately represent what is found in the catalog. This is also used to reset a benchmark.
 void Benchmark::generate_stars (const std::shared_ptr<Chomp>& ch, const int n, const double m_bar) {
     auto expected = static_cast<unsigned int>(300); // Not too worried about this number.
-    this->b->clear(), this->b_answers->clear(), this->r->clear();
 
     do {
+        this->b->clear(), this->b_answers->clear(), this->r->clear();
         this->center = Star::chance().get_vector();
         this->q_rb = Rotation::chance();
 

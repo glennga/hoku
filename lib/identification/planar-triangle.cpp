@@ -25,4 +25,7 @@ std::vector<Identification::labels_list> Plane::query () {
 }
 
 Plane::StarsEither Plane::reduce () { return e_reduction(); }
-Plane::StarsEither Plane::identify () { return e_identify(); }
+Plane::StarsEither Plane::identify () {
+    std::cout << "[PLANE] Starting spherical identification." << std::endl;
+    return e_identify();
+}

@@ -170,10 +170,13 @@ BaseTriangle::TriosEither BaseTriangle::pivot (const index_trio &c) {
 
     switch (big_r_1->size()) {
         case 1: // Only 1 trio exists. This must be the matching trio.
+            std::cout << "[TRIANGLE] Unique trio found. Pivot ending." << std::endl;
             return TriosEither{(*big_r_1)[0], 0};
         case 0: // No trios exist. Exit early.
+            std::cout << "[TRIANGLE] All trios filtered out. Pivot ending." << std::endl;
             return TriosEither{{}, NO_CANDIDATE_STAR_SET_FOUND_EITHER};
         default: // 2+ trios exists. Run with different 3rd element and history, or exit with error set.
+            std::cout << "[TRIANGLE] Continuing pivot. Current size: " << big_r_1->size() << std::endl;
             return (static_cast<unsigned>(c[2]) != be->get_image()->size() - 1) ? pivot(index_trio{
                     c[0],
                     c[1],
@@ -277,12 +280,16 @@ BaseTriangle::StarsEither BaseTriangle::e_identify () {
                 nu++;
 
                 // Find the most likely map given the two pairs.
+                std::cout << "[TRIANGLE] Performing DMT for [" << i << "," << j << "," << k << "]" << std::endl;
                 StarsEither a = direct_match_test(big_p, r.result, {
                         be->get_image()->at(i),
                         be->get_image()->at(j),
                         be->get_image()->at(k)
                 });
-                if (a.error != NO_CONFIDENT_A_EITHER) return a;
+                if (a.error != NO_CONFIDENT_A_EITHER) {
+                    std::cout << "[TRIANGLE] Match found!" << std::endl;
+                    return a;
+                }
             }
         }
     }

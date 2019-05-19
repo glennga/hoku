@@ -89,7 +89,7 @@ def get_arguments() -> Namespace:
 
 def execute_chunk(recdb, samples):
     global arguments  # Must be run after retrieving the arguments in main!
-    
+
     call([
         abspath(__file__).replace('/hoku.pe', '') + '/../bin/PerformE',
         arguments.refdb,
@@ -120,15 +120,16 @@ def execute_chunk(recdb, samples):
         str(arguments.rmstep),
         str(arguments.rmsigma)
     ])
-    
+
 
 if __name__ == '__main__':
     from multiprocessing import Pool
+    from os import rename, remove
     from os.path import abspath
     from subprocess import call
     from sqlite3 import connect
     from pathlib import Path
-    from os import rename
+    from shutil import copy
 
     if not Path(abspath(__file__).replace('/hoku.pe', '') + '/../bin/PerformE').is_file():
         print("hoku/bin/PerformE does not exist. Run CMake + make before this.")
@@ -142,10 +143,16 @@ if __name__ == '__main__':
             [arguments.recdb + f'-{i}' for i in range(arguments.pnum)], [simulations for _ in range(arguments.pnum)]
         ))
 
-        # Resource collection. First database '-0' is our master.
-        main_db = connect(arguments.recdb + '-0')
+        # Resource collection.
+        main_db = connect(arguments.recdb)
         main_cursor = main_db.cursor()
-        for sec_db in list(map(lambda a: connect(a), [arguments.recdb + f'-{i}' for i in range(1, arguments.pnum)])):
+        main_cursor.execute(f"""
+            CREATE TABLE IF NOT EXISTS {arguments.etable} (
+                {SCHEMAS[arguments.exper]}
+            );
+        """)
+
+        for sec_db in list(map(lambda a: connect(a), [arguments.recdb + f'-{i}' for i in range(0, arguments.pnum)])):
             sec_cursor = sec_db.cursor()
             sec_records = sec_cursor.execute(f"""
                 SELECT *
@@ -157,4 +164,7 @@ if __name__ == '__main__':
                     INSERT INTO {arguments.etable}
                     VALUES ({PREPARED[arguments.exper]})
                 """, record)
-        rename(arguments.recdb + '-0', arguments.recdb)
+            sec_db.close()
+
+        main_db.commit()
+        list(map(lambda a: remove(arguments.recdb + f'-{a}'), range(0, arguments.pnum)))

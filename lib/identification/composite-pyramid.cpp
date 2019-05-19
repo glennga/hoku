@@ -57,9 +57,13 @@ bool Composite::verification (const Star::trio &r, const Star::trio &b) {
     Star::list big_t_e = common(big_r_eij_ell, big_r_eik_ell, big_r_ejk_ell, Star::list{});
 
     // If there isn't exactly one star, exit here.
-    if (big_t_e.size() != 1 || big_t_e.empty()) return false;
+    if (big_t_e.size() != 1 || big_t_e.empty()) {
+        std::cout << "[COMPOSITE] Verification failed." << std::endl;
+        return false;
+    }
 
     // If this star is near our R set in the catalog, then this test has passed.
+    std::cout << "[COMPOSITE] Verification passed." << std::endl;
     return Star::within_angle({r[0], r[1], r[2], big_t_e[0]}, be->get_fov());
 }
 
@@ -67,6 +71,7 @@ bool Composite::verification (const Star::trio &r, const Star::trio &b) {
 /// Two verification steps occur: the singular element test and the fourth star test. If these are not met, then the
 /// error trio is returned.
 Composite::TriosEither Composite::find_catalog_stars (const Star::trio &b_f) {
+    std::cout << "[COMPOSITE] Finding catalog stars." << std::endl;
     labels_list_list big_r_ell = this->query_for_trios(Trio::planar_area(b_f[0], b_f[1], b_f[2]),
                                                        Trio::planar_moment(b_f[0], b_f[1], b_f[2]));
 

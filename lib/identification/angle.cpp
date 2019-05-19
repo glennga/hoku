@@ -167,9 +167,10 @@ Identification::StarsEither Angle::identify () {
     for (unsigned int i = 0; i < be->get_image()->size() - 1; i++) {
         for (unsigned int j = i + 1; j < be->get_image()->size(); j++) {
             // Practical limit: exit early if we have iterated through too many comparisons without match.
-            if (nu > nu_max) return StarsEither{{}, NO_CONFIDENT_R_EITHER};
+            if (nu > nu_max) return StarsEither{{}, EXCEEDED_NU_MAX_EITHER};
 
             // Narrow down current pair to two stars in catalog. The order is currently unknown.
+            std::cout << "[ANGLE] Finding candidate pair for [" << i << "," << j << "]" << std::endl;
             PairsEither r = find_candidate_pair(be->get_image()->at(i), be->get_image()->at(j));
             if (r.error == NO_CANDIDATE_PAIR_FOUND_EITHER) continue;
 
@@ -178,12 +179,16 @@ Identification::StarsEither Angle::identify () {
             nu++;
 
             // Find the most likely pair combination given the two pairs.
+            std::cout << "[ANGLE] Performing DMT for [" << i << "," << j << "]" << std::endl;
             StarsEither a = direct_match_test(
                     big_p,
                     {r.result[0], r.result[1]},
                     {be->get_image()->at(i), be->get_image()->at(j)}
             );
-            if (a.error != NO_CONFIDENT_A_EITHER) return a;
+            if (a.error != NO_CONFIDENT_A_EITHER) {
+                std::cout << "[ANGLE] Match found!" << std::endl;
+                return a;
+            }
         }
     }
 

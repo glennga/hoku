@@ -24,5 +24,6 @@ double Experiment::Map::percentage_correct (const Identification::StarsEither &b
         }) != b.result.end()) ? 1.0 : 0;
     });
 
+    std::cout << "[EXPERIMENT] Percentage correct: " << count / b.result.size() << std::endl;
     return count / b.result.size();
 }

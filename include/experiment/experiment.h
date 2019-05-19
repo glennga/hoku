@@ -91,9 +91,11 @@ namespace Experiment {
                     double error = errors[i](j);
 
                     for (unsigned int k = 0; k < ep->samples; k++) {
+                        std::cout << "[EXPERIMENT] Generating stars..." << std::endl;
                         be.generate_stars(ch, Benchmark::NO_N, ep->m_bar);
                         error_consumers[i](error);
 
+                        std::cout << "[EXPERIMENT] Performing identification." << std::endl;
                         t.start(); // Perform a single trial. Record it's duration.
                         Identification::StarsEither w = identifier->identify();
                         t.stop();
@@ -103,7 +105,7 @@ namespace Experiment {
                                        static_cast<double>(identifier->get_nu()),
                                        static_cast<double>(t.count()),
                                        percentage_correct(w, *be.get_answers(), be.get_fov()),
-                                       (w.error == Identification::NO_CONFIDENT_A_EITHER) ? 0.0 : 1.0
+                                       (w.error == Identification::NO_CONFIDENT_A_EITHER) ? 1.0 : 0.0
                         }), t.reset();
                     }
                 }
