@@ -1,0 +1,88 @@
+\newcommand{\nsubparagraph}[1]{\paragraph{#1:}}
+
+%\section{Related Work}\label{sec:relatedWork}
+\begin{figure}
+    \centering{
+    \input{include/floats/generic-identification-shr}
+    \caption{
+    Flowchart depicting the unified identification framework which all strategies here follow.
+    Given a query image, this process returns a map that pairs of subset of these image stars with points in a reference database.
+%    Given a query set $\imageset$, this process returns a function $\solutionmap$ whose domain is some subset of the image $\imagesubset$ and whose codomain is the stellar database, $\databaseset$.
+%    In the event all subsets are exhausted, an error is raised and no map is returned (not depicted).
+    } \label{figure:unifiedIdentificationFlowchart}
+    }
+\end{figure}
+
+
+
+%This section serves to give a brief overview of the different approaches to querying for constellations.
+
+%
+%\nsubparagraph{Identification Classes}
+%The first main class of identification and the focus of this paper is the \textit{subgraph isomorphism} class.
+%Subgraph isomorphism is a NP complete problem which aims to find some 1-to-1 mapping between the vertices (points) in two graphs (i.e.\ the database and the image) if it exists~\cite{scott:graphIsomorphismProblem}.
+%This involves describing and mapping sets of points between both the database and image in terms of various features relative to each other.
+%
+%The second class of identification is the \textit{pattern recognition} class.
+%In contrast to subgraph isomorphism class, the pattern recognition class commonly deals with larger sets of points within some defined field-of-view and matches patterns rather than features.
+%Pattern formation typically involves 2D binary matrices (grids), where `1' occupies a cell with a point and `0' occupies a cell without one~\cite{padgett:gridAlgorithm}.
+
+%
+%
+%Another notable attempt toward pattern formation utlizes Delaunay Triangulation, as seen from Miri~\cite
+%
+%Some notable approaches utilize Padgett's~\cite{padgett:gridAlgorithm} and Lee's~\cite{lee:modifiedGridAlgorithm}
+%use of binary matrices (grids) to construct patterns, Lindsey~\cite{lindsey:neuralNetworkMethods} and
+%Alvelda's~\cite{alvelda:neuralNetworkStar} use of neural networks to optimize pattern similarity, and
+%Paladugu's~\cite{paladugu:geneticAlgorithms} use of a genetic algorithm to solve the same pattern similarity problem.
+
+%\nsubparagraph{Recursive Property}
+%Recall that the lost-in-space condition specifies that we do not have any information about the spacecraft's attitude prior to starting our query.
+%For the majority of a star tracker's operation though, this constraint can be relaxed to allow for the use of \textit{recursive} constellation querying.
+%Recursive strategies possess an attitude recorded at time $t$, and perform another query at a later time $t + dt$.
+%Two strategies proposed by Samaan (SP-Search and SNA) reduce the amount of candidate points from the database that could map to query points from the image~\cite{samaan:recursiveMode}.
+
+%\nsubparagraph{Features}
+%Each point has a position associated with it, be it from a star database or from the image.
+%Using this position, the most common feature is the interstar angle between two points, first utilized by Gottlieb to identify sets of three points with three interstar angles~\cite{gottlieb:spacecraftAttitudeDetermination}.
+%Notable strategies with geometric functions utilizing these angles were proposed by: Groth~\cite{groth:patternMatchingMethod}, Cole \& Crassidus~\cite{coleAndCrassidis:sphericalTriangleMethod,coleAndCrassidis:planarTriangleMethod}, and Lang~\cite{lang:astrometryDotNet}.
+%Another common feature is the interior angle between three points, where one point exists as a vertex to two other points.
+%Liebe uses this in conjunction with interstar angles~\cite{liebe:starTrackersAttitudeDetermination}.
+
+%Each star has a position associated with it, be it from a star catalog or from the image.
+%Using this position, the most common feature is the interstar angle between two stars, first utilized by Gottlieb to
+%identify sets of three stars with three angles~\cite{gottlieb:spacecraftAttitudeDetermination}.
+%Additional geometric functions utilizing these interstar angles were proposed by: Groth (using the log of the sum of
+%three interstar angles in a trio~\cite{groth:patternMatchingMethod}), Cole \& Crassidus (treating the angles of a
+%star trio as sides to a triangle, and computing the triangle's area and
+%torque)~\cite{coleAndCrassidis:sphericalTriangleMethod, coleAndCrassidis:planarTriangleMethod}, and Lang (using the
+%differences in interstar angle between a star quad in a localized coordinate system)~\cite{lang:astrometryDotNet}.
+%Another common feature is the interior angle between three stars, where one star exists as a vertex to two other stars.
+%Liebe uses this in conjuction with interstar angles~\cite{liebe:starTrackersAttitudeDetermination}.
+
+%This feature is used solely by Rousseau (the sine of the closest two closest stars of a trio)
+%~\cite{rousseau:starRecognitionAPS}
+%and Samaan (the interior angles of three stars)
+%~\cite{samaan:nondimensionalStarIdentification},
+%and in conjunction with the interstar angles by Liebe~\cite{liebe:starTrackersAttitudeDetermination}.
+
+%Each point also has a brightness attached it, a feature less commonly used due to large variance in measurement.
+%Spratling describes two early strategies to take advantage of this feature.
+%Scholl proposed the usage of this to remove the need for ambiguity after matching subsets with angular features ~\cite{scholl:starFieldIdentification}.
+%Ketchum later introduced the second sequential filtering algorithm, which identifies two points using their brightness in comparison to the common trio required of angle strategies~\cite{ketchum:onboardStarIdentification}.
+%More recent work toward integrating brightness more heavily has been performed by Zhang et. al~\cite{zhang:brightnessReferenced}.
+%
+%\nsubparagraph{Database Access}
+%The naive approach to searching for matching features in a subgraph isomorphism approach is to perform a linear search across an entire set in a database and search for matching subsets.
+%%Early star identification strategies focused on reducing the size of the relation to be searched, rather than the search
+%%process itself.
+%In 1996, Quine (according to Spratling) was the first to reduce the database search time from linear to log time using a binary search tree~\cite{quine:fastAutonomousStarAcquistion}.
+%The following year Mortari's "Search-Less Algorithm" was introduced, which utilizes $k$-vectors to retrieve multiple nearby stars at once, rather than one at a time~\cite{mortari:kVectorApproach}.
+
+\newcommand{\srightarrow}{\! \rightarrow \!}
+%\nsubparagraph{Mapping}
+%Identification is a process that pairs point(s) in an image to star(s) in a database.
+%Gottlieb's strategy used a voting approach to remove the ambiguity after identifying a single point pair~\cite{gottlieb:spacecraftAttitudeDetermination}, which was later generalized by Kolomenkin to vote for every point in the image~\cite{kolomenkin:geometricVoting}.
+%The direct match test was proposed by Needleman (according to Tappe), which determines the likelihood of a map based on how many points from each frame align with the attitude formed by the map~\cite{needelman:stellarAttitudeAcquisition}.
+%In an effort to avoid the mapping processes above, Anderson (according to Spratling) proposed the use of storing permutations of point subsets instead of combinations at the expense of storage~\cite{anderson:autonomousStarSensing}.
+%The use of neural networks~\cite{lindsey:neuralNetworkMethods,alvelda:neuralNetworkStar} and genetic algorithms~\cite{paladugu:geneticAlgorithms} have also been proposed to optimize the mapping process.

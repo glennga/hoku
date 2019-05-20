@@ -1,0 +1,20 @@
+%\begin{abstract}
+%    The process of identifying stars is integral toward stellar based orientation determination in spacecraft.
+%    Star identification involves matching points in an image of the sky with stars in an astronomical catalog.
+%    A unified framework for identification was created and used to analyze six variations of methods based on their
+%    approach to star set identification, obtaining a single image to catalog star set match, and uniquely mapping
+%    each star in a image star set to a catalog star set.
+%    Each method was presented an artificial image, and aspects that were interchangeable among each process were
+%    normalized.
+%    Given an image with false stars, the Pyramid method has the highest average accuracy and is the fastest of the six.
+%    Given an image where each star's true position is distributed randomly (Gaussian noise), the Spherical Triangle
+%    method's accuracy is the least sensitive.
+%\end{abstract}
+
+\begin{abstract}
+    Presented a set of query points within an image coordinate system, constellation queries identify the matching points in a database of known points within a standard coordinate system.
+    Constellation queries are an integral part of orientation determination systems used in spacecrafts to orient and navigate themselves.
+    The query points are bright spots in an image captured by a camera on the spacecraft and the database contains known celestial objects in a celestial coordinate system.
+    This paper studies six existing constellation query processing strategies (Angle, Interior Angle, Spherical Triangle, Planar Triangle, Pyramid, Composite Pyramid) using a unified algorithmic framework and presents experimental evaluation of the six strategies.
+    We find that the Pyramid strategy in its simpler form (without additional verification) is the most accurate and fastest given images with false negatives, false positives, and Gaussian noise.
+\end{abstract}
