@@ -9,96 +9,23 @@
 #include "math/trio.h"
 #include "identification/planar-triangle.h"
 
-/// Exact number of query stars required for query experiment.
 const unsigned int Plane::QUERY_STAR_SET_SIZE = 3;
 
-/// Constructor. Sets the benchmark data and fov. Sets the parameters, working table, and our index permutations.
-///
-/// @param input Working Benchmark instance. We are **only** copying the star set and the fov.
-/// @param parameters Parameters to use for identification.
-PlanarTriangle::PlanarTriangle (const Benchmark &input, const Parameters &parameters) : BaseTriangle() {
-    input.present_image(this->big_i, this->fov);
-    this->parameters = std::make_unique<Parameters>(parameters);
-
-    this->parameters->nu = (parameters.nu == nullptr) ? std::make_shared<unsigned int>(0) : parameters.nu;
-    ch.select_table(this->parameters->table_name);
+int PlanarTriangle::generate_table (const std::shared_ptr<Chomp> &ch, double fov, const std::string &table_name) {
+    return generate_triangle_table(ch, fov, table_name, Trio::planar_area, Trio::planar_moment);
 }
 
-/// Generate the triangle table given the specified FOV and table name. This find the area and polar moment
-/// between each distinct permutation of trios, and only stores them if they fall within the corresponding
-/// field-of-view.
-///
-/// @param cf Configuration reader holding all parameters to use.
-/// @param id_name If specified, use the table name here instead of the default "plane".
-/// @return TABLE_ALREADY_EXISTS if the table already exists. Otherwise, 0 when finished.
-int PlanarTriangle::generate_table (INIReader &cf, const std::string &id_name) {
-    return generate_triangle_table(cf, id_name, Trio::planar_area, Trio::planar_moment);
-}
-
-/// Given a trio of body stars, find matching trios of inertial stars using their respective planar areas and polar
-/// moments.
-///
-/// @param c Index trio of stars ('combination' of I) in body frame.
-/// @return NO_CANDIDATE_STARS_FOUND if stars are not within the fov or if no matches currently exist.
-/// Otherwise, vector of trios whose areas and moments are close.
-Plane::trio_vector_either Plane::query_for_trios (const index_trio &c) {
+Plane::TrioVectorEither Plane::query_for_trios (const index_trio &c) {
     return base_query_for_trios(c, Trio::planar_area, Trio::planar_moment);
 }
 
-/// Find the matching pairs using the appropriate triangle table and by comparing areas and polar moments. Input image
-/// is not used. We require the following be defined:
-///
-/// @code{.cpp}
-///     - table_name
-///     - sigma_query
-///     - sql_limit
-/// @endcode
-///
-/// @param s Stars to query with. This must be of length = QUERY_STAR_SET_SIZE.
-/// @return Vector of likely matches found by the planar triangle method.
-std::vector<Identification::labels_list> Plane::query (const Star::list &s) {
-    if (s.size() != QUERY_STAR_SET_SIZE) {
-        throw std::runtime_error(std::string("Input list does not have exactly three b."));
-    }
-
-    return e_query(Trio::planar_area(s[0], s[1], s[2]), Trio::planar_moment(s[0], s[1], s[2]));
+std::vector<Identification::labels_list> Plane::query () {
+    return e_query(Trio::planar_area(be->get_image()->at(0), be->get_image()->at(1), be->get_image()->at(2)),
+                   Trio::planar_moment(be->get_image()->at(0), be->get_image()->at(1), be->get_image()->at(2)));
 }
 
-/// Find the **best** matching pair to the first three stars in our benchmark using the appropriate triangle table.
-/// Assumes noise is normally distributed, searches using epsilon (3 * sigma_a) and a basic bounded query. Input image
-/// is used. We require the following be defined:
-///
-/// @code{.cpp}
-///     - table_name
-///     - sigma_query
-///     - sql_limit
-///     - nu
-///     - nu_max
-/// @endcode
-///
-/// @return NO_CONFIDENT_R if we cannot query anything. Otherwise, a single match configuration found by the
-/// planar triangle method.
-Plane::stars_either Plane::reduce () {
-    return e_reduction();
-}
-
-/// Find the rotation from the images in our current benchmark to our inertial frame (i.e. the catalog). Input image is
-/// used. We require the following be defined:
-///
-/// @code{.cpp}
-///     - table_name
-///     - sigma_overlay
-///     - sql_limit
-///     - sigma_query
-///     - nu
-///     - nu_max
-/// @endcode
-///
-/// @param input The set of benchmark data to work with.
-/// @param p Adjustments to the identification process.
-/// @return NO_CONFIDENT_A if an identification cannot be found exhaustively. EXCEEDED_NU_MAX if an
-/// identification cannot be found within a certain number of query picks. Otherwise, body stars b with the attached
-/// labels of the inertial pair r.
-Plane::stars_either Plane::identify () {
+Plane::StarsEither Plane::reduce () { return e_reduction(); }
+Plane::StarsEither Plane::identify () {
+    std::cout << "[PLANE] Starting spherical identification." << std::endl;
     return e_identify();
 }

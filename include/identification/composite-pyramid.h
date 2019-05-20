@@ -11,46 +11,20 @@
 #include "identification/pyramid.h"
 
 /// @brief Star identification class using pyramids and planar triangles.
-///
-/// The composite pyramid class is an implementation of Tololei's Composite Pyramid method for identification. This is
-/// one of the six star identification procedures being tested.
-///
-/// @example
-/// @code{.cpp}
-/// // Find all stars around a random star within 7.5 degrees of it. Rotate all stars by same random rotation.
-/// Benchmark b(15, Star::chance(), Rotation::chance());
-///
-/// // Append 2 extra stars to the data-set above.
-/// b.add_extra_light(2);
-///
-/// // Determine an identification. 'A' contains the body set with catalog label attached.
-/// Star::list a = Composite(b, Composite::DEFAULT_PARAMETERS).identify();
-/// for (const Star &s : a) { std::cout << s.str(); << std::endl; }
-///
-/// // Extract an attitude instead of an identification.
-/// Rotation q = Composite(b, Composite::DEFAULT_PARAMETERS).align();
-/// @endcode
-class CompositePyramid : public Pyramid {
+class CompositePyramid final : public Pyramid {
 public:
-    CompositePyramid (const Benchmark &input, const Parameters &p);
+    std::vector<Identification::labels_list> query () override;
+    StarsEither reduce () override;
 
-    std::vector<labels_list> query (const Star::list &s) override;
+    static int generate_table (const std::shared_ptr<Chomp> &ch, double fov, const std::string &table_name);
 
-    stars_either reduce () override;
+    using Pyramid::Pyramid;
+    ~CompositePyramid () final = default;
 
-    static int generate_table (INIReader &cf);
-
-public:
-
-#if !defined ENABLE_TESTING_ACCESS
 private:
-#endif
-
     labels_list_list query_for_trios (double, double);
-
     bool verification (const Star::trio &r, const Star::trio &b) override;
-
-    trios_either find_catalog_stars (const Star::trio &) override;
+    TriosEither find_catalog_stars (const Star::trio &) override;
 };
 
 /// Alias for the CompositePyramid class. 'Composite' distinguishes the process I am testing here enough from the 5

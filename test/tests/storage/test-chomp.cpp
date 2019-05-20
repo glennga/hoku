@@ -104,7 +104,7 @@ TEST(Chomp, NearbyBrightStars) {
     Star focus = Star::chance();
     std::vector<Star> nearby = ch.nearby_bright_stars(focus, 7.5, 30);
 
-    for (int q = 0; q < nearby.size(); q++) {
+    for (unsigned int q = 0; q < nearby.size(); q++) {
         EXPECT_TRUE(Star::within_angle(nearby[q], focus, 7.5));
     }
 }

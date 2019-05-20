@@ -12,9 +12,9 @@
 #include "gmock/gmock.h"
 
 /// Verify that all trial schemas and fields are correct.
-TEST(Lumberjack, TablesExistenceStructure) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
+TEST(Lumberjack, TablesExistenceStructure) {
     INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
-                 std::string(dirname(const_cast<char *>(__FILE__))) + "/../../../CONFIG.ini");
+                 std::string(dirname(const_cast<char *>(__FILE__))) + "/../../../hoku.cfg");
 
     EXPECT_NO_THROW(Lumberjack::create_table( // NOLINT(cppcoreguidelines-avoid-goto)
             cf.Get("query-experiment", "lu", ""), Experiment::Query::SCHEMA););
@@ -59,15 +59,15 @@ TEST(Lumberjack, TablesExistenceStructure) { // NOLINT(cert-err58-cpp,modernize-
 }
 
 /// Ensure that the correct fields are selected.
-TEST(Lumberjack, ConstructionConstructor) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
+TEST(Lumberjack, ConstructionConstructor) {
     std::ostringstream l;
     using clock = std::chrono::system_clock;
     l << clock::to_time_t(clock::now() - std::chrono::hours(24));
     INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
-                 std::string(dirname(const_cast<char *>(__FILE__))) + "/../../../CONFIG.ini");
+                 std::string(dirname(const_cast<char *>(__FILE__))) + "/../../../hoku.cfg");
 
     Lumberjack lu(cf.Get("query-experiment", "lu", ""), "Angle", l.str());
-    EXPECT_EQ(lu.table, cf.Get("query-experiment", "lu", ""));
+    EXPECT_EQ(lu.current_table, cf.Get("query-experiment", "lu", ""));
     EXPECT_EQ(lu.identifier_name, "Angle");
     EXPECT_EQ(lu.timestamp, l.str());
     auto b = std::string(Experiment::Query::SCHEMA);
@@ -75,12 +75,12 @@ TEST(Lumberjack, ConstructionConstructor) { // NOLINT(cert-err58-cpp,modernize-u
 }
 
 /// Ensure that the buffer is flushed when the Lumberjack is flushed.
-TEST(Lumberjack, ConstructionDestructor) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
+TEST(Lumberjack, ConstructionDestructor) {
     std::ostringstream l;
     using clock = std::chrono::system_clock;
     l << clock::to_time_t(clock::now() - std::chrono::hours(24));
     INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
-                 std::string(dirname(const_cast<char *>(__FILE__))) + "/../../../CONFIG.ini");
+                 std::string(dirname(const_cast<char *>(__FILE__))) + "/../../../hoku.cfg");
 
     // Lu gets destroyed when exiting.
     std::unique_ptr<Lumberjack> lu_p = std::make_unique<Lumberjack>(cf.Get("query-experiment", "lu", ""), "Angle",
@@ -98,12 +98,12 @@ TEST(Lumberjack, ConstructionDestructor) { // NOLINT(cert-err58-cpp,modernize-us
 }
 
 /// Ensure that the log function works as intended.
-TEST(Lumberjack, LogFunction) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
+TEST(Lumberjack, LogFunction) {
     std::ostringstream l;
     using clock = std::chrono::system_clock;
     l << clock::to_time_t(clock::now() - std::chrono::hours(24));
     INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
-                 std::string(dirname(const_cast<char *>(__FILE__))) + "/../../../CONFIG.ini");
+                 std::string(dirname(const_cast<char *>(__FILE__))) + "/../../../hoku.cfg");
 
     Lumberjack lu(cf.Get("query-experiment", "lu", ""), "Angle", l.str());
     lu.log_trial(Nibble::tuple_d{-1, -1, -1, -1, -1, -1, -1});
@@ -123,12 +123,12 @@ TEST(Lumberjack, LogFunction) { // NOLINT(cert-err58-cpp,modernize-use-equals-de
 }
 
 /// Ensure that the log function works past the buffer limit.
-TEST(Lumberjack, LogFunctionFlush) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
+TEST(Lumberjack, LogFunctionFlush) {
     std::ostringstream l;
     using clock = std::chrono::system_clock;
     l << clock::to_time_t(clock::now() - std::chrono::hours(24));
     INIReader cf(std::getenv("HOKU_CONFIG_INI") ? std::string(std::getenv("HOKU_CONFIG_INI")) :
-                 std::string(dirname(const_cast<char *>(__FILE__))) + "/../../../CONFIG.ini");
+                 std::string(dirname(const_cast<char *>(__FILE__))) + "/../../../hoku.cfg");
 
     Lumberjack lu(cf.Get("query-experiment", "lu", ""), "Angle", l.str());
     lu.log_trial(Nibble::tuple_d{-1, -1, -1, -1, -1, -1, -1});
@@ -157,6 +157,6 @@ TEST(Lumberjack, LogFunctionFlush) { // NOLINT(cert-err58-cpp,modernize-use-equa
 }
 
 /// Check that when two lumberjacks are trying to perform an insert at the same time, both insertions succeed.
-TEST(Lumberjack, LogDualLumberjack) { // NOLINT(cert-err58-cpp,modernize-use-equals-delete)
+TEST(Lumberjack, LogDualLumberjack) {
     // TODO: Determine a test for this.
 }

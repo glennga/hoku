@@ -12,46 +12,28 @@
 #include "math/random-draw.h"
 #include "identification/pyramid.h"
 
-/// Exact number of query stars required for query experiment.
 const unsigned int Pyramid::QUERY_STAR_SET_SIZE = 3;
-
-/// Returned when there exists no candidate triangle to be found for the given three stars.
 const int Pyramid::NO_CONFIDENT_R_FOUND_EITHER = -2;
 
-/// Constructor. Sets the benchmark data, fov, parameters, and current working table.
-///
-/// @param input Working Benchmark instance. We are **only** copying the star set and the fov.
-Pyramid::Pyramid (const Benchmark &input, const Parameters &p) : Identification() {
-    input.present_image(this->big_i, this->fov);
-    this->parameters = std::make_unique<Identification::Parameters>(p);
-
-    this->parameters->nu = (p.nu == nullptr) ? std::make_shared<unsigned int>(0) : p.nu;
-    ch.select_table(this->parameters->table_name);
+int Pyramid::generate_table (const std::shared_ptr<Chomp> &ch, double fov, const std::string &table_name) {
+    return Angle::generate_table(ch, fov, table_name);
 }
 
-/// The Pyramid method uses the exact same table as the Angle method. Wrap Angle's 'generate_table' method.
-///
-/// @param cf Configuration reader holding all parameters to use.
-/// @return TABLE_ALREADY_EXISTS if the table already exists. Otherwise, 0 when finished.
-int Pyramid::generate_table (INIReader &cf) {
-    return Angle::generate_table(cf, "pyramid");
-}
-
-/// Find all star pairs whose angle of separation is with 3 * query_sigma (epsilon) degrees of each other.
-///
-/// @param theta Separation angle (degrees) to search with.
-/// @return List of star lists (of size = 2) that fall within epsilon degrees of theta.
 Pyramid::labels_list_list Pyramid::query_for_pairs (const double theta) {
     // Noise is normally distributed. Angle within 3 sigma of theta.
-    double epsilon = 3.0 * this->parameters->sigma_1;
     Chomp::tuples_d big_r_mn_tuples;
     labels_list_list big_r_mn_ell;
 
     // Query using theta with epsilon bounds.
-    ch.select_table(parameters->table_name);
-    big_r_mn_tuples = ch.simple_bound_query({"theta"}, "label_a, label_b, theta", {theta - epsilon}, {theta + epsilon},
-                                            3 * this->parameters->sql_limit);
-    (*parameters->nu)++;
+    ch->select_table(this->table_name);
+    big_r_mn_tuples = ch->simple_bound_query(
+            {"theta"},
+            "label_a, label_b, theta",
+            {theta - epsilon_1},
+            {theta + epsilon_1},
+            500
+    );
+    (this->nu)++;
 
     // Append the results to our candidate list.
     big_r_mn_ell.reserve(big_r_mn_tuples.size());
@@ -64,11 +46,6 @@ Pyramid::labels_list_list Pyramid::query_for_pairs (const double theta) {
 
 /// Given two list of labels, determine the common stars that exist in both lists. Remove all stars "removed" in this
 /// "intersection" if there exist any.
-///
-/// @param big_r_ab_ell List of AB star pairs. We are trying to determine A.
-/// @param big_r_ac_ell List of AC star pairs. We are trying to determine A.
-/// @param removed Our "removed" list. Remove any labels in the "intersection" that exist in this set's labels.
-/// @return All common stars between AB and AC, with F removed.
 Star::list Pyramid::common (const labels_list_list &big_r_ab_ell, const labels_list_list &big_r_ac_ell,
                             const Star::list &removed) {
     static auto flatten_pairs = [] (const labels_list_list &big_r_ell, labels_list &out_ell) -> void {
@@ -91,9 +68,7 @@ Star::list Pyramid::common (const labels_list_list &big_r_ab_ell, const labels_l
     // Remove any stars in I that exist in "removed".
     a_ell_list.erase(std::remove_if(a_ell_list.begin(), a_ell_list.end(), [&removed] (const int &ell) -> bool {
         for (const Star &s : removed) {
-            if (s.get_label() == ell) {
-                return true;
-            }
+            if (s.get_label() == ell) return true;
         }
         return false;
     }), a_ell_list.end());
@@ -101,19 +76,13 @@ Star::list Pyramid::common (const labels_list_list &big_r_ab_ell, const labels_l
     // For each common label, retrieve the star from Nibble.
     Star::list big_r_a;
     for (const int &ell : a_ell_list) {
-        big_r_a.push_back(ch.query_hip(static_cast<int> (ell)));
+        big_r_a.push_back(ch->query_hip(static_cast<int> (ell)));
     }
     return big_r_a.empty() ? Star::list{} : big_r_a;
 }
 
 /// Overloaded common method. Given three list of labels, determine the common stars that exist in both lists. Remove
 /// all stars "removed" in this "intersection" if there exist any.
-///
-/// @param big_r_ae_ell List of AE star pairs. We are trying to determine E.
-/// @param big_r_be_ell List of BE star pairs. We are trying to determine E.
-/// @param big_r_ce_ell List of CE star pairs. We are trying to determine E.
-/// @param removed Our "removed" list. Remove any labels in the "intersection" that exist in this set's labels.
-/// @return All common stars between AE, BE, and CE.
 Star::list Pyramid::common (const labels_list_list &big_r_ae_ell, const labels_list_list &big_r_be_ell,
                             const labels_list_list &big_r_ce_ell, const Star::list &removed) {
     static auto flatten_pairs = [] (const labels_list_list &big_r_ell, labels_list &out_ell) -> void {
@@ -139,9 +108,7 @@ Star::list Pyramid::common (const labels_list_list &big_r_ae_ell, const labels_l
     // Remove any stars in I that exist in "removed".
     e_ell_list.erase(std::remove_if(e_ell_list.begin(), e_ell_list.end(), [&removed] (const int &ell) -> bool {
         for (const Star &s : removed) {
-            if (s.get_label() == ell) {
-                return true;
-            }
+            if (s.get_label() == ell) return true;
         }
         return false;
     }), e_ell_list.end());
@@ -149,21 +116,16 @@ Star::list Pyramid::common (const labels_list_list &big_r_ae_ell, const labels_l
     // For each common label, retrieve the star from Nibble.
     Star::list big_r_a;
     for (const int &ell : e_ell_list) {
-        big_r_a.push_back(ch.query_hip(static_cast<int> (ell)));
+        big_r_a.push_back(ch->query_hip(static_cast<int> (ell)));
     }
     return big_r_a.empty() ? Star::list{} : big_r_a;
 }
 
-/// Given the current map pair, select a random star in the image and verify that the identification is correct.
-///
-/// @param r Current reference star trio.
-/// @param b Current body star trio.
-/// @return True if the verification has passed. Otherwise, false.
 bool Pyramid::verification (const Star::trio &r, const Star::trio &b) {
     // Select a random star E. This must not exist in the current body trio.
     Star b_e;
     do {
-        b_e = (*big_i)[RandomDraw::draw_integer(0, b.size())];
+        b_e = (be->get_image()->at(RandomDraw::draw_integer(0, b.size())));
     } while (std::find(b.begin(), b.end(), b_e) != b.end());
 
     // Find all star pairs between IE, JE, and KE.
@@ -177,20 +139,20 @@ bool Pyramid::verification (const Star::trio &r, const Star::trio &b) {
 
     // If there isn't exactly one star, exit here.
     if (big_t_e.size() != 1 || big_t_e.empty()) {
+        std::cout << "[PYRAMID] Verification failed." << std::endl;
         return false;
     }
 
     // If this star is near our R set in the catalog, then this test has passed.
-    return Star::within_angle({r[0], r[1], r[2], big_t_e[0]}, fov);
+    std::cout << "[PYRAMID] Verification passed." << std::endl;
+    return Star::within_angle({r[0], r[1], r[2], big_t_e[0]}, be->get_fov());
 }
 
 /// Given a trio of indices from the input set, determine the matching catalog IDs that correspond to each star.
 /// Two verification steps occur: the singular element test and the fourth star test. If these are not met, then the
 /// error trio is returned.
-///
-/// @param b Trio of stars in our body frame.
-/// @return NO_CONFIDENT_R_FOUND if no triangle can be found. Otherwise, the inertial stars.
-Pyramid::trios_either Pyramid::find_catalog_stars (const Star::trio &b) {
+Pyramid::TriosEither Pyramid::find_catalog_stars (const Star::trio &b) {
+    std::cout << "[PYRAMID] Finding catalog stars." << std::endl;
     auto find_pairs = [this, &b] (const int m, const int n) -> labels_list_list {
         return this->query_for_pairs((180.0 / M_PI) * Vector3::Angle(b[m], b[n]));
     };
@@ -201,67 +163,26 @@ Pyramid::trios_either Pyramid::find_catalog_stars (const Star::trio &b) {
     Star::list big_t_j = common(big_r_ij_ell, big_r_jk_ell, big_t_i), removed = big_t_i;
     removed.insert(removed.end(), big_t_j.begin(), big_t_j.end());
     Star::list big_t_k = common(big_r_ik_ell, big_r_jk_ell, removed);
-
-    // |R| = 1 restriction. If these lists do not contain exactly one element, break.
-    if ((big_t_i.size() != 1 || big_t_j.size() != 1 || big_t_k.size() != 1) && !this->parameters->no_reduction) {
-        return trios_either{{}, NO_CONFIDENT_R_FOUND_EITHER};
+    if (big_t_i.size() != 1 || big_t_j.size() != 1 || big_t_k.size() != 1) {
+        return TriosEither{{}, NO_CONFIDENT_R_FOUND_EITHER};
     }
-
-    // Favor bright stars if specified. Applied with the FAVOR_BRIGHT_STARS flag.
-    Star::trio r = {big_t_i[0], big_t_j[0], big_t_k[0]};
-    if (this->parameters->favor_bright_stars) {
-        // Form trios all of combinations from big_t_i, big_t_j, and big_t_k.
-        std::vector<Identification::labels_list> r_ell;
-        for (const Star &s_i : big_t_i) {
-            for (const Star &s_j : big_t_j) {
-                for (const Star &s_k : big_t_k) {
-                    r_ell.emplace_back(labels_list{s_i.get_label(), s_j.get_label(), s_k.get_label()});
-                }
-            }
-        }
-
-        sort_brightness(r_ell);
-        r = {ch.query_hip(r_ell[0][0]), ch.query_hip(r_ell[0][1]), ch.query_hip(r_ell[0][2])};
-    }
-
-    return trios_either{r, 0};
+    else return TriosEither{{big_t_i[0], big_t_j[0], big_t_k[0]}, 0};
 }
 
 /// Identification determination process for a single identification trio.
-///
-/// @param b Body (frame B) pair of stars that match the inertial pair.
-/// @return NO_CONFIDENT_A if an identification quad cannot be found. Otherwise, body stars b with the attached
-/// labels of the inertial pair r.
-Pyramid::stars_either Pyramid::identify_as_list (const Star::list &b) {
-    trios_either r = find_catalog_stars({b[0], b[1], b[2]});
-    if (r.error == NO_CONFIDENT_R_FOUND_EITHER) {
-        return stars_either{{}, NO_CONFIDENT_A_EITHER};
-    }
+Pyramid::StarsEither Pyramid::identify_as_list (const Star::list &b) {
+    TriosEither r = find_catalog_stars({b[0], b[1], b[2]});
+    if (r.error == NO_CONFIDENT_R_FOUND_EITHER) return StarsEither{{}, NO_CONFIDENT_A_EITHER};
 
     auto attach_label = [&b, &r] (const int i) -> Star {
         return Star::define_label(b[i], r.result[i].get_label());
     };
-    return stars_either{Star::list{attach_label(0), attach_label(1), attach_label(2)}, 0};
+    return StarsEither{Star::list{attach_label(0), attach_label(1), attach_label(2)}, 0};
 }
 
-/// Reproduction of the Pyramid method's database querying. Input image is not used. We require the following be
-/// defined:
-///
-/// @code{.cpp}
-///     - table_name
-///     - sigma_query
-///     - sql_limit
-/// @endcode
-///
-/// @param s Stars to query with. This must be of length = QUERY_STAR_SET_SIZE.
-/// @return Vector of likely matches found by the pyramid method.
-std::vector<Identification::labels_list> Pyramid::query (const Star::list &s) {
-    if (s.size() != QUERY_STAR_SET_SIZE) {
-        throw std::runtime_error(std::string("Input list does not have exactly three b."));
-    }
-
-    auto find_pairs = [this, &s] (const int a, const int b) -> labels_list_list {
-        return this->query_for_pairs((180.0 / M_PI) * Vector3::Angle(s[a], s[b]));
+std::vector<Identification::labels_list> Pyramid::query () {
+    auto find_pairs = [this] (const int a, const int b) -> labels_list_list {
+        return this->query_for_pairs((180.0 / M_PI) * Vector3::Angle(be->get_image()->at(a), be->get_image()->at(b)));
     };
     labels_list_list big_r_ij_ell = find_pairs(0, 1), big_r_ik_ell = find_pairs(0, 2), big_r_jk_ell = find_pairs(1, 2);
 
@@ -277,111 +198,74 @@ std::vector<Identification::labels_list> Pyramid::query (const Star::list &s) {
         for (const Star &s_j : t_j) {
             for (const Star &s_k : t_k) {
                 big_r_ell.emplace_back(labels_list{s_i.get_label(), s_j.get_label(), s_k.get_label()});
-
-                // Follow the SQL limit in the parameters.
-                if (big_r_ell.size() != parameters->sql_limit) continue;
-                return big_r_ell;
             }
         }
     }
     return big_r_ell;
 }
 
-/// Finds the single, most likely result for the first four stars in our current benchmark. This trial is
-/// basically the same as the first identification trials. Input image is used. We require the following to be defined:
-///
-/// @code{.cpp}
-///     - table_name
-///     - sigma_query
-///     - sql_limit
-///     - nu
-///     - nu_max
-/// @endcode
-///
-/// @return EMPTY_BIG_R_ELL if a candidate quad cannot be found. Otherwise, a single match configuration found
-/// by the angle method.
-Pyramid::stars_either Pyramid::reduce () {
-    ch.select_table(parameters->table_name);
-    *parameters->nu = 0;
+Pyramid::StarsEither Pyramid::reduce () {
+    ch->select_table(this->table_name);
+    this->nu = 0;
 
-    for (unsigned int dj = 1; dj < big_i->size() - 1; dj++) {
-        for (unsigned int dk = 1; dk < big_i->size() - dj - 1; dk++) {
-            for (unsigned int di = 0; di < big_i->size() - dj - dk - 1; di++) {
+    for (unsigned int dj = 1; dj < be->get_image()->size() - 1; dj++) {
+        for (unsigned int dk = 1; dk < be->get_image()->size() - dj - 1; dk++) {
+            for (unsigned int di = 0; di < be->get_image()->size() - dj - dk - 1; di++) {
                 int i = di, j = di + dj, k = j + dk;
-                stars_either b = identify_as_list({(*big_i)[i], (*big_i)[j], (*big_i)[k]});
+                StarsEither b = identify_as_list({
+                                                         be->get_image()->at(i),
+                                                         be->get_image()->at(j),
+                                                         be->get_image()->at(k)
+                                                 });
 
                 // Practical limit: exit early if we have iterated through too many comparisons without match.
-                if (*parameters->nu > parameters->nu_max) {
-                    return stars_either{{}, NO_CONFIDENT_R_EITHER};
-                }
+                if (nu > this->nu_max) return StarsEither{{}, NO_CONFIDENT_R_EITHER};
 
                 // The reduction step: |R| = 1 (in terms of B here).
-                if (b.error == NO_CONFIDENT_A_EITHER) {
-                    continue;
-                }
+                if (b.error == NO_CONFIDENT_A_EITHER) continue;
 
-                return stars_either{Star::list{ch.query_hip(b.result[0].get_label()),
-                                               ch.query_hip(b.result[1].get_label()),
-                                               ch.query_hip(b.result[2].get_label())}, 0};
+                return StarsEither{Star::list{ch->query_hip(b.result[0].get_label()),
+                                              ch->query_hip(b.result[1].get_label()),
+                                              ch->query_hip(b.result[2].get_label())}, 0};
             }
         }
     }
 
-    return stars_either{{}, NO_CONFIDENT_R_EITHER};
+    return StarsEither{{}, NO_CONFIDENT_R_EITHER};
 }
 
-/// Reproduction of the Pyramid method's process from beginning to the orientation determination. Input image is used.
-/// We require the following be defined:
-///
-/// @code{.cpp}
-///     - table_name
-///     - sql_limit
-///     - sigma_query
-///     - nu
-///     - nu_max
-/// @endcode
-///
-/// @param input The set of benchmark data to work with.
-/// @param p Adjustments to the identification process.
-/// @return NO_CONFIDENT_A if an identification cannot be found exhaustively. EXCEEDED_NU_MAX if an
-/// identification cannot be found within a certain number of query picks. Otherwise, body stars b with the attached
-/// labels of the inertial pair r.
-Pyramid::stars_either Pyramid::identify () {
-    *parameters->nu = 0;
+Pyramid::StarsEither Pyramid::identify () {
+    nu = 0;
 
     // This procedure will not work |big_i| < 4. Exit early with NO_CONFIDENT_A.
-    if (big_i->size() < 4) {
-        return stars_either{{}, NO_CONFIDENT_A_EITHER};
-    }
+    if (be->get_image()->size() < 4) return StarsEither{{}, NO_CONFIDENT_A_EITHER};
 
     // Otherwise, there exists |big_i| choose 3 possibilities. Looping specified in paper.
-    for (unsigned int dj = 1; dj < big_i->size() - 1; dj++) {
-        for (unsigned int dk = 1; dk < big_i->size() - dj - 1; dk++) {
-            for (unsigned int di = 0; di < big_i->size() - dj - dk - 1; di++) {
+    for (unsigned int dj = 1; dj < be->get_image()->size() - 1; dj++) {
+        for (unsigned int dk = 1; dk < be->get_image()->size() - dj - 1; dk++) {
+            for (unsigned int di = 0; di < be->get_image()->size() - dj - dk - 1; di++) {
                 int i = di, j = di + dj, k = j + dk;
                 // Practical limit: exit early if we have iterated through too many comparisons without match.
-                if (*parameters->nu > parameters->nu_max) {
-                    return stars_either{{}, EXCEEDED_NU_MAX_EITHER};
-                }
+                if (nu > this->nu_max) return StarsEither{{}, EXCEEDED_NU_MAX_EITHER};
 
                 // Given three stars in our catalog, find their catalog IDs in the catalog.
-                Star::trio b = {(*big_i)[i], (*big_i)[j], (*big_i)[k]};
-                trios_either r = find_catalog_stars(b);
-                if (r.error == NO_CONFIDENT_R_FOUND_EITHER) {
-                    continue;
-                }
+                Star::trio b = {be->get_image()->at(i), be->get_image()->at(j), be->get_image()->at(k)};
+                TriosEither r = find_catalog_stars(b);
+                if (r.error == NO_CONFIDENT_R_FOUND_EITHER) continue;
 
                 // Run this through the verification step.
-                if (!verification(r.result, b) && !parameters->no_reduction) {
-                    continue;
+                if (!verification(r.result, b)) continue;
+                else {
+                    std::cout << "[PYRAMID] Match found!" << std::endl;
+                    return StarsEither{Star::list{
+                            Star::define_label(be->get_image()->at(i), r.result[0].get_label()),
+                            Star::define_label(be->get_image()->at(j), r.result[1].get_label()),
+                            Star::define_label(be->get_image()->at(k), r.result[2].get_label())
+                    }, 0};
                 }
-
-                return stars_either{Star::list{Star::define_label((*big_i)[i], r.result[0].get_label()),
-                                               Star::define_label((*big_i)[j], r.result[1].get_label()),
-                                               Star::define_label((*big_i)[k], r.result[2].get_label())}, 0};
             }
         }
     }
 
-    return stars_either{{}, NO_CONFIDENT_A_EITHER};
+    return StarsEither{{}, NO_CONFIDENT_A_EITHER};
 }

@@ -14,19 +14,27 @@ const int Nibble::NO_RESULT_FOUND_EITHER = 0;
 Nibble::Nibble (const std::string &database_name) {
     // Automatically create the database if it does not exist.
     const int FLAGS = SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE; // NOLINT(hicpp-signed-bitwise)
-    this->conn = std::make_unique<SQLite::Database>(database_name, FLAGS);
+    this->conn = std::make_shared<SQLite::Database>(database_name, FLAGS);
 }
 
 void Nibble::select_table (const std::string &table) { this->current_table = table; }
 bool Nibble::does_table_exist (const std::string &table) {
-    SQLite::Statement query(*conn, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='" + table + "\'");
+    SQLite::Statement query(
+            *conn,
+            "SELECT 1 "
+            "FROM sqlite_master "
+            "WHERE type='table' AND name='" + table + "\'"
+    );
     return query.executeStep();
 }
 
 Nibble::tuples_d Nibble::search_table (const std::string &fields, const std::string &constraint,
                                        const unsigned int expected) {
     tuples_d result;
-    std::string sql = "SELECT " + fields + " FROM " + current_table + " WHERE " + constraint;
+    std::string sql =
+            "SELECT " + fields +
+            " FROM " + current_table +
+            " WHERE " + constraint;
 
     result.reserve(expected);
     SQLite::Statement query(*conn, sql);
@@ -41,7 +49,9 @@ Nibble::tuples_d Nibble::search_table (const std::string &fields, const std::str
 }
 Nibble::tuples_d Nibble::search_table (const std::string &fields, const unsigned int expected) {
     tuples_d result;
-    std::string sql = "SELECT " + fields + " FROM " + current_table;
+    std::string sql =
+            "SELECT " + fields +
+            " FROM " + current_table;
 
     result.reserve(expected);
     SQLite::Statement query(*conn, sql);
@@ -55,8 +65,10 @@ Nibble::tuples_d Nibble::search_table (const std::string &fields, const unsigned
     return result;
 }
 Nibble::Either Nibble::search_single (const std::string &fields, const std::string &constraint) {
-    std::string sql = "SELECT " + fields + " FROM " +
-            current_table + (constraint.empty() ? "" : " WHERE " + constraint);
+    std::string sql =
+            "SELECT " + fields +
+            " FROM " + current_table +
+            (constraint.empty() ? "" : " WHERE " + constraint);
 
     SQLite::Statement query(*conn, sql);
     while (query.executeStep()) return Either{query.getColumn(0).getDouble(), 0}; // This should only execute once.
@@ -64,7 +76,12 @@ Nibble::Either Nibble::search_single (const std::string &fields, const std::stri
 }
 
 int Nibble::create_table (const std::string &table, const std::string &schema) {
-    SQLite::Statement query(*conn, "SELECT name FROM sqlite_master WHERE type='table' AND name='" + table + "\'");
+    SQLite::Statement query(
+            *conn,
+            "SELECT name "
+            "FROM sqlite_master "
+            "WHERE type='table' AND name='" + table + "\'"
+    );
 
     select_table(table);
     while (query.executeStep()) {
@@ -103,9 +120,12 @@ int Nibble::sort_and_index (const std::string &focus) {
 
     // Create temporary table to insert sorted data. Insert the sorted data by focus.
     (*conn).exec("CREATE TABLE " + current_table + "_SORTED (" + schema + ")");
-    (*conn).exec("INSERT INTO " + current_table + "_SORTED (" + fields + ")" + " SELECT " + fields + " FROM " +
-                 current_table +
-                 " ORDER BY " + focus);
+    (*conn).exec(
+            "INSERT INTO " + current_table + "_SORTED (" + fields + ")" +
+            " SELECT " + fields +
+            " FROM " + current_table +
+            " ORDER BY " + focus
+    );
 
     // Remove old table. Rename the table to original table name.
     (*conn).exec("DROP TABLE " + current_table);
