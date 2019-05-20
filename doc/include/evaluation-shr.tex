@@ -1,0 +1,627 @@
+%\newcommand{\nsubparagraph}[1]{\textbf{#1}}
+\newcommand{\AVG}{\mathit{AVG}}
+
+\section{Empirical Evaluation}\label{sec:empiricalEvaluation}
+In this section we discuss our analysis of the six strategies in terms of their runtime and accuracy response to typical errors that may occur when capturing an image of the sky.
+For our testing, the astronomical catalog used to populate all relations in the reference database was the Hipparcos Input Catalogue~\cite{perryman:hipparcosCatalogue}. 
+The $\texttt{REF}$ relation was reduced to $1{,}471$ elements dependent on each star's brightness ($m < 4.5$) to reduce the size of the $R$ relations (and thus the running time) for each strategy.
+All simulations were performed $2{,}000$ times on an Intel i7-7700 CPU, 3.60GHz with 8 GB RAM\@ and implemented in C++14 without optimization.
+SQLite, an embedded SQL database engine, was used to hold all of the aforementioned relations in this paper.
+%All queries involve the execution of a single \texttt{SELECT} statement on this file for each candidate retrieval step, with the exception of the Pyramid method which requires three.
+Image data was generated as points randomly (but uniformly) rotated from the database coordinate system to remove the discrepancies that may arise from the image processing component.
+Three types of errors were introduced to the image data from here: false positives, false negatives, and points whose position is misrepresented from the database (i.e.\ Gaussian noise).
+The width of each strategy's range search was determined using a grid search, exploring boundaries from \num{1e-1}, \num{1e-2}, \ldots, to \num{1e-10}.
+The exact implementation is available at the following link: \url{https://github.com/glennga/hoku}.
+
+In a clean image (introducing no errors), all strategies are able to produce a correct mapping from some image subset to the \texttt{REF} table.
+This is depicted in~\autoref{fig:results} as squares of varying color.
+The Interior Angle strategy is the fastest of all six, a factor of 3.5 times quicker than the next fastest method: the Pyramid strategy ($0.199\si{ms}$ vs.\ $0.710\si{ms}$).
+For all simulations with a clean image, the Interior Angle strategy was the only method which required one database search for all runs.
+This is a direct result of utilizing extra storage to store our map, avoiding the need to query our database again to determine an optimal map.
+The Pyramid and Composite Pyramid are additionally restricted by their voting-based verification steps, both of which require three additional searches.
+Interestingly the Composite Pyramid strategy averages 8.87 database searches instead of the expected 5, resulting in an average runtime 1.43 times slower than the next slowest method: the Spherical Triangle method.
+Utilizing two confidence checks appears to force this strategy to incorrectly label $b$ and $r$ sets as invalid more often than other strategies.
+
+In an image of varying false positives the methods that perform the most accurately are the Angle, Planar Triangle, and Spherical Triangle strategies.
+The triangular methods here are the fastest of the three, demonstrating the effectiveness of the pivoting procedure.
+The source of error for all other methods are a result of exhausting all $b$ sets, as opposed to returning an incorrect result.
+This source for the Pyramid and Composite Pyramid strategies most likely stems from their verification steps, which will incorrectly label $b$ and $r$ sets as invalid if the $b_4$ star is false.
+To isolate Motari's $b$ image subset decision for false stars, we removed the confidence check and found that both the Pyramid and Composite Pyramid strategies rose to a near 100\% accuracy with a runtime faster than the Angle, Planar Triangle, and Spherical Triangles.
+For the Interior Angle strategy, the source of error stems from not explore all possible combinations of $\imageset$, dealing with a situation that we never encounter a $b$ set without false positives.
+Iterating through all possible combinations of $\imageset$ is the most effective approach to dealing with images with false positives.
+
+In an image of varying false negatives, all strategies except the pyramid strategies perform with similar accuracy.
+We note that strategies given images with false negatives perform very similar to the strategies given clean images.
+These errors stem as a result of an image possessing too little points to perform identification altogether, or in the case of the Composite Pyramid method: its verification step.
+The pyramid strategies requiring a minimum of four points raises the chance of having too little stars to perform identification, decreasing the overall accuracy.
+Removing the verification step for the pyramid methods raises the Composite Pyramid accuracy to a similar range of the rest and does not significantly affect the Pyramid accuracy, suggesting that the verification step is too aggressive of a filter overall.
+In terms of speed the Interior Angle method is again the fastest of the six, followed closely by Pyramid method.
+
+In an image with varying perturbed points the Angle strategy produces an accurate map 88.1\% of the time, 16.3\% more frequent than the next most accurate method: the Planar Triangle strategy.
+Removal of the verification step for the pyramid strategies raises the Pyramid strategy accuracy to 88.2\%, but only raises the Composite Pyramid strategy accuracy to 59.0\%.
+Unlike the results of the previous simulations, we see the emergence of incorrect maps returned by strategies instead of returning with an error.
+Though small, these maps are only produced by the strategies with triangular features (Planar Triangle, Spherical Triangle, Composite Pyramid).
+Similar to the results of images with false stars, the Interior Angle method suffers from not being able to choose all combinations of $\imageset$.
+Doing so would allow the Interior Angle method to select some $b$ that falls within an acceptable margin of error to map to some $r$.
+To address the speed component, the Pyramid method without its verification step is the fastest strategy here, followed by the Composite Pyramid strategy.
+
+To conclude, the Pyramid strategy without a verification step is the fastest and most accurate of all methods tested here.
+Followed closely in terms of accuracy but not speed is the Angle method, displaying the efficacy of a simpler approach.
+The Interior Angle method is faster than the Pyramid method given clean images, but its inability to search all combinations of $\imageset$ hinders its accuracy given misrepresented points.
+The triangular methods lie between the Angle and Interior Angle methods in terms of accuracy, but are a faster alternative to the Angle method due to its pivoting process.
+The Composite Pyramid attempts utilize a different feature set with the effectiveness of the Pyramid core but ultimately inherits the worst of each strategy.
+
+
+\begin{figure}
+    \centering{
+    \input{include/floats/overview-shr}
+    \caption{
+    Depicts the average running time vs.\ the average accuracy of the resulting map for all methods given varying types of noise.
+    	Each point is an average of $2{,}000$ runs.
+    	Squares represent simulations with images without noise, triangles represent simulations with false positives, stars represent simulations with Gaussian noise, and circles represent simulations with false negatives.
+    }\label{fig:results}
+    }
+\end{figure}
+
+%In this section all six identification strategies are analyzed in terms of their process to obtain their database candidate set $R$ (candidate retrieval step), their candidate selection $r$ process, and their map $h$ production process (identification) under varying amounts of false points and Gaussian noise.
+%The main areas of interest here are the accuracy of each step, and the time to produce a result.
+
+%For the figures given in the following section, ANG corresponds to the Angle method, INT to the Interior Angle method,
+%SPH to the Spherical Triangle method, PLN to the Planar Triangle method, PYR to the Pyramid method,
+%and COM to the Composite Pyramid method.
+
+%\subsection{Experimental Setup}\label{subsec:experimentalSetup}
+%\nsubparagraph{Stellar Database}
+%The astronomical catalog used to populate $\databaseset$ is the Hipparcos Input Catalogue~\cite{perryman:hipparcosCatalogue}.
+%Entries that do not have an associated position and entries whose apparent magnitude was greater than 6.0
+%Entries that do not have a $\left( \alpha, \delta \right)$ associated with it were not recorded, giving $117{,}956$ total point.
+%Out of this entire set, only $4{,}560$ are visible from Earth with the naked eye (apparent magnitude $m$ less than 6.0).
+%An additional constraint that all stars in each pair or trio recorded in $\angdatabase$, $\intdatabase$, $\ldots$ be within 20 degrees of each other was applied.
+%Both constraints were placed to reduce the size of the resulting databases, shortening each algorithm's candidate retrieval running time. 
+%Most astronomy based CCD cameras are (a) able to capture stars with $m < 6.0$ and (b) possess a field-of-view between 10 to 20 degrees~\cite{mortari:pyramidIdentification}.
+%All sets $\angdatabase, \intdatabase, \ldots$ construct combinations and permutations using the $4{,}560$ elements and this field of view constraint.
+%A constant radius was attached to each recorded $\left(\alpha, \delta \right)$, and was converted from this spherical frame to a 3D Cartesian frame to construct the point $[ x \ y \ z ]$ for $\databaseset$.
+%~\autoref{eq:sphereToCartesian} was used with
+%each recorded $\left(\alpha, \delta \right)$ and $r \seq 1$, then normalized.
+
+%\nsubparagraph{Benchmark Data Generation}
+%Before a raw image can be used in a constellation query following the unified framework, it first must go through three major processes: blob detection, centroid determination, and a 2D $\rightarrow$ 3D transformation process.
+%If a blob is not wholly detected, the centroid is not determined correctly, or the transformation process is not precise enough, error will exist as input to the algorithm prior to starting.
+%Our goal is to only characterize each constellation query itself, the solution implemented here involves generating artificial images in some quasi 3D space.
+%
+%Prior to generating the benchmark data, three items are specified: a field of view $\texttt{FOV}$, a true attitude $\hat{A}$, and a 3D vector $\vv{r_\texttt{CENTER}}$ in the database frame $\kFrame$ that determines the center of the image.
+%The next step is to find all nearby points to the $\vv{r_\texttt{CENTER}}$ in the database.
+%This is denoted as $\texttt{DB\_ROT}$:
+%\begin{equation}
+%    \texttt{DB\_ROT} = \set{ \texttt{STAR} \mid \texttt{STAR} \in \databaseset \land \theta\left( \texttt{STAR}, \vv{r_\texttt{CENTER}} \right) < \frac{\texttt{FOV}}{2} }
+%\end{equation}
+%To get the $\imageset$ set, each point in $\texttt{DB\_ROT}$ is then rotated by the true attitude $\hat{A}$:
+%\begin{equation}
+%    \imageset = \set{ \hat{A} \times \texttt{STAR} \mid \texttt{STAR} \in \texttt{DB\_ROT} }
+%\end{equation}
+%The set $\imageset$, the field of view, and the rotated image center $\vv{b_\texttt{CENTER}} \seq \hat{A} \times \vv{r_\texttt{CENTER}}$ are then presented to the constellation query.
+%
+%The first type of noise exists as variance between the relative positions of points represented in the database and those represented in the image.
+%This may come from misidentifying the centroids in the image or out-of-date databases.
+%To introduce Gaussian noise to an image, we spherically linearly interpolate each point toward some random 3D vector on the unit sphere (\textit{SLERP}) and distribute the magnitude of the movement normally.
+%To describe our noise independent of this random vector, we divide a normal random variable by the current angular separation between both points.
+%Given a point $\texttt{STAR}\!\in\!\imageset$, noise is applied to obtain the distributed vector $\texttt{STAR\_NOISY}$~\cite{kremer:slerp}:
+%\begin{equation}
+%    \texttt{STAR\_NOISY} = \frac{\sin (1 - K)\Omega}{\sin \Omega}\texttt{STAR} + \frac{\sin \left( K \Omega \right)}{\sin \Omega}v
+%\end{equation}
+%\begin{subequations}
+%    where $v$ represents some random vector with uniformly distributed elements, $\Omega$ describes the
+%    angle subtended by the arc, and $K$ describes the magnitude of the interpolation.
+%    Below, $\sigma$ represents the standard deviation of our Gaussian noise.
+%    \begin{align}
+%            v &= \left[ \sim U(-1, 1), \sim U(-1, 1), \sim U(-1, 1) \right] \\
+%            \Omega &= \arccos \left ( v \cdot \texttt{STAR} \right) \\
+%            K &= \left(\sim N\left(0, \rho^2\right)\right) \cdot \left(\theta\left( v, \texttt{STAR} \right)
+%            \right)^{-1}
+%    \end{align}
+%    The additional constraint that the resulting point exist near the image center is also applied: $\theta\left( \texttt{STAR\_NOISY}, \vv{b_\texttt{CENTER}} \right)\!<\!\nicefrac{\texttt{FOV}}{2}$.
+%    If this is not met, then the process is repeated for this point.
+%\end{subequations}
+%
+%The second type of noise exists as falsely identified sources of light (i.e.\ false positives), or spikes in the image.
+%This involves generating $v$ in the same manner that was done for the Gaussian noise process, and normalizing this to get $\texttt{STAR\_FALSE}$.
+%If the constraint that $\texttt{STAR\_FALSE}$ be near the image center is not met, this process is repeated until such a point is found.
+%This is repeated for a set number of spikes $\omega$.
+
+%\nsubparagraph{Hardware and Implementation}
+%All trials were performed on an Intel i7-7700 CPU, 3.60GHz with 8 GB RAM\@.
+%Each algorithm was implemented in C++14, and compiled without optimization (at \texttt{-O0}).
+%SQLite, an embedded SQL database engine, was used to hold all of the aforementioned relations in this paper.
+%Each relation was contained in a single database file on disk, B-tree indexed by their appropriate search field(s) (i.e.\ the angle between a pair of stars).
+%All queries involve the execution of a single \texttt{SELECT} statement on this file for each candidate retrieval step, with the exception of the Pyramid method which requires three.
+%The exact implementation is available at the following link: \url{https://github.com/glennga/hoku}.
+
+%\subsection{Candidate Retrieval Step}\label{subsec:catalogQueryStep}
+%\nsubparagraph{Determining Retrieval $\epsilon$}
+%In all predicates listed in~\autoref{sec:starIdentificationMethods}, an assumption must be made about the difference between the database measurements and the image measurements.
+%If this assumption $\epsilon$ is too large, false positives will exist in $R$ after retrieval and may slow down identification.
+%On the other hand, $\abs{R} \seq 0$ if this noise assumption is too small.
+%The heuristic used to determine each retrieval $\sigma$ was to exhaust every permutation of deviations in the set below for 30 retrieval steps each.
+%Work toward more accurately estimating these constellation query parameters has been performed by Balodis~\cite{balodis:parametersAutomated}:
+%\begin{equation}
+%    \epsilon_{gd} \in \set{ 10^{-16}, 10^{-15}, \ldots, 10^1 }
+%\end{equation}
+%The Interior Angle and triangular feature based strategies of $\abs{\omega} \seq 2$ have $18^2$ distinct parameter sets with 30 runs attached to each set.
+%The Angle and Pyramid strategies of $\abs{\omega} \seq 1$ has $18$ distinct parameter sets with 30 runs attached to each set.
+%The parameter sets with the largest $\sigma$ choices but most number of instances where $\abs{R} \seq 1$ were selected.
+%
+%The results for each strategy are displayed below, and were used for the following experiments.
+%\begin{alignat*}{3}
+%    \text{ANG / PYR}&: \epsilon_\theta &&= 3\cdot 10^{-4} &&{}\\
+%    \text{INT}&: \epsilon_\theta &&= 3\cdot 10^{-2}, \epsilon_\phi &&= 3\cdot 10^{-2} \\
+%    \text{SPH / PLN / COM}&: \epsilon_a &&= 3 \cdot 10^{-9}, \epsilon_\tau &&= 3 \cdot 10^{-9}
+%\end{alignat*}
+%
+%\begin{table}
+%    \centering {
+%    \input{include/floats/query-table}
+%    \caption{
+%    Depicts all data associated with testing the candidate retrieval step: the frequency of a correct candidate set ($r \in R$, such that the correct map can be formed with $b$), the number of trials where the resulting $R$ meets the $\abs{R} \seq 1$ criterion, and the average retrieval running time ($t_{\texttt{RET}}$) given images with no noise.
+%    There exist $2{,}000$ runs for each identification strategy.
+%    } \label{tab:queryExperimentResults}
+%    }
+%\end{table}
+%
+%\subsubsection{Which strategy has the fastest candidate retrieval?}
+%In~\autoref{sec:starIdentificationMethods}, we describe strategy \texttt{X}'s running time in terms of the number of database accesses $n$ and the cardinality of $\genericdatabase$.
+%The $\angdatabase$, $\pyrdatabase$ sets, used by the Angle and Pyramid strategies respectively, is composed of $353{,}700$ elements with the apparent magnitude and field-of-view constraints.
+%The $\sphdatabase$, $\plndatabase$, $\comdatabase$ sets, used by the Spherical Triangle, Planar Triangle, and Composite Pyramid strategies is composed of $\seq 12{,}520{,}359$ elements.
+%The $\intdatabase$ set, used by the Interior Angle strategy is composed of $37{,}561{,}083$ elements.
+%Given the size of each set, we expect that the Angle strategy will have the fastest candidate retrieval and Interior Angle will have the slowest candidate retrieval.
+
+%\begin{figure}
+%    \begin{align*}
+%        \texttt{SELECT } &r \\
+%        \texttt{FROM } &K^d \\
+%        \texttt{WHERE } &g_1(r) < g_1(b) + 3\sigma_{g1} \texttt{ AND } g_1(r) > g_1(b) - 3\sigma_{g1} \texttt{ AND } \\
+%        &g_2(r) < g_2(b) + 3\sigma_{g2} \texttt{ AND } g_2(r) > g_2(b) - 3\sigma_{g2} \texttt{ AND } \\
+%        &\vdots \\
+%        &g_d(r) < g_d(b) + 3\sigma_{gd} \texttt{ AND } g_d(r) > g_d(b) - 3\sigma_{gd}
+%    \end{align*}
+%     \caption{
+%     Depicts a generalized SQL query used for the Angle, Spherical Triangle, Planar Triangle, and Composite Pyramid
+%     strategies.
+%     Here, $d$ represents the number of stars used in the search, $g$ represents the function used to obtain a feature,
+%     and $\sigma$ refers to the deviation of noise.
+%     }\label{fig:sqlQuery}
+%\end{figure}
+
+%In~\autoref{tab:queryExperimentResults} the average running time (out of $2{,}000$ runs) to obtain an $R$ set is displayed for each identification strategy given an image.
+%The slowest strategy on average is the Interior Angle strategy, with its average $t_{\texttt{RET}} = 30.64 \si{ms}$ longer than the average $t_{\texttt{RET}}$ for all other strategy ($141.16 \pm 4.30 \si{ms}$).
+%With the Interior Angle strategy, more time is being spent searching for the appropriate elements.
+
+%# http://www.socscistatistics.com/pvalues/normaldistribution.aspx
+%import numpy as np
+%m_1, m_2, s_1, s_2, n_1, n_2 = 137.9965, 139.051, 4.201486373891982, 3.3748183654828003, 2000, 2000
+%z_plane = (m_2 - m_1) / np.sqrt( ((s_1 * s_1) / n_1) + ((s_2 * s_2) / n_2) )
+%The two fastest strategies appear to be Angle strategy and the Planar Triangle strategy, but their $t_\texttt{RET}$ only vary by 1.05ms.
+%Given the null hypothesis that the difference between the Planar Triangle strategy's candidate retrieval running time and the Angle strategy's candidate retrieval running time is not significant, $z \seq 8.75, p\!<\!0.0001$ is found with a two-tailed two sample $Z$ test.
+%The Angle strategy has the fastest candidate retrieval step due its small search set cardinality.
+
+%\subsubsection{Which strategy meets the $\abs{R} \seq 1$ criterion the most often?}
+%The $\abs{R} = 1$ criterion is required for all identification strategy at some point (after pivoting for the triangle
+%strategies), and meeting this criteria as often as possible prevents additional catalog accesses from occurring.
+%The $\abs{R} = 1$ criterion is required for all identification strategies, and meeting this criteria as often as possible prevents additional catalog accesses from occurring.
+%
+%In~\autoref{tab:queryExperimentResults}, the lowest number of instances where the criterion is met lies with the Angle strategy.
+%Out of $2{,}000$ candidate retrievals, the Angle strategy will have had to perform an additional candidate retrieval at least $1{,}968$ more times.
+%The Pyramid strategy only has 499 of these additional retrieval instances, which is a factor of 3.94 less.
+%The most likely reason for this lies with the selection of the $\epsilon_\theta$ parameter, and the fact that only one feature is used to search $\angdatabase$.
+%If $\epsilon_\theta$ was chosen to be smaller, there would have been more instances where the criterion was met- but this comes at the cost of being less flexible with Gaussian noise.
+%Strategies that use trios instead of pairs are able to utilize more features of the image set $b$ and distinguish it better, compared to only using $\theta(b, r)$ as the sole feature.
+
+%import numpy as np
+%p_1, p_2, n_1, n_2 = (1501 / 2000), ((1994 + 1991 + 1984) / 6000), 2000, 6000
+%p = (1501 + 1994 + 1991 + 1984) / (2000 + 6000)
+%z = (p_2 - p_1) / np.sqrt( p * (1 - p) * ((1/n_1) + (1/n_2)) )
+%All strategies using triangular features (Planar Triangle, Composite Pyramid, Spherical Triangle) meet the criterion the most often (average of $1{,}989.7 \pm 4.2$ runs).
+%Again, a larger $\epsilon_a$ or $\epsilon_\tau$ retrieval parameter may lead to a larger $\abs{R}$.
+%The next strategy with the most $\abs{R} \seq 1$ runs that does not use triangular features is the Pyramid strategy, which has a factor of 0.75 less runs.
+%Strategies with triangular features are more likely on average to have more instances where the $R$ criterion is met when compared to strategies with angular features.
+%Given the null hypothesis that the difference between the number of $\abs{R} = 1$ Pyramid method runs and the
+%number of $\abs{R} = 1$ runs for methods with triangular features is not significant, $z = 38.0, p < 0.0001$ is
+%obtained with a two proportion $Z$ test.
+
+%\subsubsection{How effective is the Pyramid strategy $R$ retrieval?}
+%In the Angle, Spherical Triangle, Planar Triangle, and Composite Pyramid strategies, database searches can be
+%generalized to SQL query below:
+%
+%\small \noindent
+%\begin{align*}
+%    \texttt{SELECT } &r \\
+%    \texttt{FROM } &K^d \\
+%    \texttt{WHERE } &g_1 \texttt{ BETWEEN } g_1(b) - 3\sigma_{g1} \texttt{ AND } g_1(b) + 3\sigma_{g1} \texttt{ AND } \\
+%                    &g_2 \texttt{ BETWEEN } g_2(b) - 3\sigma_{g2} \texttt{ AND } g_2(b) + 3\sigma_{g2} \texttt{ AND } \\
+%                    &\vdots \\
+%                    &g_d \texttt{ BETWEEN } g_d(b) - 3\sigma_{gd} \texttt{ AND } g_d(b) + 3\sigma_{gd}
+%\end{align*}
+%\normalsize
+%
+%where $d$ represents the number of stars used in the search, $g$ represents the function used to obtain a feature,
+%and $\sigma$ refers to the deviation of noise.
+%The Interior Angle strategy requires the $\theta(r_{c1}, r_{c})\!<\!\theta(r_{c2}, r_c)$ constraint before performing
+%the strategy above.
+%Compared to the rest of the strategies presented here, the Pyramid strategy has the most involved $R$ retrieval that
+%involves processing outside of SQL\@.
+%Three of the queries above must be performed to obtain the $T$ sets, and the common stars must be
+%found among each $R$ set to create a singular candidate set for trios.
+%
+%%# http://www.socscistatistics.com/pvalues/normaldistribution.aspx
+%%import numpy as np
+%%m_1, m_2, s_1, s_2, n_1, n_2 = 0.99, 1.0, 0.09949874371066202, 0, 2000, 2000
+%%z = (m_2 - m_1) / np.sqrt( ((s_1 * s_1) / n_1) + ((s_2 * s_2) / n_2) )
+%
+%The additional complexity of the Pyramid strategy increases the frequency of false negatives after retrieval.
+%In~\autoref{tab:queryExperimentResults}, the frequency of the correct $r$ existing in $R$ for some $b$ is displayed
+%for each identification strategy.
+%The Pyramid strategy is shown to have a 0.01\% difference from the 100\% accuracy of each other strategy.
+%Given the null hypothesis that this difference is not significant, $z \seq 4.49, p\!<\!0.0001$ is obtained with a
+%one tailed two sample $Z$ test.
+%We find that the Pyramid strategy's $R$ retrieval step is less accurate than other identification strategies.
+%Although small, this error will propagate to the next steps and will result in more database accesses and/or a lower
+%average accuracy.
+	
+%\subsubsection{How effective is the Pyramid Strategy's candidate retrieval?}
+%In the Angle, Spherical Triangle, Planar Triangle, and Composite Pyramid methods, catalog queries can be generalized to a simple SQL query with boundary constraints in lieu of the predicates.
+%The Interior Angle method requires the $\theta(r[1], r[2]) < \theta(r[1], r[3])$ constraint before performing the query above, but the Pyramid method has the most involved query that involves processing outside of SQL\@.
+%Three of the queries above must be performed to obtain the $Q$ sets, and the common stars must be found among each to create a singular candidate set for trios.
+%
+%There exist several areas where the Pyramid could drop in accuracy in its query.
+%In~\autoref{tab:queryExperimentResults}, the frequency of the correct $r$ existing in $R$ for some $b$ is displayed for each identification method.
+%The Pyramid method is shown to have a 0.01\% difference from the 100\% accuracy of each other method.
+%Given the null hypothesis that this difference is not significant, $z= 4.49, p < 0.0001$ is obtained with a one tailed two sample $Z$ test.
+%The Pyramid method's query step is less accurate than other identification methods.
+%Although small, this error will propagate to the next steps and will result in more catalog accesses and/or a lower average accuracy.
+
+%\subsection{Candidate Selection Step}\label{subsec:candidateSelectionStep}
+%\begin{figure}
+%    \centering{
+%    \input{include/floats/pivot}
+%    \caption{
+%    Depicts the average number of database accesses required to obtain a $r$ set for strategies with triangular features given $\sigma \seq \ang{0.0001}$ of Gaussian noise.
+%    To characterize the pivoting method itself, we only display instances where $\abs{R}\!\neq\!1$ with the first $b$ selection.
+%%    The Spherical Triangle strategy has $1{,}952 / 2{,}000$ runs matching the criteria before, the Planar Triangle
+%%    strategy has $1{,}946$ runs, and the Composite Pyramid strategy has $1{,}957$ runs.
+%    }\label{fig:rPivot}
+%    }
+%\end{figure}
+
+%\subsubsection{How expensive is the pivoting process?}
+%import numpy as np
+%m_1, m_2, s_1, s_2, n_1, n_2 = 52.71, 47.18, 56.794658219949106, 47.01765577951369, 1946, 1957
+%z = (m_2 - m_1) / np.sqrt( ((s_1 * s_1) / n_1) + ((s_2 * s_2) / n_2) )
+%As seen previously, identification strategies with triangular features have the most instances where $\abs{R} \seq 1$ given an image with no noise.
+%~\autoref{fig:rPivot} displays the average number of database accesses for these same strategies where the first image set $b$ selection does not meet the $R$ criterion given an image with Gaussian noise.
+%The average number of database accesses is higher in strategies that use the pivoting processes, as opposed to those that do not.
+%Given the null hypothesis that the difference between the Planar Triangle strategy's number of database accesses and the Composite Pyramid strategy's number of database accesses is not significant, $z \seq 3.3, p\!<\!0.0001$ is obtained with a two-tailed two sample $Z$ test.
+%With the data collected here, we find that the pivoting process results in more database accesses on average.
+%This increased number of accesses results in a $6.70\si{ms}$ difference on average between the two.
+%
+%The pivoting process was only tested with the strategies most frequently meeting the $\abs{R}\seq1 $ criterion.
+%An area of interest would be to see the effects of applying this process to strategies with angular features (i.e.\ Angle, Interior Angle, Pyramid).
+%These strategies met the criterion less frequently, and would likely benefit from attempting to reduce the $R$ set before deciding to choose another $b$ set.
+%
+%\subsection{Confidence Check}\label{subsec:identificationStep}
+%\subsubsection{How effective is a second confidence check?}
+%if __name__ == '__main__':
+%from numpy import std, average, sqrt
+%from sqlite3 import connect
+%from os import environ
+%
+%conn_1 = connect(environ['HOKU_PROJECT_PATH'] + '/data/lumberjack-all-triad.db')
+%conn_2 = connect(environ['HOKU_PROJECT_PATH'] + '/data/lumberjack-pyramid-noverify.db')
+%
+%name = 'Pyramid'
+%
+%sample_1 = list(map(lambda b: b.execute("""
+%SELECT PercentageCorrect
+%FROM IDENTIFICATION
+%WHERE ShiftDeviation < 1.0e-7 AND FalseStars = 0
+%AND IdentificationMethod LIKE '{}'
+%""".format(name)).fetchall(), [conn_1, conn_2]))
+%
+%sample_2 = list(map(lambda b: b.execute("""
+%SELECT PercentageCorrect
+%FROM IDENTIFICATION
+%WHERE ShiftDeviation < 1.0e-5 AND FalseStars = 0
+%AND IdentificationMethod LIKE '{}'
+%""".format(name)).fetchall(), [conn_1, conn_2]))
+%
+%sample_3 = list(map(lambda b: b.execute("""
+%SELECT PercentageCorrect
+%FROM IDENTIFICATION
+%WHERE ShiftDeviation < 1.0e-2 AND ShiftDeviation > 1.0e-4 AND FalseStars = 0
+%AND IdentificationMethod LIKE '{}'
+%""".format(name)).fetchall(), [conn_1, conn_2]))
+%
+%flatten = lambda a: [b[0] for b in a]
+%for i, sample in enumerate([sample_1, sample_2, sample_3]):
+%n_1, n_2 = 2000, 2000
+%m_1, m_2 = average(flatten(sample[0])), average(flatten(sample[1]))
+%s_1, s_2 = std(flatten(sample[0])), std(flatten(sample[1]))
+%print('Z Score of {}: {}'.format(i, (m_2 - m_1) / sqrt( ((s_1 * s_1) / n_1) + ((s_2 * s_2) / n_2) )))
+
+%import numpy as np
+%print(np.average( [6.97725 - 3.00525, 6.9615 - 3.005, 398.0655 -  ))
+%In~\autoref{fig:verify}, the accuracy of the map produced by the Pyramid and Composite Pyramid strategies are displayed with and without the second confidence check for varying levels of Gaussian noise.
+%In~\autoref{algorithm:pyramidIdentification}, this refers to the \Call{ConfidenceCheck}{} function.
+%Without noise, the Pyramid strategy without its second confidence check is 4.33\% less accurate than the Pyramid strategy with its original configuration on average.
+%This behavior is consistently seen for Gaussian noise of $\sigma\seq\ang{0.000001}$ \& $\sigma\seq\ang{0.001}$, and can be attributed to the more frequent rejection of incorrect maps with $R$ sets that have met the criterion.
+%In the $\sigma\seq\ang{0.001}$ case, there exists a difference of 389.95 accesses between both variations of the Pyramid and a 15\% mapping accuracy difference in favor of the strategy with the original configuration.
+%Given the null hypotheses that the difference between both variations of the Pyramid strategy are different for each level of noise, $z_0 \seq 15.87, z_{0.000001} \seq 16.04, z_{0.001} \seq 12.14$ (all $p\!<\!0.0001$) is obtained with two-tailed two sample $Z$ tests.
+%The verification step increases the accuracy of the Pyramid strategy.
+%
+%\begin{figure}
+%    \centering{
+%        \input{include/floats/verify}
+%        \caption{
+%        Depicts the frequency of correct maps (\texttt{ACC}) formed with and without the second confidence step (\Call{ConfidenceCheck}{}) of both the Pyramid and Composite Pyramid strategies.
+%        There exists $2{,}000$ runs for each identification strategy, with a database access limit (i.e.\ number of times the database is searched) of 500.
+%        The `-N' suffix indicates the strategy bypasses \Call{ConfidenceCheck}{}.
+%%        PYR corresponds to the Pyramid method with the verification step, PYR-N corresponds to the Pyramid method
+%%        without the verification step, COM corresponds to the Composite Pyramid method with the verification step,
+%%        and COM-N corresponds to the Composite Pyramid method without the verification step.
+%        }\label{fig:verify}
+%    }
+%\end{figure}
+%
+%\begin{figure*} % HAD TO MOVE THIS GUY TOO...
+%    \centering{
+%    \begin{subfigure}[b]{0.48\linewidth}
+%        \input{include/floats/gaussian-t}
+%    \end{subfigure}
+%    \begin{subfigure}[b]{0.48\linewidth}
+%        \input{include/floats/gaussian-fit}
+%    \end{subfigure}
+%    \caption{
+%    Both plots represent a statistic about the resulting map $h$ produced by each identification strategy given some image with varying Gaussian noise.
+%    There exists $2{,}000$ runs for each identification strategy, with the number of database accesses limited to 500.
+%    The left plot depicts the average time to obtain $h$, and the right plot depicts the trend line $\texttt{ACC} = c \cdot \mathit{\ln}\left( \sigma \right) + d$.
+%    }\label{fig:gaussianNoise}
+%    }
+%\end{figure*}
+
+%The response to Gaussian noise for the Composite Pyramid begins at $\sigma\seq\ang{0.001}$, with a 34.6\% difference between the two variants in favor of the strategy without the second confidence check.
+%Unlike the second confidence check in the Pyramid strategy, this filter appears to be too aggressive for the Composite Pyramid strategy.
+%The variant without the second confidence check has an average of 193.93 database accesses at $\sigma\seq\ang{0.001}$.
+%Without the second confidence check, the Composite Pyramid strategy only had an average of 8.114 database accesses, suggesting that the $\abs{R} \seq 1$ criterion and the \Call{DMT}{} process are sufficient enough for rejecting incorrect $R$ sets and maps.
+%
+%\subsection{End to End}\label{subsec:endToEndEvaluation}
+%\subsubsection{Which strategy is the fastest given no noise?}
+%In~\autoref{fig:gaussianNoise}, the left plot depicts the end to end running time of each identification strategy given varying degrees of Gaussian noise.
+%In the no noise case, the Angle strategy is the slowest identification strategy on average.
+%The next slowest strategy is the Composite Pyramid strategy, a factor of 2.95 times faster than the Angle strategy.
+%Recall that the Angle strategy had the fastest candidate retrieval, but the largest $\abs{R}$.
+%On average, it takes 69.85 database accesses to obtain a mapping and 68.10 database accesses to meet the $\abs{R} \seq 1$ criterion.
+%This suggests that the Angle strategy's long running time stems from the $\abs{R} \seq 1$ criterion and not the \Call{DMT}{} process.
+
+%import numpy as np
+%m_1, m_2, s_1, s_2, n_1, n_2 = 160.675, 170.7905, 0.53808, 0.52922, 2000, 2000
+%z = (m_2 - m_1) / np.sqrt( ((s_1 * s_1) / n_1) + ((s_2 * s_2) / n_2) )
+%The fastest strategy in the no noise case appears to be the Interior Angle strategy, with the second fastest strategy running 10.11 \si{ms} slower.
+%There exists $0 / 2{,}000$ runs where the Interior Angle strategy runs above the Pyramid strategy's average running time ($170.79$ $\si{ms}$) and the Interior Angle strategy has the fastest recorded identification run of $135\si{ms}$.
+%The Interior Angle strategy is the fastest identification strategy given no noise.
+
+%\subsubsection{Which strategy is the fastest given varying levels of Gaussian noise?}
+%As Gaussian noise is increased from $\sigma\seq\ang{0}$ to $\sigma\seq\ang{0.01}$, the Angle strategy experiences the largest response of $5{,}311.57$ additional $\si{ms}$.
+%The next slowest strategy in the noise of $\rho\seq\ang{0.01}$ case is the Interior Angle strategy, a factor of 7.46 times faster than the Angle strategy.
+%On average, the Angle strategy takes 399.66 database accesses to obtain a mapping and only 36.72 accesses to obtain $r$ here.
+%In the no noise case, this strategy's long running time can attributed to the aggressive $R$ criterion.
+%Given Gaussian noise, the \Call{DMT}{} process plays a larger role with the Angle strategy and returns to $b$ decision process more often.
+%
+%The Composite Pyramid strategy shows an interesting runtime response to this type of noise, running $1{,}139.92\si{ms}$ longer given $\ang{0.0001}$ of noise from no noise but $1{,}183.15\si{ms}$ shorter from $\ang{0.0001}$ of noise to $\ang{0.01}$.
+%The Pyramid strategy is observed to have this same running time response against noise at $\sigma\seq\ang{0.001}$ (not depicted).
+%The most probable explanation lies in how far each run travels from the $b$ decision step.
+%At $\sigma\seq\ang{0.0001}$, the Composite Pyramid has gone through the $\abs{R} \seq 1$ criterion and is likely choosing another $b$ set after the verification step.
+%At $\sigma\seq\ang{0.01}$ the strategy is not passing the same criterion, avoiding the verification step.
+
+%if __name__ == '__main__':
+%from numpy import std, average, sqrt
+%from sqlite3 import connect
+%from os import environ
+%
+%conn_1 = connect(environ['HOKU_PROJECT_PATH'] + '/data/lumberjack-all-triad.db')
+%conn_2 = connect(environ['HOKU_PROJECT_PATH'] + '/data/lumberjack-pyramid-noverify.db')
+%
+%sample_1 = conn_1.execute("""
+%SELECT TimeToResult
+%FROM IDENTIFICATION
+%WHERE ShiftDeviation > 1.0e-7 AND FalseStars = 0
+%AND IdentificationMethod LIKE 'Plane'
+%""").fetchall()
+%
+%sample_2 = conn_1.execute("""
+%SELECT TimeToResult
+%FROM IDENTIFICATION
+%WHERE ShiftDeviation > 1.0e-7 AND FalseStars = 0
+%AND IdentificationMethod LIKE 'Pyramid'
+%""").fetchall()
+%
+%flatten = lambda a: [b[0] for b in a]
+%n_1, n_2 = 12000, 12000
+%m_1, m_2 = average(flatten(sample_1)), average(flatten(sample_2))
+%s_1, s_2 = std(flatten(sample_1)), std(flatten(sample_2))
+%print('Z Score of: {}'.format((m_2 - m_1) / sqrt( ((s_1 * s_1) / n_1) + ((s_2 * s_2) / n_2) )))
+%The fastest strategy on average given images with Gaussian noise $\sigma \in \set{10^{-1}, 10^{-2}, \ldots, 10^{-6}}$ is the Pyramid strategy at $288.44$ $\si{ms}$ (of 12,000 runs).
+%%\begin{equation}\label{eq:sigmasTested}
+%%    \rho \in \set{10^{-1}, 10^{-2}, \ldots, 10^{-6}}
+%%\end{equation}
+%The second fastest strategy given the same noise set is the Planar Triangle strategy at $341.16\si{ms}$.
+%Given the null hypothesis that the difference between both averages is not significant, $z \seq 24.32, p\!<\!0.0001$ is found with a two-tailed two sample $Z$ test.
+%With the data collected here, the Pyramid strategy is the fastest strategy given varying amounts of Gaussian noise.
+%
+%\begin{figure*}
+%    \centering{
+%    \begin{subfigure}[b]{0.48\linewidth}
+%        \input{include/floats/false-t}
+%    \end{subfigure}
+%    \begin{subfigure}[b]{0.48\linewidth}
+%        \input{include/floats/false-acc}
+%    \end{subfigure}
+%    \caption{
+%    Both plots represent a statistic about the resulting map $h$ produced by each identification strategy given some image with varying amounts of spikes $\omega$.
+%    There exists $2{,}000$ runs for each identification strategy, with the number of database accesses limited to 500.
+%    The left plot depicts the average time to obtain a map $h$, and the right plot depicts the average accuracy of the produced $h$.
+%    }\label{fig:falseNoise}
+%    }
+%\end{figure*}
+
+%\subsubsection{Which strategy has the slowest growing map accuracy response to increasing noise?}
+%The selection of the retrieval $\epsilon$ parameters plays a significant role in accuracy of each strategy given images with Gaussian noise.
+%For strategies that search the database using on the $\theta$ feature (Angle, Interior Angle, Pyramid), the $\epsilon$ parameter serves as a rough upper bound for the amount of Gaussian noise tolerated.
+%In~\autoref{fig:gaussianNoise}, the plot on the right depicts the accuracy of resulting injection of each method for
+%varying levels of Gaussian noise.
+%When the level of noise is equal to the Angle and Pyramid $\epsilon_\theta$ parameter ($\ang{0.0001}$), both strategies have an average $h$ accuracy of $98.59\!\pm\!1.34\%$.
+%When Gaussian noise is increased to $\ang{0.001}$, both strategies drop to $47.02\!\pm\!1.58\%$.
+
+%For strategies with features that are not angular (Spherical Triangle, Planar Triangle, Composite Pyramid), characterizing the effect of Gaussian noise becomes more difficult.
+%These strategies have the parameters $\epsilon_a \seq 3\cdot 10^{-9}$ and $\epsilon_\tau \seq 3\cdot10^{-9}$, showing an initial accuracy response to noise at $\ang{0.00001}$.
+%The Interior Angle method has the largest query $\sigma$ parameters, and only experiences a response to noise at
+%$\ang{0.01}$.
+%Given the current set of query $\sigma$, the Interior Angle is the most accurate method on average.
+
+%Ranking each strategy based on their $h$ accuracy is not particularly insightful here given the heavy dependence on $\epsilon$ parameters, so instead we analyze the rate of change involved with varying levels of noise.
+%The right plot in~\autoref{fig:gaussianNoise} depicts the trend line for all strategies where $h$ accuracy (denoted as \texttt{ACC}) is displayed against the amount of Gaussian noise.
+%It has been observed that the accuracy of each strategy remains near 100\% until it decreases exponentially to zero:
+%\begin{equation}
+%    \texttt{ACC} =
+%    \begin{cases}
+%        0 & \sigma < 0 \\
+%        1 & 0 \leq \sigma < \hat{\sigma} \\
+%        c \cdot \ln(\sigma) + d & \sigma \geq \hat{\sigma}
+%    \end{cases}
+%\end{equation}
+%Each line was fit to the piecewise equation above ($c\cdot \ln(\sigma) + d$ term with least squares), where $c$ and $d$ are the parameters found with the regression, $\texttt{ACC}$ is the accuracy of the map $h$, and $\hat{\sigma}$ is the point where $\texttt{ACC}$ is observed to dip below 95\%.
+%The accuracy acceleration varies across strategies through the value of $c$:
+%\begin{equation}
+%    \frac{d^{2}\texttt{ACC}}{d\sigma^2} = \frac{-c}{\sigma^2}, \ \ \sigma \geq \hat{\sigma}
+%\end{equation}
+%A larger $c$ suggests that a change in retrieval $\epsilon$ or Gaussian noise will not affect the accuracy of the strategy as much as a strategy with a larger $c$.
+%The strategy with the largest acceleration toward $0\%$ \texttt{ACC} is the Interior Angle strategy ($c \seq -0.15749$).
+%The Spherical Triangle strategy has the slowest growing \texttt{ACC} response to increasing noise ($c \seq -0.09266$).
+%
+%\subsubsection{Which strategy is the fastest given varying amounts of false points?}
+%In~\autoref{fig:falseNoise}, the plot on the left depicts the end to end running time of each strategy given varying amounts of spikes (i.e.\ false points).
+%As the number of spikes increases from 0 to 12, the Angle strategy again experiences the largest response of $1{,}234.15$ $\si{ms}$.
+%The next fastest strategy is the Composite Pyramid strategy, a factor of 2.50 times faster than the Angle strategy.
+%The difference between the 1st and 2nd slowest strategies is 2.98 times less than the Gaussian noise case.
+%On average, it takes 114.23 database accesses to obtain a map and only 54.85 accesses to obtain $r$.
+%Relative to the Gaussian noise comparison, \Call{DMT}{} and $\abs{R} \seq 1$ criterion play a more equal role in the decision to choose a new $b$ set.
+
+%if __name__ == '__main__':
+%from numpy import std, average, sqrt
+%from sqlite3 import connect
+%from os import environ
+%
+%conn_1 = connect(environ['HOKU_PROJECT_PATH'] + '/data/lumberjack-all-triad.db')
+%conn_2 = connect(environ['HOKU_PROJECT_PATH'] + '/data/lumberjack-pyramid-noverify.db')
+%
+%sample_1 = conn_1.execute("""
+%SELECT TimeToResult
+%FROM IDENTIFICATION
+%WHERE FalseStars > 0
+%AND IdentificationMethod LIKE 'Pyramid'
+%""").fetchall()
+%
+%sample_2 = conn_1.execute("""
+%SELECT TimeToResult
+%FROM IDENTIFICATION
+%WHERE FalseStars > 0
+%AND IdentificationMethod LIKE 'Dot'
+%""").fetchall()
+%
+%flatten = lambda a: [b[0] for b in a]
+%n_1, n_2 = 8000, 8000
+%m_1, m_2 = average(flatten(sample_1)), average(flatten(sample_2))
+%s_1, s_2 = std(flatten(sample_1)), std(flatten(sample_2))
+%print('Z Score of: {}'.format((m_2 - m_1) / sqrt( ((s_1 * s_1) / n_1) + ((s_2 * s_2) / n_2) )))
+%The fastest strategy on average given images with spikes is the Pyramid strategy at $186.22\si{ms}$.
+%The images given to each strategy contained $\omega$ spikes, where $\omega \in \set{ 3, 6, 9, 12 }$.
+%The second fastest strategy given the same noise set is the Interior Angle strategy at $228.37\si{ms}$.
+%Given the null hypothesis that the difference between both averages is not significant, $z \seq 28.47, p\!<\!0.0001$ is
+%found with a two-tailed two sample $Z$ test.
+%The Pyramid strategy is the fastest strategy given varying amounts of spikes.
+%The process for choosing distinct image subsets is shown to be the fastest approach to finding a map that meets the Pyramid's confidence checks.
+
+%if __name__ == '__main__':
+%from numpy import std, average, sqrt, polyfit, log
+%from sqlite3 import connect
+%from os import environ
+%
+%conn_1 = connect(environ['HOKU_PROJECT_PATH'] + '/data/lumberjack-all-triad.db')
+%cur = conn_1.cursor()
+%
+%for name in ['Angle', 'Dot', 'Sphere', 'Plane', 'Pyramid', 'Composite']:
+%sample_1 = list(map(lambda a: a[0], cur.execute("""
+%SELECT AVG(TimeToResult)
+%FROM IDENTIFICATION
+%WHERE FalseStars > 0
+%AND IdentificationMethod LIKE ?
+%GROUP BY FalseStars
+%ORDER BY FalseStars
+%""", (name, )).fetchall()))
+%
+%t = polyfit([3, 6, 9, 12], sample_1, 1)
+%print('{name}: {t_0}*x + {t_1}'.format(name=name, t_0=round(t[0], 5), t_1=round(t[1], 5)))
+%Each strategy exhibits a linear increase to runtime as additional spikes are added.
+%To characterize each strategy's runtime as a function of false points, each strategy's runtime was fit to a linear equation using least squares:
+%\begin{equation}
+%    t = c\cdot\omega + d
+%\end{equation}
+%where $c$ and $d$ are the parameters found with the regression and $t$ is the end to end running time of the strategy.
+%A smaller $\abs{c}$ suggests that the number of spikes will affect the end to end runtime than that of a strategy with a larger $\abs{c}$.
+%The strategy with the largest $\abs{c}$ is the Angle strategy with $c \seq -414.559$.
+%The strategy with the smallest $\abs{c}$ term is the Pyramid strategy with $c \seq -6.766$.
+%The Pyramid strategy is the fastest given varying amounts of false points, having a runtime that is also the least responsive to increasing spikes.
+
+%\subsubsection{Which strategy is the most accurate given varying amounts of false points?}
+%if __name__ == '__main__':
+%from numpy import std, average, sqrt
+%from sqlite3 import connect
+%from os import environ
+%
+%conn_1 = connect(environ['HOKU_PROJECT_PATH'] + '/data/lumberjack-all-triad.db')
+%conn_2 = connect(environ['HOKU_PROJECT_PATH'] + '/data/lumberjack-pyramid-noverify.db')
+%
+%sample_1 = conn_1.execute("""
+%SELECT PercentageCorrect
+%FROM IDENTIFICATION
+%WHERE FalseStars = 12
+%AND (IdentificationMethod LIKE 'Plane' OR IdentificationMethod LIKE 'Sphere')
+%""").fetchall()
+%
+%sample_2 = conn_1.execute("""
+%SELECT PercentageCorrect
+%FROM REDUCTION
+%WHERE FalseStars = 12
+%AND (IdentificationMethod LIKE 'Plane' OR IdentificationMethod LIKE 'Sphere')
+%""").fetchall()
+%
+%flatten = lambda a: [b[0] for b in a]
+%n_1, n_2 = 2000, 2000
+%m_1, m_2 = average(flatten(sample_1)), average(flatten(sample_2))
+%s_1, s_2 = std(flatten(sample_1)), std(flatten(sample_2))
+%print('Z Score of: {}'.format((m_2 - m_1) / sqrt( ((s_1 * s_1) / n_1) + ((s_2 * s_2) / n_2) )))
+%In~\autoref{fig:falseNoise}, the plot on the right depicts the average accuracy of each mapping given varying amounts of spikes.
+%As the number of false points is increased from $\omega \seq 0$ to $\omega \seq 12$, the strategies that experience the largest $h$ accuracy response are the Spherical Triangle strategy ($30.42\%$ average decrease) and the Planar Triangle strategy ($29.68\%$ average decrease).
+%The average accuracy of the candidate selection is a few percent less than the average accuracy of $h$ here ($0.53\!\pm\!1.78\%$ for both strategies).
+%Given the null hypothesis that the difference between the accuracy of the $h$ map and the accuracy of the candidate selection is not significant, $z \seq 0.37, p \seq 0.71$ was found with a two-tailed two sample $Z$ test.
+%There does not exist enough data to reject this hypothesis with $\alpha \seq 0.01$.
+%This suggests that the \Call{DMT}{} process is neither helpful or detrimental to the end to end accuracy of these strategies.
+%
+%Ruling out the \Call{DMT}{} process, the most likely source of error for the triangle strategies is their decision of different $b$ sets.
+%If a false point exists as $b[1]$ in $b$, the triangle strategies will have to iterate through $n^2$ combinations and $n - 3$ pivots at most to choose another point that is not the spike.
+%The Angle strategy only has to wait $n$ additional combinations at most if a false point exists in $b$.
+%The Interior Angle strategy is able to get around the spike persistence problem by choosing $b$ sets based on their $\theta$ proximity to the central point.
+%The Pyramid and Composite Pyramid strategies have their $b$ decision process designed for this situation, increasing the average turnover of all points in the $b$ set.
+%
+%The Pyramid strategy has the most accurate map $h$ on average given images with all different $\omega$ at $99.84\!\pm\!3.53\%$.
+%The second most accurate strategy is the Composite Pyramid strategy at $99.19\!\pm\!8.95\%$.
+%Given the null hypothesis that the difference between the mapping accuracies of both strategies is not significant, $z \seq 3.02, p \seq 0.003$ with a two-tailed two sample $Z$ test.
+%At $\alpha \seq 0.01$, our hypothesis does not hold true.
+%The Pyramid strategy is the most accurate under varying amounts of spikes.
