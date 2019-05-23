@@ -28,35 +28,35 @@ The source of error for all other methods are a result of exhausting all $b$ set
 This source for the Pyramid and Composite Pyramid strategies most likely stems from their verification steps, which will incorrectly label $b$ and $r$ sets as invalid if the $b_4$ star is false.
 To isolate Motari's $b$ image subset decision for false stars, we removed the confidence check and found that both the Pyramid and Composite Pyramid strategies rose to a near 100\% accuracy with a runtime faster than the Angle, Planar Triangle, and Spherical Triangles.
 For the Interior Angle strategy, the source of error stems from not explore all possible combinations of $\imageset$, dealing with a situation that we never encounter a $b$ set without false positives.
-Iterating through all possible combinations of $\imageset$ is the most effective approach to dealing with images with false positives.
+We simulated the Interior Angle strategy with a naive $b$ subset approach and observed the accuracy of this method rise to the same near 100\% accuracy like the rest of the strategies.
 
 In an image of varying false negatives, all strategies except the pyramid strategies perform with similar accuracy.
 We note that strategies given images with false negatives perform very similar to the strategies given clean images.
-These errors stem as a result of an image possessing too little points to perform identification altogether, or in the case of the Composite Pyramid method: its verification step.
+These errors stem as a result of an image possessing too little points to perform identification altogether, or in the case of the Composite Pyramid method: it's verification step.
 The pyramid strategies requiring a minimum of four points raises the chance of having too little stars to perform identification, decreasing the overall accuracy.
 Removing the verification step for the pyramid methods raises the Composite Pyramid accuracy to a similar range of the rest and does not significantly affect the Pyramid accuracy, suggesting that the verification step is too aggressive of a filter overall.
 In terms of speed the Interior Angle method is again the fastest of the six, followed closely by Pyramid method.
 
 In an image with varying perturbed points the Angle strategy produces an accurate map 88.1\% of the time, 16.3\% more frequent than the next most accurate method: the Planar Triangle strategy.
-Removal of the verification step for the pyramid strategies raises the Pyramid strategy accuracy to 88.2\%, but only raises the Composite Pyramid strategy accuracy to 59.0\%.
+Removal of the verification step for the pyramid strategies raises the Pyramid strategy accuracy to 82.4\%, but only raises the Composite Pyramid strategy accuracy to 59.0\%.
 Unlike the results of the previous simulations, we see the emergence of incorrect maps returned by strategies instead of returning with an error.
 Though small, these maps are only produced by the strategies with triangular features (Planar Triangle, Spherical Triangle, Composite Pyramid).
 Similar to the results of images with false stars, the Interior Angle method suffers from not being able to choose all combinations of $\imageset$.
-Doing so would allow the Interior Angle method to select some $b$ that falls within an acceptable margin of error to map to some $r$.
+Running the Interior Angle method with a naive $b$ subset decision  raises the accuracy by 37.6\%, but this is still lower than the improved Composite Pyramid method.
 To address the speed component, the Pyramid method without its verification step is the fastest strategy here, followed by the Composite Pyramid strategy.
 
-To conclude, the Pyramid strategy without a verification step is the fastest and most accurate of all methods tested here.
-Followed closely in terms of accuracy but not speed is the Angle method, displaying the efficacy of a simpler approach.
-The Interior Angle method is faster than the Pyramid method given clean images, but its inability to search all combinations of $\imageset$ hinders its accuracy given misrepresented points.
-The triangular methods lie between the Angle and Interior Angle methods in terms of accuracy, but are a faster alternative to the Angle method due to its pivoting process.
-The Composite Pyramid attempts utilize a different feature set with the effectiveness of the Pyramid core but ultimately inherits the worst of each strategy.
+To conclude, the Pyramid strategy without a verification step is the fastest and most accurate given images with false positives.
+The Angle strategy bests the Pyramid method given images with perturbed points, but is a slower strategy overall.
+The Interior Angle strategy was improved by using a naive $b$ image subset decision and has the lowest floor in terms of speed, however this strategy handles perturbed points the worst of the six. 
+The triangular strategies lie between the Angle and Interior Angle methods in terms of accuracy, but are a faster alternative to the Angle method due to its pivoting process.
+The Composite Pyramid strategy attempts utilize a different feature set with the effectiveness of the Pyramid core but ultimately inherits the worst of each strategy.
 
 
 \begin{figure}
     \centering{
     \input{include/floats/overview-shr}
     \caption{
-    Depicts the average running time vs.\ the average accuracy of the resulting map for all methods given varying types of noise.
+    Depicts the average running time vs.\ the average accuracy of the resulting map for all unmodified methods given varying types of noise.
     	Each point is an average of $2{,}000$ runs.
     	Squares represent simulations with images without noise, triangles represent simulations with false positives, stars represent simulations with Gaussian noise, and circles represent simulations with false negatives.
     }\label{fig:results}
