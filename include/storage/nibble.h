@@ -16,15 +16,15 @@
 class Nibble {
 public:
     using tuple_d = std::vector<double>;
-    using tuples_d = std::vector<tuple_d>;
     using tuple_i = std::vector<int>;
+    using tuples_d = std::vector<tuple_d>;
 
     struct Either {
         double result;
         int error;
     };
 
-    std::unique_ptr<SQLite::Database> conn; // This must be public to work with SQLiteCpp library.
+    std::shared_ptr<SQLite::Database> conn; // This must be public to work with SQLiteCpp library.
 
 public:
     explicit Nibble (const std::string &database_name);

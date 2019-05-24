@@ -12,17 +12,22 @@
 \restylefloat{algorithm}
 
 \section{Constellation Query Processing Strategies}\label{sec:starIdentificationMethods}
-This section serves to describe our unified framework and a high-level overview of how six different approaches both adhere to this framework \& how they differ from each other.
+%This section serves to describe our unified framework and a high-level overview of how six different approaches both adhere to this framework \& how they differ from each other.
 %Six different approaches to constellation query processing are described in this section.
 %When the description did not specify a step in this flow, a simple or existing approach from another strategy was used.
 %Several deviations to the algorithms from the original literature were introduced from newer literature to evaluate
 %the effectiveness of these changes.
 
 \subsection{Unified Identification Strategy Framework}\label{subsec:unifiedIdentification}
-Each constellation query is presented with a set of points from an image $\imageset$ of size $n$ as well as a database containing two relations: one holds the collection of all known points $\texttt{REF}$ indexed by some identifier, and the other holds sets of these known points indexed by one or more features of the set itself: $R$.
-Elements in $R$ are henceforth referred to as $r$ sets, with $\abs{r}\seq d$. 
-The resultant is an $d$-sized subset of points from the image known as the $b$ set, as well as an injection from this subset to the database.
-Identification of all points in each image is not the focus.
+Each constellation query is presented with a set of points from an image
+$\imageset$ of size $n$ as well as a database containing two relations: $\texttt{REF}$ 
+holds the collection of all known points indexed by some
+identifier, and $R$ holds sets of these known points indexed by one or
+more features of the set itself.  Elements in $R$ are henceforth referred
+to as $r$ sets, with $\abs{r}\seq d$. 
+The resultant is an $d$-sized subset of points from the image known as the $b$
+set, as well as a mapping from this subset to the database.  Identification
+of all points in each image is not the focus.
 
 To start, all strategies begin by choosing a $b$ set from the image $\imageset$.
 $r$ sets are then retrieved from $R$ using some predicate dependent on the current $b$.

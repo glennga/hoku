@@ -2,119 +2,115 @@
 /// @author Glenn Galvizo
 ///
 /// Header file for Identification class, which holds all common data between all star identification processes.
+/// The identification class serves as an abstract base for other identification procedures (Angle, Pyramid, etc...).
+/// Contained in this class are shared members and functions between each identification procedure, as well as
+/// a method for 'completing' the attitude determination process `align()`.
 
 #ifndef HOKU_IDENTIFICATION_H
 #define HOKU_IDENTIFICATION_H
 
 #include <memory>
-#include "third-party/inih/INIReader.h"
+#include <algorithm>
 
+#include "benchmark/benchmark.h"
 #include "storage/chomp.h"
 #include "math/rotation.h"
 
 /// @brief Abstract base class for all identification procedures.
-///
-/// The identification class serves as an abstract base for other identification procedures (Angle, Pyramid, etc...).
-/// Contained in this class are shared members and functions between each identification procedure, as well as
-/// a method for 'completing' the attitude determination process `align()`.
 class Identification {
 public:
-    // All identification methods must contain these parameters.
-    struct Parameters {
-        /// Sigma used for database queries.
-        double sigma_1 = std::numeric_limits<double>::epsilon() * 10000;
+    template<class T>
+    class Builder;
 
-        /// Sigma used for additional reduction (triangle, dot...).
-        double sigma_2 = std::numeric_limits<double>::epsilon() * 10000;
-
-        /// Sigma used for phi in the Dot method.
-        double sigma_3 = std::numeric_limits<double>::epsilon() * 10000;
-
-        /// Resultant of inertial->body rotation must within 3 * sigma_overlay of *a* body.
-        double sigma_4 = std::numeric_limits<double>::epsilon() * 10000;
-
-        /// While performing a SQL query, limit results by this number.
-        unsigned int sql_limit = 500;
-
-        /// If true, the restrict |R| = 1 is lifted. R_1 is returned instead.
-        bool no_reduction = false;
-
-        /// If false, do not favor bright stars in resulting set.
-        bool favor_bright_stars = false;
-
-        /// Maximum number of query star comparisons before returning an empty list.
-        unsigned int nu_max = 50000;
-
-        /// Pointer to the location to hold the count of query star comparisons.
-        std::shared_ptr<unsigned int> nu = nullptr;
-
-        /// Function to use to solve Wahba's problem with.
-        Rotation::wahba_function f = Rotation::triad;
-
-        ///< Name of the Nibble database table created with 'generate_sep_table'.
-        std::string table_name = "NO_TABLE_DEFINED";
-    };
-
-    /// Alias for a list of labels.
     using labels_list = std::vector<int>;
-
-    // For errors when querying for a single label set, we define an "either" struct.
-    struct labels_either {
-        labels_list result; // Result associated with the computation.
-        int error = 0; // Error associated with the computation.
+    struct LabelsEither {
+        labels_list result;
+        int error = 0;
+    };
+    struct StarsEither {
+        Star::list result;
+        int error = 0;
     };
 
-    // For errors when reducing or identifying, we define an "either" struct.
-    struct stars_either {
-        Star::list result; // Result associated with the computation.
-        int error = 0; // Error associated with the computation.
-    };
+    Identification (const std::shared_ptr<Benchmark> &be, const std::shared_ptr<Chomp> &ch, double epsilon_1,
+                    double epsilon_2, double epsilon_3, double epsilon_4, unsigned int nu_max,
+                    const std::string &identifier, const std::string &table_name);
+    virtual ~Identification () = default;
 
 public:
-    Identification ();
+    virtual std::vector<labels_list> query () = 0;
+    virtual StarsEither reduce () = 0;
+    virtual StarsEither identify () = 0;
 
-    static Parameters collect_parameters (INIReader &cf, const std::string &identifier);
-
-    Star::list find_positive_overlay (const Star::list &big_p, const Rotation &q, std::vector<int> &i);
-
-    virtual std::vector<labels_list> query (const Star::list &s) = 0;
-
-    virtual stars_either reduce () = 0;
-
-    virtual stars_either identify () = 0;
-
-    Rotation align ();
-
-    Star::list identify_all ();
+    unsigned int get_nu ();
 
     static const int TABLE_ALREADY_EXISTS;
-
     static const int NO_CONFIDENT_A_EITHER;
     static const int NO_CONFIDENT_R_EITHER;
     static const int EXCEEDED_NU_MAX_EITHER;
 
-#if !defined ENABLE_TESTING_ACCESS
-    protected:
-#endif
+protected:
+    double epsilon_1, epsilon_2, epsilon_3, epsilon_4;
+    std::string identifier, table_name;
+    std::shared_ptr<Benchmark> be;
+    std::shared_ptr<Chomp> ch;
+    unsigned int nu_max, nu;
 
-    void sort_brightness (std::vector<labels_list> &big_r_ell);
+    static Star::list find_positive_overlay (const Star::list &big_i, const Star::list &big_p, const Rotation &q,
+                                             double epsilon);
+};
 
-    Star::list find_positive_overlay (const Star::list &big_p, const Rotation &q);
+template<class T>
+class Identification::Builder {
+public:
+    Builder &using_chomp (const std::shared_ptr<Chomp> &cho) {
+        ch = cho;
+        return *this;
+    }
+    Builder &given_image (const std::shared_ptr<Benchmark> &ben) {
+        be = ben;
+        return *this;
+    }
+    Builder &using_epsilon_1 (double epsilon) {
+        epsilon_1 = epsilon; // Epsilon used for database queries.
+        return *this;
+    }
+    Builder &using_epsilon_2 (double epsilon) {
+        epsilon_2 = epsilon; // Epsilon used for additional reduction (triangle, dot...).
+        return *this;
+    }
+    Builder &using_epsilon_3 (double epsilon) {
+        epsilon_3 = epsilon; // Epsilon used for phi in the Dot method.
+        return *this;
+    }
+    Builder &using_epsilon_4 (double epsilon) {
+        epsilon_4 = epsilon; // Resultant of inertial->body rotation must within epsilon_4 of *a* body.
+        return *this;
+    }
+    Builder &limit_n_comparisons (unsigned int n) {
+        nu_max = n; // Maximum number of query star comparisons before returning an empty list.
+        return *this;
+    }
+    Builder &identified_by (const std::string &id) {
+        identifier = id; // String identifier associated with this method.
+        return *this;
+    }
+    Builder &with_table (const std::string &name) {
+        table_name = name; // Name of table in nibble database to use to query for candidates.
+        return *this;
+    }
+    std::shared_ptr<T> build () {
+        return std::make_shared<T>(
+                be, ch, epsilon_1, epsilon_2, epsilon_3, epsilon_4, nu_max, identifier, table_name
+        );
+    }
 
-#if !defined ENABLE_TESTING_ACCESS
-    protected:
-#endif
-    /// Pointer to the star set we are working with. The catalog ID values should be all set to 0 here.
-    std::unique_ptr<Star::list> big_i;
-
-    /// Current working parameters.
-    std::unique_ptr<Parameters> parameters;
-
-    /// Chomp instance, gives us access to the Nibble database.
-    Chomp ch;
-
-    /// All stars in 'input' are fov degrees from the focus.
-    double fov;
+private:
+    double epsilon_1, epsilon_2, epsilon_3, epsilon_4;
+    std::string identifier, table_name;
+    std::shared_ptr<Benchmark> be;
+    std::shared_ptr<Chomp> ch;
+    unsigned int nu_max;
 };
 
 #endif /* HOKU_IDENTIFICATION_H */

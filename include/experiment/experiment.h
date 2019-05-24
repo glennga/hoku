@@ -1,14 +1,14 @@
 /// @file trial.h
 /// @author Glenn Galvizo
 ///
-/// Header file for all trials. This holds the namespaces of functions that allow us to test various
-/// methods and log the data.
+/// Header file for all trials. This holds the namespaces of functions that allow us to test various methods and log
+/// the data.
 
 #ifndef HOKU_EXPERIMENT_H
 #define HOKU_EXPERIMENT_H
 
 #include <cmath>
-#include "third-party/inih/INIReader.h"
+#include <functional>
 #include "third-party/cxxtimer/cxxtimer.hpp"
 
 #include "benchmark/benchmark.h"
@@ -16,280 +16,166 @@
 #include "experiment/lumberjack.h"
 
 /// @brief Namespace that holds all namespaces, functions, and parameters used to conduct every experiment with.
-///
-/// All experiment modifications (parameters) should be performed in **this file only**. \n
-/// There exist three subnamespaces holding the required functions for each experiment:
-/// @code{.cpp}
-/// 1. Query
-/// 2. Reduction
-/// 3. Identification
-/// @endcode
 namespace Experiment {
-    void present_benchmark (Chomp &ch, Star::list &big_i, Star::list &big_c, Star &center, double fov,
-                            double m_bar = 6.0);
+    struct Parameters { // Make your life easier, use the builder. (:
+        std::string identifier, reference_table;
+        double epsilon_1, epsilon_2, epsilon_3, epsilon_4;
+        double m_bar, image_fov;
+        unsigned int n_limit, nu_limit;
+
+        unsigned int samples, extra_star_min, extra_star_step, remove_star_step;
+        unsigned int shift_star_iter, extra_star_iter, remove_star_iter;
+        double shift_star_step, remove_star_sigma;
+    };
+
+    class ParametersBuilder;
 
     /// @brief Namespace that holds all parameters and functions to conduct the query experiment with.
-    ///
-    /// The query experiment is used to characterize the choose query stars and search catalog steps.
     namespace Query {
-        /// Schema comma separated string that corresponds to the creation of the query table.
-        const char *const SCHEMA = "IdentificationMethod TEXT, Timestamp TEXT, Sigma1 FLOAT, Sigma2 FLOAT, "
-                                   "Sigma3 FLOAT, ShiftDeviation FLOAT, CandidateSetSize FLOAT, RunningTime FLOAT, "
-                                   "SExistence INT";
-
-        void generate_n_stars (Chomp &ch, unsigned int n, Star::list &s, Star &center, double fov);
-
-        bool set_existence (std::vector<Identification::labels_list> &big_r_ell,
-                            Identification::labels_list &big_i_ell);
-
-        /// Generic experiment function for the query trials. Performs a query trial and records the experiment in
-        /// the lumberjack. The provided Nibble connection is used for generating the input image.
-        ///
-        /// @tparam T Identification class to perform query experiment with.
-        /// @param ch Nibble connection used to generate the input image.
-        /// @param lu Lumberjack connection used to record the results of each trial.
-        /// @param cf Configuration reader holding all parameters to use.
-        /// @param identifier Name of the identification method, in format (space): [angle, dot, sphere, plane,
-        /// pyramid, composite].
         template<class T>
-        void trial (Chomp &ch, Lumberjack &lu, INIReader &cf, const std::string &identifier) {
-            double fov = cf.GetReal("hardware", "fov", 0);
-            cxxtimer::Timer t(false);
-            Star::list s;
-            Star focus;
-
-            // Define our hyperparameters and testing parameters.
-            Identification::Parameters p = Identification::collect_parameters(cf, identifier);
-            int samples = static_cast<int>(cf.GetInteger("general-experiment", "samples", 0));
-            int ss_iter = static_cast<int>(cf.GetInteger("query-experiment", "ss-iter", 0));
-            double ss_step = cf.GetReal("query-experiment", "ss-step", 0);
-
-            for (int ss_i = 0; ss_i < ss_iter; ss_i++) {
-                double ss = (ss_i == 0) ? 0 : 1.0 / pow(ss_step, ss_i - 1);
-
-                // Repeat each trial n = SAMPLES times.
-                for (int i = 0; i < samples; i++) {
-                    generate_n_stars(ch, T::QUERY_STAR_SET_SIZE, s, focus, fov);
-                    Benchmark beta(s, focus, fov);
-                    beta.shift_light(T::QUERY_STAR_SET_SIZE, ss);
-
-                    // Perform a single trial.
-                    t.start();
-                    std::vector<Identification::labels_list> r = T(beta, p).query(s);
-                    t.stop();
-
-                    // Create the list to compare to.
-                    Identification::labels_list w;
-                    w.reserve(T::QUERY_STAR_SET_SIZE);
-                    for (unsigned int j = 0; j < T::QUERY_STAR_SET_SIZE; j++) {
-                        w.emplace_back(s[j].get_label());
-                    }
-
-                    // Log the results of the trial.
-                    lu.log_trial({p.sigma_1, p.sigma_2, p.sigma_3, ss, static_cast<double> (r.size()),
-                                  static_cast<double>(t.count()), (set_existence(r, w) ? 1.0 : 0)}), t.reset();
-                }
-            }
+        void trial (const std::shared_ptr<Chomp> &, const std::shared_ptr<Lumberjack> &,
+                    const std::shared_ptr<Experiment::Parameters> &) {
+            throw std::runtime_error("Not implemented.");
         }
     }
 
     /// @brief Namespace that holds all parameters and functions to conduct the reduction experiment with.
-    ///
-    /// The reduction experiment is used to characterize the choose query stars step to our attitude determination step.
     namespace Reduction {
-        /// Schema header that corresponds to the log file for all reduction trials.
-        const char *const SCHEMA = "IdentificationMethod TEXT, Timestamp TEXT, Sigma1 FLOAT, Sigma2 FLOAT, "
-                                   "Sigma3 FLOAT, ShiftDeviation FLOAT, FalseStars INT, QueryCount INT, "
-                                   "TimeToResult FLOAT, PercentageCorrect FLOAT";
-
-        double percentage_correct (const Star::list &big_i, const Identification::stars_either &r);
-
-        /// Generic experiment function for the reduction trials. Performs a reduction trial and records the experiment
-        /// in the lumberjack. The provided Nibble connection is used for generating the input image.
-        ///
-        /// @tparam T Identification class to perform reduction experiment with.
-        /// @param ch Nibble connection used to generate the input image.
-        /// @param lu Lumberjack connection used to record the results of each trial.
-        /// @param cf Configuration reader holding all parameters to use.
-        /// @param identifier Name of the identification method, in format (space): [angle, dot, sphere, plane,
-        /// pyramid, composite].
         template<class T>
-        void trial (Chomp &ch, Lumberjack &lu, INIReader &cf, const std::string &identifier) {
-            double fov = cf.GetReal("hardware", "fov", 0);
-            cxxtimer::Timer t(false);
-            Star::list big_i, big_c;
-            Star focus;
-
-            // Define our hyperparameters and testing parameters.
-            Identification::Parameters p = Identification::collect_parameters(cf, identifier);
-            int samples = static_cast<int>(cf.GetInteger("general-experiment", "samples", 0));
-            int ss_iter = static_cast<int>(cf.GetInteger("reduction-experiment", "ss-iter", 0));
-            int es_iter = static_cast<int>(cf.GetInteger("reduction-experiment", "es-iter", 0));
-            double ss_step = cf.GetReal("reduction-experiment", "ss-step", 0);
-            double es_min = cf.GetReal("reduction-experiment", "es-min", 0);
-            double es_step = cf.GetReal("reduction-experiment", "es-step", 0);
-
-            // Perform the shift trials, then the extra stars trial.
-            auto trial_specific_error = [&] (const bool is_shift, const int iter, const double step, const double min) {
-                for (int s_i = 0; s_i < iter; s_i++) {
-                    double s = is_shift ? ((s_i == 0) ? 0 : 1.0 / pow(step, s_i - 1)) :
-                               (min + static_cast<double>(s_i) * step);
-
-                    // Repeat each trial n = SAMPLES times.
-                    for (int i = 0; i < samples; i++) {
-                        present_benchmark(ch, big_i, big_c, focus, fov);
-                        Benchmark input(big_i, focus, fov);
-                        (is_shift) ? input.shift_light(static_cast<signed> (big_i.size()), s)
-                                   : input.add_extra_light(
-                                static_cast<unsigned int> (s));
-
-                        // Perform a single trial. Record it's duration.
-                        t.start();
-                        Identification::stars_either w = T(input, p).reduce();
-                        t.stop();
-
-                        // Log the results of our trial, and reset our timer.
-                        lu.log_trial({p.sigma_1, p.sigma_2, p.sigma_3, is_shift ? s : 0, !is_shift ? s : es_min,
-                                      static_cast<double>(*p.nu),
-                                      static_cast<double>(t.count()), percentage_correct(big_c, w)}), t.reset();
-                    }
-                }
-            };
-            trial_specific_error(true, ss_iter, ss_step, 0), trial_specific_error(false, es_iter, es_step, es_min);
+        void trial (const std::shared_ptr<Chomp> &, const std::shared_ptr<Lumberjack> &,
+                    const std::shared_ptr<Experiment::Parameters> &) {
+            throw std::runtime_error("Not implemented.");
         }
     }
 
     /// @brief Namespace that holds all parameters and functions to conduct the identification experiment with.
-    ///
-    /// The identification experiment is used to characterize each identifier from start to identification.
     namespace Map {
-        /// Schema header that corresponds to the log file for all identification trials.
-        const char *const SCHEMA = "IdentificationMethod TEXT, Timestamp TEXT, Sigma1 FLOAT, Sigma2 FLOAT, "
-                                   "Sigma3 FLOAT, Sigma4 FLOAT, ShiftDeviation FLOAT, FalseStars INT, "
-                                   "QueryCount INT, TimeToResult FLOAT, PercentageCorrect FLOAT, IsErrorOut INT";
+        double percentage_correct (const Identification::StarsEither &b, const Star::list &answers, double fov);
 
-        double percentage_correct (const Star::list &big_i, const Identification::stars_either &b, double fov);
-
-        /// Generic experiment function for the identification trials. Performs a identification trial and records the
-        /// experiment in the lumberjack. The provided Nibble connection is used for generating the input image.
-        ///
-        /// @tparam T Identification class to perform identification experiment with.
-        /// @param ch Nibble connection used to generate the input image.
-        /// @param lu Lumberjack connection used to record the results of each trial.
-        /// @param cf Configuration reader holding all parameters to use.
-        /// @param identifier Name of the identification method, in format (space): [angle, dot, sphere, plane,
-        /// pyramid, composite].
         template<class T>
-        void trial (Chomp &ch, Lumberjack &lu, INIReader &cf, const std::string &identifier) {
-            double fov = cf.GetReal("hardware", "fov", 0);
+        void trial (const std::shared_ptr<Chomp> &ch, const std::shared_ptr<Lumberjack> &lu,
+                    const std::shared_ptr<Experiment::Parameters> &ep) {
+            Benchmark be = Benchmark::Builder()
+                    .using_chomp(ch)
+                    .limited_by_m(ep->m_bar)
+                    .limited_by_n_stars(ep->n_limit)
+                    .limited_by_fov(ep->image_fov)
+                    .build();
+            std::shared_ptr<T> identifier = Identification::Builder<T>()
+                    .using_chomp(ch)
+                    .given_image(std::make_shared<Benchmark>(be))
+                    .using_epsilon_1(ep->epsilon_1)
+                    .using_epsilon_2(ep->epsilon_2)
+                    .using_epsilon_3(ep->epsilon_3)
+                    .using_epsilon_4(ep->epsilon_4)
+                    .limit_n_comparisons(ep->nu_limit)
+                    .identified_by(ep->identifier)
+                    .with_table(ep->reference_table)
+                    .build();
             cxxtimer::Timer t(false);
-            Star::list big_i, big_c;
-            Star focus;
 
-            // Define our hyperparameters and testing parameters.
-            Identification::Parameters p = Identification::collect_parameters(cf, identifier);
-            int samples = static_cast<int>(cf.GetInteger("general-experiment", "samples", 0));
-            int ss_iter = static_cast<int>(cf.GetInteger("identification-experiment", "ss-iter", 0));
-            int es_iter = static_cast<int>(cf.GetInteger("identification-experiment", "es-iter", 0));
-            double ss_step = cf.GetReal("identification-experiment", "ss-step", 0);
-            double es_min = cf.GetReal("identification-experiment", "es-min", 0);
-            double es_step = cf.GetReal("identification-experiment", "es-step", 0);
+            std::array<unsigned int, 3> iters = {ep->shift_star_iter, ep->extra_star_iter, ep->remove_star_iter};
+            std::array<std::function<double(int j)>, 3> errors = {
+                    [&] (int j) { return ((j == 0) ? 0 : j * ep->shift_star_step); },
+                    [&] (int j) { return ep->extra_star_min + j * ep->extra_star_step; },
+                    [&] (int j) { return ep->remove_star_step * j; }
+            };
+            std::array<std::function<void(double e)>, 3> error_consumers = {
+                    [&] (double e) { be.shift_light(static_cast<signed>(be.get_image()->size()), e); },
+                    [&] (double e) { be.add_extra_light(static_cast<signed>(e)); },
+                    [&] (double e) { be.remove_light(static_cast<unsigned int>(e), ep->remove_star_sigma); }
+            };
 
-            // Perform the shift trials, then the extra stars trial.
-            auto trial_specific_error = [&] (const bool is_shift, const int iter, const double step, const double min) {
-                for (int s_i = 0; s_i < iter; s_i++) {
-                    double s = is_shift ? ((s_i == 0) ? 0 : 1.0 / pow(step, s_i - 1)) :
-                               (min + static_cast<double>(s_i) * step);
+            for (int i = 0; i < 3; i++) {
+                for (unsigned int j = 0; j < iters[i]; j++) {
+                    double error = errors[i](j);
 
-                    // Repeat each trial n = SAMPLES times.
-                    for (int i = 0; i < samples; i++) {
-                        present_benchmark(ch, big_i, big_c, focus, fov);
-                        Benchmark input(big_i, focus, fov);
-                        (is_shift) ? input.shift_light(static_cast<signed> (big_i.size()), s)
-                                   : input.add_extra_light(static_cast<unsigned int> (s));
+                    for (unsigned int k = 0; k < ep->samples; k++) {
+                        std::cout << "[EXPERIMENT] Generating stars..." << std::endl;
+                        be.generate_stars(ch, Benchmark::NO_N, ep->m_bar);
+                        error_consumers[i](error);
 
-                        // Perform a single trial. Record it's duration.
-                        t.start();
-                        Identification::stars_either w = T(input, p).identify();
+                        std::cout << "[EXPERIMENT] Performing identification." << std::endl;
+                        t.start(); // Perform a single trial. Record it's duration.
+                        Identification::StarsEither w = identifier->identify();
                         t.stop();
 
-                        // Log the results of our trial.
-                        lu.log_trial(
-                                {p.sigma_1, p.sigma_2, p.sigma_3, p.sigma_4, is_shift ? s : 0, !is_shift ? s : es_min,
-                                 static_cast<double>(*p.nu), static_cast<double>(t.count()),
-                                 percentage_correct(big_i, w, fov),
-                                 (w.error == Identification::NO_CONFIDENT_A_EITHER) ? 0.0 : 1.0}), t.reset();
+                        lu->log_trial({ep->epsilon_1, ep->epsilon_2, ep->epsilon_3, ep->epsilon_4,
+                                       (i == 0) ? error : 0.0, (i == 1) ? error : 0.0, (i == 2) ? error : 0.0,
+                                       static_cast<double>(identifier->get_nu()),
+                                       static_cast<double>(t.count()),
+                                       percentage_correct(w, *be.get_answers(), be.get_fov()),
+                                       (w.error == Identification::NO_CONFIDENT_A_EITHER) ? 1.0 : 0.0
+                        }), t.reset();
                     }
                 }
-            };
-            trial_specific_error(true, ss_iter, ss_step, 0), trial_specific_error(false, es_iter, es_step, es_min);
-        }
-    }
-
-    /// @brief Namespace that holds all parameters and functions to conduct the Overlay experiment with.
-    ///
-    /// The overlay experiment is used to characterize the direct match test process.
-    namespace Overlay {
-        /// Schema comma separated string that corresponds to the creation of the DMT table.
-        const char *const SCHEMA = "IdentificationMethod TEXT, Timestamp TEXT, Sigma4 FLOAT, ShiftDeviation FLOAT, "
-                                   "FalseStars INT, TruePositive INT, FalsePositive INT, TrueNegative INT, "
-                                   "FalseNegative INT, N INT";
-
-        std::array<double, 5> confusion_matrix (const Star::list &big_i_prime, const Star::list &big_i,
-                                                const std::vector<int> &big_i_i, double es);
-
-        /// Experiment function for the DMT trials. Performs a overlay trial and records the experiment in the
-        /// lumberjack. The provided Nibble connection is used for generating the input image.
-        ///
-        /// @tparam T Identification class to perform overlay trials with. Used only as a wrapper for FPO method.
-        /// @param ch Nibble connection used to generate the input image.
-        /// @param lu Lumberjack connection used to record the results of each trial.
-        /// @param cf Configuration reader holding all parameters to use.
-        /// @param identifier Name of the identification method, in format (space): [angle, dot, sphere, plane,
-        /// pyramid, composite].
-        template<class T>
-        void trial (Chomp &ch, Lumberjack &lu, INIReader &cf, const std::string &identifier) {
-            double fov = cf.GetReal("hardware", "fov", 0);
-            std::vector<int> big_i_i;
-            Star::list big_i, big_c;
-            Star focus;
-
-            // Define our hyperparameters and testing parameters.
-            Identification::Parameters p = Identification::collect_parameters(cf, identifier);
-            int samples = static_cast<int>(cf.GetInteger("general-experiment", "samples", 0));
-            int ss_iter = static_cast<int>(cf.GetInteger("overlay-experiment", "ss-iter", 0));
-            int es_iter = static_cast<int>(cf.GetInteger("overlay-experiment", "es-iter", 0));
-            double ss_step = cf.GetReal("overlay-experiment", "ss-step", 0);
-            double es_min = cf.GetReal("overlay-experiment", "es-min", 0);
-            double es_step = cf.GetReal("overlay-experiment", "es-step", 0);
-
-            // Perform the shift trials, then the extra stars trial.
-            auto trial_specific_error = [&] (const bool is_shift, const int iter, const double step, const double min) {
-                for (int s_i = 0; s_i < iter; s_i++) {
-                    double s = is_shift ? ((s_i == 0) ? 0 : 1.0 / pow(step, s_i - 1)) :
-                               (min + static_cast<double>(s_i) * step);
-
-                    // Repeat each trial n = SAMPLES times.
-                    for (int i = 0; i < samples; i++) {
-                        present_benchmark(ch, big_i, big_c, focus, fov);
-                        Benchmark input(big_i, focus, fov);
-                        (is_shift) ? input.shift_light(static_cast<signed> (big_i.size()), s, false)
-                                   : input.add_extra_light(static_cast<unsigned int> (s), false);
-
-                        // Perform a single trial.
-                        Star::list w = T(input, p).find_positive_overlay(big_c, p.f({big_i[0], big_i[1]},
-                                                                                    {big_c[0], big_c[1]}), big_i_i);
-
-                        // Log the results of our trial.
-                        std::array<double, 5> c = confusion_matrix(w, big_i, big_i_i, (is_shift) ? es_min : s);
-                        lu.log_trial(
-                                {p.sigma_4, is_shift ? s : 0, !is_shift ? s : es_min, c[0], c[1], c[2], c[3], c[4]});
-                    }
-                }
-            };
-            trial_specific_error(true, ss_iter, ss_step, 0), trial_specific_error(false, es_iter, es_step, es_min);
+            }
         }
     }
 }
+
+class Experiment::ParametersBuilder {
+public:
+    ParametersBuilder &prefixed_by (const std::string &name) {
+        p.identifier = name;
+        return *this;
+    }
+    ParametersBuilder &using_reference_table (const std::string &name) {
+        p.reference_table = name;
+        return *this;
+    }
+    ParametersBuilder &with_epsilon (const double e1, const double e2, const double e3, const double e4) {
+        p.epsilon_1 = e1, p.epsilon_2 = e2, p.epsilon_3 = e3, p.epsilon_4 = e4;
+        return *this;
+    }
+    ParametersBuilder &with_image_of_size (const double fov) {
+        p.image_fov = fov;
+        return *this;
+    }
+    ParametersBuilder &limited_by_n (const unsigned int n) {
+        p.n_limit = n;
+        return *this;
+    }
+    ParametersBuilder &limited_by_m (const double m) {
+        p.m_bar = m;
+        return *this;
+    }
+    ParametersBuilder &limited_by_nu (const unsigned int nu) {
+        p.nu_limit = nu;
+        return *this;
+    }
+    ParametersBuilder &repeated_for_n_times (const unsigned int samples) {
+        p.samples = samples;
+        return *this;
+    }
+    ParametersBuilder &with_n_shift_star_trials (const unsigned int ssi) {
+        p.shift_star_iter = ssi;
+        return *this;
+    }
+    ParametersBuilder &with_n_extra_star_trials (const unsigned int esi) {
+        p.extra_star_iter = esi;
+        return *this;
+    }
+    ParametersBuilder &with_n_remove_star_trials (const unsigned int rsi) {
+        p.remove_star_iter = rsi;
+        return *this;
+    }
+    ParametersBuilder &using_shift_star_parameters (const double step) {
+        p.shift_star_step = step;
+        return *this;
+    }
+    ParametersBuilder &using_extra_star_parameters (const unsigned int min, const unsigned int step) {
+        p.extra_star_step = min, p.extra_star_step = step;
+        return *this;
+    }
+    ParametersBuilder &using_remove_star_parameters (const unsigned int step, const double sigma) {
+        p.remove_star_step = step, p.remove_star_sigma = sigma;
+        return *this;
+    }
+    Parameters build () { return this->p; }
+
+private:
+    Parameters p;
+};
 
 #endif /* HOKU_EXPERIMENT_H */
