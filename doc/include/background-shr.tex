@@ -25,16 +25,11 @@ The images capture a rectangular region of space -- think of an image of the sky
 Each image is essentially a collection of bright spots (celestial objects) and their location in the image coordinate system.
 To find the attitude of the spacecraft, we first have to match the pattern of celestial objects in the image to a database of known celestial objects.
 We refer to such database queries as \textit{Constellation Queries}:
-Given a set of query points in the image coordinate system, find the set of
-points, i.e.\ constellations, in a database of known points (in a standard
-coordinate system) that matches a subset of the query points.
+Given a set of query points in the image coordinate system, find the set of points, i.e.\ constellations, in a database of known points (in a standard coordinate system) that matches a subset of the query points.
 
-Hypothetically, if we could transform the query points and database points to a
-common coordinate system, then constellation queries would be a simple database
-lookup for each query point. Unfortunately, evaluating constellation queries
-are complicated by several issues. First the query points and the points in the
-database are in two different coordinate systems and the transformation between
-the two coordinate system is not known \emph{a priori}.
+Hypothetically, if we could transform the query points and database points to a common coordinate system, then constellation queries would be a simple database lookup for each query point.
+Unfortunately, evaluating constellation queries are complicated by several issues. 
+First the query points and the points in the database are in two different coordinate systems and the transformation between the two coordinate system is not known \emph{a priori}.
 In fact, attitude determination \emph{is} finding the transformation between the two coordinate systems.
 Second, the query points are affected by transient celestial objects (e.g.\ meteors) resulting in spurious points in the image, obstructions resulting in missing points, and camera characteristics resulting in deviations of the query point's true position.
 
@@ -94,26 +89,14 @@ Second, the query points are affected by transient celestial objects (e.g.\ mete
 %The \textit{TRIAD method} (short for TRIaxial Attitude Determination) is typically used as a closed form solution~\cite{markley:attitudeDeterminationTwoVectors} to Wahba's problem after evaluating the constellation query to retrieve the matching set of points from the database.
 %Hence, constellation queries do not deal with finding the transformation matrix $A$, but focus on finding the sets of points, i.e.\ constellations, in a database of known points (in a standard coordinate system) that best matches a set of query points (in the image coordinate system) in the query image.
 
-The constellation queries studied in this paper can be viewed as a type of
-\emph{subgraph isomorphism query} that aims to find some 1-to-1 mapping between
-the vertices in two graphs (i.e.\ the reference database and the image) if it
-exists~\cite{scott:graphIsomorphismProblem}. The subgraph isomorphism
-formulation is often juxtaposed with \emph{pattern recognition approaches},
-which map larger sets of points within a defined field-of-view across some
-reference table and image~\cite{padgett:gridAlgorithm}.
-We also focus on \emph{non-recursive} constellation queries -  
-queries that does not process results from an \emph{prior} query.
-In recursive searches such as the SP-Search and SNA by
-Samaan~\cite{samaan:recursiveMode}, an additional filter can be applied to the
-query that limits the possible database points that map to our image set.
+The constellation queries studied in this paper can be viewed as a type of \emph{subgraph isomorphism query} that aims to find some 1-to-1 mapping between the vertices in two graphs (i.e.\ the reference database and the image) if it exists~\cite{scott:graphIsomorphismProblem}.
+The subgraph isomorphism formulation is often juxtaposed with \emph{pattern recognition approaches}, which map larger sets of points within a defined field-of-view across some reference table and image~\cite{padgett:gridAlgorithm}.
+We also focus on \emph{non-recursive} constellation queries - queries that does not process results from a \emph{prior} query.
+In recursive searches such as the SP-Search and SNA by Samaan~\cite{samaan:recursiveMode}, an additional filter can be applied to the query that limits the possible database points that map to our image set.
 We are also interested in indexing strategies for constellation queries.
-we indexed our reference relations solely by some statistic of a collection of
-star positions (e.g.\ the interstar angle between two points, the area between
-three points), rather than indexing by star brightnesses (see Scholl\cite{scholl:starFieldIdentification}, Ketchum~\cite{ketchum:onboardStarIdentification}, and more recently Zhang et. al~\cite{zhang:brightnessReferenced}).
-There is also much prior work on optimizing the data accesses in
-constellation queries, most notably Motari's SLA (Search-Less
-Algorithm)~\cite{mortari:kVectorApproach}. Our focus is on the end-to-end
-constellation query and not just on the data access aspects. 
+We indexed our reference relations solely by some statistic of a collection of star positions (e.g.\ the interstar angle between two points, the area between three points), rather than indexing by star brightnesses (see Scholl\cite{scholl:starFieldIdentification}, Ketchum~\cite{ketchum:onboardStarIdentification}, and more recently Zhang et. al~\cite{zhang:brightnessReferenced}).
+There is also much prior work on optimizing the data accesses in constellation queries, most notably Motari's SLA (Search-Less Algorithm)~\cite{mortari:kVectorApproach}.
+Our focus is on the end-to-end constellation query and not just on the data access aspects. 
 
 This paper is an empirical survey of six existing constellation query processing strategies in the literature and in the industry.
 %The six strategies are: the Angle strategy, the Interior Angle strategy, the Spherical Triangle strategy, the Planar Triangle strategy, the Pyramid strategy, and the Composite Pyramid strategy.
@@ -125,8 +108,7 @@ This paper is an empirical survey of six existing constellation query processing
 %\end{itemize}
 To the best of our knowledge, no systematic survey exists for these constellation query processing algorithms, no attempts have been made to study them in a unified framework, and no empirical evaluation of these algorithms have been done even though many of these algorithms have been deployed in spacecrafts and satellites (SAS-3, HTSE, ISC~\cite{gottlieb:spacecraftAttitudeDetermination,mortari:pyramidIdentification}).
 Additional survey papers have been published by Spratling~\cite{spratling:surveyStarIdentification} and
-Br\"{a}tt~\cite{bratt:analysisStarIdentification}, but our research focuses on the specific area of constellation
-queries (not image processing, attitude determination, or database searching) and describes each strategy within a unified framework.
+Br\"{a}tt~\cite{bratt:analysisStarIdentification}, but our research focuses on the specific area of constellation queries (not image processing, attitude determination, or database searching) and describes each strategy within a unified framework.
 
 %Our analysis focuses on a hardware-independent comparison of constellation query processing strategies and does not
 %address the preprocessing of an image to identifying blobs.

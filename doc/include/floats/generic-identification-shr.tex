@@ -15,7 +15,7 @@ fill=green!30, inner sep=-12pt]
 % Style for line.
 \tikzstyle{line} = [draw, -latex']
 
-\begin{tikzpicture}[node distance=1.3cm, scale=0.8, transform shape]
+\begin{tikzpicture}[node distance=1.3cm, scale=0.77, transform shape]
     \node[scale=1](getImage)[terminal]{Given Image Set, Reference Database};
     \node[scale=1](pickQueryStars) [process, left of=getImage, xshift =-2.2cm] {Select Subset from Image Set};
     \node[scale=1](searchCatalog)[process, below of=pickQueryStars, yshift=-0.7cm] {Query Reference with Feature Predicate(s)};
