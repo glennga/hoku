@@ -199,20 +199,26 @@ Identification::StarsEither Dot::reduce () {
 Identification::StarsEither Dot::identify () {
     nu = 0;
 
-    for (const Star &c : *be->get_image()) {
-        Star::trio b = find_closest(c);
+    for (int i = 0; i < static_cast<signed> (be->get_image()->size() - 2); i++) {
+	    for (int j = i + 1; j < static_cast<signed> (be->get_image()->size() - 1); j++) {
+		    for (int k = i + 2; k < static_cast<signed> (be->get_image()->size()); k++) {
+			    Star::trio b = {be->get_image()->at(i),
+				            be->get_image()->at(j),
+				            be->get_image()->at(k)};
+    // for (const Star &c : *be->get_image()) {
+        // Star::trio b = find_closest(c);
         bool is_swapped = false;
 
         // Practical limit: exit early if we have iterated through too many comparisons without match.
         if (nu > nu_max) return StarsEither{{}, EXCEEDED_NU_MAX_EITHER};
 
         // Determine which stars map to the current 'b'. If this fails, swap b_i and b_j.
-        std::cout << "[DOT] Finding candidate trio with central star [" << c << "]" << std::endl;
+        std::cout << "[DOT] Finding candidate trio." << std::endl;
         TriosEither r = find_candidate_trio(b[0], b[1], b[2]);
-        if (r.error == NO_CANDIDATE_TRIO_FOUND_EITHER) {
-            std::cout << "[DOT] Reversing candidate trio." << std::endl;
-            r = find_candidate_trio(b[0], b[1], b[2]), is_swapped = true;
-        }
+        // if (r.error == NO_CANDIDATE_TRIO_FOUND_EITHER) {
+        //     std::cout << "[DOT] Reversing candidate trio." << std::endl;
+        //     r = find_candidate_trio(b[0], b[1], b[2]), is_swapped = true;
+        // }
 
         // If there exist no matches at this point, then repeat for another pair.
         if (r.error == NO_CANDIDATE_TRIO_FOUND_EITHER) continue;
@@ -224,7 +230,8 @@ Identification::StarsEither Dot::identify () {
                 Star::define_label(b[(is_swapped) ? 1 : 0], r.result[0].get_label()),
                 Star::define_label(b[(is_swapped) ? 0 : 1], r.result[1].get_label())
         }, 0};
-    }
+		    }}}
+    // }
 
     return StarsEither{{}, NO_CONFIDENT_A_EITHER};
 }
