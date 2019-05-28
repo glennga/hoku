@@ -11,7 +11,7 @@
 \newfloat{algorithm}{t}{lop}
 \restylefloat{algorithm}
 
-\section{Constellation Query Processing Strategies}\label{sec:starIdentificationMethods}
+\section{Query Processing Strategies}\label{sec:starIdentificationMethods}
 %This section serves to describe our unified framework and a high-level overview of how six different approaches both adhere to this framework \& how they differ from each other.
 %Six different approaches to constellation query processing are described in this section.
 %When the description did not specify a step in this flow, a simple or existing approach from another strategy was used.
@@ -19,24 +19,19 @@
 %the effectiveness of these changes.
 
 \subsection{Unified Identification Strategy Framework}\label{subsec:unifiedIdentification}
-Each constellation query is presented with a set of points from an image
-$\imageset$ of size $n$ as well as a database containing two relations: $\texttt{REF}$ 
-holds the collection of all known points indexed by some
-identifier, and $R$ holds sets of these known points indexed by one or
-more features of the set itself.  Elements in $R$ are henceforth referred
-to as $r$ sets, with $\abs{r}\seq d$. 
-The resultant is an $d$-sized subset of points from the image known as the $b$
-set, as well as a mapping from this subset to the database.  Identification
-of all points in each image is not the focus.
+Each constellation query is presented with a set of points from an image $\imageset$ of size $n$ as well as a database containing two relations: $\texttt{REF}$ holds the collection of all known points indexed by some identifier, and $\texttt{REF}_\texttt{STRATEGY}$ holds sets of these known points indexed by one or more strategy specific features of the set itself.
+Elements in $\texttt{REF}_\texttt{STRATEGY}$ are henceforth referred to as $r$ sets, with $\abs{r}\seq d$. 
+The resultant of the constellation query is a $d$-sized subset of points from the image known as the $b$ set, as well as a mapping from this set to the database.
+Identification of all points in each image is not the focus.
 
-To start, all strategies begin by choosing a $b$ set from the image $\imageset$.
-$r$ sets are then retrieved from $R$ using some predicate dependent on the current $b$.
+To start the query, all strategies begin by choosing a $b$ set from the image $\imageset$.
+$r$ sets are then retrieved from $\texttt{REF}_\texttt{STRATEGY}$ using some predicate dependent on the current $b$.
 If there exists only one $r$ as a result, then we proceed.
 Otherwise, we loop back to the first step and select a different subset of $d$ stars.
 Certain methods may also choose to invoke a secondary database retrieval utilizing a new database set to filter the current $r$ before deciding to choose a different $b$ altogether.
 Once we have found a unique $r$ set, we determine a mapping between this set and $b$.
 If we are confident in this map, we return this function along with the current $b$ set.
-Otherwise, we loop back to the start and choose another $b$ set.
+Otherwise, we loop back to the start and choose a new \& distinct $b$ set.
 This process is depicted in~\autoref{figure:unifiedIdentificationFlowchart}.
 In the event we exhaust all possible $b$ sets, an error is raised and no map is returned.
 
@@ -156,7 +151,7 @@ In the event we exhaust all possible $b$ sets, an error is raised and no map is 
 
 % Citation: https://digitalcommons.usu.edu/cgi/viewcontent.cgi?article=2723&context=etd AND Gottlieb.
 \subsection{Overview of Strategies}\label{subsec:strat}
-We discuss six strategies in this section: the Angle strategy (ANG), the Interior Angle strategy (INT), the Spherical Triangle strategy (SPH), the Planar Triangle strategy (PLN), the Pyramid strategy (PYR), and the Composite Pyramid strategy (COM).
+We discuss all six strategies in this section: the Angle strategy, the Interior Angle strategy, the Spherical Triangle strategy, the Planar Triangle strategy, the Pyramid strategy, and the Composite Pyramid strategy.
 
 %\subsection{Angle Strategy (ANG)}\label{subsec:angleMethod}
 \newcommand{\invalidBijection}{\If{$\solutionmap$ is valid}}
@@ -189,9 +184,9 @@ We discuss six strategies in this section: the Angle strategy (ANG), the Interio
 %    \end{algorithmic}
 %\end{algorithm}
 
-The \textit{Angle} strategy is composed of a naive image subset $\imagesubset$ decision, angular features of pairs first described by Gottlieb's Polygon Angular Matching strategy, and a direct-match test for identification.
-Given a set of points from an image $\imageset$, our query starts by selecting two distinct points to represent the $b$ set.
-To naively select some $b$ is to fix the point $b_1 \in \imagesubset$ for $n$ image subset selections, while constantly changing $b_2$ for every new $\imagesubset$ choice.
+The \textit{Angle} strategy (abbreviated as ANG) is composed of a naive image subset decision, angular features of point pairs, and an exhaustive optimal map determination procedure.
+Given a point set from the image $\imageset$, our query starts by selecting $d\seq 2$ distinct points $b_1, b_2$ to represent the $b$ set.
+To naively select some $b$ is to fix the point $b_1$ for $n$ image subset selections, while constantly changing $b_2$ for every new $\imagesubset$ choice.
 %\begin{equation}
 %\begin{aligned}
 %		\text{1st } b &= \{ \imageset[1], \imageset[2] \} \\
@@ -201,11 +196,10 @@ To naively select some $b$ is to fix the point $b_1 \in \imagesubset$ for $n$ im
 %	P(n, 2)\text{th } b &= \{ \imageset[n - 1], \imageset[n] \}
 %\end{aligned}
 %\end{equation}
-Now having an image subset, the next step involves creating the predicate to search for $r$ sets with.
-Let $\texttt{REF}_\texttt{ANG}$ define a relation holding tuples of all combinations of two \texttt{REF} identifiers, indexed by the angular separation between both \texttt{REF} points.
+With an image subset selected the strategy proceeds by querying $\texttt{REF}_\texttt{ANG}$, a relation holding tuples of all combinations of two \texttt{REF} identifiers, indexed by the angular separation between both \texttt{REF} points.
 The Angle method performs a range search across $\texttt{REF}_\texttt{ANG}$ for all $r$ sets such that the angular separation defined in $\texttt{REF}_\texttt{ANG}$ is close to the separation between the image subset~\cite{bratt:analysisStarIdentification}.
 If our database search yields a single $r$ set, we proceed to the last step: finding a mapping through a process known as the direct-match test.
-Tappe's implementation of this procedure iterates through all possible maps, transforms the image to the standard coordinate system using this pairing, and chooses the map with the most amount of image points close to some database point~\cite{tappe:starTrackerDevelopment,needelman:stellarAttitudeAcquisition}.
+We follow Tappe's implementation of this procedure, which iterates through all possible maps, transforms the image to the standard coordinate system using this pairing, and chooses the map with the most amount of image points close to some database point~\cite{tappe:starTrackerDevelopment,needelman:stellarAttitudeAcquisition}.
 In the event both maps possess no matching database points other than those in $r$, we return to the image subset selection step.
 
 %To determine the most likely mapping $h$, we perform \Call{$DMT$}{} with $b$ and $r$ to either get a map between every element in $b$ to $r$, or an invalid map signaling us to repeat the query for another image set and candidate.
@@ -291,17 +285,16 @@ In the event both maps possess no matching database points other than those in $
 %    \end{algorithmic}
 %\end{algorithm}
 
-The \textit{Interior Angle} strategy is composed of Liebe's feature set (two interstar angles, an interior angle), Liebe's $\imagesubset$ image subset decision, and a permutation store for identification.
-Given a set of points from the image $\imageset$, Liebe approaches the image subset $b$ selection problem by choosing the first image point $b_c \seq \imageset[1]$ and two of the nearest image points $b_1, b_2$ to $\imageset[1]$ to compose $b \seq \{ b_c, b_1, b_2 \}$.
-To select another $b$ set is to choose $b_c \seq \imageset[2]$ and the two nearest stars to $\imageset[2]$.
-Liebe's image subset decision iterates through $\imageset$ once, not exploring all possible combinations like the Angle strategy~\cite{liebe:starTrackersAttitudeDetermination}.
-With an image subset selected, we can now search for $r$ sets.
-There are three features associated with this strategy: (a) the angular separation between the first image point and the second, (b) the angular separation between first image point and the third, and (c) the angular separation between the second and third image points with the first point as the vertex.
-Let $\texttt{REF}_\texttt{INT}$ define a relation holding tuples of all \emph{permutations} of three $\texttt{REF}$ identifiers, pairwise indexed by all the previously mentioned features for the corresponding $r$ set.
-The Interior Angle method performs a three-dimensional range search for all $r$ sets such that features of $r$ are close to the features of $b$~\cite{bratt:analysisStarIdentification}.
+The \textit{Interior Angle} strategy (abbreviated as INT) is composed of a non-exhaustive ``clustered'' image subset decision, a feature set possessing two interstar angles and one interior angle, and an asymmetric permutation store for map determination.
+Given a set of points from the image $\imageset$, the Interior Angle strategy chooses a central point from the image $b_c$ and the two nearest points $b_1, b_2$ to the central point~\cite{liebe:starTrackersAttitudeDetermination}.
+Choosing another $b$ set involves only choosing a new $b_c$ from $\imageset$.
+Two out of three points are dependent on the current choice of the central point, meaning that this strategy avoids exploring $\binom{n}{3} - n$ combinations in contrast to the exhaustive approach of the Angle strategy.
+With an image subset selected the Interior Angle strategy proceeds by querying $\texttt{REF}_\texttt{INT}$, a relation holding tuples of all \emph{permutations} of three $\texttt{REF}$ identifiers, indexed by the angular separations from the central point to the two nearest points \& the angle between the two nearest points with the central point as the vertex (i.e.\ the interior angle).
+%Let $\texttt{REF}_\texttt{INT}$ define a relation holding tuples of all \emph{permutations} of three $\texttt{REF}$ identifiers, pairwise indexed by all the previously mentioned features for the corresponding $r$ set.
+The Interior Angle strategy performs a three-dimensional range search for all $r$ sets such that the aforementioned features of $r$ are close to the features of $b$~\cite{bratt:analysisStarIdentification}.
 If our database search yields a single $r$ set, we proceed to the last step: map determination.
-RezaToloei's implementation sacrifices storage to avoid performing an optimal map determination procedure (e.g.\ the direct-match test) by storing all permutations of $\texttt{REF}$ instead of combinations like the Angle strategy~\cite{toloei:compositeIdentification}.
-When this permutation store is used in conjunction with an asymmetry rule, ``feature (a) must be less than feature (b)'', we store the mapping of $r$ as well~\cite{anderson:autonomousStarSensing}.
+We follow RezaToloei's implementation of the Interior Angle strategy which sacrifices storage to avoid performing an optimal map determination procedure (e.g.\ the direct-match test) by storing permutations of $\texttt{REF}$ instead of combinations like the Angle strategy~\cite{toloei:compositeIdentification}.
+When this permutation store is used in conjunction with an asymmetry rule, ``the first interstar angle must be less than the second'', we store the mapping of $r$ as well~\cite{anderson:autonomousStarSensing}.
 Thus, to determine a map here is to use the pairing: $\{(b_c, r_c), (b_1, r_1), (b_2, r_2)\}$.
 
 
@@ -418,16 +411,15 @@ Thus, to determine a map here is to use the pairing: $\{(b_c, r_c), (b_1, r_1), 
 %    \end{algorithmic}
 %\end{algorithm}
 
-The \textit{Spherical Triangle} strategy is composed of Cole and Crassidus's spherical area and moment features, a naive $b$ image subset decision, Cole and Crassidus's $r$ selection process, and a direct-match test to create the image to database function.
-Given a set of points from the image $\imageset$, our query starts by selecting three distinct points to represent the $b$ set.
-Similar to the Angle strategy, we naively choose $b$ sets by fixing $b_1$ for $n^2$ image subset selection, fixing $b_2$ for $n$ image subset selections, and constantly changing $b_3$ for every new $b$ choice.
-Now having an image subset selected, we follow Cole and Crassidus's $r$ ``pivoting`` selection process.
-Let $\texttt{REF}_\texttt{SPH}$ define a relation holding tuples of all combinations of three \texttt{REF} identifiers, pairwise indexed by the spherical area and moment between all three \texttt{REF} points.
-We proceed by performing a two-dimensional range search for all $r$ sets such that the spherical area and moment of $b$ is close to the spherical area and moment of $r$.
-If our database search does not yield a single $r$ set, we perform another range search for $R^\star$ with a new image subset $b^\star$ that differs from our original $b$ by only one point.
-The results of the secondary search $R^\star$ are then used to filter the initial set by removing all sets in $R$ that don't share two points with $R^\star$.
-This ``pivot'' is repeated to filter the original $R$ further until there are no more distinct $b^\star$ sets to form~\cite{coleAndCrassidis:sphericalTriangleMethod}.
-The Spherical Triangle method trades a higher worst-case running time (iterating at most $n^4$ times) for the ability to use utilize the information of multiple database searches together.
+The \textit{Spherical Triangle} strategy (abbreviated as SPH) is composed of a naive image subset decision, spherical area and moment features, a ``pivoting'' process to jointly utilize 2+ database searches, and an exhaustive optimal map determination process.
+Given a set of points from the image $\imageset$, our query starts by selecting $d\seq 3$ distinct points to represent the $b$ set in the similar manner to our Angle strategy.
+With an image subset selected, the Spherical Triangle strategy proceeds by querying $\texttt{REF}_\texttt{SPH}$, a relation holding tuples of all combinations of three \texttt{REF} identifiers, pairwise indexed by the spherical area and moment between all three \texttt{REF} points.
+The Spherical Triangle strategy performs a two-dimensional range search for all $r$ sets such that the spherical area and moment of $b$ is close to the spherical area and moment of $r$.
+If our database search does not yield a single $r$ set, we perform another range search with a new image subset that differs from our original $b$ by only one point.
+The results of the secondary search are then used to filter the initial set by removing all sets in our initial search that do not share two points with our secondary search.
+This ``pivot'' is repeated to filter the initial search further until a single $r$ is found or all $n$ additional image subsets have been exhausted~\cite{coleAndCrassidis:sphericalTriangleMethod}.
+%The Spherical Triangle strategy chooses to focus on 
+%The Spherical Triangle method trades a higher worst-case running time (iterating at most $\binom{n}{3}\cdot n$ times) for the ability to use utilize the information of multiple database searches together.
 Once a sole $r$ set is obtained, we perform a direct match test to either obtain a map or choose another $b$ set and repeat the process altogether.
 
 %Given a set of query points from the image $\imageset$, $d \seq 3$ points are selected to obtain the $b$ set in the same straightforward manner as the Angle strategy.
@@ -562,22 +554,20 @@ Once a sole $r$ set is obtained, we perform a direct match test to either obtain
 
 %This entire method is described in~\autoref{algorithm:triangleIdentification}.
 
-The \textit{Planar Triangle} strategy is identical to their Spherical Triangle strategy, with the exception that each image trio is represented as a planar triangle instead of a spherical one.
-This results in the computation of a planar area and moment as opposed to a spherical area and moment.
+The \textit{Planar Triangle} strategy (abbreviated as PLN) is identical to their Spherical Triangle strategy, with the exception that each image trio is represented as a planar triangle instead of a spherical one.
+This results in the computation of a planar area and moment, operations that do not require a recursive formula in contrast to the spherical area and moment.
 
 %\subsection{Planar Triangle Strategy (PLN)}\label{subsec:coleAndCrassidus'sPlanarTriangleMethod}
 
 %\subsection{Pyramid Strategy (PYR)}\label{subsec:pyramidMethod}
-The \textit{Pyramid} strategy is composed of Mortari's $b$ image subset decision, a custom voting based identification process for trios, and a voting based confidence check.
-Given a set of points from the image $\imageset$, Motari selects three points $b_1, b_2, b_3$ in a such a way to avoid the persistence of misleading points for more than a few combinations
-~\cite{mortari:pyramidIdentification}.
-What follows is a Tichy-inspired voting-based process which utilizes the relation $\texttt{REF}_\texttt{ANG}$.
-Per image subset, three of the database range searches used in the Angle strategy are performed for the pairings $(b_1, b_2)$, $(b_1, b_3)$, $(b_2, b_3)$ to get $R_{1,2}$, $R_{1,3}$, $R_{2,3}$.
-To determine points for $b_1$ (denoted as the set $R_1$) is to take the intersection between the set of points in $R_{1,2}$ and the set of points in $R_{1,3}$.
-Once repeated for $R_2$ (between $R_{1,2}, R_{2,3}$) and $R_3$ (between $R_{1,3}$, $R_{2,3}$), if all $R_1$, $R_2$, $R_3$ yield sole results, we construct the map $\{ (b_1, R_1[1]), (b_2, R_2[1]), (b_3, R_3[1])\}$~\cite{tichy:preliminaryTestsCommericalImagers}.
-Similar to the Interior Angle method, an optimal map determination procedure is not required because the map is implicitly formed to get $r$.
-To establish confidence in this map, another voting strategy is used which repeats a process similar to obtain $r$ with the inclusion of an additional star $b_4$ from $\imageset$.
-Only if there exists a sole result associated with $b_4$ do we return the map.
+The \textit{Pyramid} strategy (abbreviated as PYR) is composed of a false star avoidance image subset decision, a custom voting based identification process for star trios, and a voting based confidence check. 
+Given a set of points from the image $\imageset$, the Pyramid strategy selects $d\seq 3$ points in a such a way to avoid the persistence of misleading points for more than a few combinations~\cite{mortari:pyramidIdentification}.
+What follows is a voting-based process which utilizes the relation $\texttt{REF}_\texttt{ANG}$.
+Per image subset, three of the database range searches used in the Angle strategy are performed to find database pairs for all distinct image pairs in $b$.
+To determine database points for a single image point in $b$ is to take the intersection between both sets of points of the database pairs containing $b$ in their query~\cite{tichy:preliminaryTestsCommericalImagers}.
+Similar to the Interior Angle method, an optimal map determination procedure is not required because the map is implicitly formed to determine $r$.
+To establish confidence in this map, another voting strategy is used which repeats a process similar to obtain $r$ with the inclusion of an additional star from $\imageset$.
+Only if there exists a sole result associated with this additional star do we return the map.
 Otherwise, we choose another $b$ set and repeat the process.
 
 %Given a set of query points from the image $\imageset$, $d \seq 3$ points are selected to obtain the $b$ set.
@@ -667,8 +657,8 @@ Otherwise, we choose another $b$ set and repeat the process.
 %\end{algorithm}
 
 %\subsection{Composite Pyramid Strategy (COM)}\label{subsec:compositePyramidMethod}
-The \textit{Composite Pyramid} strategy is composed of Mortari's $b$ image subset decision, Cole and Crassidus's spherical area and moment features, and a voting based confidence check.
-This method can be thought of as a combination of the Planar Triangle strategy and the Pyramid strategy, borrowing the feature, database range search, and optimal map determination strategy of the former while borrowing the image subset decision and confidence check of the latter.
+The \textit{Composite Pyramid} strategy (abbreviated as COM) is composed of the Pyramid strategy's image subset decision, planar area and moment features, and a voting based confidence check, and an exhaustive optimal map determination process.
+This method can be thought of as a combination of the Planar Triangle strategy and the Pyramid strategy, borrowing the features, database range search, and optimal map determination strategy of the former while using the image subset decision and confidence check of the latter.
 
 %Given a set of query points from the image $\imageset$, $d \seq 3$ points are selected in same manner as the Pyramid strategy to obtain the $b$ set.
 %From here, the process to obtain the $R$ set is the same as the triangle strategies: use $P_{a, \tau}(r, b)$ and $b$ to select all candidates from $\comdatabase$.
