@@ -4,9 +4,8 @@
 \section{Empirical Evaluation}\label{sec:empiricalEvaluation}
 In this section we discuss our analysis of the six strategies in terms of their runtime and accuracy response to typical errors that may occur when capturing an image of the sky.
 For our testing, the astronomical catalog used to populate all relations in the reference database was the Hipparcos Input Catalogue~\cite{perryman:hipparcosCatalogue}. 
-The $\texttt{REF}$ relation was shrunk to $1{,}471$ elements dependent on each star's brightness ($m < 4.5$) to reduce the size of the $\texttt{REF}_\texttt{STRATEGY}$ relations (and thus the running time) for each strategy.
-All simulations were performed $2{,}000$ times on an Intel i7-7700 CPU, 3.60GHz with 8 GB RAM\@ and implemented in C++14 without optimization.
-SQLite, an embedded SQL database engine, was used to hold all of the aforementioned relations in this paper.
+The $\texttt{REF}$ relation was shrunk to $1{,}471$ elements dependent on each star's brightness ($m < 4.5$) to reduce the size of the $\texttt{REF}_\texttt{STRATEGY}$ relations (and consequently the running time) for each strategy.
+All simulations were performed $2{,}000$ times on a Raspberry Pi Model 3B+, implemented in C++14 without optimization, and utilized SQLite as the embedded SQL database engine.
 %All queries involve the execution of a single \texttt{SELECT} statement on this file for each candidate retrieval step, with the exception of the Pyramid method which requires three.
 Image data was generated as points randomly (but uniformly) rotated from the database coordinate system to remove the discrepancies that may arise from the image processing component.
 Three types of errors were introduced to the image data from here: false positives, false negatives, and points whose position is misrepresented from the database (i.e.\ Gaussian noise).
@@ -14,28 +13,32 @@ The width of each strategy's range search was determined using a grid search, ex
 The exact implementation is available at the following link: \url{https://github.com/glennga/hoku}.
 
 In a clean image (introducing no errors), all strategies are always able to produce a correct mapping from some image subset to the \texttt{REF} table.
-The Interior Angle strategy is the fastest of all six, a factor of 3.5 times quicker than the next fastest method: the Pyramid strategy ($0.199\si{ms}$ vs.\ $0.710\si{ms}$).
-This is a direct result of utilizing extra storage to store the map in the Interior Angle strategy, avoiding the need to search the \texttt{REF} relation to determine an optimal map.
+The Pyramid and Interior Angle strategies are the fastest methods here ($6.293{\pm}0.167\si{ms}$), followed by the Angle strategy (81.249\si{ms}), with all methods possessing triangular features last ($122.479{\pm}1.940\si{ms}$).
+Both the Pyramid and Interior Angle strategies do not utilize an optimal map determination procedure, which significantly reduces their runtime.
+The Angle strategy, though still dependent on the direct-match test, has the smallest $\texttt{REF}_\texttt{STRATEGY}$ relation (2-combinations vs.\ 3-combinations) resulting in a slight speedup from the triangular featured strategies.
+
+%The Interior Angle strategy is the fastest of all six, a factor of 3.5 times quicker than the next fastest method: the Pyramid strategy ($0.199\si{ms}$ vs.\ $0.710\si{ms}$).
+%This is a direct result of utilizing extra storage to store the map in the Interior Angle strategy, avoiding the need to search the \texttt{REF} relation to determine an optimal map.
 %The Pyramid and Composite Pyramid are additionally restricted by their voting-based verification steps, both of which require three additional database searches.
 
 In an image of three to six false positives, the unmodified methods that perform the most accurately are the Angle, Planar Triangle, and Spherical Triangle strategies.
 The source of error for all other methods are a result of exhausting all $b$ sets, as opposed to returning an incorrect map.
-Removing the pyramid confidence check eliminated this error for both strategies, raising each strategy's accuracy to near 100\% with a runtime faster than the Angle, Planar Triangle, and Spherical Triangle strategies.
-This difference in speed also demonstrates the efficacy of the pyramid $b$ subset decision in contrast to the naive approaches.
-For the Interior Angle strategy, replacing its non-exhaustive $b$ image subset decision with an exhaustive naive approach rose its accuracy to the same near 100\% accuracy as the rest of the strategies.
-When dealing with this type of noise, not exploring all possible combinations increases the chance that a trio without false positives is never handled.
+Removing the voting based confidence check eliminated this error for both the Pyramid and Composite Pyramid strategies, raising both accuracies to near 100\% with a runtime faster than the Angle, Planar Triangle, and Spherical Triangle strategies.
+This difference in speed also demonstrates the efficacy of the pyramid $b$ decision in contrast to the naive approaches.
+For the Interior Angle strategy, replacing its non exhaustive image subset decision with an exhaustive naive approach increased its accuracy to the near 100\%.
+When dealing with this type of noise, not exploring all possible combinations increases the chance that a trio without false positives is never handled, thus lowering overall accuracy.
 ~\autoref{figure:results} depicts the accuracy of each strategy in its most optimal configuration under varying types of noise.
 
-In an image of one to three light blocking blobs (producing false negatives), all strategies except the unaltered pyramid strategies perform with similar accuracy and runtime.
+In an image of one to three light blocking blobs (resulting in false negatives), all strategies except the unaltered pyramid strategies perform with similar accuracy and runtime.
 These errors stem as a result of an image possessing too few points to perform identification altogether.
-The pyramid strategies require a minimum of four points, raising the chance of having too little stars to perform identification and decreasing the overall accuracy.
+The unaltered pyramid strategies require a minimum of four points, raising the chance of having too little stars to perform identification and decreasing the overall accuracy.
 Removing the verification step for the pyramid methods raises the Composite Pyramid accuracy to a similar range of the rest and does not significantly affect the Pyramid accuracy, suggesting that this verification step is too aggressive of a filter overall.
-In terms of speed the Interior Angle method is again the fastest of the six, followed closely by Pyramid method.
+In terms of speed the Interior Angle method is the fastest of the six, followed closely by Pyramid method ($5.791\si{ms}$ vs.\ $6.050\si{ms}$).
 
-In an image with Gaussian noise of $\sigma \seq 0.0001^\circ$ to $\sigma \seq 0.0002^\circ$, the Angle strategy is the most accurate but runs nearly 25 times as long as the 2nd most accurate \& fastest overall strategy: the Pyramid strategy without a verification step.
+In an image with Gaussian noise of $\sigma \seq 0.0001^\circ$ to $\sigma \seq 0.0002^\circ$, the Angle strategy is the most accurate but runs nearly 15 times as long as the 2nd most accurate \& fastest overall strategy: the Pyramid strategy without a verification step ($208.552\si{ms}$ vs.\ $13.801\si{ms}$).
 Unlike the results of the previous simulations, we now see incorrect maps returned by strategies instead of returning with an error.
 Though small, these maps are only produced by the strategies with triangular features (Planar Triangle, Spherical Triangle, Composite Pyramid).
-This suggests that Gaussian noise 
+Interstar angles appear to be the most effective feature set against Gaussian noise.
 
 To conclude, the Angle strategy is the most accurate strategy under all types of noise, but is the slowest of the six.
 The Pyramid strategy without a verification step is the next best strategy in terms of accuracy, and is the fastest overall method.

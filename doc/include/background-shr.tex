@@ -16,9 +16,9 @@
 
 \section{Introduction}\label{sec:introduction}
 With the advent of commercial space industry, we are seeing an increasing number of spacecrafts, both manned and unmanned, launched into space.
-One important function on a spacecraft is the ability to determine its orientation in space using the images captured by a camera on the spacecraft -- this is known as the \textit{Lost-in-space} problem.
+One important function on a spacecraft is the ability to determine its orientation in space quickly using the images captured by a camera on the spacecraft -- this is known as the \textit{Lost-in-space} problem.
 For example, consider the design of low Earth orbit (LEO) spacecrafts.
-In order for the spacecraft to point a payload, direct its thrusters, or orient its solar panels, an accurate \textit{attitude} (another term for orientation) must be known.
+In order for the spacecraft to point a payload, direct its thrusters, or orient its solar panels, an accurate \textit{attitude} (another term for orientation) must be known within a reasonable amount of time.
 There are a few known landmarks in space where some attitude can be extracted (e.g.\ the Earth, the Sun), but most attitude determination systems instead use multiple stars within the field of view of a camera to determine their orientation.
 
 The images capture a rectangular region of space -- think of an image of the sky at night from an Earth-centric perspective.
@@ -91,12 +91,12 @@ Second, the query points are affected by transient celestial objects (e.g.\ mete
 
 The constellation queries studied in this paper can be viewed as a type of \emph{subgraph isomorphism query} that aims to find some 1-to-1 mapping between the vertices in two graphs (i.e.\ the reference database and the image) if it exists~\cite{scott:graphIsomorphismProblem}.
 The subgraph isomorphism formulation is often juxtaposed with \emph{pattern recognition approaches}, which map larger sets of points within a defined field-of-view across some reference table and image~\cite{padgett:gridAlgorithm}.
-We also focus on \emph{non-recursive} constellation queries - queries that does not process results from a \emph{prior} query.
+We also focus on \emph{non-recursive} constellation queries - queries that do not process results from a \emph{prior} query.
 In recursive searches such as the SP-Search and SNA by Samaan~\cite{samaan:recursiveMode}, an additional filter can be applied to the query that limits the possible database points that map to our image set.
 We are also interested in indexing strategies for constellation queries.
 We indexed our reference relations solely by some statistic of a collection of star positions (e.g.\ the interstar angle between two points, the area between three points), rather than indexing by star brightnesses (see Scholl\cite{scholl:starFieldIdentification}, Ketchum~\cite{ketchum:onboardStarIdentification}, and more recently Zhang et. al~\cite{zhang:brightnessReferenced}).
 There is also much prior work on optimizing the data accesses in constellation queries, most notably Motari's SLA (Search-Less Algorithm)~\cite{mortari:kVectorApproach}.
-Our focus is on the end-to-end constellation query and not just on the data access aspects. 
+Our focus is on the end-to-end constellation query and not just on the data access aspects.
 
 This paper is an empirical survey of six existing constellation query processing strategies in the literature and in the industry.
 %The six strategies are: the Angle strategy, the Interior Angle strategy, the Spherical Triangle strategy, the Planar Triangle strategy, the Pyramid strategy, and the Composite Pyramid strategy.
