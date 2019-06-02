@@ -42,7 +42,7 @@ Interstar angles appear to be the most effective feature set against Gaussian no
 
 To conclude, the Angle strategy is the most accurate strategy under all types of noise, but is the slowest of the six.
 The Pyramid strategy without a verification step is the next best strategy in terms of accuracy, and is the fastest overall method.
-The Interior Angle strategy was improved by using a naive $b$ image subset decision and has the lowest floor in terms of speed, however this strategy handles Gaussian noise the worst of the six. 
+The Interior Angle strategy was improved by using a naive image subset decision and has the lowest floor in terms of speed, however this strategy handles Gaussian noise the worst of the six. 
 The triangular strategies lie between the Angle and Interior Angle methods in terms of accuracy, but are a faster alternative to the Angle method.
 The Composite Pyramid strategy attempts to utilize a different feature set with the effectiveness of the Pyramid core but ultimately inherits the worst of each strategy.
 
@@ -50,7 +50,7 @@ The Composite Pyramid strategy attempts to utilize a different feature set with 
     \centering{
     \input{include/floats/overview-shr}
     \caption{
-    Depicts the average accuracy of the resulting map of the unaltered Angle and triangle strategies, an Interior Angle strategy with a naive $b$ subset decision, and pyramid strategies without their verification steps given images with false positives, false negatives, and Gaussian noise.
+    Depicts the average accuracy of the resulting map of the unaltered Angle and triangle strategies, an Interior Angle strategy with a naive image subset decision, and pyramid strategies without their verification steps given images with false positives, false negatives, and Gaussian noise.
     }\label{figure:results}
     }
 \end{figure}
