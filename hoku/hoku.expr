@@ -5,7 +5,7 @@ HOKU_PROJECT_PATH="$(dirname "$0")/../"
 source ${HOKU_PROJECT_PATH}/hoku/hoku.cfg
 
 perform_chunk() {
-    python3 ${HOKU_PROJECT_PATH}/hoku/hoku.pe \
+    python3 ${HOKU_PROJECT_PATH}/hoku/perform-e.py \
         -pnum ${PARALLEL} \
         -refdb ${REFERENCE_DB} \
         -recdb ${RECORD_DB} \
@@ -23,8 +23,8 @@ perform_chunk() {
         -mlimit ${M_LIMIT} \
         -nulimit ${NU_LIMIT} \
         -exper "MAP" \
-        -samples ${SAMPLES} \
-        -imfov ${IMAGE_FOV} \
+        -samples ${S_SAMPLES} \
+        -imfov ${S_FOV} \
         -ssiter ${SHIFT_STAR_ITER} \
         -ssstep ${SHIFT_STAR_STEP} \
         -esmin ${EXTRA_STAR_MIN} \

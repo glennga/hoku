@@ -91,7 +91,7 @@ def execute_chunk(recdb, samples):
     global arguments  # Must be run after retrieving the arguments in main!
 
     call([
-        abspath(__file__).replace('/hoku.pe', '') + '/../bin/PerformE',
+        abspath(__file__).replace('/perform-e.py', '') + '/../bin/PerformE',
         arguments.refdb,
         recdb,
         arguments.hip,
@@ -131,7 +131,7 @@ if __name__ == '__main__':
     from pathlib import Path
     from shutil import copy
 
-    if not Path(abspath(__file__).replace('/hoku.pe', '') + '/../bin/PerformE').is_file():
+    if not Path(abspath(__file__).replace('/perform-e.py', '') + '/../bin/PerformE').is_file():
         print("hoku/bin/PerformE does not exist. Run CMake + make before this.")
 
     else:
