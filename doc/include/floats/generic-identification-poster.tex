@@ -1,0 +1,70 @@
+\usetikzlibrary{shapes.geometric, arrows}
+
+% Style for process block.
+\tikzstyle{process} = [rectangle, text width=8cm, minimum width=8cm, minimum height=6cm,text centered, draw=black, fill=norange!70, line width=0.06cm]
+
+% Style for terminal block.
+\tikzstyle{terminal} = [rectangle, text width=8cm, minimum width=8cm, minimum height=6cm,text centered, draw=black, fill=nred!50, line width=0.06cm]
+
+% Style for decision block.
+\tikzstyle{decision} = [diamond, text width=6cm, minimum width=10cm, minimum height=8cm,text centered, draw=black,fill=lgreen, inner sep=-12pt, line width=0.06cm]
+
+% Style for line.
+\tikzstyle{line} = [draw, -latex', line width=0.1cm, ->]
+
+\begin{tikzpicture}[node distance=9cm, scale=0.89, transform shape]
+	\node(getImage)[terminal]{Given Image Set, Reference Database};
+	\node(pickQueryStars)[process, left of=getImage, xshift=-4cm]{Select Subset from Image Set};
+	\node(searchCatalog)[process, below of=pickQueryStars] {Query Reference with Feature Predicate(s)};
+	\node(confidentInCatalog)[decision, below of=searchCatalog] {Query Yields Sole Result?};
+	\node(findMap)[process, below of=confidentInCatalog]{Map Image and Reference Subsets Together};
+	\node(confidentInMap)[decision, below of=findMap] {Confident in Map?};
+	\node(returnMap)[terminal, right of=confidentInMap, xshift=4cm] {Return Mapping, Image Subset};
+	
+	\node[below of=getImage, yshift=5cm, xshift=4cm,scale=1.1]{$1$};
+	\node[below of=pickQueryStars, yshift=5cm, xshift=4cm,scale=1.1]{$2$};
+	\node[below of=searchCatalog, yshift=5cm, xshift=4cm,scale=1.1]{$3$};
+	\node[below of=confidentInCatalog, yshift=7cm, xshift=4cm,scale=1.1]{$4$};
+	\node[below of=findMap, yshift=5cm, xshift=4cm,scale=1.1]{$5$};
+	\node[below of=confidentInMap, yshift=7cm, xshift=4cm,scale=1.1]{$6$};
+	\node[below of=returnMap, yshift=5cm, xshift=4cm,scale=1.1]{$7$};
+	
+	\draw[line](getImage.west) -- (pickQueryStars.east);
+	\draw[line] (pickQueryStars) -- (searchCatalog);
+    \draw[line] (searchCatalog) -- (confidentInCatalog);
+    \draw[line] (confidentInCatalog) -- node[anchor=east, yshift=0.1cm]{Yes}(findMap);
+    \draw[line] (findMap) -- (confidentInMap);
+    \draw[line] (confidentInMap) -- node[xshift=-0.5cm, yshift=0.75cm]{Yes} (returnMap);
+    
+    \draw[line] (confidentInCatalog.west) -- ++(-4cm, 0cm) node[anchor=south, xshift=2cm]{No} |- (pickQueryStars.west);
+    \draw[line] (confidentInMap.west) -- ++(-4cm, 0cm) node[anchor=south, xshift=2cm]{No} |- (pickQueryStars.west);    
+\end{tikzpicture}
+
+%\begin{tikzpicture}[node distance=1.3cm, scale=1.5, transform shape]
+%    \node[scale=1](getImage)[terminal]{Given Image Set, Reference Database};
+%    \node[scale=1](pickQueryStars) [process, left of=getImage, xshift =-2.2cm] {Select Subset from Image Set};
+%    \node[scale=1](searchCatalog)[process, below of=pickQueryStars, yshift=-0.7cm] {Query Reference with Feature Predicate(s)};
+%    \node[scale=1](confidentInCatalog)[decision, below of=searchCatalog, yshift=-1cm] {Query Yields Sole Result?};
+%%    \node[scale=1](filterCandidates)[process, below of=confidentInCatalog, yshift=-0.4cm] {Select Candidate $R[1]$};
+%%    \node[scale=1](confidentAfterFilter)[decision, below of=filterCandidates, yshift=-0.4cm] {Confident?};
+%    \node[scale=1](findMap)[process, below of=confidentInCatalog, yshift=-1.2cm]{Map Image and Reference Subsets Together};
+%    \node[scale=1](confidentInMap)[decision, below of=findMap, yshift=-1cm] {Confident in Map?};
+%    \node[scale=1](returnMap)[terminal, right of=confidentInMap, xshift = 2.2cm] {Return Mapping, Image Subset};
+%
+%    \draw[->,>=stealth](getImage.west) -- (pickQueryStars.east);
+%    \draw[->,>=stealth] (pickQueryStars) -- (searchCatalog);
+%    \draw[->, >=stealth] (searchCatalog) -- (confidentInCatalog);
+%    \draw[->,>=stealth] (confidentInCatalog) -- node[anchor=east, yshift=0.1cm]{Yes}(findMap);
+%%    \draw[->, >=stealth] (confidentInCatalog) -- node[anchor=east, yshift=0.1cm]{Yes}(filterCandidates);
+%%    \draw[->, >=stealth] (filterCandidates) -- (findMap);
+%%    \draw[->, >=stealth] (confidentAfterFilter) -- node[anchor=east, yshift=0.1cm]{Yes} (findMap);
+%    \draw[->, >=stealth] (findMap) -- (confidentInMap);
+%    \draw[->, >=stealth] (confidentInMap) -- node[xshift=0cm, yshift=0.25cm]{Yes} (returnMap);
+%
+%    \draw[->, >=stealth] (confidentInCatalog.west) -- ++(-1.4cm, 0cm) node[anchor=south, xshift=0.5cm]{No}
+%    |- (pickQueryStars.west);
+%%    \draw[->, >=stealth] (confidentAfterFilter.west) -- ++(-1.4cm, 0cm) node[anchor=south, xshift=0.5cm]{No}
+%%    |- (pickQueryStars.west);
+%    \draw[->, >=stealth] (confidentInMap.west) -- ++(-1.4cm, 0cm) node[anchor=south, xshift=0.5cm]{No}
+%    |- (pickQueryStars.west);
+%\end{tikzpicture}
