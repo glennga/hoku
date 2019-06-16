@@ -1,0 +1,45 @@
+\begin{tikzpicture}
+    \begin{axis}[scale=1,
+    ybar,
+    width=0.8\linewidth, height=11cm,
+    ylabel={\small{Accuracy of Map}}, ylabel near ticks, ymin=0.5, ymax=1.25,
+    ytick={0.6, 0.8, 1},
+    xtick={1, 2, 3}, xticklabels={
+         \small{False Positives},
+         \small{False Negatives},
+         \small{Gaussian Noise}
+    },
+%   legend image post style={scale=2},
+    xmin=0.5, xmax=3.5, xtick pos=left,
+    nodes near coords, every node near coord/.append style={rotate=90, anchor=west},
+    legend style={
+        at={(0.42,-0.2)},
+        anchor=north,
+        legend columns=-1,
+        draw=none,
+        nodes={inner sep=0.4cm,text depth=0cm}
+    },
+    legend image code/.code={%
+                        \draw[#1, draw=none] (0cm,-0.1cm) rectangle (1cm,0.5cm);
+                    },
+    bar width=25,
+    every node near coord/.append style={
+    	/pgf/number format/fixed zerofill,
+    	/pgf/number format/precision=4, font=\small
+	}
+    ]
+        \addplot coordinates {(1, 1.0) (2, 0.9955) (3, 0.8825)};
+        \addplot coordinates {(1, 0.9975) (2, 0.97025) (3, 0.5245)};
+        \addplot coordinates {(1, 0.983083333333333) (2, 0.99625) (3, 0.697916666666667)};
+        \addplot coordinates {(1, 0.9905) (2, 0.9965) (3, 0.701666666666667)};
+        \addplot coordinates {(1, 1.0) (2, 0.973) (3, 0.82025)};
+        \addplot coordinates {(1, 0.99875) (2, 0.972) (3, 0.579416666666667)};
+        \legend{{ANG},
+                {INT},
+                {SPH},
+                {PLN},
+                {PYR},
+                {COM}
+        }
+    \end{axis}
+\end{tikzpicture}

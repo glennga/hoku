@@ -77,10 +77,10 @@
 				\begin{alertblock}{Objectives}
 					\begin{itemize}
 						\setlength\itemsep{1cm}
-						\item \parbox{\linewidth}{
+						\item \parbox{0.95\linewidth}{
 							\emph{Development} of unified framework for describing constellation query processing strategies.
 							}
-						\item \parbox{\linewidth}{
+						\item \parbox{0.95\linewidth}{
 							\emph{Empirical evaluation} of six constellation query processing algorithms.
 							}
 					\end{itemize}
@@ -89,13 +89,13 @@
 				\begin{definition}[Constellation Query]
 					\begin{enumerate}
 						\setlength\itemsep{1cm}
-						\item \parbox{\linewidth}{
+						\item \parbox{0.95\linewidth}{
 							Given query points in image coordinate system.
 						}
-						\item \parbox{\linewidth}{
+						\item \parbox{0.95\linewidth}{
 							Identify a set of matching query points in a database of known points, recorded in a standard coordinate system.
 							}
-						\item \parbox{\linewidth}{
+						\item \parbox{0.95\linewidth}{
 							Transformation between image and standard coordinate systems is not known a priori.
 							}
 					\end{enumerate}
@@ -103,7 +103,7 @@
 					\begin{figure}
 						\centering
 						\input{include/floats/coordinate-systems}
-						\parbox{\linewidth}{\caption{\ \ 
+						\parbox{0.95\linewidth}{\caption{\ \ 
 							Shows the two coordinate systems in which points are represented.
 							The resultant of a constellation query describes several points in both systems.
 						}}
@@ -113,19 +113,19 @@
 				\begin{block}{Properties of Constellation Queries}
 					\begin{enumerate}
 						\setlength\itemsep{1cm}
-						\item \parbox{\linewidth}{
+						\item \parbox{0.95\linewidth}{
 							\underline{\emph{Subgraph Isomorphism}} -- Find some 1-to-1 mapping between points in two graphs (database, image).
 							}
-						\item \parbox{\linewidth}{
+						\item \parbox{0.95\linewidth}{
 							\underline{\emph{Non Recursive}} -- Results from previous constellation queries are not used in the current query.
 							}
-						\item \parbox{\linewidth}{
+						\item \parbox{0.95\linewidth}{
 							\underline{\emph{Indexed by Positional Statistic}} -- Utilize the position of points relative to each other to index point sets, not star brightness.
 							}
-						\item \parbox{\linewidth}{
+						\item \parbox{0.95\linewidth}{
 							\underline{\emph{Errors \& Noise}} -- False positives, false negatives, and deviations in true position affect the query point set.
 							}
-						\item \parbox{\linewidth}{
+						\item \parbox{0.95\linewidth}{
 							\underline{\emph{Usage with Spacecraft}} -- Images of stars taken onboard spacecraft determine orientation of craft itself.
 							}
 					\end{enumerate}
@@ -139,27 +139,47 @@
 							\begin{figure}
 								\centering
 								\input{include/floats/generic-identification-poster}
-								\caption{
-									Depicts framework which all strategies here follow.
+								\parbox{0.95\linewidth}{\caption{\ \
 									If all image subsets are exhausted, an error is raised and no mapping is returned (not depicted).
-								}
+								}}
 							\end{figure}
 						\end{block}
 					\end{column}
 					
 					\begin{column}{\onecolwid}\vspace{-.6in} % Third column.
 						\begin{block}{Methodology}
-							\begin{itemize}
-								\item 1{,}471 points from Hipparcos catalog based on brightness.
-								\item Simulated o
-							\end{itemize}
+							\begin{enumerate}
+								\setlength\itemsep{1cm}
+								\item \parbox{0.95\linewidth}{
+									1{,}471 points selected from Hipparcos catalog. Precompute positional feature reference tables.
+								}
+								\item \parbox{0.95\linewidth}{
+									Uniformly rotate Hipparcos subset into random image coordinate system.
+								}
+								\item \parbox{0.95\linewidth}{
+									Introduce error to image (false positives, false negatives, Gaussian noise).
+								}
+								\item \parbox{0.95\linewidth}{
+									Record accuracy of map, time to result.
+								}
+							\end{enumerate}
+							\parbox{\linewidth}{\footnotesize{\textit{
+								*Parameters of feature predicates determined through grid-search.
+							}}}
 						\end{block}
 				
 						\begin{block}{Results}
 							
-							Include graphic for time 
-					
-							Include graphic for accuracy
+							\begin{figure}
+								\input{include/floats/t-poster.tex}
+								
+								\vspace*{1cm}
+								
+								\input{include/floats/acc-poster.tex}
+%								\parbox{\linewidth}{\caption{\ \
+%									Depicts the average accuracy of the resulting map and running time of the unaltered ANG, SPH, and PLN strategies, the INT strategy with an exhaustive image subset selection, and PYR \& COM strategies without their verification step.
+%								}}
+							\end{figure}
 						\end{block}
 					\end{column}
 				\end{columns}	
@@ -167,9 +187,9 @@
 				\begin{block}{Strategy Overview \& Characteristics}
 					\tdplotsetmaincoords{60}{110}
 					\begin{table}
-						\begin{tabularx}{\linewidth}[t]{X|X|X|X|X|X}
-							\toprule
-							{ANG} & {INT} & {SPH} & {PLN} & {PYR} & {COM} \\
+						\begin{tabularx}{\linewidth}[t]{XXXXX}
+%							\toprule
+							{ANG} & {INT${}^{\star}$} & {SPH / PLN} & {PYR${}^{\star}$} & {COM${}^{\star}$} \\
 							\midrule
 							
 							\drawsmallgraph{
@@ -209,6 +229,10 @@
 								\path [bend left,color=norange!70, line width = 0.05cm] (I_2) edge (I_3);
 								\path [bend left,color=norange!70, line width = 0.05cm] (I_3) edge (I_1);
 								
+								\draw[color=norange!70, line width = 0.05cm,dashed] (I_2) -- (I_1);
+								\draw[color=norange!70, line width = 0.05cm,dashed] (I_2) -- (I_3);
+								\draw[color=norange!70, line width = 0.05cm,dashed] (I_3) -- (I_1);
+								
 								\draw[thick,->,color=nred!50,line width=0.05cm] (0.4,0.6,0.5) -- (0.8, 1.0, 0.9);
 								\node[color=nred!50,anchor=west,xshift=0.2cm, yshift=0.2cm] at (I_2) {$a$};
 								\node[color=nred!50,anchor=west] at (0.8, 1.0, 0.9) {$j$}; 
@@ -217,20 +241,6 @@
 								\filldraw[color=jblue] (I_2) circle[radius=0.5pt];					 
 							    \filldraw[color=jblue] (I_3) circle[radius=0.5pt];
 							    \filldraw[color=norange] (0.4, 0.6, 0.5) circle[radius=0.5pt];
-							} &
-							\drawsmallgraph{
-								\draw[color=norange!70, line width = 0.05cm] (I_2) -- (I_1);
-								\draw[color=norange!70, line width = 0.05cm] (I_2) -- (I_3);
-								\draw[color=norange!70, line width = 0.05cm] (I_3) -- (I_1);
-								
-								\draw[thick,->,color=nred!50,line width=0.05cm] (0.4,0.55,0.5) -- (0.8, 1.0, 1.0);
-								\node[color=nred!50,anchor=west,xshift=0.2cm, yshift=0.2cm] at (I_2) {$a$};
-								\node[color=nred!50,anchor=west] at (0.8, 1.0, 01.0) {$j$}; 
-								
-								\filldraw[color=jblue] (I_1) circle[radius=0.5pt];
-								\filldraw[color=jblue] (I_2) circle[radius=0.5pt];					 
-							    \filldraw[color=jblue] (I_3) circle[radius=0.5pt];
-							    \filldraw[color=norange] (0.4, 0.55, 0.5) circle[radius=0.5pt];
 							} &
 							\drawsmallgraph{
 								\draw[color=norange!70, line width=0.05cm](O) -- (I_1);
@@ -263,21 +273,49 @@
 							    \filldraw[color=norange] (0.4, 0.55, 0.5) circle[radius=0.5pt];
 							} \\
 							
-							${}^1$ Precompute and index point pairs by $\theta$. \\
-							${}^3$ Search for database point pairs whose $\theta$ is close to the image subset $\theta$.
-							
+							\parbox[t]{0.95\linewidth}{\small{
+								${}^2$ Iterate through all 2-combinations of image. 
+								\\ \vspace*{-0.1cm} \\
+								${}^3$ Compare database pair $\theta$ with an image pair $\theta$.
+								\\ \vspace*{-0.1cm} \\
+								${}^6$ Find all possible image $\rightarrow$ standard coordinate system transformations. Confidence determined with context of entire image.
+							}} 
 							&
-							
+							\parbox[t]{0.95\linewidth}{\small{
+%								${}^2$ \textit{Iterate through image set once.}
+								${}^2$ \emph{Iterate through all 3-combinations of image.}
+								\\ \vspace*{-0.1cm} \\
+								${}^3$ Compare database trio $\theta_1$,$\theta_2$,$\phi$ with image trio $\theta_1$,$\theta_2$,$\phi$, constrain that $\theta_1{<}\theta_2$.
+								\\ \vspace*{-0.1cm} \\
+								${}^6$ Mapping stored in database (asymmetry constraint above).
+							}}
 							&
-							
+							\parbox[t]{0.95\linewidth}{\small{
+								${}^2$ Iterate through all 3-combinations of image.
+								\\ \vspace*{-0.1cm} \\
+								${}^3$ Compare database trio $a$,$j$ with image trio $a$,$j$.
+								\\ \vspace*{-0.1cm} \\
+								${}^4$ Repeat query with similar subset, reduce initial resultants until unique.
+								\\ \vspace*{-0.1cm} \\
+								${}^{6}$ Same mapping + confidence process as ANG.
+							}}
 							&
-							
+							\parbox[t]{0.95\linewidth}{\small{
+								${}^2$ Iterate through all 3-combinations of image to avoid false star persistence.
+								\\ \vspace*{-0.1cm} \\
+								${}^{3,6}$ Use $\theta_1$,$\theta_2$,$\theta_3$ to both query and determine mapping. \emph{No additional verification performed.}
+%								\\ \vspace*{-0.1cm} \\
+%								${}^{6}$ \textit{Repeat query with 4th point, confidence dependent on if all resultants are near each other.}
+							}}
 							&
+							\parbox[t]{0.95\linewidth}{\small{
+								${}^2$ Same image subset selection as PYR.
+								\\ \vspace*{-0.1cm} \\
+								${}^3$ Same feature predicate as PLN.
+								\\ \vspace*{-0.1cm} \\
+								${}^{6}$ Same mapping + confidence process as ANG. \emph{No additional verification performed.}
+							}}
 							
-							&
-							
-							\\
-							\bottomrule
 						\end{tabularx}
 					\end{table}
 				\end{block}
@@ -285,16 +323,64 @@
 			
 			\begin{column}{\onecolwid} % Fourth column.
 				\begin{alertblock}{Conclusion}
-					
+					\begin{itemize}
+						\setlength\itemsep{1cm}
+						\item \parbox{0.95\linewidth}{
+							ANG is the most noise tolerant, but slowest.	
+							PYR is 2nd most noise tolerant, and fastest.
+						}
+						\item \parbox{0.95\linewidth}{
+							Order of image subset selection heavily impacts speed (PYR, COM vs.\ ANG, SPH, PLN).
+						}
+						\item \parbox{0.95\linewidth}{
+							$\theta$ features (ANG, PYR) are generally more accurate than their $a,j$ counterparts.
+						}
+						\item \parbox{0.95\linewidth}{
+							Mapping + confidence step of ANG, SPH, PLN, COM is time consuming in contrast to precomputed mapping (INT) and query-time map determination (PYR).
+						}
+					\end{itemize}
 				\end{alertblock}
 
 				\begin{block}{Future Work}
-					
+					\begin{enumerate}
+						\setlength\itemsep{1cm}
+						\item \parbox{0.95\linewidth}{
+							Characterize different methods of storage \& indexing (B-tree vs. Quad-tree, K-vector).
+						}
+						\item \parbox{0.95\linewidth}{ 
+							Characterize different methods of image $\rightarrow$ standard coordinate system orientation estimation (TRIAD vs. SVD, Q-method).
+						}
+						\item \parbox{0.95\linewidth}{
+							Model \& compare strategies that always iterate through the image and return best-fit subsets.
+						}
+					\end{enumerate}
 				\end{block}
 			
 				\begin{block}{Acknowledgements}
-					We would like to thank Dr. Miguel Nunes, Eric Pilger, and Yosef Ben Gershom from the Hawaii Space Flight Laboratory for providing input toward the creation of software for a first generation star tracker.
+					\begin{enumerate}
+						\item Dr. Miguel Nunes (Hawaii Space Flight Laboratory)
+						\item Eric Pilger (Hawaii Space Flight Laboratory)
+						\item Yosef Ben Gershom (Hawaii Space Flight Laboratory)
+					\end{enumerate}
 				\end{block}
+				
+				\begin{block}{References}
+					\nocite{perryman:hipparcosCatalogue}
+					\nocite{bratt:analysisStarIdentification}
+					\nocite{coleAndCrassidis:planarTriangleMethod}
+					\nocite{coleAndCrassidis:sphericalTriangleMethod}
+					\nocite{gottlieb:spacecraftAttitudeDetermination}
+					\nocite{spratling:surveyStarIdentification}
+					\nocite{liebe:starTrackersAttitudeDetermination}
+					\nocite{toloei:compositeIdentification}
+					\nocite{tappe:starTrackerDevelopment}
+					\nocite{mortari:pyramidIdentification}
+					\bibliographystyle{ieeetr}
+					\parbox{0.95\linewidth}{\scriptsize
+						\bibliography{include/references}
+					}
+				\end{block}
+
 			\end{column}
 		\end{columns}				
 	\end{frame}
