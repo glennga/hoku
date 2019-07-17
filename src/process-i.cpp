@@ -33,9 +33,11 @@ enum ProcessIArguments {
     SAMPLES = 11,
     FOV = 12,
     BKB_SZ = 13,
-    MIN_CED = 14,
-    MAX_CED = 15,
-    DPP = 16
+    THRES = 14,
+    DPP_X = 15,
+    DPP_Y = 16,
+    MAX_X = 17,
+    MAX_Y = 18
 };
 
 template<class T>
@@ -89,43 +91,51 @@ void read_image (cv::Mat &image) {
 }
 
 void locate_stars (char *argv[], const std::shared_ptr<Star::list> &stars, const cv::Mat &image) {
-    std::vector<std::vector<cv::Point>> c;
-    std::vector<cv::Point2f> mc;
-    std::vector<cv::Moments> mu;
-    std::vector<cv::Vec4i> h;
-    stars->clear();
+    cv::Mat working;
+
+    // Convert to a grayscale image.
+    cv::cvtColor(image, working, cv::COLOR_BGR2GRAY);
 
     // Blur the image with a normalized box filter, gives imperfections lower weight.
-    cv::blur(image, image, cv::Size(
-            std::stoi(argv[ProcessIArguments::BKB_SZ]),
-            std::stoi(argv[ProcessIArguments::BKB_SZ])
+    cv::blur(working, working, cv::Size(
+        std::stoi(argv[ProcessIArguments::BKB_SZ]),
+        std::stoi(argv[ProcessIArguments::BKB_SZ])
     ));
 
-    // Find the edges in the image. Uses Canny Edge Detection.
-    cv::Canny(image, image,
-        std::stoi(argv[ProcessIArguments::MIN_CED]),
-        std::stoi(argv[ProcessIArguments::MAX_CED])
-    );
+    // Convert to a binary image.
+    cv::threshold(working, working, std::stoi(argv[ProcessIArguments::THRES]), 255, cv::THRESH_BINARY);
 
     // Find the contours in the image, after producing a binary image (step above).
-    cv::findContours(image, c, h, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE);
+    std::vector<std::vector<cv::Point>> c;
+    std::vector<cv::Vec4i> h;
+    cv::findContours(working, c, h, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE);
 
     // Find the moments in the image. Do not accept zeroed entries.
+    std::vector<cv::Moments> mu;
     mu.resize(c.size());
     for (unsigned int i = 0; i < c.size(); i++) {
         mu[i] = cv::moments(c[i], false);
     }
 
     // Compute the centroids, given each moment.
+    std::vector<cv::Point2f> mc;
     mc.resize(c.size());
-    for (unsigned int i = 0; i < c.size(); i++) {
-        mc[i] = cv::Point2f(mu[i].m10 / mu[i].m00, mu[i].m01 / mu[i].m00);
+    for (const auto &m : mu) {
+        mc.emplace_back(cv::Point2d(m.m10 / m.m00, m.m01 / m.m00));
     }
 
     // Project each point onto a 3D sphere and save this to our star list.
+    stars->reserve(mc.size());
     for (const cv::Point2f &p : mc) {
-        double big_r = (1 / std::stod(argv[ProcessIArguments::DPP])) * 180 / M_PI;
-        double lon = p.x / big_r, lat = (2.0 * atan(exp(p.y / big_r))) - M_PI / 2.0;
+        // Translate our 2D OpenCV system to have (0, 0) at the center and normalize.
+        double m_x = (p.x - std::stod(argv[ProcessIArguments::MAX_X]) / 2.) /
+            ((1. / std::stod(argv[ProcessIArguments::DPP_X])) * 180. / M_PI);
+        double m_y = (p.y - std::stod(argv[ProcessIArguments::MAX_Y]) / 2.) /
+            ((1. / std::stod(argv[ProcessIArguments::DPP_X])) * 180. / M_PI);
+
+        // Apply the inverse Mercator projection w/ an ellipsoid.
+        double lat = (2.0 * atan(exp(m_y))) - M_PI / 2.0;
+        double lon = m_x;
 
         stars->push_back(Star::wrap(Vector3::Normalized(Vector3(
                 cos(lat) * cos(lon),

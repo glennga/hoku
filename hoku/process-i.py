@@ -22,9 +22,11 @@ def get_arguments() -> Namespace:
         ['-samples', 'Number of identifications to perform.', int, None],
         ['-imfov', 'Field-of-view of the camera.', float, None],
         ['-bkbsz', 'Length of one kernel side used in normalized box filter.', int, None],
-        ['-minced', 'Minimum threshold of intensity gradient (hystersis thresholding).', int, None],
-        ['-maxced', 'Maximum threshold of intensity gradient (hystersis thresholding).', int, None],
-        ['-dpp', 'Degrees per pixel of the camera.', float, None]
+        ['-thres', 'Thresholding value, to produce binary image.', int, None],
+        ['-dppx', 'Degrees per pixel of the camera in the X axis.', float, None],
+        ['-dppy', 'Degrees per pixel of the camera in the Y axis.', float, None],
+        ['-maxx', 'Maximum X pixel.', int, None],
+        ['-maxy', 'Maximum Y pixel.', int, None]
     ]))
 
     return parser.parse_args()
@@ -55,7 +57,9 @@ if __name__ == '__main__':
             str(arguments.samples),
             str(arguments.imfov),
             str(arguments.bkbsz),
-            str(arguments.minced),
-            str(arguments.maxced),
-            str(arguments.dpp)
+            str(arguments.thres),
+            str(arguments.dppx),
+            str(arguments.dppy),
+            str(arguments.maxx),
+            str(arguments.maxy)
         ])

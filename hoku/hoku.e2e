@@ -18,6 +18,8 @@ python3 ${HOKU_PROJECT_PATH}/hoku/process-i.py \
     -samples 10 \
     -imfov ${CAMERA_FOV} \
     -bkbsz ${BKB_SZ} \
-    -minced ${MIN_CED} \
-    -maxced ${MAX_CED} \
-    -dpp ${DPP} > ${PROCESS_I_OUT}
+    -minced ${THRESHOLD} \
+    -dppx ${DPP_X} \
+    -dppy ${DPP_Y} \
+    -maxx ${MAX_X} \
+    -maxy ${MAX_Y} > ${PROCESS_I_OUT}
