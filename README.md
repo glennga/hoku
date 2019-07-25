@@ -1,5 +1,8 @@
 # Hoku (Lost-in-Space Star Identification for Spacecraft)
 
+**Note: this project is no longer being maintained. Refer to https://github.com/glennga/hoku-iwa for work towards a working star-tracker. **
+
+
 ## Overview
 Ancient mariners could look up the night sky, point out what stars they were looking at, and navigate across the globe 
 with precision. _Star identification algorithm_ refers to a computational approach to pointing out which stars are in 
