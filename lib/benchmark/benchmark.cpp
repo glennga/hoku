@@ -16,10 +16,14 @@ const double Benchmark::NO_FOV = -1;
 const double Benchmark::NO_M_BAR = 30.0;
 const int Benchmark::NO_N = -1;
 
-Benchmark::Benchmark (const std::shared_ptr<Chomp>& ch, const double fov, const int n, const double m_bar) {
+Benchmark::Benchmark (const std::shared_ptr<Chomp> &ch, const double fov, const int n, const double m_bar) {
     this->b = std::make_shared<Star::list>(), this->b_answers = std::make_shared<Star::list>();
     this->r = std::make_shared<Star::list>(), this->fov = fov;
     this->generate_stars(ch, n, m_bar);
+}
+Benchmark::Benchmark (const std::shared_ptr<Chomp> &ch, const std::shared_ptr<Star::list> &b, const double fov) {
+    this->b = b, this->b_answers = std::make_shared<Star::list>();
+    this->r = std::make_shared<Star::list>(), this->fov = fov;
 }
 
 Star Benchmark::operator[] (const unsigned int n) const { return (*this->b)[n]; }

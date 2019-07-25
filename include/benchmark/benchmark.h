@@ -38,7 +38,8 @@ public:
 private:
     void shuffle ();
 
-    explicit Benchmark (const std::shared_ptr<Chomp> &ch, double fov, int n = NO_N, double m_bar = NO_M_BAR);
+    Benchmark (const std::shared_ptr<Chomp> &ch, double fov, int n = NO_N, double m_bar = NO_M_BAR);
+    Benchmark (const std::shared_ptr<Chomp> &ch, const std::shared_ptr<Star::list> &b, double fov);
 
 private:
     Rotation q_rb = Rotation(0, 0, 0, 0);
@@ -67,9 +68,14 @@ public:
         this->fov = num;
         return *this;
     }
-    Benchmark build () { return Benchmark(ch, fov, n, m_bar); }
+    Builder &using_stars (const std::shared_ptr<Star::list> &b_stars) {
+        this->b = b_stars;
+        return *this;
+    }
+    Benchmark build () { return (b == nullptr) ? Benchmark(ch, fov, n, m_bar) : Benchmark(ch, b, fov); }
 
 private:
+    std::shared_ptr<Star::list> b = nullptr;
     std::shared_ptr<Chomp> ch;
     double m_bar = NO_M_BAR;
     double fov = NO_FOV;

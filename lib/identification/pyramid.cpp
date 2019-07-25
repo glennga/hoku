@@ -254,15 +254,15 @@ Pyramid::StarsEither Pyramid::identify () {
                 if (r.error == NO_CONFIDENT_R_FOUND_EITHER) continue;
 
                 // Run this through the verification step.
-                if (!verification(r.result, b)) continue;
-                else {
+                // if (!verification(r.result, b)) continue;
+                // else {
                     std::cout << "[PYRAMID] Match found!" << std::endl;
                     return StarsEither{Star::list{
                             Star::define_label(be->get_image()->at(i), r.result[0].get_label()),
                             Star::define_label(be->get_image()->at(j), r.result[1].get_label()),
                             Star::define_label(be->get_image()->at(k), r.result[2].get_label())
                     }, 0};
-                }
+                // }
             }
         }
     }

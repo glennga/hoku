@@ -1,0 +1,68 @@
+#!/bin/bash
+set -e
+
+HOKU_PROJECT_PATH="$(dirname "$0")/../"
+source ${HOKU_PROJECT_PATH}/hoku/hoku.cfg
+
+perform_chunk() {
+    python3 ${HOKU_PROJECT_PATH}/hoku/perform-e.py \
+        -pnum ${PARALLEL} \
+        -refdb ${REFERENCE_DB} \
+        -recdb ${RECORD_DB} \
+        -hip ${HIP_TABLE} \
+        -bright ${BRIGHT_TABLE} \
+        -rtable $1 \
+        -etable "MAP" \
+        -strategy $1 \
+        -prefix $1 \
+        -ep1 $2 \
+        -ep2 $3 \
+        -ep3 $4 \
+        -ep4 $5 \
+        -nlimit -1 \
+        -mlimit ${M_LIMIT} \
+        -nulimit ${NU_LIMIT} \
+        -exper "MAP" \
+        -samples ${S_SAMPLES} \
+        -imfov ${S_FOV} \
+        -ssiter ${SHIFT_STAR_ITER} \
+        -ssstep ${SHIFT_STAR_STEP} \
+        -esmin ${EXTRA_STAR_MIN} \
+        -esiter ${EXTRA_STAR_ITER} \
+        -esstep ${EXTRA_STAR_STEP} \
+        -rmiter ${REMOVE_STAR_ITER} \
+        -rmstep ${REMOVE_STAR_STEP} \
+        -rmsigma ${REMOVE_STAR_SIGMA}
+}
+
+#for i in 0 1 2 3 4 5; do
+for i in 1; do
+    perform_chunk ${STRATEGIES[$i]} ${EPSILON_1[$i]} ${EPSILON_2[$i]} ${EPSILON_3[$i]} ${EPSILON_4[$i]}
+done
+
+#for ep_1 in 1.0e-1 1.0e-2 1.0e-3 1.0e-4 1.0e-5 1.0e-6 1.0e-7 1.0e-8 1.0e-9; do
+#    for ep_4 in 1.0e-1 1.0e-2 1.0e-3 1.0e-4 1.0e-5 1.0e-6 1.0e-7 1.0e-8 1.0e-9; do
+#        perform_chunk "ANGLE" $ep_1 0.0 0.0 $ep_4
+#    done
+#    perform_chunk "PYRAMID" $ep_1 0.0 0.0 0.0
+#done
+#
+#
+#for ep_1 in 1.0e-1 1.0e-2 1.0e-3 1.0e-4 1.0e-5 1.0e-6 1.0e-7 1.0e-8 1.0e-9; do
+#    for ep_2 in 1.0e-1 1.0e-2 1.0e-3 1.0e-4 1.0e-5 1.0e-6 1.0e-7 1.0e-8 1.0e-9; do
+#        for ep_3 in 1.0e-1 1.0e-2 1.0e-3 1.0e-4 1.0e-5 1.0e-6 1.0e-7 1.0e-8 1.0e-9; do
+#            perform_chunk "DOT" $ep_1 $ep_2 $ep_3 0.0
+#        done
+#    done
+#done
+#
+#for ep_1 in 1.0e-5 1.0e-6 1.0e-7 1.0e-8 1.0e-9; do
+#    for ep_2 in 1.0e-5 1.0e-6 1.0e-7 1.0e-8 1.0e-9; do
+#        for ep_4 in 1.0e-1 1.0e-2 1.0e-3 1.0e-4 1.0e-5 1.0e-6 1.0e-7 1.0e-8 1.0e-9; do
+#            perform_chunk "SPHERE" $ep_1 $ep_2 0.0 $ep_4 
+#            perform_chunk "PLANE" $ep_1 $ep_2 0.0 $ep_4 
+#            perform_chunk "COMPOSITE" $ep_1 $ep_2 0.0 $ep_4 
+#        done
+#    done
+#done
+

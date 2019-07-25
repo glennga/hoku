@@ -28,13 +28,13 @@ if __name__ == '__main__':
     from subprocess import call
     from pathlib import Path
 
-    if not Path(abspath(__file__).replace('/hoku.gn', '') + '/../bin/GenerateN').is_file():
+    if not Path(abspath(__file__).replace('/generate-n.py', '') + '/../bin/GenerateN').is_file():
         print("hoku/bin/GenerateN does not exist. Run CMake + make before this.")
 
     else:
         arguments = get_arguments()
         call([
-            abspath(__file__).replace('/hoku.gn', '') + '/../bin/GenerateN',
+            abspath(__file__).replace('/generate-n.py', '') + '/../bin/GenerateN',
             arguments.db,
             arguments.cat,
             arguments.hip,
