@@ -1,6 +1,6 @@
 # Hoku (Lost-in-Space Star Identification for Spacecraft)
 
-**Note: this project is no longer being maintained. Refer to https://github.com/glennga/hoku-iwa for work towards a working star-tracker. **
+**Note: this project is no longer being maintained.**
 
 
 ## Overview
