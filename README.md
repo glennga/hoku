@@ -64,9 +64,6 @@ To run experiments for all methods, use the `hoku/hoku.run` script. The results 
 Lumberjack database (`lumberjack.db`) by default, stored in tables according to the experiments and grouped by the
 experiment timestamp.  
 
-## Star Identification From Image
-See [hoku-iwa](https://github.com/glennga/hoku-iwa).
-
 ## Google Test Generation
 Google Test is attached as a Git Submodule. Run the following commands to get Google Test in this repository.
 ```cmd
